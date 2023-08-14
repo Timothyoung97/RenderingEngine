@@ -1,0 +1,6 @@
+• dont use SDL_PollEvent. use SDL_PeepEvents instead. see: https://wiki.libsdl.org/SDL2/SDL_PeepEvents
+• frame rate controller (60 fps cap)
+    • will require u to implement a simple Timer functionality
+• create helper function/acro for checking return values for SDL functions & printing error msgs & asserting if necessary
+• command line arguments. you can use the 'cxxopts' library: https://github.com/jarro2783/cxxopts
+• simple text logging. you can use 'spdlog' library: https://github.com/gabime/spdlog
