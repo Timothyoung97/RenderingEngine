@@ -18,6 +18,14 @@
 		} \
 	} while (false)
 
+#define CHECK_SDL_ERR(condition) \
+{ \
+	if (!(condition)) { \
+		std::printf("Assertion failed: %s at %s:%d\n", SDL_GetError(), __FILE__, __LINE__);	\
+		assert(condition); \
+	} \
+}
+
 //Screen dimension constants
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
@@ -28,10 +36,13 @@ int main(int argc, char* args[])
 	SDL_Window* window = NULL;
 
 	//Initialize SDL
-	SDL_Init(SDL_INIT_VIDEO);
+	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+		CHECK_SDL_ERR(false);
+	}
 
 	//Create window
 	window = SDL_CreateWindow("D3D11 with SDL", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+	CHECK_SDL_ERR(window);
 	
 	//Obtain Windows HWND pointer
 	SDL_SysWMinfo wmInfo;
