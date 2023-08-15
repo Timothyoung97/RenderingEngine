@@ -5,7 +5,11 @@
 • init d3d11 device/context, and clear swap chain to grey color
 • command line arguments. you can use the 'cxxopts' library: https://github.com/jarro2783/cxxopts
 • simple text logging. you can use 'spdlog' library: https://github.com/gabime/spdlog
-
+• integrate & implement simple math & colors library
+    • use typedefs for classes in DirectXMath.h & DirectXColors.h
+• mouse/keyboard controls
+    • required for future task of 3d camera movement and rotation
 
 NOTE: for d3d11, you will need to use the 'SDL_GetWindowWMInfo' function to retrieve the underlying Windows HWND pointer
     • see https://wiki.libsdl.org/SDL2/SDL_GetWindowWMInfo
+    
