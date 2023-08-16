@@ -133,10 +133,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="create_sdl_window.cpp" />
-    <ClCompile Include="my_timer.cpp" />
+    <ClCompile Include="timer.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="my_timer.h" />
+    <ClInclude Include="timer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

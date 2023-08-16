@@ -13,7 +13,7 @@
 #include <stdio.h>
 #include <cassert>
 
-#include "my_timer.h"
+#include "timer.h"
 
 #define CHECK_DX11_ERROR(hresult) \
 { \
@@ -169,12 +169,11 @@ int main(int argc, char* args[])
 	ID3D11RenderTargetView* bufferRTV[2] = { backBufferRTV, frontBufferRTV };
 	int bufferRTVIdx = 0;
 
-	// Create MyTimer
-	MyTimer mytimer(1);
-
 	// main loop
 	while (!quit) 
 	{
+		Timer timer;
+
 		SDL_PumpEvents();
 
 		SDL_PeepEvents(&e, 1, SDL_GETEVENT, SDL_FIRSTEVENT, SDL_LASTEVENT);
@@ -195,7 +194,11 @@ int main(int argc, char* args[])
 		
 		bufferRTVIdx = bufferRTVIdx ? 0 : 1;
 
-		mytimer.checkForSleep();
+		double dTime = timer.getDeltaTime();
+
+		while (dTime < 1000.0 / 1) {
+			dTime = timer.getDeltaTime();
+		}
 	}
 
 	//Cleanup
