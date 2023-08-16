@@ -10,19 +10,19 @@
 #include <stdio.h>
 #include <cassert>
 
-//#define CHECK_DX11_ERROR(condition) \
-//{ \
-//	if (!(condition)) { \
-//		std::printf("Assertion failed: %s at %s:%d\n", result, __FILE__, __LINE__);	\
-//		assert(condition); \
-//	} \
-//}
+#define CHECK_DX11_ERROR(hresult) \
+{ \
+	if (!SUCCEEDED(hresult)) { \
+		std::printf("Assertion failed: %d at %s:%d\n", hresult, __FILE__, __LINE__);	\
+		assert(false); \
+	} \
+}
 
 #define CHECK_SDL_ERR(condition) \
 { \
 	if (!(condition)) { \
 		std::printf("Assertion failed: %s at %s:%d\n", SDL_GetError(), __FILE__, __LINE__);	\
-		assert(condition); \
+		assert(false); \
 	} \
 }
 
@@ -56,6 +56,7 @@ int main(int argc, char* args[])
 	ID3D11DeviceContext* context = nullptr;
 
 	UINT creationFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
+
 #if defined(_DEBUG)
 	// If the project is in a debug build, enable the debug layer.
 	creationFlags |= D3D11_CREATE_DEVICE_DEBUG;
@@ -102,13 +103,13 @@ int main(int argc, char* args[])
 		d3dDebug->Release();
 	}
 
-	//CHECK_DX11_ERROR(SUCCEEDED(result));
+	CHECK_DX11_ERROR(result);
 
 	//Create dxgiFactory
 	IDXGIFactory* dxgiFactory = nullptr;
 	result = CreateDXGIFactory1(__uuidof(IDXGIFactory), reinterpret_cast<void**>(&dxgiFactory));
 
-	//CHECK_DX11_ERROR(SUCCEEDED(result));
+	CHECK_DX11_ERROR(result);
 
 	//Create SwapChain
 	IDXGISwapChain* swapChain = nullptr;
@@ -125,7 +126,7 @@ int main(int argc, char* args[])
 
 	result = dxgiFactory->CreateSwapChain(device, &swapChainDesc, &swapChain);
 
-	//CHECK_DX11_ERROR(SUCCEEDED(result));
+	CHECK_DX11_ERROR(result);
 
 	//Rendering Loop
 	SDL_Event e;
