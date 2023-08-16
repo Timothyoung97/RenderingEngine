@@ -4,6 +4,7 @@
 
 #include <dxgi.h>
 #include <dxgidebug.h>
+#include <dxgi1_2.h>
 #include <dxgi1_3.h>
 #include <d3d11.h>
 #pragma comment(lib, "d3d11.lib")
@@ -113,32 +114,38 @@ int main(int argc, char* args[])
 	}
 
 	//Create dxgiFactory
-	IDXGIFactory* dxgiFactory = nullptr;
-	result = CreateDXGIFactory1(__uuidof(IDXGIFactory), reinterpret_cast<void**>(&dxgiFactory));
+	IDXGIFactory2* dxgiFactory2 = nullptr;
+	result = CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, __uuidof(IDXGIFactory2), reinterpret_cast<void**>(&dxgiFactory2));
 
 	CHECK_DX11_ERROR(result);
 
 	//Create SwapChain
-	IDXGISwapChain* swapChain = nullptr;
+	IDXGISwapChain1* swapChain = nullptr;
 
-	DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
-	swapChainDesc.BufferCount = 1;
-	swapChainDesc.BufferDesc.Width = SCREEN_WIDTH; 
-	swapChainDesc.BufferDesc.Height = SCREEN_HEIGHT;
-	swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM; // Pixel format
-	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	swapChainDesc.OutputWindow = hwnd;
-	swapChainDesc.SampleDesc.Count = 1;
-	swapChainDesc.Windowed = TRUE;
+	DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
+	swapChainDesc.Width = SCREEN_WIDTH;
+	swapChainDesc.Height = SCREEN_HEIGHT;
+	swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	swapChainDesc.Stereo = false;
+	swapChainDesc.SampleDesc = DXGI_SAMPLE_DESC{ 1, 0 };
+	swapChainDesc.BufferUsage = DXGI_CPU_ACCESS_NONE;
+	swapChainDesc.BufferCount = 2;
+	swapChainDesc.Scaling = DXGI_SCALING_NONE;
+	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+	swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
+	swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
-	result = dxgiFactory->CreateSwapChain(device, &swapChainDesc, &swapChain);
+	result = dxgiFactory2->CreateSwapChainForHwnd(device, hwnd, &swapChainDesc, NULL, NULL, &swapChain);
 
 	CHECK_DX11_ERROR(result);
 
 	//Rendering Loop
 	SDL_Event e;
 	bool quit = false;
+
+	//Front and Back buffer
 	bool isFrontBuffer = true;
+
 
 
 	while (!quit) {
@@ -173,7 +180,7 @@ int main(int argc, char* args[])
 
 	//Cleanup
 	swapChain->Release();
-	dxgiFactory->Release();
+	dxgiFactory2->Release();
 	context->Release();
 	device->Release();
 
