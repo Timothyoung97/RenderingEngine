@@ -133,7 +133,7 @@ int main(int argc, char* args[])
 	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	swapChainDesc.BufferCount = 2;
 	swapChainDesc.Scaling = DXGI_SCALING_NONE;
-	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
 	swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
 	swapChainDesc.Flags = 0;
 
@@ -146,27 +146,11 @@ int main(int argc, char* args[])
 	bool quit = false;
 
 	//Get backbuffer
-	ID3D11Texture2D* backBuffer;
-	result = swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&backBuffer);
+	ID3D11Texture2D* backBuffer = nullptr;
+	ID3D11Texture2D* frontBuffer = nullptr;
 
-	ID3D11RenderTargetView* backBufferRTV = nullptr;
-
-	result = device->CreateRenderTargetView(backBuffer, NULL, &backBufferRTV);
-
-	CHECK_DX11_ERROR(result);
-
-	//Get frontBuffer
-	ID3D11Texture2D* frontBuffer;
-	result = swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&frontBuffer);
-
-	ID3D11RenderTargetView* frontBufferRTV = nullptr;
-
-	result = device->CreateRenderTargetView(frontBuffer, NULL, &frontBufferRTV);
-
-	CHECK_DX11_ERROR(result);
-
-	// Array of buffer RTV
-	ID3D11RenderTargetView* bufferRTV[2] = { backBufferRTV, frontBufferRTV };
+	// Array of buffer 
+	ID3D11Texture2D* bufferRTV[2] = { backBuffer, frontBuffer };
 	int bufferRTVIdx = 0;
 
 	// main loop
@@ -182,11 +166,23 @@ int main(int argc, char* args[])
 			quit = true;
 		}
 
-		ID3D11RenderTargetView* renderTargetView = bufferRTV[bufferRTVIdx];
+		// Alternating buffers
+		ID3D11Texture2D* currBuffer = bufferRTV[bufferRTVIdx];
+
+		result = swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&currBuffer);
+
+		CHECK_DX11_ERROR(result);
+
+		// Create render target view
+		ID3D11RenderTargetView* renderTargetView = nullptr;
+
+		result = device->CreateRenderTargetView(currBuffer, NULL, &renderTargetView);
+
+		CHECK_DX11_ERROR(result);
 
 		context->OMSetRenderTargets(1, &renderTargetView, nullptr);
 
-		float clearColor[4] = { bufferRTVIdx ? .5f, .5f, .5f, 1.0f : 0.0f, 0.0f, 0.0f, 0.0f };
+		float clearColor[4] = { bufferRTVIdx ? .5f, .5f, .5f, 1.0f : 0.0f, 0.0f, 0.0f, 0.0f }; // TODO: check why is color red
 		
 		context->ClearRenderTargetView(renderTargetView, clearColor);
 
@@ -202,10 +198,6 @@ int main(int argc, char* args[])
 	}
 
 	//Cleanup
-	frontBufferRTV->Release();
-	backBufferRTV->Release();
-	frontBuffer->Release();
-	backBuffer->Release();
 	swapChain->Release();
 	dxgiFactory2->Release();
 	context->Release();
