@@ -55,10 +55,8 @@ int main(int argc, char* args[])
 	ID3D11Device* device = nullptr;
 	ID3D11DeviceContext* context = nullptr;
 
-	UINT creationFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
-
-#if defined(_DEBUG)
-	// If the project is in a debug build, enable the debug layer.
+	UINT creationFlags = 0;
+#if defined(_DEBUG) // If the project is in a debug build, enable the debug layer.
 	creationFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
