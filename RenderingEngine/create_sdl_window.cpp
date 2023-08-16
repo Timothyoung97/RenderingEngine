@@ -87,17 +87,6 @@ int main(int argc, char* args[])
 			d3dInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_ERROR, true);
 			d3dInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_WARNING, true);
 #endif
-
-			D3D11_MESSAGE_ID hide[] =
-			{
-			D3D11_MESSAGE_ID_SETPRIVATEDATA_CHANGINGPARAMS,
-			// Add more message IDs here as needed
-			};
-
-			D3D11_INFO_QUEUE_FILTER filter = {};
-			filter.DenyList.NumIDs = _countof(hide);
-			filter.DenyList.pIDList = hide;
-			d3dInfoQueue->AddStorageFilterEntries(&filter);
 			d3dInfoQueue->Release();
 		}
 		d3dDebug->Release();
