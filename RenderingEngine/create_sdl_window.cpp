@@ -3,6 +3,8 @@
 #include <SDL_syswm.h>
 
 #include <dxgi.h>
+#include <dxgidebug.h>
+#include <dxgi1_3.h>
 #include <d3d11.h>
 #pragma comment(lib, "d3d11.lib")
 
@@ -30,6 +32,9 @@
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
 
+// DXGI_DEBUG_ALL
+const GUID dxgi_debug_all = { 0xe48ae283, 0xda80, 0x490b, { 0x87, 0xe6, 0x43, 0xe9, 0xa9, 0xcf, 0xda, 0x8 } };
+
 int main(int argc, char* args[])
 {
 
@@ -55,10 +60,7 @@ int main(int argc, char* args[])
 	ID3D11Device* device = nullptr;
 	ID3D11DeviceContext* context = nullptr;
 
-	UINT creationFlags = 0;
-#if defined(_DEBUG) // If the project is in a debug build, enable the debug layer.
-	creationFlags |= D3D11_CREATE_DEVICE_DEBUG;
-#endif
+	UINT creationFlags = D3D11_CREATE_DEVICE_DEBUG;
 
 	D3D_FEATURE_LEVEL featureLevel;
 	HRESULT result = D3D11CreateDevice(
@@ -74,23 +76,41 @@ int main(int argc, char* args[])
 		&context
 	);
 
+	CHECK_DX11_ERROR(result);
+
+	//Create D3D11 debug layer
 	ID3D11Debug* d3dDebug = nullptr;
 	if (SUCCEEDED(device->QueryInterface(__uuidof(ID3D11Debug), (void**)&d3dDebug)))
 	{
 		ID3D11InfoQueue* d3dInfoQueue = nullptr;
 		if (SUCCEEDED(d3dDebug->QueryInterface(__uuidof(ID3D11InfoQueue), (void**)&d3dInfoQueue)))
 		{
-#ifdef _DEBUG
 			d3dInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_CORRUPTION, true);
 			d3dInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_ERROR, true);
 			d3dInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_WARNING, true);
-#endif
+
 			d3dInfoQueue->Release();
+			d3dDebug->Release();
 		}
-		d3dDebug->Release();
 	}
 
-	CHECK_DX11_ERROR(result);
+	//Create DXGI debug layer
+	IDXGIDebug1* dxgiDebug = nullptr;
+	if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&dxgiDebug))))
+	{
+		dxgiDebug->EnableLeakTrackingForThread();
+		IDXGIInfoQueue* dxgiInfoQueue = nullptr;
+		if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&dxgiInfoQueue))))
+		{
+
+			dxgiInfoQueue->SetBreakOnSeverity(dxgi_debug_all, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_CORRUPTION, true);
+			dxgiInfoQueue->SetBreakOnSeverity(dxgi_debug_all, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_ERROR, true);
+			dxgiInfoQueue->SetBreakOnSeverity(dxgi_debug_all, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_WARNING, true);
+
+			dxgiInfoQueue->Release();
+			dxgiDebug->Release();
+		}
+	}
 
 	//Create dxgiFactory
 	IDXGIFactory* dxgiFactory = nullptr;
