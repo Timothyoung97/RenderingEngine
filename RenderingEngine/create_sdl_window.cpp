@@ -128,12 +128,12 @@ int main(int argc, char* args[])
 	swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	swapChainDesc.Stereo = false;
 	swapChainDesc.SampleDesc = DXGI_SAMPLE_DESC{ 1, 0 };
-	swapChainDesc.BufferUsage = DXGI_CPU_ACCESS_NONE;
+	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	swapChainDesc.BufferCount = 2;
 	swapChainDesc.Scaling = DXGI_SCALING_NONE;
 	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 	swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
-	swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+	swapChainDesc.Flags = 0;
 
 	result = dxgiFactory2->CreateSwapChainForHwnd(device, hwnd, &swapChainDesc, NULL, NULL, &swapChain);
 
@@ -143,10 +143,29 @@ int main(int argc, char* args[])
 	SDL_Event e;
 	bool quit = false;
 
-	//Front and Back buffer
-	bool isFrontBuffer = true;
+	//Get backbuffer
+	ID3D11Texture2D* backBuffer;
+	result = swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&backBuffer);
 
+	ID3D11RenderTargetView* backBufferRTV = nullptr;
 
+	result = device->CreateRenderTargetView(backBuffer, NULL, &backBufferRTV);
+
+	CHECK_DX11_ERROR(result);
+
+	//Get frontBuffer
+	ID3D11Texture2D* frontBuffer;
+	result = swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&frontBuffer);
+
+	ID3D11RenderTargetView* frontBufferRTV = nullptr;
+
+	result = device->CreateRenderTargetView(frontBuffer, NULL, &frontBufferRTV);
+
+	CHECK_DX11_ERROR(result);
+
+	// Array of buffer RTV
+	ID3D11RenderTargetView* bufferRTV[2] = { backBufferRTV, frontBufferRTV };
+	int bufferRTVIdx = 0;
 
 	while (!quit) {
 
@@ -158,27 +177,24 @@ int main(int argc, char* args[])
 			quit = true;
 		}
 
-		// Get the back buffer from the swap chain
-		ID3D11Texture2D* backBuffer;
-		swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&backBuffer);
+		ID3D11RenderTargetView* renderTargetView = bufferRTV[bufferRTVIdx];
 
-		// Create a render target view from the back buffer
-		ID3D11RenderTargetView* renderTargetView;
-		device->CreateRenderTargetView(backBuffer, nullptr, &renderTargetView);
+		context->OMSetRenderTargets(1, &renderTargetView, nullptr);
 
-		// Clear the back buffer (render target view) to grey color
-		float clearColor[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
+		float clearColor[4] = { bufferRTVIdx ? .5f, .5f, .5f, 1.0f : 0.0f, 0.0f, 0.0f, 0.0f };
+		
 		context->ClearRenderTargetView(renderTargetView, clearColor);
 
-		// Present the frame
-		swapChain->Present(1, 0); // Synchronize to screen refresh
-
-		// Release resources
-		renderTargetView->Release();
-		backBuffer->Release();
+		swapChain->Present(0, 0);
+		
+		bufferRTVIdx = bufferRTVIdx ? 0 : 1;
 	}
 
 	//Cleanup
+	frontBufferRTV->Release();
+	backBufferRTV->Release();
+	frontBuffer->Release();
+	backBuffer->Release();
 	swapChain->Release();
 	dxgiFactory2->Release();
 	context->Release();
