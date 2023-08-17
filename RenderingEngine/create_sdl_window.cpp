@@ -8,12 +8,17 @@
 #include <dxgi1_3.h>
 #include <dxgi1_4.h>
 #include <d3d11.h>
+#include <d3dcompiler.h>
 #pragma comment(lib, "d3d11.lib")
 
 #include <iostream>
+#include <fstream>
+
 #include <stdio.h>
 #include <cassert>
+#include <vector>
 
+//Custom Header
 #include "timer.h"
 
 #define CHECK_DX11_ERROR(hresult) \
@@ -41,7 +46,6 @@ const GUID dxgi_debug_all = { 0xe48ae283, 0xda80, 0x490b, { 0x87, 0xe6, 0x43, 0x
 
 int main(int argc, char* args[])
 {
-
 	//The window we'll be rendering to
 	SDL_Window* window = NULL;
 
@@ -144,6 +148,59 @@ int main(int argc, char* args[])
 	CHECK_DX11_ERROR(result);
 
 	swapChain3 = (IDXGISwapChain3*) swapChain;
+
+	////Load pre-compiled shaders
+	//std::vector<byte> vertexShaderBytes;
+	//std::vector<byte> pixelShaderBytes;
+
+	//std::ifstream verShaderFile("./shaders/vertex_shader.bin", std::ios::binary | std::ios::ate);
+	//if (verShaderFile) {
+	//	int length = verShaderFile.tellg();
+	//	verShaderFile.seekg(0, verShaderFile.beg);
+	//	//std::vector<byte> data(length);
+	//	vertexShaderBytes.resize(length);
+
+	//	verShaderFile.read(reinterpret_cast<char*>(vertexShaderBytes.data()), length);
+	//	//vertexShaderBytes = data;
+	//}
+
+	ID3DBlob* pVSBlob = nullptr;
+	
+	/*result = D3DCreateBlob(vertexShaderBytes.size(), &pVSBlob);
+	
+	CHECK_DX11_ERROR(result);
+
+	memcpy(pVSBlob->GetBufferPointer(), &vertexShaderBytes, vertexShaderBytes.size());
+
+	printf("buffer Size: %d; vector size: %d\n", pVSBlob->GetBufferSize(), vertexShaderBytes.size());
+	
+	
+		
+	*/
+	ID3DBlob* pPSBlob = nullptr;
+
+
+
+	result = D3DReadFileToBlob(L"./shaders/vertex_shader.bin", &pVSBlob);
+
+	CHECK_DX11_ERROR(result);
+
+	result = D3DReadFileToBlob(L"./shaders/pixel_shader.bin", &pPSBlob);
+
+	CHECK_DX11_ERROR(result);
+
+	//Create shaders
+
+
+	CHECK_DX11_ERROR(result);
+
+	ID3D11PixelShader* pixel_shader_ptr = nullptr;
+	ID3D11VertexShader* vertex_shader_ptr = nullptr;
+
+	result = device->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), NULL, &vertex_shader_ptr);
+	result = device->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), NULL, &pixel_shader_ptr);
+
+	CHECK_DX11_ERROR(result);
 
 	//Rendering Loop
 	SDL_Event e;
