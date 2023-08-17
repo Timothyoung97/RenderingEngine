@@ -1,11 +1,16 @@
 Graphics Tasks:
 • 1 red triangle
+    • compile, load & bind Shaders
 • 1 red cube (code-generated mesh)
+    • generate, create & bind vertex/index buffers
 • 1 red sphere (code-generated mesh)
 • flying camera
-    • requires setting up a proper view & projection matrix for your Graphics Pipeline
+    • view & projection matrices
 • Both of above meshes together, with depth testing
+    • general Renderer, Depth Buffer, Depth States
 • change mesh position, rotation, scale & color in run-time
+    • Constant Buffers
+    • Affine Transformations
 
 Done:
 • init d3d11 device/context, and clear swap chain to grey color
@@ -13,11 +18,14 @@ Done:
 //////////////////////////////////////////////////////////////////////////////
 
 Engine Tasks:
-• command line arguments. you can use the 'cxxopts' library: https://github.com/jarro2783/cxxopts
-• simple text logging. you can use 'spdlog' library: https://github.com/gabime/spdlog
+• command line arguments
+    • use the 'cxxopts' library: https://github.com/jarro2783/cxxopts
+• simple text logging
+    • can use 'spdlog' library: https://github.com/gabime/spdlog
 • integrate & implement simple math & colors library
     • use typedefs for classes in DirectXMath.h & DirectXColors.h
 • External Shader Compilation app
+    • use .bat file, or simple application (any language), to use DXC on all your Shaders
 
 Done:
 • dont use SDL_PollEvent. use SDL_PeepEvents instead. see: https://wiki.libsdl.org/SDL2/SDL_PeepEvents
