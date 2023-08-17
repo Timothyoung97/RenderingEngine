@@ -6,6 +6,7 @@
 #include <dxgidebug.h>
 #include <dxgi1_2.h>
 #include <dxgi1_3.h>
+#include <dxgi1_4.h>
 #include <d3d11.h>
 #pragma comment(lib, "d3d11.lib")
 
@@ -123,6 +124,7 @@ int main(int argc, char* args[])
 
 	//Create SwapChain
 	IDXGISwapChain1* swapChain = nullptr;
+	IDXGISwapChain3* swapChain3 = nullptr;
 
 	DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
 	swapChainDesc.Width = SCREEN_WIDTH;
@@ -133,7 +135,7 @@ int main(int argc, char* args[])
 	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	swapChainDesc.BufferCount = 2;
 	swapChainDesc.Scaling = DXGI_SCALING_NONE;
-	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 	swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
 	swapChainDesc.Flags = 0;
 
@@ -141,17 +143,17 @@ int main(int argc, char* args[])
 
 	CHECK_DX11_ERROR(result);
 
+	swapChain3 = (IDXGISwapChain3*) swapChain;
+
 	//Rendering Loop
 	SDL_Event e;
 	bool quit = false;
+	
+	//Colors
+	float color1[4] = { .5f, .5f, .5f, 1.0f };
+	float color2[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
-	//Get backbuffer
-	ID3D11Texture2D* backBuffer = nullptr;
-	ID3D11Texture2D* frontBuffer = nullptr;
-
-	// Array of buffer 
-	ID3D11Texture2D* bufferRTV[2] = { backBuffer, frontBuffer };
-	int bufferRTVIdx = 0;
+	int colorIdx = 0;
 
 	// main loop
 	while (!quit) 
@@ -167,9 +169,11 @@ int main(int argc, char* args[])
 		}
 
 		// Alternating buffers
-		ID3D11Texture2D* currBuffer = bufferRTV[bufferRTVIdx];
+		int currBackBuffer = static_cast<int>(swapChain3->GetCurrentBackBufferIndex());
 
-		result = swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&currBuffer);
+		ID3D11Texture2D* currBuffer = nullptr;
+
+		result = swapChain3->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&currBuffer);
 
 		CHECK_DX11_ERROR(result);
 
@@ -181,24 +185,19 @@ int main(int argc, char* args[])
 		CHECK_DX11_ERROR(result);
 
 		context->OMSetRenderTargets(1, &renderTargetView, nullptr);
-
-		float clearColor[4] = { bufferRTVIdx ? .5f, .5f, .5f, 1.0f : 0.0f, 0.0f, 0.0f, 0.0f }; // TODO: check why is color red
 		
-		context->ClearRenderTargetView(renderTargetView, clearColor);
+		context->ClearRenderTargetView(renderTargetView, colorIdx ? color1 : color2);
 
-		swapChain->Present(0, 0);
-		
-		bufferRTVIdx = bufferRTVIdx ? 0 : 1;
+		colorIdx = colorIdx ? 0 : 1;
 
-		double dTime = timer.getDeltaTime();
+		swapChain3->Present(0, 0);
 
-		while (dTime < 1000.0 / 1) {
-			dTime = timer.getDeltaTime();
+		while (timer.getDeltaTime() < 1000.0 / 1) {
 		}
 	}
 
 	//Cleanup
-	swapChain->Release();
+	swapChain3->Release();
 	dxgiFactory2->Release();
 	context->Release();
 	device->Release();
