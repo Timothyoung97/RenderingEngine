@@ -1,18 +1,18 @@
-Graphics:
+Graphics Tasks:
 • 1 red triangle
 • 1 red cube (code-generated mesh)
 • 1 red sphere (code-generated mesh)
-• Both of above meshes together, with depth testing
 • flying camera
+    • requires setting up a proper view & projection matrix for your Graphics Pipeline
+• Both of above meshes together, with depth testing
 • change mesh position, rotation, scale & color in run-time
 
 Done:
 • init d3d11 device/context, and clear swap chain to grey color
-    NOTE: for d3d11, you will need to use the 'SDL_GetWindowWMInfo' function to retrieve the underlying Windows HWND pointer. see https://wiki.libsdl.org/SDL2/SDL_GetWindowWMInfo
 
-Engine:
-• frame rate controller (60 fps cap)
-    • will require a simple Timer implementation
+//////////////////////////////////////////////////////////////////////////////
+
+Engine Tasks:
 • command line arguments. you can use the 'cxxopts' library: https://github.com/jarro2783/cxxopts
 • simple text logging. you can use 'spdlog' library: https://github.com/gabime/spdlog
 • integrate & implement simple math & colors library
@@ -22,3 +22,4 @@ Engine:
 Done:
 • dont use SDL_PollEvent. use SDL_PeepEvents instead. see: https://wiki.libsdl.org/SDL2/SDL_PeepEvents
 • create helper function/macro for checking return values for SDL functions & printing error msgs & asserting if necessary
+• frame rate controller
