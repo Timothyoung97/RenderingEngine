@@ -8,17 +8,23 @@
 #include <dxgi1_3.h>
 #include <dxgi1_4.h>
 #include <d3d11.h>
+#include <d3dcompiler.h>
 #pragma comment(lib, "d3d11.lib")
 
 #include <iostream>
+#include <fstream>
+
 #include <stdio.h>
 #include <cassert>
+#include <vector>
 
+//Custom Header
 #include "timer.h"
 
-#define CHECK_DX11_ERROR(hresult) \
+#define CHECK_DX11_ERROR(dx11Func, ...) \
 { \
-	if (!SUCCEEDED(hresult)) { \
+	HRESULT hresult; \
+	if (!SUCCEEDED(hresult = dx11Func(__VA_ARGS__))) { \
 		std::printf("Assertion failed: %d at %s:%d\n", hresult, __FILE__, __LINE__);	\
 		assert(false); \
 	} \
@@ -41,7 +47,6 @@ const GUID dxgi_debug_all = { 0xe48ae283, 0xda80, 0x490b, { 0x87, 0xe6, 0x43, 0x
 
 int main(int argc, char* args[])
 {
-
 	//The window we'll be rendering to
 	SDL_Window* window = NULL;
 
@@ -67,7 +72,9 @@ int main(int argc, char* args[])
 	UINT creationFlags = D3D11_CREATE_DEVICE_DEBUG;
 
 	D3D_FEATURE_LEVEL featureLevel;
-	HRESULT result = D3D11CreateDevice(
+
+	CHECK_DX11_ERROR(
+		D3D11CreateDevice, 
 		nullptr,
 		D3D_DRIVER_TYPE_HARDWARE,
 		nullptr,
@@ -79,8 +86,6 @@ int main(int argc, char* args[])
 		&featureLevel,
 		&context
 	);
-
-	CHECK_DX11_ERROR(result);
 
 	//Create D3D11 debug layer
 	ID3D11Debug* d3dDebug = nullptr;
@@ -118,9 +123,13 @@ int main(int argc, char* args[])
 
 	//Create dxgiFactory
 	IDXGIFactory2* dxgiFactory2 = nullptr;
-	result = CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, __uuidof(IDXGIFactory2), reinterpret_cast<void**>(&dxgiFactory2));
 
-	CHECK_DX11_ERROR(result);
+	CHECK_DX11_ERROR(
+		CreateDXGIFactory2,
+		DXGI_CREATE_FACTORY_DEBUG,
+		__uuidof(IDXGIFactory2),
+		reinterpret_cast<void**>(&dxgiFactory2)
+	);
 
 	//Create SwapChain
 	IDXGISwapChain1* swapChain = nullptr;
@@ -139,21 +148,75 @@ int main(int argc, char* args[])
 	swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
 	swapChainDesc.Flags = 0;
 
-	result = dxgiFactory2->CreateSwapChainForHwnd(device, hwnd, &swapChainDesc, NULL, NULL, &swapChain);
-
-	CHECK_DX11_ERROR(result);
+	CHECK_DX11_ERROR(
+		dxgiFactory2->CreateSwapChainForHwnd,
+		device,
+		hwnd,
+		&swapChainDesc,
+		NULL,
+		NULL,
+		&swapChain
+	);
 
 	swapChain3 = (IDXGISwapChain3*) swapChain;
 
+	//Load pre-compiled shaders
+	ID3DBlob* pVSBlob = nullptr;
+	ID3DBlob* pPSBlob = nullptr;
+
+	CHECK_DX11_ERROR(
+		D3DReadFileToBlob,
+		L"./shaders/vertex_shader.bin", 
+		&pVSBlob
+	);
+
+	CHECK_DX11_ERROR(
+		D3DReadFileToBlob,
+		L"./shaders/pixel_shader.bin",
+		&pPSBlob
+	);
+
+	ID3D11VertexShader* vertex_shader_ptr = nullptr;
+	ID3D11PixelShader* pixel_shader_ptr = nullptr;
+
+	CHECK_DX11_ERROR(
+		device->CreateVertexShader,
+		pVSBlob->GetBufferPointer(),
+		pVSBlob->GetBufferSize(),
+		NULL, 
+		&vertex_shader_ptr
+	);
+
+	CHECK_DX11_ERROR(
+		device->CreatePixelShader,
+		pPSBlob->GetBufferPointer(),
+		pPSBlob->GetBufferSize(),
+		NULL,
+		&pixel_shader_ptr
+	);
+
+	context->VSSetShader(vertex_shader_ptr, NULL, 0);
+	context->PSSetShader(pixel_shader_ptr, NULL, 0);
+
+	//Setting Viewport
+	D3D11_VIEWPORT viewport = {};
+	viewport.TopLeftX = 0;
+	viewport.TopLeftY = 0;
+	viewport.Width = SCREEN_WIDTH;
+	viewport.Height = SCREEN_HEIGHT;
+	viewport.MinDepth = 0;
+	viewport.MaxDepth = 1;
+
+	context->RSSetViewports(1, &viewport);
+	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	
 	//Rendering Loop
 	SDL_Event e;
 	bool quit = false;
 	
 	//Colors
-	float color1[4] = { .5f, .5f, .5f, 1.0f };
-	float color2[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-
-	int colorIdx = 0;
+	float color[4] = { .5f, .5f, .5f, 1.0f };
 
 	// main loop
 	while (!quit) 
@@ -173,22 +236,18 @@ int main(int argc, char* args[])
 
 		ID3D11Texture2D* currBuffer = nullptr;
 
-		result = swapChain3->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&currBuffer);
-
-		CHECK_DX11_ERROR(result);
+		swapChain3->GetBuffer(currBackBuffer, __uuidof(ID3D11Texture2D), (LPVOID*)&currBuffer);
 
 		// Create render target view
 		ID3D11RenderTargetView* renderTargetView = nullptr;
 
-		result = device->CreateRenderTargetView(currBuffer, NULL, &renderTargetView);
-
-		CHECK_DX11_ERROR(result);
+		device->CreateRenderTargetView(currBuffer, NULL, &renderTargetView);
 
 		context->OMSetRenderTargets(1, &renderTargetView, nullptr);
 		
-		context->ClearRenderTargetView(renderTargetView, colorIdx ? color1 : color2);
+		context->ClearRenderTargetView(renderTargetView, color);
 
-		colorIdx = colorIdx ? 0 : 1;
+		context->Draw(3, 0);
 
 		swapChain3->Present(0, 0);
 
