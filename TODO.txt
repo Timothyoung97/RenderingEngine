@@ -19,6 +19,8 @@ Done:
 
 Engine Tasks:
 • Utilize CMake to generate project files
+• Remove the Windows console for the application
+    • It should be done in CMake
 • command line arguments
     • use the 'cxxopts' library: https://github.com/jarro2783/cxxopts
 • simple text logging
