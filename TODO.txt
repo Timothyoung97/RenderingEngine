@@ -1,6 +1,9 @@
 Graphics Tasks:
 • 1 red triangle
     • compile, load & bind Shaders
+• change triangle position, rotation, scale & color in run-time
+    • Constant Buffers
+    • Affine Transformations
 • 1 red cube (code-generated mesh)
     • generate, create & bind vertex/index buffers
 • 1 red sphere (code-generated mesh)
@@ -8,9 +11,6 @@ Graphics Tasks:
     • view & projection matrices
 • Both of above meshes together, with depth testing
     • general Renderer, Depth Buffer, Depth States
-• change mesh position, rotation, scale & color in run-time
-    • Constant Buffers
-    • Affine Transformations
 
 Done:
 • init d3d11 device/context, and clear swap chain to grey color
