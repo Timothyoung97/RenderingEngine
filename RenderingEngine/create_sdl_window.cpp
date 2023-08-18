@@ -176,9 +176,8 @@ int main(int argc, char* args[])
 		&pPSBlob
 	);
 
-
-	ID3D11PixelShader* pixel_shader_ptr = nullptr;
 	ID3D11VertexShader* vertex_shader_ptr = nullptr;
+	ID3D11PixelShader* pixel_shader_ptr = nullptr;
 
 	CHECK_DX11_ERROR(
 		device->CreateVertexShader,
@@ -196,15 +195,28 @@ int main(int argc, char* args[])
 		&pixel_shader_ptr
 	);
 
+	context->VSSetShader(vertex_shader_ptr, NULL, 0);
+	context->PSSetShader(pixel_shader_ptr, NULL, 0);
+
+	//Setting Viewport
+	D3D11_VIEWPORT viewport = {};
+	viewport.TopLeftX = 0;
+	viewport.TopLeftY = 0;
+	viewport.Width = SCREEN_WIDTH;
+	viewport.Height = SCREEN_HEIGHT;
+	viewport.MinDepth = 0;
+	viewport.MaxDepth = 1;
+
+	context->RSSetViewports(1, &viewport);
+	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	
 	//Rendering Loop
 	SDL_Event e;
 	bool quit = false;
 	
 	//Colors
-	float color1[4] = { .5f, .5f, .5f, 1.0f };
-	float color2[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-
-	int colorIdx = 0;
+	float color[4] = { .5f, .5f, .5f, 1.0f };
 
 	// main loop
 	while (!quit) 
@@ -224,7 +236,7 @@ int main(int argc, char* args[])
 
 		ID3D11Texture2D* currBuffer = nullptr;
 
-		swapChain3->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&currBuffer);
+		swapChain3->GetBuffer(currBackBuffer, __uuidof(ID3D11Texture2D), (LPVOID*)&currBuffer);
 
 		// Create render target view
 		ID3D11RenderTargetView* renderTargetView = nullptr;
@@ -233,9 +245,9 @@ int main(int argc, char* args[])
 
 		context->OMSetRenderTargets(1, &renderTargetView, nullptr);
 		
-		context->ClearRenderTargetView(renderTargetView, colorIdx ? color1 : color2);
+		context->ClearRenderTargetView(renderTargetView, color);
 
-		colorIdx = colorIdx ? 0 : 1;
+		context->Draw(3, 0);
 
 		swapChain3->Present(0, 0);
 
