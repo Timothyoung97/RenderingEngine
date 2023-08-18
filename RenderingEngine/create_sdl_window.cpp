@@ -1,4 +1,6 @@
 //Using SDL
+
+#define SDL_MAIN_HANDLED
 #include <SDL.h>
 #include <SDL_syswm.h>
 
@@ -9,7 +11,6 @@
 #include <dxgi1_4.h>
 #include <d3d11.h>
 #include <d3dcompiler.h>
-#pragma comment(lib, "d3d11.lib")
 
 #include <iostream>
 #include <fstream>
@@ -45,7 +46,7 @@ const int SCREEN_HEIGHT = 480;
 // DXGI_DEBUG_ALL
 const GUID dxgi_debug_all = { 0xe48ae283, 0xda80, 0x490b, { 0x87, 0xe6, 0x43, 0xe9, 0xa9, 0xcf, 0xda, 0x8 } };
 
-int main(int argc, char* args[])
+int main()
 {
 	//The window we'll be rendering to
 	SDL_Window* window = NULL;
@@ -166,13 +167,13 @@ int main(int argc, char* args[])
 
 	CHECK_DX11_ERROR(
 		D3DReadFileToBlob,
-		L"./shaders/vertex_shader.bin", 
+		L"../RenderingEngine/shaders/vertex_shader.bin", 
 		&pVSBlob
 	);
 
 	CHECK_DX11_ERROR(
 		D3DReadFileToBlob,
-		L"./shaders/pixel_shader.bin",
+		L"../RenderingEngine/shaders/pixel_shader.bin",
 		&pPSBlob
 	);
 
