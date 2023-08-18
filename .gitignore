@@ -1,4 +1,5 @@
 ﻿.vs/
-x64/
+external/SDL2/lib/
+build/
 
 RenderingEngine/shaders/*.bin
