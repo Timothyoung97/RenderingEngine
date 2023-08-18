@@ -3,6 +3,7 @@ Graphics Tasks:
     • Constant Buffers
     • Affine Transformations
 • 1 red cube (code-generated mesh)
+    • basics of 3D geometry
     • generate, create & bind vertex/index buffers
 • 1 red sphere (code-generated mesh)
 • flying camera
