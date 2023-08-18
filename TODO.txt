@@ -18,6 +18,7 @@ Done:
 //////////////////////////////////////////////////////////////////////////////
 
 Engine Tasks:
+• Utilize CMake to generate project files
 • command line arguments
     • use the 'cxxopts' library: https://github.com/jarro2783/cxxopts
 • simple text logging
