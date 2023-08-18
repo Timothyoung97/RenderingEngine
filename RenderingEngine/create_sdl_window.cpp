@@ -236,12 +236,22 @@ int main(int argc, char* args[])
 
 		ID3D11Texture2D* currBuffer = nullptr;
 
-		swapChain3->GetBuffer(currBackBuffer, __uuidof(ID3D11Texture2D), (LPVOID*)&currBuffer);
+		CHECK_DX11_ERROR(
+			swapChain3->GetBuffer,
+			currBackBuffer,
+			__uuidof(ID3D11Texture2D),
+			(LPVOID*)&currBuffer
+		)
 
 		// Create render target view
 		ID3D11RenderTargetView* renderTargetView = nullptr;
 
-		device->CreateRenderTargetView(currBuffer, NULL, &renderTargetView);
+		CHECK_DX11_ERROR(
+			device->CreateRenderTargetView,
+			currBuffer,
+			NULL,
+			&renderTargetView
+		);
 
 		context->OMSetRenderTargets(1, &renderTargetView, nullptr);
 		
@@ -249,7 +259,11 @@ int main(int argc, char* args[])
 
 		context->Draw(3, 0);
 
-		swapChain3->Present(0, 0);
+		CHECK_DX11_ERROR(
+			swapChain3->Present,
+			0,
+			0
+		);
 
 		while (timer.getDeltaTime() < 1000.0 / 1) {
 		}
