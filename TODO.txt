@@ -1,6 +1,4 @@
 Graphics Tasks:
-• 1 red triangle
-    • compile, load & bind Shaders
 • change triangle position, rotation, scale & color in run-time
     • Constant Buffers
     • Affine Transformations
@@ -14,6 +12,8 @@ Graphics Tasks:
 
 Done:
 • init d3d11 device/context, and clear swap chain to grey color
+• 1 red triangle
+    • compile, load & bind Shaders
 
 //////////////////////////////////////////////////////////////////////////////
 
