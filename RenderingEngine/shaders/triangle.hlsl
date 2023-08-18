@@ -1,3 +1,5 @@
+cbuffer constBuffer : register(b0) {float2 vertexOffset;}
+
 void vs_main (
     in uint vertexID : SV_VertexID,
     out float4 outPosition : SV_POSITION
@@ -9,7 +11,7 @@ void vs_main (
         float4(-0.5, -0.5, 0, 1)
     };
 
-    outPosition = pos[vertexID];
+    outPosition = pos[vertexID] + float4(vertexOffset, 0, 0);
 }
 
 // Pixel Shader
