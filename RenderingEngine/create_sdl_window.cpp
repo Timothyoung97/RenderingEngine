@@ -21,9 +21,10 @@
 //Custom Header
 #include "timer.h"
 
-#define CHECK_DX11_ERROR(hresult) \
+#define CHECK_DX11_ERROR(dx11Func, ...) \
 { \
-	if (!SUCCEEDED(hresult)) { \
+	HRESULT hresult; \
+	if (!SUCCEEDED(hresult = dx11Func(__VA_ARGS__))) { \
 		std::printf("Assertion failed: %d at %s:%d\n", hresult, __FILE__, __LINE__);	\
 		assert(false); \
 	} \
@@ -71,7 +72,9 @@ int main(int argc, char* args[])
 	UINT creationFlags = D3D11_CREATE_DEVICE_DEBUG;
 
 	D3D_FEATURE_LEVEL featureLevel;
-	HRESULT result = D3D11CreateDevice(
+
+	CHECK_DX11_ERROR(
+		D3D11CreateDevice, 
 		nullptr,
 		D3D_DRIVER_TYPE_HARDWARE,
 		nullptr,
@@ -83,8 +86,6 @@ int main(int argc, char* args[])
 		&featureLevel,
 		&context
 	);
-
-	CHECK_DX11_ERROR(result);
 
 	//Create D3D11 debug layer
 	ID3D11Debug* d3dDebug = nullptr;
@@ -122,9 +123,13 @@ int main(int argc, char* args[])
 
 	//Create dxgiFactory
 	IDXGIFactory2* dxgiFactory2 = nullptr;
-	result = CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, __uuidof(IDXGIFactory2), reinterpret_cast<void**>(&dxgiFactory2));
 
-	CHECK_DX11_ERROR(result);
+	CHECK_DX11_ERROR(
+		CreateDXGIFactory2,
+		DXGI_CREATE_FACTORY_DEBUG,
+		__uuidof(IDXGIFactory2),
+		reinterpret_cast<void**>(&dxgiFactory2)
+	);
 
 	//Create SwapChain
 	IDXGISwapChain1* swapChain = nullptr;
@@ -143,64 +148,53 @@ int main(int argc, char* args[])
 	swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
 	swapChainDesc.Flags = 0;
 
-	result = dxgiFactory2->CreateSwapChainForHwnd(device, hwnd, &swapChainDesc, NULL, NULL, &swapChain);
-
-	CHECK_DX11_ERROR(result);
+	CHECK_DX11_ERROR(
+		dxgiFactory2->CreateSwapChainForHwnd,
+		device,
+		hwnd,
+		&swapChainDesc,
+		NULL,
+		NULL,
+		&swapChain
+	);
 
 	swapChain3 = (IDXGISwapChain3*) swapChain;
 
-	////Load pre-compiled shaders
-	//std::vector<byte> vertexShaderBytes;
-	//std::vector<byte> pixelShaderBytes;
-
-	//std::ifstream verShaderFile("./shaders/vertex_shader.bin", std::ios::binary | std::ios::ate);
-	//if (verShaderFile) {
-	//	int length = verShaderFile.tellg();
-	//	verShaderFile.seekg(0, verShaderFile.beg);
-	//	//std::vector<byte> data(length);
-	//	vertexShaderBytes.resize(length);
-
-	//	verShaderFile.read(reinterpret_cast<char*>(vertexShaderBytes.data()), length);
-	//	//vertexShaderBytes = data;
-	//}
-
+	//Load pre-compiled shaders
 	ID3DBlob* pVSBlob = nullptr;
-	
-	/*result = D3DCreateBlob(vertexShaderBytes.size(), &pVSBlob);
-	
-	CHECK_DX11_ERROR(result);
-
-	memcpy(pVSBlob->GetBufferPointer(), &vertexShaderBytes, vertexShaderBytes.size());
-
-	printf("buffer Size: %d; vector size: %d\n", pVSBlob->GetBufferSize(), vertexShaderBytes.size());
-	
-	
-		
-	*/
 	ID3DBlob* pPSBlob = nullptr;
 
+	CHECK_DX11_ERROR(
+		D3DReadFileToBlob,
+		L"./shaders/vertex_shader.bin", 
+		&pVSBlob
+	);
 
+	CHECK_DX11_ERROR(
+		D3DReadFileToBlob,
+		L"./shaders/pixel_shader.bin",
+		&pPSBlob
+	);
 
-	result = D3DReadFileToBlob(L"./shaders/vertex_shader.bin", &pVSBlob);
-
-	CHECK_DX11_ERROR(result);
-
-	result = D3DReadFileToBlob(L"./shaders/pixel_shader.bin", &pPSBlob);
-
-	CHECK_DX11_ERROR(result);
-
-	//Create shaders
-
-
-	CHECK_DX11_ERROR(result);
 
 	ID3D11PixelShader* pixel_shader_ptr = nullptr;
 	ID3D11VertexShader* vertex_shader_ptr = nullptr;
 
-	result = device->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), NULL, &vertex_shader_ptr);
-	result = device->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), NULL, &pixel_shader_ptr);
+	CHECK_DX11_ERROR(
+		device->CreateVertexShader,
+		pVSBlob->GetBufferPointer(),
+		pVSBlob->GetBufferSize(),
+		NULL, 
+		&vertex_shader_ptr
+	);
 
-	CHECK_DX11_ERROR(result);
+	CHECK_DX11_ERROR(
+		device->CreatePixelShader,
+		pPSBlob->GetBufferPointer(),
+		pPSBlob->GetBufferSize(),
+		NULL,
+		&pixel_shader_ptr
+	);
 
 	//Rendering Loop
 	SDL_Event e;
@@ -230,16 +224,12 @@ int main(int argc, char* args[])
 
 		ID3D11Texture2D* currBuffer = nullptr;
 
-		result = swapChain3->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&currBuffer);
-
-		CHECK_DX11_ERROR(result);
+		swapChain3->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&currBuffer);
 
 		// Create render target view
 		ID3D11RenderTargetView* renderTargetView = nullptr;
 
-		result = device->CreateRenderTargetView(currBuffer, NULL, &renderTargetView);
-
-		CHECK_DX11_ERROR(result);
+		device->CreateRenderTargetView(currBuffer, NULL, &renderTargetView);
 
 		context->OMSetRenderTargets(1, &renderTargetView, nullptr);
 		
