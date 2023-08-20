@@ -196,8 +196,8 @@ int main()
 		&pixel_shader_ptr
 	);
 
-	context->VSSetShader(vertex_shader_ptr, NULL, 0);
-	context->PSSetShader(pixel_shader_ptr, NULL, 0);
+	context->VSSetShader(vertex_shader_ptr, NULL, 0u);
+	context->PSSetShader(pixel_shader_ptr, NULL, 0u);
 
 	//Setting Viewport
 	D3D11_VIEWPORT viewport = {};
@@ -211,7 +211,17 @@ int main()
 	context->RSSetViewports(1, &viewport);
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	
+	// temp tranformation data
+	float offsetx = .0f;
+
+	struct ConstantBuffer 
+	{
+		struct 
+		{
+			float element[4][4];
+		} transformation;
+	};
+
 	//Rendering Loop
 	SDL_Event e;
 	bool quit = false;
@@ -222,6 +232,7 @@ int main()
 	// main loop
 	while (!quit) 
 	{
+		offsetx += 0.01;
 		Timer timer;
 
 		SDL_PumpEvents();
@@ -231,6 +242,38 @@ int main()
 		if (e.type == SDL_QUIT) {
 			quit = true;
 		}
+
+		// Constant buffer
+		const ConstantBuffer cb =
+		{
+			{
+				1, 0, 0, offsetx,
+				0, 1, 0, 0,
+				0, 0, 1, 0,
+				0, 0, 0, 1
+			}
+		};
+
+		D3D11_BUFFER_DESC constantBufferDesc;
+		constantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		constantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+		constantBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		constantBufferDesc.MiscFlags = 0u;
+		constantBufferDesc.ByteWidth = sizeof(cb);
+		constantBufferDesc.StructureByteStride = 0u;
+
+		ID3D11Buffer* pConstBuffer;
+
+		D3D11_SUBRESOURCE_DATA csd = {};
+		csd.pSysMem = &cb;
+		CHECK_DX11_ERROR(
+			device->CreateBuffer,
+			&constantBufferDesc,
+			&csd,
+			&pConstBuffer
+		);
+
+		context->VSSetConstantBuffers(0u, 1u, &pConstBuffer);
 
 		// Alternating buffers
 		int currBackBuffer = static_cast<int>(swapChain3->GetCurrentBackBufferIndex());
@@ -266,7 +309,8 @@ int main()
 			0
 		);
 
-		while (timer.getDeltaTime() < 1000.0 / 1) {
+		printf("moving");
+		while (timer.getDeltaTime() < 1000.0 / 30) {
 		}
 	}
 
