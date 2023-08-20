@@ -3,7 +3,7 @@ project(RenderingEngine)
 
 set(CMAKE_CXX_STANDARD 20)
 
-file(GLOB SOURCES "RenderingEngine/*cpp")
+file(GLOB SOURCES "RenderingEngine/*cpp" "RenderingEngine/*h")
 add_executable(RenderingEngine ${SOURCES})
 
 target_include_directories(RenderingEngine PUBLIC "${CMAKE_CURRENT_LIST_DIR}/RenderingEngine")

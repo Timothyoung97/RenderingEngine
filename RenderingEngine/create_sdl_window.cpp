@@ -1,6 +1,5 @@
-//Using SDL
-
 #define SDL_MAIN_HANDLED
+
 #include <SDL.h>
 #include <SDL_syswm.h>
 
@@ -21,20 +20,14 @@
 
 //Custom Header
 #include "timer.h"
+#include "window.h"
+
 
 #define CHECK_DX11_ERROR(dx11Func, ...) \
 { \
 	HRESULT hresult; \
 	if (!SUCCEEDED(hresult = dx11Func(__VA_ARGS__))) { \
 		std::printf("Assertion failed: %d at %s:%d\n", hresult, __FILE__, __LINE__);	\
-		assert(false); \
-	} \
-}
-
-#define CHECK_SDL_ERR(condition) \
-{ \
-	if (!(condition)) { \
-		std::printf("Assertion failed: %s at %s:%d\n", SDL_GetError(), __FILE__, __LINE__);	\
 		assert(false); \
 	} \
 }
@@ -48,23 +41,7 @@ const GUID dxgi_debug_all = { 0xe48ae283, 0xda80, 0x490b, { 0x87, 0xe6, 0x43, 0x
 
 int main()
 {
-	//The window we'll be rendering to
-	SDL_Window* window = NULL;
-
-	//Initialize SDL
-	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-		CHECK_SDL_ERR(false);
-	}
-
-	//Create window
-	window = SDL_CreateWindow("D3D11 with SDL", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
-	CHECK_SDL_ERR(window);
-	
-	//Obtain Windows HWND pointer
-	SDL_SysWMinfo wmInfo;
-	SDL_VERSION(&wmInfo.version);
-	SDL_GetWindowWMInfo(window, &wmInfo);
-	HWND hwnd = wmInfo.info.win.window;
+	tre::Window window("RenderingEngine", SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	//Create Device 
 	ID3D11Device* device = nullptr;
@@ -152,7 +129,7 @@ int main()
 	CHECK_DX11_ERROR(
 		dxgiFactory2->CreateSwapChainForHwnd,
 		device,
-		hwnd,
+		window.getWindowHandle(),
 		&swapChainDesc,
 		NULL,
 		NULL,
@@ -319,12 +296,6 @@ int main()
 	dxgiFactory2->Release();
 	context->Release();
 	device->Release();
-
-	//Destroy window
-	SDL_DestroyWindow(window);
-
-	//Quit SDL subsystems
-	SDL_Quit();
 
 	return 0;
 }
