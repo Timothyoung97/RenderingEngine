@@ -1,4 +1,4 @@
-cbuffer constBuffer : register(b0) {float2 vertexOffset;}
+cbuffer constBuffer : register(b0) {matrix transformation;}
 
 void vs_main (
     in uint vertexID : SV_VertexID,
@@ -11,7 +11,7 @@ void vs_main (
         float4(-0.5, -0.5, 0, 1)
     };
 
-    outPosition = pos[vertexID] + float4(vertexOffset, 0, 0);
+    outPosition = mul(pos[vertexID], transformation);
 }
 
 // Pixel Shader
