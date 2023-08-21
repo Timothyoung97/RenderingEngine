@@ -186,14 +186,6 @@ int main()
 	// temp tranformation data
 	float offsetx = .0f;
 
-	struct ConstantBuffer 
-	{
-		struct 
-		{
-			float element[4][4];
-		} transformation;
-	};
-
 	//Rendering Loop
 	SDL_Event e;
 	bool quit = false;
@@ -202,7 +194,7 @@ int main()
 	float color[4] = { .5f, .5f, .5f, 1.0f };
 
 	// main loop
-	while (!quit) 
+	while (!quit)
 	{
 		offsetx += 0.01;
 		Timer timer;
