@@ -2,12 +2,14 @@ Graphics Tasks:
 • change triangle position, rotation, scale & color in run-time
     • Constant Buffers
     • Affine Transformations
+• flying camera
+    • view & projection matrices
+    • yaw, pitch, roll controls
+    • polar coordinates
 • 1 red cube (code-generated mesh)
     • basics of 3D geometry
     • generate, create & bind vertex/index buffers
 • 1 red sphere (code-generated mesh)
-• flying camera
-    • view & projection matrices
 • Both of above meshes together, with depth testing
     • general Renderer, Depth Buffer, Depth States
 
