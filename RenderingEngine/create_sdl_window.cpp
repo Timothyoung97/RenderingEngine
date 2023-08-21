@@ -219,7 +219,7 @@ int main()
 	// main loop
 	while (!input.shouldQuit())
 	{
-		Timer timer;
+		tre::Timer timer;
 
 		// Update keyboard event
 		input.updateInputEvent();
