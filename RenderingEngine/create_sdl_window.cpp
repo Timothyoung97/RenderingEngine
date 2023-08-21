@@ -22,6 +22,7 @@
 //Custom Header
 #include "timer.h"
 #include "window.h"
+#include "input.h"
 #include "dx11debug.h"
 
 //Screen dimension constants
@@ -187,26 +188,24 @@ int main()
 	float offsetx = .0f;
 
 	//Rendering Loop
-	SDL_Event e;
-	bool quit = false;
+	tre::Input input;
 	
 	//Colors
 	float color[4] = { .5f, .5f, .5f, 1.0f };
 
 	// main loop
-	while (!quit)
+	while (!input.shouldQuit())
 	{
-		offsetx += 0.01;
-		Timer timer;
+		// Update keyboard event
+		input.updateInputEvent();
 
-		SDL_PumpEvents();
-
-		SDL_PeepEvents(&e, 1, SDL_GETEVENT, SDL_FIRSTEVENT, SDL_LASTEVENT);
-
-		if (e.type == SDL_QUIT) {
-			quit = true;
+		if (input.getKeyState(SDL_SCANCODE_LEFT)) {
+			printf("left arrow key is pressed\n");
 		}
-		
+
+		Timer timer;
+		offsetx += 0.01;
+
 		XMMATRIX tf_matrix = XMMatrixTranslation(offsetx, 0, 0);
 
 		D3D11_BUFFER_DESC constantBufferDesc;
