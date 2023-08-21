@@ -34,6 +34,10 @@ const GUID dxgi_debug_all = { 0xe48ae283, 0xda80, 0x490b, { 0x87, 0xe6, 0x43, 0x
 
 using namespace DirectX;
 
+struct constBufferShaderResc {
+	XMMATRIX transformationMatrix;
+	XMFLOAT4 rgbaColor;
+};
 
 int main()
 {
@@ -187,50 +191,64 @@ int main()
 	// temp tranformation data
 	float offset_x = .0f;
 	float offset_y = .0f;
-	float translate_speed = .5f;
+	float translate_speed = .001f;
 
 	float scale_x = 1.0f;
 	float scale_y = 1.0f;
-	float scale_speed = 1.0f;
+	float scale_speed = .001f;
 
 	float rotate_z = .0f;
-	float rotate_speed = 1.0f;
-
+	float rotate_speed = .1f;
 
 	//Rendering Loop
 	tre::Input input;
 	
 	//Colors
-	float color[4] = { .5f, .5f, .5f, 1.0f };
-
-	//Timer
-	Timer timer;
+	float bgColor[4] = { .5f, .5f, .5f, 1.0f };
 	
+	XMFLOAT4 triangleColor[3] = {
+		{1, 0, 0, 1},
+		{0, 1, 0, 1},
+		{0, 0, 1, 1}
+	};
+
+	int currTriColor = 0;
+
+	double deltaTime = 0;
+
 	// main loop
 	while (!input.shouldQuit())
 	{
+		Timer timer;
+
 		// Update keyboard event
 		input.updateInputEvent();
 		
 		if (input.getKeyState(SDL_SCANCODE_LEFT)) {
-			offset_x -= translate_speed * timer.getDeltaTime();
+			offset_x -= translate_speed * deltaTime;
 		} else if (input.getKeyState(SDL_SCANCODE_RIGHT)) {
-			offset_x += translate_speed * timer.getDeltaTime();
+			offset_x += translate_speed * deltaTime;
 		} else if (input.getKeyState(SDL_SCANCODE_UP)) {
-			offset_y += translate_speed * timer.getDeltaTime();
+			offset_y += translate_speed * deltaTime;
 		} else if (input.getKeyState(SDL_SCANCODE_DOWN)) {
-			offset_y -= translate_speed * timer.getDeltaTime();
+			offset_y -= translate_speed * deltaTime;
 		} else if (input.getKeyState(SDL_SCANCODE_PAGEUP)) {
-			scale_x += scale_speed * timer.getDeltaTime();
-			scale_y += scale_speed * timer.getDeltaTime();
+			scale_x += scale_speed * deltaTime;
+			scale_y += scale_speed * deltaTime;
 		} else if (input.getKeyState(SDL_SCANCODE_PAGEDOWN)) {
-			scale_x -= scale_speed * timer.getDeltaTime();
-			scale_y -= scale_speed * timer.getDeltaTime();
+			scale_x -= scale_speed * deltaTime;
+			scale_y -= scale_speed * deltaTime;
 		} else if (input.getKeyState(SDL_SCANCODE_Z)) {
-			rotate_z += rotate_speed * timer.getDeltaTime();
+			rotate_z += rotate_speed * deltaTime;
+		} else if (input.getKeyState(SDL_SCANCODE_1)) {
+			currTriColor = 0;
+		} else if (input.getKeyState(SDL_SCANCODE_2)) {
+			currTriColor = 1;
+		} else if (input.getKeyState(SDL_SCANCODE_3)) {
+			currTriColor = 2;
 		}
 
-		// combi matrix = scale -> rotate -> translate
+		// transformation matrix = scale -> rotate -> translate
 		XMMATRIX tf_matrix = XMMatrixMultiply(
 			XMMatrixScaling(scale_x, scale_y, 1), 
 			XMMatrixMultiply(
@@ -239,19 +257,24 @@ int main()
 			)
 		);
 
+		// Constant Buffer Shader Resource
+		constBufferShaderResc cbsr;
+		cbsr.transformationMatrix = tf_matrix;
+		cbsr.rgbaColor = triangleColor[currTriColor];
+
 		// Constant buffer
 		D3D11_BUFFER_DESC constantBufferDesc;
 		constantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 		constantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 		constantBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 		constantBufferDesc.MiscFlags = 0u;
-		constantBufferDesc.ByteWidth = sizeof(tf_matrix);
+		constantBufferDesc.ByteWidth = sizeof(cbsr);
 		constantBufferDesc.StructureByteStride = 0u;
 
 		ID3D11Buffer* pConstBuffer;
 
 		D3D11_SUBRESOURCE_DATA csd = {};
-		csd.pSysMem = &tf_matrix;
+		csd.pSysMem = &cbsr;
 		CHECK_DX_ERROR(
 			device->CreateBuffer,
 			&constantBufferDesc,
@@ -260,6 +283,7 @@ int main()
 		);
 
 		context->VSSetConstantBuffers(0u, 1u, &pConstBuffer);
+		context->PSSetConstantBuffers(0u, 1u, &pConstBuffer);
 
 		// Alternating buffers
 		int currBackBuffer = static_cast<int>(swapChain3->GetCurrentBackBufferIndex());
@@ -285,7 +309,7 @@ int main()
 
 		context->OMSetRenderTargets(1, &renderTargetView, nullptr);
 		
-		context->ClearRenderTargetView(renderTargetView, color);
+		context->ClearRenderTargetView(renderTargetView, bgColor);
 
 		context->Draw(3, 0);
 
@@ -298,7 +322,7 @@ int main()
 		while (timer.getDeltaTime() < 1000.0 / 30) {
 		}
 
-		timer.update();
+		deltaTime = timer.getDeltaTime();
 	}
 
 	//Cleanup

@@ -1,4 +1,7 @@
-cbuffer constBuffer : register(b0) {matrix transformation;}
+cbuffer constBuffer : register(b0) {
+    matrix transformation; 
+    float4 color;
+}
 
 void vs_main (
     in uint vertexID : SV_VertexID,
@@ -19,5 +22,5 @@ void ps_main (
     out float4 outColor: SV_TARGET
 ) 
 {
-    outColor = float4(1.0, 0.0, 0.0, 1.0); // Red color (R, G, B, A)
+    outColor = color;
 }

@@ -7,7 +7,6 @@ class Timer {
 public:
 	Timer();
 	double getDeltaTime();
-	void update();
 
 	~Timer() {};
 private:

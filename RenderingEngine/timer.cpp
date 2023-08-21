@@ -11,8 +11,3 @@ double Timer::getDeltaTime()
 	std::chrono::duration<double, std::milli> frameTime = currentFrameTime - lastFrameTime;
 	return frameTime.count();
 }
-
-void Timer::update()
-{
-	lastFrameTime = std::chrono::high_resolution_clock::now();
-}
