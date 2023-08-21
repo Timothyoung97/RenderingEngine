@@ -10,6 +10,7 @@
 #include <dxgi1_4.h>
 #include <d3d11.h>
 #include <d3dcompiler.h>
+#include <DirectXMath.h>
 
 #include <iostream>
 #include <fstream>
@@ -29,6 +30,9 @@ const int SCREEN_HEIGHT = 480;
 
 // DXGI_DEBUG_ALL
 const GUID dxgi_debug_all = { 0xe48ae283, 0xda80, 0x490b, { 0x87, 0xe6, 0x43, 0xe9, 0xa9, 0xcf, 0xda, 0x8 } };
+
+using namespace DirectX;
+
 
 int main()
 {
@@ -210,30 +214,21 @@ int main()
 		if (e.type == SDL_QUIT) {
 			quit = true;
 		}
-
-		// Constant buffer
-		const ConstantBuffer cb =
-		{
-			{
-				1, 0, 0, offsetx,
-				0, 1, 0, 0,
-				0, 0, 1, 0,
-				0, 0, 0, 1
-			}
-		};
+		
+		XMMATRIX tf_matrix = XMMatrixTranslation(offsetx, 0, 0);
 
 		D3D11_BUFFER_DESC constantBufferDesc;
 		constantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 		constantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 		constantBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 		constantBufferDesc.MiscFlags = 0u;
-		constantBufferDesc.ByteWidth = sizeof(cb);
+		constantBufferDesc.ByteWidth = sizeof(tf_matrix);
 		constantBufferDesc.StructureByteStride = 0u;
 
 		ID3D11Buffer* pConstBuffer;
 
 		D3D11_SUBRESOURCE_DATA csd = {};
-		csd.pSysMem = &cb;
+		csd.pSysMem = &tf_matrix;
 		CHECK_DX11_ERROR(
 			device->CreateBuffer,
 			&constantBufferDesc,
