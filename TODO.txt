@@ -6,12 +6,16 @@ Graphics Tasks:
     • view & projection matrices
     • yaw, pitch, roll controls
     • polar coordinates
-• 1 red cube (code-generated mesh)
+• 1 red Cube & Sphere (code-generated mesh)
     • basics of 3D geometry
     • generate, create & bind vertex/index buffers
-• 1 red sphere (code-generated mesh)
-• Both of above meshes together, with depth testing
+• Numerous cubes & spheres
     • general Renderer, Depth Buffer, Depth States
+• Transparent cube
+    • Blend states
+    • Backface culling
+    • Bucketizing Visuals
+    • Multiple Render Passes
 
 Done:
 • init d3d11 device/context, and clear swap chain to grey color
