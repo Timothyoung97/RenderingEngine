@@ -1,4 +1,6 @@
 #pragma once
+#include <string>
+#include <cassert>
 
 #define CHECK_DX_ERROR(dx11Func, ...) \
 { \

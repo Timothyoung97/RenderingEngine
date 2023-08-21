@@ -23,7 +23,7 @@
 #include "timer.h"
 #include "window.h"
 #include "input.h"
-#include "dx11debug.h"
+#include "dxdebug.h"
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 640;
@@ -81,6 +81,16 @@ int main()
 		}
 	}
 
+	//Create dxgiFactory
+	IDXGIFactory2* dxgiFactory2 = nullptr;
+
+	CHECK_DX_ERROR(
+		CreateDXGIFactory2,
+		DXGI_CREATE_FACTORY_DEBUG,
+		__uuidof(IDXGIFactory2),
+		reinterpret_cast<void**>(&dxgiFactory2)
+	);
+
 	//Create DXGI debug layer
 	IDXGIDebug1* dxgiDebug = nullptr;
 	if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&dxgiDebug))))
@@ -98,16 +108,6 @@ int main()
 			dxgiDebug->Release();
 		}
 	}
-
-	//Create dxgiFactory
-	IDXGIFactory2* dxgiFactory2 = nullptr;
-
-	CHECK_DX_ERROR(
-		CreateDXGIFactory2,
-		DXGI_CREATE_FACTORY_DEBUG,
-		__uuidof(IDXGIFactory2),
-		reinterpret_cast<void**>(&dxgiFactory2)
-	);
 
 	//Create SwapChain
 	IDXGISwapChain1* swapChain = nullptr;
