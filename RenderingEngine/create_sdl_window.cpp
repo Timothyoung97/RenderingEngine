@@ -185,11 +185,16 @@ int main()
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	// temp tranformation data
-	float offsetx = .0f;
-	float offsety = .0f;
-	float offsetz = .0f;
-	float scalex = 1.0f;
-	float scaley = 1.0f;
+	float offset_x = .0f;
+	float offset_y = .0f;
+	float translate_speed = .5f;
+
+	float scale_x = 1.0f;
+	float scale_y = 1.0f;
+	float scale_speed = 1.0f;
+
+	float rotate_z = .0f;
+	float rotate_speed = 1.0f;
 
 
 	//Rendering Loop
@@ -198,34 +203,43 @@ int main()
 	//Colors
 	float color[4] = { .5f, .5f, .5f, 1.0f };
 
+	//Timer
+	Timer timer;
+	
 	// main loop
 	while (!input.shouldQuit())
 	{
-		Timer timer;
 		// Update keyboard event
 		input.updateInputEvent();
-
+		
 		if (input.getKeyState(SDL_SCANCODE_LEFT)) {
-			offsetx -= 0.01f;
+			offset_x -= translate_speed * timer.getDeltaTime();
 		} else if (input.getKeyState(SDL_SCANCODE_RIGHT)) {
-			offsetx += 0.01f;
+			offset_x += translate_speed * timer.getDeltaTime();
 		} else if (input.getKeyState(SDL_SCANCODE_UP)) {
-			offsety += 0.01f;
+			offset_y += translate_speed * timer.getDeltaTime();
 		} else if (input.getKeyState(SDL_SCANCODE_DOWN)) {
-			offsety -= 0.01f;
+			offset_y -= translate_speed * timer.getDeltaTime();
 		} else if (input.getKeyState(SDL_SCANCODE_PAGEUP)) {
-			scalex += 0.01f;
-			scaley += 0.01f;
+			scale_x += scale_speed * timer.getDeltaTime();
+			scale_y += scale_speed * timer.getDeltaTime();
 		} else if (input.getKeyState(SDL_SCANCODE_PAGEDOWN)) {
-			scalex -= 0.01f;
-			scaley -= 0.01f;
+			scale_x -= scale_speed * timer.getDeltaTime();
+			scale_y -= scale_speed * timer.getDeltaTime();
+		} else if (input.getKeyState(SDL_SCANCODE_Z)) {
+			rotate_z += rotate_speed * timer.getDeltaTime();
 		}
 
+		// combi matrix = scale -> rotate -> translate
 		XMMATRIX tf_matrix = XMMatrixMultiply(
-			XMMatrixTranslation(offsetx, offsety, 0),
-			XMMatrixScaling(scalex, scaley, 1)
+			XMMatrixScaling(scale_x, scale_y, 1), 
+			XMMatrixMultiply(
+				XMMatrixRotationZ(XMConvertToRadians(rotate_z)), 
+				XMMatrixTranslation(offset_x, offset_y, 0)
+			)
 		);
 
+		// Constant buffer
 		D3D11_BUFFER_DESC constantBufferDesc;
 		constantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 		constantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
@@ -283,6 +297,8 @@ int main()
 
 		while (timer.getDeltaTime() < 1000.0 / 30) {
 		}
+
+		timer.update();
 	}
 
 	//Cleanup
