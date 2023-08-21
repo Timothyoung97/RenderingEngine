@@ -1,6 +1,5 @@
-//Using SDL
-
 #define SDL_MAIN_HANDLED
+
 #include <SDL.h>
 #include <SDL_syswm.h>
 
@@ -11,6 +10,7 @@
 #include <dxgi1_4.h>
 #include <d3d11.h>
 #include <d3dcompiler.h>
+#include <DirectXMath.h>
 
 #include <iostream>
 #include <fstream>
@@ -21,23 +21,8 @@
 
 //Custom Header
 #include "timer.h"
-
-#define CHECK_DX11_ERROR(dx11Func, ...) \
-{ \
-	HRESULT hresult; \
-	if (!SUCCEEDED(hresult = dx11Func(__VA_ARGS__))) { \
-		std::printf("Assertion failed: %d at %s:%d\n", hresult, __FILE__, __LINE__);	\
-		assert(false); \
-	} \
-}
-
-#define CHECK_SDL_ERR(condition) \
-{ \
-	if (!(condition)) { \
-		std::printf("Assertion failed: %s at %s:%d\n", SDL_GetError(), __FILE__, __LINE__);	\
-		assert(false); \
-	} \
-}
+#include "window.h"
+#include "dx11debug.h"
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 640;
@@ -46,25 +31,12 @@ const int SCREEN_HEIGHT = 480;
 // DXGI_DEBUG_ALL
 const GUID dxgi_debug_all = { 0xe48ae283, 0xda80, 0x490b, { 0x87, 0xe6, 0x43, 0xe9, 0xa9, 0xcf, 0xda, 0x8 } };
 
+using namespace DirectX;
+
+
 int main()
 {
-	//The window we'll be rendering to
-	SDL_Window* window = NULL;
-
-	//Initialize SDL
-	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-		CHECK_SDL_ERR(false);
-	}
-
-	//Create window
-	window = SDL_CreateWindow("D3D11 with SDL", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
-	CHECK_SDL_ERR(window);
-	
-	//Obtain Windows HWND pointer
-	SDL_SysWMinfo wmInfo;
-	SDL_VERSION(&wmInfo.version);
-	SDL_GetWindowWMInfo(window, &wmInfo);
-	HWND hwnd = wmInfo.info.win.window;
+	tre::Window window("RenderingEngine", SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	//Create Device 
 	ID3D11Device* device = nullptr;
@@ -74,7 +46,7 @@ int main()
 
 	D3D_FEATURE_LEVEL featureLevel;
 
-	CHECK_DX11_ERROR(
+	CHECK_DX_ERROR(
 		D3D11CreateDevice, 
 		nullptr,
 		D3D_DRIVER_TYPE_HARDWARE,
@@ -125,7 +97,7 @@ int main()
 	//Create dxgiFactory
 	IDXGIFactory2* dxgiFactory2 = nullptr;
 
-	CHECK_DX11_ERROR(
+	CHECK_DX_ERROR(
 		CreateDXGIFactory2,
 		DXGI_CREATE_FACTORY_DEBUG,
 		__uuidof(IDXGIFactory2),
@@ -149,10 +121,10 @@ int main()
 	swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
 	swapChainDesc.Flags = 0;
 
-	CHECK_DX11_ERROR(
+	CHECK_DX_ERROR(
 		dxgiFactory2->CreateSwapChainForHwnd,
 		device,
-		hwnd,
+		window.getWindowHandle(),
 		&swapChainDesc,
 		NULL,
 		NULL,
@@ -165,13 +137,13 @@ int main()
 	ID3DBlob* pVSBlob = nullptr;
 	ID3DBlob* pPSBlob = nullptr;
 
-	CHECK_DX11_ERROR(
+	CHECK_DX_ERROR(
 		D3DReadFileToBlob,
 		L"../RenderingEngine/shaders/vertex_shader.bin", 
 		&pVSBlob
 	);
 
-	CHECK_DX11_ERROR(
+	CHECK_DX_ERROR(
 		D3DReadFileToBlob,
 		L"../RenderingEngine/shaders/pixel_shader.bin",
 		&pPSBlob
@@ -180,7 +152,7 @@ int main()
 	ID3D11VertexShader* vertex_shader_ptr = nullptr;
 	ID3D11PixelShader* pixel_shader_ptr = nullptr;
 
-	CHECK_DX11_ERROR(
+	CHECK_DX_ERROR(
 		device->CreateVertexShader,
 		pVSBlob->GetBufferPointer(),
 		pVSBlob->GetBufferSize(),
@@ -188,7 +160,7 @@ int main()
 		&vertex_shader_ptr
 	);
 
-	CHECK_DX11_ERROR(
+	CHECK_DX_ERROR(
 		device->CreatePixelShader,
 		pPSBlob->GetBufferPointer(),
 		pPSBlob->GetBufferSize(),
@@ -214,14 +186,6 @@ int main()
 	// temp tranformation data
 	float offsetx = .0f;
 
-	struct ConstantBuffer 
-	{
-		struct 
-		{
-			float element[4][4];
-		} transformation;
-	};
-
 	//Rendering Loop
 	SDL_Event e;
 	bool quit = false;
@@ -230,7 +194,7 @@ int main()
 	float color[4] = { .5f, .5f, .5f, 1.0f };
 
 	// main loop
-	while (!quit) 
+	while (!quit)
 	{
 		offsetx += 0.01;
 		Timer timer;
@@ -242,31 +206,22 @@ int main()
 		if (e.type == SDL_QUIT) {
 			quit = true;
 		}
-
-		// Constant buffer
-		const ConstantBuffer cb =
-		{
-			{
-				1, 0, 0, offsetx,
-				0, 1, 0, 0,
-				0, 0, 1, 0,
-				0, 0, 0, 1
-			}
-		};
+		
+		XMMATRIX tf_matrix = XMMatrixTranslation(offsetx, 0, 0);
 
 		D3D11_BUFFER_DESC constantBufferDesc;
 		constantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 		constantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 		constantBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 		constantBufferDesc.MiscFlags = 0u;
-		constantBufferDesc.ByteWidth = sizeof(cb);
+		constantBufferDesc.ByteWidth = sizeof(tf_matrix);
 		constantBufferDesc.StructureByteStride = 0u;
 
 		ID3D11Buffer* pConstBuffer;
 
 		D3D11_SUBRESOURCE_DATA csd = {};
-		csd.pSysMem = &cb;
-		CHECK_DX11_ERROR(
+		csd.pSysMem = &tf_matrix;
+		CHECK_DX_ERROR(
 			device->CreateBuffer,
 			&constantBufferDesc,
 			&csd,
@@ -280,7 +235,7 @@ int main()
 
 		ID3D11Texture2D* currBuffer = nullptr;
 
-		CHECK_DX11_ERROR(
+		CHECK_DX_ERROR(
 			swapChain3->GetBuffer,
 			currBackBuffer,
 			__uuidof(ID3D11Texture2D),
@@ -290,7 +245,7 @@ int main()
 		// Create render target view
 		ID3D11RenderTargetView* renderTargetView = nullptr;
 
-		CHECK_DX11_ERROR(
+		CHECK_DX_ERROR(
 			device->CreateRenderTargetView,
 			currBuffer,
 			NULL,
@@ -303,13 +258,12 @@ int main()
 
 		context->Draw(3, 0);
 
-		CHECK_DX11_ERROR(
+		CHECK_DX_ERROR(
 			swapChain3->Present,
 			0,
 			0
 		);
 
-		printf("moving");
 		while (timer.getDeltaTime() < 1000.0 / 30) {
 		}
 	}
@@ -319,12 +273,6 @@ int main()
 	dxgiFactory2->Release();
 	context->Release();
 	device->Release();
-
-	//Destroy window
-	SDL_DestroyWindow(window);
-
-	//Quit SDL subsystems
-	SDL_Quit();
 
 	return 0;
 }
