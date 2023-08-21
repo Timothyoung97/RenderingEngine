@@ -25,8 +25,6 @@ Done:
 //////////////////////////////////////////////////////////////////////////////
 
 Engine Tasks:
-• Utilize CMake to generate project files
-    • SDL header files should be in project & repo. Binary files must not.
 • Remove the Windows console for the application
     • It should be done in CMake
 • Define your own "assert" macro in Release
@@ -44,3 +42,5 @@ Done:
 • dont use SDL_PollEvent. use SDL_PeepEvents instead. see: https://wiki.libsdl.org/SDL2/SDL_PeepEvents
 • create helper function/macro for checking return values for SDL functions & printing error msgs & asserting if necessary
 • frame rate controller
+• Utilize CMake to generate project files
+    • SDL header files should be in project & repo. Binary files must not.
