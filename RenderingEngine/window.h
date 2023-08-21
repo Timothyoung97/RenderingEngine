@@ -22,9 +22,9 @@ class Window {
 	const int height;
 	const std::string title;
 	SDL_Window* window;
+	HWND hwnd;
 
 public:
-	HWND hwnd;
 
 	Window(std::string title, int screen_width, int screen_height);
 
