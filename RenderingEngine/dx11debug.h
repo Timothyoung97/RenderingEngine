@@ -1,6 +1,6 @@
 #pragma once
 
-#define CHECK_DX11_ERROR(dx11Func, ...) \
+#define CHECK_DX_ERROR(dx11Func, ...) \
 { \
 	HRESULT hresult; \
 	if (!SUCCEEDED(hresult = dx11Func(__VA_ARGS__))) { \

@@ -46,7 +46,7 @@ int main()
 
 	D3D_FEATURE_LEVEL featureLevel;
 
-	CHECK_DX11_ERROR(
+	CHECK_DX_ERROR(
 		D3D11CreateDevice, 
 		nullptr,
 		D3D_DRIVER_TYPE_HARDWARE,
@@ -97,7 +97,7 @@ int main()
 	//Create dxgiFactory
 	IDXGIFactory2* dxgiFactory2 = nullptr;
 
-	CHECK_DX11_ERROR(
+	CHECK_DX_ERROR(
 		CreateDXGIFactory2,
 		DXGI_CREATE_FACTORY_DEBUG,
 		__uuidof(IDXGIFactory2),
@@ -121,7 +121,7 @@ int main()
 	swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
 	swapChainDesc.Flags = 0;
 
-	CHECK_DX11_ERROR(
+	CHECK_DX_ERROR(
 		dxgiFactory2->CreateSwapChainForHwnd,
 		device,
 		window.getWindowHandle(),
@@ -137,13 +137,13 @@ int main()
 	ID3DBlob* pVSBlob = nullptr;
 	ID3DBlob* pPSBlob = nullptr;
 
-	CHECK_DX11_ERROR(
+	CHECK_DX_ERROR(
 		D3DReadFileToBlob,
 		L"../RenderingEngine/shaders/vertex_shader.bin", 
 		&pVSBlob
 	);
 
-	CHECK_DX11_ERROR(
+	CHECK_DX_ERROR(
 		D3DReadFileToBlob,
 		L"../RenderingEngine/shaders/pixel_shader.bin",
 		&pPSBlob
@@ -152,7 +152,7 @@ int main()
 	ID3D11VertexShader* vertex_shader_ptr = nullptr;
 	ID3D11PixelShader* pixel_shader_ptr = nullptr;
 
-	CHECK_DX11_ERROR(
+	CHECK_DX_ERROR(
 		device->CreateVertexShader,
 		pVSBlob->GetBufferPointer(),
 		pVSBlob->GetBufferSize(),
@@ -160,7 +160,7 @@ int main()
 		&vertex_shader_ptr
 	);
 
-	CHECK_DX11_ERROR(
+	CHECK_DX_ERROR(
 		device->CreatePixelShader,
 		pPSBlob->GetBufferPointer(),
 		pPSBlob->GetBufferSize(),
@@ -221,7 +221,7 @@ int main()
 
 		D3D11_SUBRESOURCE_DATA csd = {};
 		csd.pSysMem = &tf_matrix;
-		CHECK_DX11_ERROR(
+		CHECK_DX_ERROR(
 			device->CreateBuffer,
 			&constantBufferDesc,
 			&csd,
@@ -235,7 +235,7 @@ int main()
 
 		ID3D11Texture2D* currBuffer = nullptr;
 
-		CHECK_DX11_ERROR(
+		CHECK_DX_ERROR(
 			swapChain3->GetBuffer,
 			currBackBuffer,
 			__uuidof(ID3D11Texture2D),
@@ -245,7 +245,7 @@ int main()
 		// Create render target view
 		ID3D11RenderTargetView* renderTargetView = nullptr;
 
-		CHECK_DX11_ERROR(
+		CHECK_DX_ERROR(
 			device->CreateRenderTargetView,
 			currBuffer,
 			NULL,
@@ -258,13 +258,12 @@ int main()
 
 		context->Draw(3, 0);
 
-		CHECK_DX11_ERROR(
+		CHECK_DX_ERROR(
 			swapChain3->Present,
 			0,
 			0
 		);
 
-		printf("moving");
 		while (timer.getDeltaTime() < 1000.0 / 30) {
 		}
 	}
