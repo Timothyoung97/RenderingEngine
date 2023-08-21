@@ -11,7 +11,7 @@ void vs_main (
         float4(-0.5, -0.5, 0, 1)
     };
 
-    outPosition = mul(pos[vertexID], transformation);
+    outPosition = mul(transformation, pos[vertexID]);
 }
 
 // Pixel Shader
