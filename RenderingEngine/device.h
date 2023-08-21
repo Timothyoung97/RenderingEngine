@@ -14,6 +14,9 @@ public:
 	Device();
 
 	void InitDXDevice();
+
+	ID3D11Device* getDevice();
+	ID3D11DeviceContext* getContext();
 	
 	~Device();
 	Device(const Device&) = delete;

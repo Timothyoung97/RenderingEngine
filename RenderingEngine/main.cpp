@@ -24,6 +24,7 @@
 #include "window.h"
 #include "input.h"
 #include "dxdebug.h"
+#include "device.h"
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 640;
@@ -44,42 +45,7 @@ int main()
 	tre::Window window("RenderingEngine", SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	//Create Device 
-	ID3D11Device* device = nullptr;
-	ID3D11DeviceContext* context = nullptr;
-
-	UINT creationFlags = D3D11_CREATE_DEVICE_DEBUG;
-
-	D3D_FEATURE_LEVEL featureLevel;
-
-	CHECK_DX_ERROR(
-		D3D11CreateDevice, 
-		nullptr,
-		D3D_DRIVER_TYPE_HARDWARE,
-		nullptr,
-		creationFlags,
-		nullptr,
-		0,
-		D3D11_SDK_VERSION,
-		&device,
-		&featureLevel,
-		&context
-	);
-
-	//Create D3D11 debug layer
-	ID3D11Debug* d3dDebug = nullptr;
-	if (SUCCEEDED(device->QueryInterface(__uuidof(ID3D11Debug), (void**)&d3dDebug)))
-	{
-		ID3D11InfoQueue* d3dInfoQueue = nullptr;
-		if (SUCCEEDED(d3dDebug->QueryInterface(__uuidof(ID3D11InfoQueue), (void**)&d3dInfoQueue)))
-		{
-			d3dInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_CORRUPTION, true);
-			d3dInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_ERROR, true);
-			d3dInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_WARNING, true);
-
-			d3dInfoQueue->Release();
-			d3dDebug->Release();
-		}
-	}
+	tre::Device device;
 
 	//Create dxgiFactory
 	IDXGIFactory2* dxgiFactory2 = nullptr;
@@ -128,7 +94,7 @@ int main()
 
 	CHECK_DX_ERROR(
 		dxgiFactory2->CreateSwapChainForHwnd,
-		device,
+		device.getDevice(),
 		window.getWindowHandle(),
 		&swapChainDesc,
 		NULL,
@@ -158,7 +124,7 @@ int main()
 	ID3D11PixelShader* pixel_shader_ptr = nullptr;
 
 	CHECK_DX_ERROR(
-		device->CreateVertexShader,
+		device.getDevice()->CreateVertexShader,
 		pVSBlob->GetBufferPointer(),
 		pVSBlob->GetBufferSize(),
 		NULL, 
@@ -166,15 +132,15 @@ int main()
 	);
 
 	CHECK_DX_ERROR(
-		device->CreatePixelShader,
+		device.getDevice()->CreatePixelShader,
 		pPSBlob->GetBufferPointer(),
 		pPSBlob->GetBufferSize(),
 		NULL,
 		&pixel_shader_ptr
 	);
 
-	context->VSSetShader(vertex_shader_ptr, NULL, 0u);
-	context->PSSetShader(pixel_shader_ptr, NULL, 0u);
+	device.getContext()->VSSetShader(vertex_shader_ptr, NULL, 0u);
+	device.getContext()->PSSetShader(pixel_shader_ptr, NULL, 0u);
 
 	//Setting Viewport
 	D3D11_VIEWPORT viewport = {};
@@ -185,8 +151,8 @@ int main()
 	viewport.MinDepth = 0;
 	viewport.MaxDepth = 1;
 
-	context->RSSetViewports(1, &viewport);
-	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	device.getContext()->RSSetViewports(1, &viewport);
+	device.getContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	// temp tranformation data
 	float offset_x = .0f;
@@ -276,14 +242,14 @@ int main()
 		D3D11_SUBRESOURCE_DATA csd = {};
 		csd.pSysMem = &cbsr;
 		CHECK_DX_ERROR(
-			device->CreateBuffer,
+			device.getDevice()->CreateBuffer,
 			&constantBufferDesc,
 			&csd,
 			&pConstBuffer
 		);
 
-		context->VSSetConstantBuffers(0u, 1u, &pConstBuffer);
-		context->PSSetConstantBuffers(0u, 1u, &pConstBuffer);
+		device.getContext()->VSSetConstantBuffers(0u, 1u, &pConstBuffer);
+		device.getContext()->PSSetConstantBuffers(0u, 1u, &pConstBuffer);
 
 		// Alternating buffers
 		int currBackBuffer = static_cast<int>(swapChain3->GetCurrentBackBufferIndex());
@@ -301,17 +267,17 @@ int main()
 		ID3D11RenderTargetView* renderTargetView = nullptr;
 
 		CHECK_DX_ERROR(
-			device->CreateRenderTargetView,
+			device.getDevice()->CreateRenderTargetView,
 			currBuffer,
 			NULL,
 			&renderTargetView
 		);
 
-		context->OMSetRenderTargets(1, &renderTargetView, nullptr);
+		device.getContext()->OMSetRenderTargets(1, &renderTargetView, nullptr);
 		
-		context->ClearRenderTargetView(renderTargetView, bgColor);
+		device.getContext()->ClearRenderTargetView(renderTargetView, bgColor);
 
-		context->Draw(3, 0);
+		device.getContext()->Draw(3, 0);
 
 		CHECK_DX_ERROR(
 			swapChain3->Present,
@@ -328,8 +294,6 @@ int main()
 	//Cleanup
 	swapChain3->Release();
 	dxgiFactory2->Release();
-	context->Release();
-	device->Release();
 
 	return 0;
 }

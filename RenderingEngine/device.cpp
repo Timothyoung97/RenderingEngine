@@ -34,23 +34,31 @@ void Device::InitDXDevice() {
 		__uuidof(ID3D11Debug),
 		(void**)&d3dDebug
 	);
+	
+	ID3D11InfoQueue* d3dInfoQueue = nullptr;
 
-	//TODO: Continue from here
+	CHECK_DX_ERROR(
+		d3dDebug->QueryInterface,
+		__uuidof(ID3D11InfoQueue),
+		(void**)&d3dInfoQueue
 
-	if (SUCCEEDED(device->QueryInterface(__uuidof(ID3D11Debug), (void**)&d3dDebug)))
-	{
-		ID3D11InfoQueue* d3dInfoQueue = nullptr;
-		if (SUCCEEDED(d3dDebug->QueryInterface(__uuidof(ID3D11InfoQueue), (void**)&d3dInfoQueue)))
-		{
-			d3dInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_CORRUPTION, true);
-			d3dInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_ERROR, true);
-			d3dInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_WARNING, true);
+	);
 
-			d3dInfoQueue->Release();
-			d3dDebug->Release();
-		}
-	}
+	d3dInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_CORRUPTION, true);
+	d3dInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_ERROR, true);
+	d3dInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_WARNING, true);
+
+	d3dInfoQueue->Release();
+	d3dDebug->Release();
 };
+
+ID3D11Device* Device::getDevice() {
+	return device;
+}
+ID3D11DeviceContext* Device::getContext() {
+	return context;
+};
+
 
 Device::~Device() {
 	context->Release();
