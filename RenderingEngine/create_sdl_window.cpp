@@ -186,6 +186,11 @@ int main()
 
 	// temp tranformation data
 	float offsetx = .0f;
+	float offsety = .0f;
+	float offsetz = .0f;
+	float scalex = 1.0f;
+	float scaley = 1.0f;
+
 
 	//Rendering Loop
 	tre::Input input;
@@ -196,17 +201,30 @@ int main()
 	// main loop
 	while (!input.shouldQuit())
 	{
+		Timer timer;
 		// Update keyboard event
 		input.updateInputEvent();
 
 		if (input.getKeyState(SDL_SCANCODE_LEFT)) {
-			printf("left arrow key is pressed\n");
+			offsetx -= 0.01f;
+		} else if (input.getKeyState(SDL_SCANCODE_RIGHT)) {
+			offsetx += 0.01f;
+		} else if (input.getKeyState(SDL_SCANCODE_UP)) {
+			offsety += 0.01f;
+		} else if (input.getKeyState(SDL_SCANCODE_DOWN)) {
+			offsety -= 0.01f;
+		} else if (input.getKeyState(SDL_SCANCODE_PAGEUP)) {
+			scalex += 0.01f;
+			scaley += 0.01f;
+		} else if (input.getKeyState(SDL_SCANCODE_PAGEDOWN)) {
+			scalex -= 0.01f;
+			scaley -= 0.01f;
 		}
 
-		Timer timer;
-		offsetx += 0.01;
-
-		XMMATRIX tf_matrix = XMMatrixTranslation(offsetx, 0, 0);
+		XMMATRIX tf_matrix = XMMatrixMultiply(
+			XMMatrixTranslation(offsetx, offsety, 0),
+			XMMatrixScaling(scalex, scaley, 1)
+		);
 
 		D3D11_BUFFER_DESC constantBufferDesc;
 		constantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
