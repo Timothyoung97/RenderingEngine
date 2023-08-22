@@ -2,7 +2,6 @@
 
 #include <SDL.h>
 #include <SDL_syswm.h>
-
 #include <dxgi.h>
 #include <dxgidebug.h>
 #include <dxgi1_2.h>
@@ -11,11 +10,10 @@
 #include <d3d11.h>
 #include <d3dcompiler.h>
 #include <DirectXMath.h>
+#include <stdio.h>
 
 #include <iostream>
 #include <fstream>
-
-#include <stdio.h>
 #include <cassert>
 #include <vector>
 
@@ -255,6 +253,10 @@ int main()
 			camPositionF.y -= cameraMoveSpeed * deltaTime;
 		} else if (input.getKeyState(SDL_SCANCODE_E)) {
 			camPositionF.y += cameraMoveSpeed * deltaTime;
+		} else if (input.getMouseButtonState(SDL_BUTTON_RIGHT)) {
+			std::pair<Sint32, Sint32> relMotion = input.getRelMouseMotion();
+			camYaw += relMotion.first * .001f;
+			camPitch += relMotion.second * .001f;
 		}
 
 		// Update camera
