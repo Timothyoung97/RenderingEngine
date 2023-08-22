@@ -157,16 +157,16 @@ int main()
 	device.getContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	// temp tranformation data
-	float offset_x = .0f;
-	float offset_y = .0f;
-	float translate_speed = .001f;
+	float offsetX = .0f;
+	float offsetY = .0f;
+	float translateSpeed = .001f;
 
-	float scale_x = 1.0f;
-	float scale_y = 1.0f;
-	float scale_speed = .001f;
+	float scaleX = 1.0f;
+	float scaleY = 1.0f;
+	float scaleSpeed = .001f;
 
-	float rotate_z = .0f;
-	float rotate_speed = .1f;
+	float rotateZ = .0f;
+	float rotateSpeed = .1f;
 
 	//Input Handler
 	tre::Input input;
@@ -185,22 +185,18 @@ int main()
 	//Delta Time between frame
 	double deltaTime = 0;
 
-	// Coordinate
-	XMMATRIX camView;
-	XMMATRIX camProjection;
-
-	XMVECTOR camPosition;
-	XMVECTOR camTarget;
-	XMVECTOR camUp;
+	// Camera's properties
+	XMVECTOR camPositionV = XMVectorSet(.0f, .0f, -3.0f, .0f);
+	XMVECTOR camTargetV = XMVectorSet(.0f, .0f, .0f, .0f);
+	XMVECTOR camUpV = XMVectorSet(.0f, 1.0f, .0f, .0f);
 	
-	// Camera View
-	camPosition = XMVectorSet(.0f, .0f, -3.0f, .0f);
-	camTarget = XMVectorSet(.0f, .0f, .0f, .0f);
-	camUp = XMVectorSet(.0f, 1.0f, .0f, .0f);
+	float cameraMoveSpeed = .001f;
 
-	camView = XMMatrixLookAtLH(camPosition, camTarget, camUp);
+	// Camera View Matrix
+	XMMATRIX camView;
 
-	// Projection
+	// Projection Matrix
+	XMMATRIX camProjection;
 	camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0f), static_cast<float>(SCREEN_WIDTH / SCREEN_HEIGHT), 1.0f, 1000.0f);
 
 	// main loop
@@ -210,38 +206,62 @@ int main()
 
 		// Update keyboard event
 		input.updateInputEvent();
+
+		XMFLOAT4 camPositionF;
+		XMStoreFloat4(&camPositionF, camPositionV);
 		
-		// Model 
+		XMFLOAT4 camTargetF;
+		XMStoreFloat4(&camTargetF, camTargetV);
+
+		// Control
 		if (input.getKeyState(SDL_SCANCODE_LEFT)) {
-			offset_x -= translate_speed * deltaTime;
+			offsetX -= translateSpeed * deltaTime;
 		} else if (input.getKeyState(SDL_SCANCODE_RIGHT)) {
-			offset_x += translate_speed * deltaTime;
+			offsetX += translateSpeed * deltaTime;
 		} else if (input.getKeyState(SDL_SCANCODE_UP)) {
-			offset_y += translate_speed * deltaTime;
+			offsetY += translateSpeed * deltaTime;
 		} else if (input.getKeyState(SDL_SCANCODE_DOWN)) {
-			offset_y -= translate_speed * deltaTime;
+			offsetY -= translateSpeed * deltaTime;
 		} else if (input.getKeyState(SDL_SCANCODE_PAGEUP)) {
-			scale_x += scale_speed * deltaTime;
-			scale_y += scale_speed * deltaTime;
+			scaleX += scaleSpeed * deltaTime;
+			scaleY += scaleSpeed * deltaTime;
 		} else if (input.getKeyState(SDL_SCANCODE_PAGEDOWN)) {
-			scale_x -= scale_speed * deltaTime;
-			scale_y -= scale_speed * deltaTime;
+			scaleX -= scaleSpeed * deltaTime;
+			scaleY -= scaleSpeed * deltaTime;
 		} else if (input.getKeyState(SDL_SCANCODE_Z)) {
-			rotate_z += rotate_speed * deltaTime;
+			rotateZ += rotateSpeed * deltaTime;
 		} else if (input.getKeyState(SDL_SCANCODE_1)) {
 			currTriColor = 0;
 		} else if (input.getKeyState(SDL_SCANCODE_2)) {
 			currTriColor = 1;
 		} else if (input.getKeyState(SDL_SCANCODE_3)) {
 			currTriColor = 2;
+		} else if (input.getKeyState(SDL_SCANCODE_W)) {
+			camPositionF.z += cameraMoveSpeed * deltaTime;
+			camTargetF.z += cameraMoveSpeed * deltaTime;
+		} else if (input.getKeyState(SDL_SCANCODE_S)) {
+			camPositionF.z -= cameraMoveSpeed * deltaTime;
+			camTargetF.z -= cameraMoveSpeed * deltaTime;
+		} else if (input.getKeyState(SDL_SCANCODE_D)) {
+			camPositionF.x += cameraMoveSpeed * deltaTime;
+			camTargetF.x += cameraMoveSpeed * deltaTime;
+		} else if (input.getKeyState(SDL_SCANCODE_A)) {
+			camPositionF.x -= cameraMoveSpeed * deltaTime;
+			camTargetF.x -= cameraMoveSpeed * deltaTime;
 		}
+
+		// Update camera
+		camPositionV = XMLoadFloat4(&camPositionF);
+		camTargetV = XMLoadFloat4(&camTargetF);
+
+		camView = XMMatrixLookAtLH(camPositionV, camTargetV, camUpV);
 
 		// model matrix = scale -> rotate -> translate
 		XMMATRIX tf_matrix = XMMatrixMultiply(
-			XMMatrixScaling(scale_x, scale_y, 1), 
+			XMMatrixScaling(scaleX, scaleY, 1),
 			XMMatrixMultiply(
-				XMMatrixRotationZ(XMConvertToRadians(rotate_z)), 
-				XMMatrixTranslation(offset_x, offset_y, 0)
+				XMMatrixRotationZ(XMConvertToRadians(rotateZ)),
+				XMMatrixTranslation(offsetX, offsetY, 0)
 			)
 		);
 
