@@ -1,5 +1,6 @@
 cbuffer constBuffer : register(b0) {
     matrix transformation; 
+    matrix viewProjection;
     float4 color;
 }
 
@@ -14,7 +15,8 @@ void vs_main (
         float4(-0.5, -0.5, 0, 1)
     };
 
-    outPosition = mul(transformation, pos[vertexID]);
+    float4 localPos = mul(transformation, pos[vertexID]);
+    outPosition = mul(viewProjection, localPos);
 }
 
 // Pixel Shader

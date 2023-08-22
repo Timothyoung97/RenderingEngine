@@ -36,12 +36,14 @@ const GUID dxgi_debug_all = { 0xe48ae283, 0xda80, 0x490b, { 0x87, 0xe6, 0x43, 0x
 using namespace DirectX;
 
 struct constBufferShaderResc {
-	XMMATRIX transformationMatrix;
+	XMMATRIX transformation;
+	XMMATRIX viewProjection;
 	XMFLOAT4 rgbaColor;
 };
 
 int main()
 {
+	//Create Window
 	tre::Window window("RenderingEngine", SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	//Create Device 
@@ -166,7 +168,7 @@ int main()
 	float rotate_z = .0f;
 	float rotate_speed = .1f;
 
-	//Rendering Loop
+	//Input Handler
 	tre::Input input;
 	
 	//Colors
@@ -180,7 +182,26 @@ int main()
 
 	int currTriColor = 0;
 
+	//Delta Time between frame
 	double deltaTime = 0;
+
+	// Coordinate
+	XMMATRIX camView;
+	XMMATRIX camProjection;
+
+	XMVECTOR camPosition;
+	XMVECTOR camTarget;
+	XMVECTOR camUp;
+	
+	// Camera View
+	camPosition = XMVectorSet(.0f, .0f, -3.0f, .0f);
+	camTarget = XMVectorSet(.0f, .0f, .0f, .0f);
+	camUp = XMVectorSet(.0f, 1.0f, .0f, .0f);
+
+	camView = XMMatrixLookAtLH(camPosition, camTarget, camUp);
+
+	// Projection
+	camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0f), static_cast<float>(SCREEN_WIDTH / SCREEN_HEIGHT), 1.0f, 1000.0f);
 
 	// main loop
 	while (!input.shouldQuit())
@@ -190,6 +211,7 @@ int main()
 		// Update keyboard event
 		input.updateInputEvent();
 		
+		// Model 
 		if (input.getKeyState(SDL_SCANCODE_LEFT)) {
 			offset_x -= translate_speed * deltaTime;
 		} else if (input.getKeyState(SDL_SCANCODE_RIGHT)) {
@@ -214,7 +236,7 @@ int main()
 			currTriColor = 2;
 		}
 
-		// transformation matrix = scale -> rotate -> translate
+		// model matrix = scale -> rotate -> translate
 		XMMATRIX tf_matrix = XMMatrixMultiply(
 			XMMatrixScaling(scale_x, scale_y, 1), 
 			XMMatrixMultiply(
@@ -225,7 +247,8 @@ int main()
 
 		// Constant Buffer Shader Resource
 		constBufferShaderResc cbsr;
-		cbsr.transformationMatrix = tf_matrix;
+		cbsr.transformation = tf_matrix;
+		cbsr.viewProjection = XMMatrixMultiply(camView, camProjection);
 		cbsr.rgbaColor = triangleColor[currTriColor];
 
 		// Constant buffer
@@ -289,6 +312,8 @@ int main()
 		}
 
 		deltaTime = timer.getDeltaTime();
+
+		pConstBuffer->Release();
 	}
 
 	//Cleanup
