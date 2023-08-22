@@ -1,7 +1,4 @@
 Graphics Tasks:
-• change triangle position, rotation, scale & color in run-time
-    • Constant Buffers
-    • Affine Transformations
 • flying camera
     • view & projection matrices
     • yaw, pitch, roll controls
@@ -21,6 +18,9 @@ Done:
 • init d3d11 device/context, and clear swap chain to grey color
 • 1 red triangle
     • compile, load & bind Shaders
+• change triangle position, rotation, scale & color in run-time
+    • Constant Buffers
+    • Affine Transformations
 
 //////////////////////////////////////////////////////////////////////////////
 
