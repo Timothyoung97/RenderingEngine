@@ -25,20 +25,14 @@ void Input::updateInputEvent() {
 		}
 		break;
 	case SDL_MOUSEBUTTONDOWN:
-		// Log Messages
-		printf("Pressed button idx: %d\n", MOUSE_BUTTON_IDX(e.button.button));
-		printf("Pressed button state: %d\n", _mouseButtonState[MOUSE_BUTTON_IDX(e.button.button)]);
-		printf("(%d, %d)\n", _mouseRelMotion.first, _mouseRelMotion.second);
 		if (e.button.state == SDL_PRESSED) {
 			_mouseButtonState[MOUSE_BUTTON_IDX(e.button.button)] ^= 1;
 		}
-		printf("Pressed button state: %d\n", _mouseButtonState[MOUSE_BUTTON_IDX(e.button.button)]);
 		break;
 	case SDL_MOUSEMOTION:
 		if (_mouseButtonState[MOUSE_BUTTON_IDX(SDL_BUTTON_RIGHT)]) {
 			_mouseRelMotion.first = e.motion.xrel;
 			_mouseRelMotion.second = e.motion.yrel;
-			printf("(%d, %d)\n", _mouseRelMotion.first, _mouseRelMotion.second);
 		}
 		break;
 	case SDL_QUIT:
