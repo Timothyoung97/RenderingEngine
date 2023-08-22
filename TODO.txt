@@ -6,6 +6,11 @@ Graphics Tasks:
 • 1 red Cube & Sphere (code-generated mesh)
     • basics of 3D geometry
     • generate, create & bind vertex/index buffers
+• Albedo texture
+    • Texture Sampling
+    • UV coordinates
+    • Loading images from disk (use https://github.com/nothings/stb/blob/master/stb_image.h)
+    • Allocating GPU Buffer & CPU Upload Buffer to upload image bytes to GPU
 • Numerous cubes & spheres
     • general Renderer, Depth Buffer, Depth States
 • Transparent cube
