@@ -189,6 +189,16 @@ int main()
 	XMVECTOR camPositionV = XMVectorSet(.0f, .0f, -3.0f, .0f);
 	XMVECTOR camTargetV = XMVectorSet(.0f, .0f, .0f, .0f);
 	XMVECTOR camUpV = XMVectorSet(.0f, 1.0f, .0f, .0f);
+
+	XMVECTOR defaultFrontV = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+	XMVECTOR defaultRightV = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
+	XMVECTOR camForwardV = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+	XMVECTOR camRightV = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
+
+	XMMATRIX camRotationMatrix;
+
+	float camYaw = 0.0f;
+	float camPitch = 0.0f;
 	
 	float cameraMoveSpeed = .001f;
 
@@ -209,9 +219,6 @@ int main()
 
 		XMFLOAT4 camPositionF;
 		XMStoreFloat4(&camPositionF, camPositionV);
-		
-		XMFLOAT4 camTargetF;
-		XMStoreFloat4(&camTargetF, camTargetV);
 
 		// Control
 		if (input.getKeyState(SDL_SCANCODE_LEFT)) {
@@ -238,21 +245,30 @@ int main()
 			currTriColor = 2;
 		} else if (input.getKeyState(SDL_SCANCODE_W)) {
 			camPositionF.z += cameraMoveSpeed * deltaTime;
-			camTargetF.z += cameraMoveSpeed * deltaTime;
 		} else if (input.getKeyState(SDL_SCANCODE_S)) {
 			camPositionF.z -= cameraMoveSpeed * deltaTime;
-			camTargetF.z -= cameraMoveSpeed * deltaTime;
 		} else if (input.getKeyState(SDL_SCANCODE_D)) {
-			camPositionF.x += cameraMoveSpeed * deltaTime;
-			camTargetF.x += cameraMoveSpeed * deltaTime;
-		} else if (input.getKeyState(SDL_SCANCODE_A)) {
 			camPositionF.x -= cameraMoveSpeed * deltaTime;
-			camTargetF.x -= cameraMoveSpeed * deltaTime;
+		} else if (input.getKeyState(SDL_SCANCODE_A)) {
+			camPositionF.x += cameraMoveSpeed * deltaTime;
+		} else if (input.getKeyState(SDL_SCANCODE_Q)) {
+			camPositionF.y -= cameraMoveSpeed * deltaTime;
+		} else if (input.getKeyState(SDL_SCANCODE_E)) {
+			camPositionF.y += cameraMoveSpeed * deltaTime;
 		}
 
 		// Update camera
+		camRotationMatrix = XMMatrixRotationRollPitchYaw(camPitch, camYaw, 0);
+		camTargetV = XMVector3TransformCoord(defaultFrontV, camRotationMatrix);
+		camTargetV = XMVector3Normalize(camTargetV);
+
+		camRightV = XMVector3TransformCoord(defaultRightV, camRotationMatrix);
+		camForwardV = XMVector3TransformCoord(defaultFrontV, camRotationMatrix);
+		camUpV = XMVector3Cross(camForwardV, camRightV);
+
+		camTargetV += camPositionV;
+
 		camPositionV = XMLoadFloat4(&camPositionF);
-		camTargetV = XMLoadFloat4(&camTargetF);
 
 		camView = XMMatrixLookAtLH(camPositionV, camTargetV, camUpV);
 
