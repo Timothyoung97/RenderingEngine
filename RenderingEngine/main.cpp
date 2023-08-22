@@ -255,8 +255,8 @@ int main()
 			camPositionF.y += cameraMoveSpeed * deltaTime;
 		} else if (input.getMouseButtonState(SDL_BUTTON_RIGHT)) {
 			std::pair<Sint32, Sint32> relMotion = input.getRelMouseMotion();
-			camYaw += relMotion.first * .001f;
-			camPitch += relMotion.second * .001f;
+			camYaw += relMotion.first * cameraMoveSpeed;
+			camPitch += relMotion.second * cameraMoveSpeed;
 		}
 
 		// Update camera
