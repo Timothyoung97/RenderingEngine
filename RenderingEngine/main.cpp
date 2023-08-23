@@ -50,12 +50,9 @@ int main()
 	//Create dxgiFactory
 	IDXGIFactory2* dxgiFactory2 = nullptr;
 
-	CHECK_DX_ERROR(
-		CreateDXGIFactory2,
-		DXGI_CREATE_FACTORY_DEBUG,
-		__uuidof(IDXGIFactory2),
-		reinterpret_cast<void**>(&dxgiFactory2)
-	);
+	CHECK_DX_ERROR( CreateDXGIFactory2( 
+		DXGI_CREATE_FACTORY_DEBUG, __uuidof(IDXGIFactory2), reinterpret_cast<void**>(&dxgiFactory2)
+	));
 
 	//Create DXGI debug layer
 	IDXGIDebug1* dxgiDebug = nullptr;
@@ -92,15 +89,9 @@ int main()
 	swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
 	swapChainDesc.Flags = 0;
 
-	CHECK_DX_ERROR(
-		dxgiFactory2->CreateSwapChainForHwnd,
-		device.getDevice(),
-		window.getWindowHandle(),
-		&swapChainDesc,
-		NULL,
-		NULL,
-		&swapChain
-	);
+	CHECK_DX_ERROR( dxgiFactory2->CreateSwapChainForHwnd(
+		device.getDevice(), window.getWindowHandle(), &swapChainDesc, NULL, NULL, &swapChain
+	));
 
 	swapChain3 = (IDXGISwapChain3*) swapChain;
 
@@ -115,41 +106,38 @@ int main()
 	ID3DBlob* pVSBlob = nullptr;
 	ID3DBlob* pPSBlob = nullptr;
 
-	CHECK_DX_ERROR(
-		D3DReadFileToBlob,
-		L"../RenderingEngine/shaders/vertex_shader.bin", 
-		&pVSBlob
-	);
+	CHECK_DX_ERROR( D3DReadFileToBlob(
+		L"../RenderingEngine/shaders/vertex_shader.bin", &pVSBlob
+	));
 
-	CHECK_DX_ERROR(
-		D3DReadFileToBlob,
-		L"../RenderingEngine/shaders/pixel_shader.bin",
-		&pPSBlob
-	);
+	CHECK_DX_ERROR( D3DReadFileToBlob(
+		L"../RenderingEngine/shaders/pixel_shader.bin", &pPSBlob
+	));
 
 	ID3D11VertexShader* vertex_shader_ptr = nullptr;
 	ID3D11PixelShader* pixel_shader_ptr = nullptr;
 
-	CHECK_DX_ERROR(
-		device.getDevice()->CreateVertexShader,
-		pVSBlob->GetBufferPointer(),
-		pVSBlob->GetBufferSize(),
-		NULL, 
-		&vertex_shader_ptr
-	);
+	CHECK_DX_ERROR( device.getDevice()->CreateVertexShader(
+		pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), NULL, &vertex_shader_ptr
+	));
 
-	CHECK_DX_ERROR(
-		device.getDevice()->CreatePixelShader,
-		pPSBlob->GetBufferPointer(),
-		pPSBlob->GetBufferSize(),
-		NULL,
-		&pixel_shader_ptr
-	);
+	CHECK_DX_ERROR( device.getDevice()->CreatePixelShader( 
+		pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), NULL, &pixel_shader_ptr
+	));
 
 	device.getContext()->VSSetShader(vertex_shader_ptr, NULL, 0u);
 	device.getContext()->PSSetShader(pixel_shader_ptr, NULL, 0u);
 
 	//Setting Viewport
+	CHECK_DX_ERROR( device.getDevice()->CreateBuffer(
+		&vertexBufferDesc, &vertexData, &pVertexBuffer
+	));
+	CHECK_DX_ERROR( device.getDevice()->CreateBuffer(
+		&indexBufferDesc, &indexData, &pIndexBuffer
+	));
+	CHECK_DX_ERROR( device.getDevice()->CreateInputLayout(
+		layout, numOfInputElement, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &vertLayout
+	));
 	D3D11_VIEWPORT viewport = {};
 	viewport.TopLeftX = 0;
 	viewport.TopLeftY = 0;
@@ -312,12 +300,9 @@ int main()
 
 		D3D11_SUBRESOURCE_DATA csd = {};
 		csd.pSysMem = &cbsr;
-		CHECK_DX_ERROR(
-			device.getDevice()->CreateBuffer,
-			&constantBufferDesc,
-			&csd,
-			&pConstBuffer
-		);
+		CHECK_DX_ERROR( device.getDevice()->CreateBuffer(
+			&constantBufferDesc, &csd, &pConstBuffer
+		));
 
 		device.getContext()->VSSetConstantBuffers(0u, 1u, &pConstBuffer);
 		device.getContext()->PSSetConstantBuffers(0u, 1u, &pConstBuffer);
@@ -327,22 +312,16 @@ int main()
 
 		ID3D11Texture2D* currBuffer = nullptr;
 
-		CHECK_DX_ERROR(
-			swapChain3->GetBuffer,
-			currBackBuffer,
-			__uuidof(ID3D11Texture2D),
-			(LPVOID*)&currBuffer
-		)
+		CHECK_DX_ERROR(swapChain3->GetBuffer(
+			currBackBuffer, __uuidof(ID3D11Texture2D), (LPVOID*)&currBuffer
+		));
 
 		// Create render target view
 		ID3D11RenderTargetView* renderTargetView = nullptr;
 
-		CHECK_DX_ERROR(
-			device.getDevice()->CreateRenderTargetView,
-			currBuffer,
-			NULL,
-			&renderTargetView
-		);
+		CHECK_DX_ERROR( device.getDevice()->CreateRenderTargetView(
+			currBuffer, NULL, &renderTargetView
+		));
 
 		device.getContext()->OMSetRenderTargets(1, &renderTargetView, nullptr);
 		
@@ -350,11 +329,7 @@ int main()
 
 		device.getContext()->Draw(3, 0);
 
-		CHECK_DX_ERROR(
-			swapChain3->Present,
-			0,
-			0
-		);
+		CHECK_DX_ERROR( swapChain3->Present( 0, 0) );
 
 		while (timer.getDeltaTime() < 1000.0 / 30) {
 		}
