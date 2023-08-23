@@ -10,6 +10,7 @@
 #include <d3d11.h>
 #include <d3dcompiler.h>
 #include <DirectXMath.h>
+#include <DirectXColors.h>
 #include <stdio.h>
 
 #include <iostream>
@@ -36,21 +37,21 @@ using namespace DirectX;
 struct constBufferShaderResc {
 	XMMATRIX transformation;
 	XMMATRIX viewProjection;
-	XMFLOAT4 rgbaColor;
+	//XMFLOAT4 rgbaColor;
 };
 
 struct Vertex {
 	XMFLOAT3 pos;
+	XMFLOAT4 color;
 };
 
 //Input Layout
 D3D11_INPUT_ELEMENT_DESC layout[] = {
 	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0 , D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0}
 };
 
 const UINT numOfInputElement = ARRAYSIZE(layout);
-
-const std::string src = "";
 
 int main()
 {
@@ -113,11 +114,11 @@ int main()
 	ID3DBlob* pPSBlob = nullptr;
 
 	CHECK_DX_ERROR( D3DReadFileToBlob(
-		L"../RenderingEngine/shaders/vertex_shader.bin", &pVSBlob
+		L"./RenderingEngine/shaders/vertex_shader.bin", &pVSBlob
 	));
 
 	CHECK_DX_ERROR( D3DReadFileToBlob(
-		L"../RenderingEngine/shaders/pixel_shader.bin", &pPSBlob
+		L"./RenderingEngine/shaders/pixel_shader.bin", &pPSBlob
 	));
 
 	ID3D11VertexShader* vertex_shader_ptr = nullptr;
@@ -136,14 +137,14 @@ int main()
 
 	//Cube Vertices
 	Vertex cubeVertex[] = {
-		XMFLOAT3(-.5, .5, -.5),
-		XMFLOAT3(-.5, .5, .5),
-		XMFLOAT3(.5, .5, .5),
-		XMFLOAT3(.5, .5, -.5),
-		XMFLOAT3(.5, -.5, -.5),
-		XMFLOAT3(.5, -.5, .5),
-		XMFLOAT3(-.5, -.5, .5),
-		XMFLOAT3(-.5, -.5, -.5)
+		XMFLOAT3(-.5, .5, -.5), {1.0f, .0f, .0f, 1.0f},
+		XMFLOAT3(-.5, .5, .5), {.0f, 1.0f, .0f, 1.0f},
+		XMFLOAT3(.5, .5, .5), {.0f, .0f, 1.0f, 1.0f},
+		XMFLOAT3(.5, .5, -.5), {1.0f, 1.0f, .0f, 1.0f},
+		XMFLOAT3(.5, -.5, -.5), {1.0f, .0f, 1.0f, 1.0f},
+		XMFLOAT3(.5, -.5, .5), {.0f, 1.0f, 1.0f, 1.0f},
+		XMFLOAT3(-.5, -.5, .5), {.5f, .5f, .5f, 1.0f},
+		XMFLOAT3(-.5, -.5, -.5), {.75f, .5f, .75f, 1.0f}
 	};
 
 	//Cube Indices
@@ -369,7 +370,7 @@ int main()
 		constBufferShaderResc cbsr;
 		cbsr.transformation = tf_matrix;
 		cbsr.viewProjection = XMMatrixMultiply(camView, camProjection);
-		cbsr.rgbaColor = triangleColor[currTriColor];
+		//cbsr.rgbaColor = triangleColor[currTriColor];
 
 		// Constant buffer
 		D3D11_BUFFER_DESC constantBufferDesc;
