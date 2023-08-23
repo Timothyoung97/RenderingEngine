@@ -2,7 +2,6 @@
 
 #include <SDL.h>
 #include <SDL_syswm.h>
-
 #include <dxgi.h>
 #include <dxgidebug.h>
 #include <dxgi1_2.h>
@@ -11,11 +10,10 @@
 #include <d3d11.h>
 #include <d3dcompiler.h>
 #include <DirectXMath.h>
+#include <stdio.h>
 
 #include <iostream>
 #include <fstream>
-
-#include <stdio.h>
 #include <cassert>
 #include <vector>
 
@@ -36,12 +34,14 @@ const GUID dxgi_debug_all = { 0xe48ae283, 0xda80, 0x490b, { 0x87, 0xe6, 0x43, 0x
 using namespace DirectX;
 
 struct constBufferShaderResc {
-	XMMATRIX transformationMatrix;
+	XMMATRIX transformation;
+	XMMATRIX viewProjection;
 	XMFLOAT4 rgbaColor;
 };
 
 int main()
 {
+	//Create Window
 	tre::Window window("RenderingEngine", SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	//Create Device 
@@ -155,18 +155,18 @@ int main()
 	device.getContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	// temp tranformation data
-	float offset_x = .0f;
-	float offset_y = .0f;
-	float translate_speed = .001f;
+	float offsetX = .0f;
+	float offsetY = .0f;
+	float translateSpeed = .001f;
 
-	float scale_x = 1.0f;
-	float scale_y = 1.0f;
-	float scale_speed = .001f;
+	float scaleX = 1.0f;
+	float scaleY = 1.0f;
+	float scaleSpeed = .001f;
 
-	float rotate_z = .0f;
-	float rotate_speed = .1f;
+	float rotateZ = .0f;
+	float rotateSpeed = .1f;
 
-	//Rendering Loop
+	//Input Handler
 	tre::Input input;
 	
 	//Colors
@@ -180,7 +180,36 @@ int main()
 
 	int currTriColor = 0;
 
+	//Delta Time between frame
 	double deltaTime = 0;
+
+	// Camera's properties
+	XMVECTOR defaultUpV = XMVectorSet(.0f, 1.0f, .0f, .0f);
+	
+	XMVECTOR camPositionV = XMVectorSet(.0f, .0f, -3.0f, .0f);
+	XMVECTOR camUpV = XMVectorSet(.0f, 1.0f, .0f, .0f);
+	XMVECTOR camRightV = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
+
+	float yaw = 90;
+	float pitch = 0;
+
+	XMFLOAT3 directionF;
+	directionF.x = XMScalarCos(XMConvertToRadians(yaw)) * XMScalarCos(XMConvertToRadians(pitch));
+	directionF.y = XMScalarSin(XMConvertToRadians(pitch));
+	directionF.z = XMScalarSin(XMConvertToRadians(yaw)) * XMScalarCos(XMConvertToRadians(pitch));
+
+	XMVECTOR directionV;
+	directionV = XMVector3Normalize(XMLoadFloat3(&directionF));
+
+	float cameraMoveSpeed = .001f;
+	float cameraRotateSpeed = .01f;
+
+	// Camera View Matrix
+	XMMATRIX camView;
+
+	// Projection Matrix
+	XMMATRIX camProjection;
+	camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0f), static_cast<float>(SCREEN_WIDTH / SCREEN_HEIGHT), 1.0f, 1000.0f);
 
 	// main loop
 	while (!input.shouldQuit())
@@ -189,43 +218,79 @@ int main()
 
 		// Update keyboard event
 		input.updateInputEvent();
-		
+
+		XMFLOAT4 camPositionF;
+		XMStoreFloat4(&camPositionF, camPositionV);
+
+		// Control
 		if (input.getKeyState(SDL_SCANCODE_LEFT)) {
-			offset_x -= translate_speed * deltaTime;
+			offsetX -= translateSpeed * deltaTime;
 		} else if (input.getKeyState(SDL_SCANCODE_RIGHT)) {
-			offset_x += translate_speed * deltaTime;
+			offsetX += translateSpeed * deltaTime;
 		} else if (input.getKeyState(SDL_SCANCODE_UP)) {
-			offset_y += translate_speed * deltaTime;
+			offsetY += translateSpeed * deltaTime;
 		} else if (input.getKeyState(SDL_SCANCODE_DOWN)) {
-			offset_y -= translate_speed * deltaTime;
+			offsetY -= translateSpeed * deltaTime;
 		} else if (input.getKeyState(SDL_SCANCODE_PAGEUP)) {
-			scale_x += scale_speed * deltaTime;
-			scale_y += scale_speed * deltaTime;
+			scaleX += scaleSpeed * deltaTime;
+			scaleY += scaleSpeed * deltaTime;
 		} else if (input.getKeyState(SDL_SCANCODE_PAGEDOWN)) {
-			scale_x -= scale_speed * deltaTime;
-			scale_y -= scale_speed * deltaTime;
+			scaleX -= scaleSpeed * deltaTime;
+			scaleY -= scaleSpeed * deltaTime;
 		} else if (input.getKeyState(SDL_SCANCODE_Z)) {
-			rotate_z += rotate_speed * deltaTime;
+			rotateZ += rotateSpeed * deltaTime;
 		} else if (input.getKeyState(SDL_SCANCODE_1)) {
 			currTriColor = 0;
 		} else if (input.getKeyState(SDL_SCANCODE_2)) {
 			currTriColor = 1;
 		} else if (input.getKeyState(SDL_SCANCODE_3)) {
 			currTriColor = 2;
+		} else if (input.getKeyState(SDL_SCANCODE_W)) {
+			camPositionF.z += cameraMoveSpeed * deltaTime;
+		} else if (input.getKeyState(SDL_SCANCODE_S)) {
+			camPositionF.z -= cameraMoveSpeed * deltaTime;
+		} else if (input.getKeyState(SDL_SCANCODE_D)) {
+			camPositionF.x -= cameraMoveSpeed * deltaTime;
+		} else if (input.getKeyState(SDL_SCANCODE_A)) {
+			camPositionF.x += cameraMoveSpeed * deltaTime;
+		} else if (input.getKeyState(SDL_SCANCODE_Q)) {
+			camPositionF.y -= cameraMoveSpeed * deltaTime;
+		} else if (input.getKeyState(SDL_SCANCODE_E)) {
+			camPositionF.y += cameraMoveSpeed * deltaTime;
+		} else if (input.getMouseButtonState(SDL_BUTTON_RIGHT)) {
+			std::pair<Sint32, Sint32> relMotion = input.getRelMouseMotion();
+
+			yaw -= relMotion.first * cameraRotateSpeed;
+			pitch -= relMotion.second * cameraRotateSpeed;
+
+			directionF.x = XMScalarCos(XMConvertToRadians(yaw)) * XMScalarCos(XMConvertToRadians(pitch));
+			directionF.y = XMScalarSin(XMConvertToRadians(pitch));
+			directionF.z = XMScalarSin(XMConvertToRadians(yaw)) * XMScalarCos(XMConvertToRadians(pitch));
+
+			directionV = XMVector3Normalize(XMLoadFloat3(&directionF));
 		}
 
-		// transformation matrix = scale -> rotate -> translate
+		// Update camera
+		camRightV = XMVector3Normalize(XMVector3Cross(directionV, defaultUpV));
+		camUpV = XMVector3Normalize(XMVector3Cross(camRightV, directionV));
+
+		camPositionV = XMLoadFloat4(&camPositionF);
+
+		camView = XMMatrixLookAtLH(camPositionV, camPositionV + directionV, camUpV);
+
+		// model matrix = scale -> rotate -> translate
 		XMMATRIX tf_matrix = XMMatrixMultiply(
-			XMMatrixScaling(scale_x, scale_y, 1), 
+			XMMatrixScaling(scaleX, scaleY, 1),
 			XMMatrixMultiply(
-				XMMatrixRotationZ(XMConvertToRadians(rotate_z)), 
-				XMMatrixTranslation(offset_x, offset_y, 0)
+				XMMatrixRotationZ(XMConvertToRadians(rotateZ)),
+				XMMatrixTranslation(offsetX, offsetY, 0)
 			)
 		);
 
 		// Constant Buffer Shader Resource
 		constBufferShaderResc cbsr;
-		cbsr.transformationMatrix = tf_matrix;
+		cbsr.transformation = tf_matrix;
+		cbsr.viewProjection = XMMatrixMultiply(camView, camProjection);
 		cbsr.rgbaColor = triangleColor[currTriColor];
 
 		// Constant buffer
@@ -289,6 +354,8 @@ int main()
 		}
 
 		deltaTime = timer.getDeltaTime();
+
+		pConstBuffer->Release();
 	}
 
 	//Cleanup
