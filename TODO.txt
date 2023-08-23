@@ -1,8 +1,4 @@
 Graphics Tasks:
-• flying camera
-    • view & projection matrices
-    • yaw, pitch, roll controls
-    • polar coordinates
 • 1 red Cube & Sphere (code-generated mesh)
     • basics of 3D geometry
     • generate, create & bind vertex/index buffers
@@ -26,6 +22,10 @@ Done:
 • change triangle position, rotation, scale & color in run-time
     • Constant Buffers
     • Affine Transformations
+• flying camera
+    • view & projection matrices
+    • yaw, pitch, roll controls
+    • polar coordinates
 
 //////////////////////////////////////////////////////////////////////////////
 
