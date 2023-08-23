@@ -39,6 +39,19 @@ struct constBufferShaderResc {
 	XMFLOAT4 rgbaColor;
 };
 
+struct Vertex {
+	XMFLOAT3 pos;
+};
+
+//Input Layout
+D3D11_INPUT_ELEMENT_DESC layout[] = {
+	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0 , D3D11_INPUT_PER_VERTEX_DATA, 0 },
+};
+
+const UINT numOfInputElement = ARRAYSIZE(layout);
+
+const std::string src = "";
+
 int main()
 {
 	//Create Window
@@ -94,14 +107,7 @@ int main()
 	));
 
 	swapChain3 = (IDXGISwapChain3*) swapChain;
-
-	//Create index buffer
-
-	//Create vertex buffer
-
-	//Cube Vertices
 	
-
 	//Load pre-compiled shaders
 	ID3DBlob* pVSBlob = nullptr;
 	ID3DBlob* pPSBlob = nullptr;
@@ -128,16 +134,94 @@ int main()
 	device.getContext()->VSSetShader(vertex_shader_ptr, NULL, 0u);
 	device.getContext()->PSSetShader(pixel_shader_ptr, NULL, 0u);
 
-	//Setting Viewport
-	CHECK_DX_ERROR( device.getDevice()->CreateBuffer(
-		&vertexBufferDesc, &vertexData, &pVertexBuffer
-	));
+	//Cube Vertices
+	Vertex cubeVertex[] = {
+		XMFLOAT3(-.5, .5, -.5),
+		XMFLOAT3(-.5, .5, .5),
+		XMFLOAT3(.5, .5, .5),
+		XMFLOAT3(.5, .5, -.5),
+		XMFLOAT3(.5, -.5, -.5),
+		XMFLOAT3(.5, -.5, .5),
+		XMFLOAT3(-.5, -.5, .5),
+		XMFLOAT3(-.5, -.5, -.5)
+	};
+
+	//Cube Indices
+	uint16_t indices[] = {
+		0, 7, 3, // -z
+		3, 7, 4,
+		1, 0, 2, // +y
+		2, 0, 3,
+		3, 4, 2, // +x
+		2, 4, 5,
+		7, 6, 4, // -y
+		4, 6, 5,
+		2, 5, 1, // +z
+		1, 5, 6,
+		1, 6, 0, // -x
+		0, 6, 7
+	};
+
+	const UINT numOfIndices = ARRAYSIZE(indices);
+
+	//Create index buffer
+	ID3D11Buffer* pIndexBuffer;
+
+	D3D11_BUFFER_DESC indexBufferDesc;
+	indexBufferDesc.BindFlags = D3D10_BIND_INDEX_BUFFER;
+	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	indexBufferDesc.CPUAccessFlags = 0;
+	indexBufferDesc.MiscFlags = 0u;
+	indexBufferDesc.ByteWidth = sizeof(indices);
+	indexBufferDesc.StructureByteStride = 0u;
+
+	D3D11_SUBRESOURCE_DATA indexData;
+	indexData.pSysMem = &indices;
+
 	CHECK_DX_ERROR( device.getDevice()->CreateBuffer(
 		&indexBufferDesc, &indexData, &pIndexBuffer
 	));
+
+	//Set index buffer
+	device.getContext()->IASetIndexBuffer(pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+
+	//Create vertex buffer
+	ID3D11Buffer* pVertexBuffer;
+
+	D3D11_BUFFER_DESC vertexBufferDesc;
+	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	vertexBufferDesc.CPUAccessFlags = 0;
+	vertexBufferDesc.MiscFlags = 0u;
+	vertexBufferDesc.ByteWidth = sizeof(cubeVertex);
+	vertexBufferDesc.StructureByteStride = 0u;
+
+	D3D11_SUBRESOURCE_DATA vertexData = {};
+	vertexData.pSysMem = &cubeVertex;
+
+	CHECK_DX_ERROR(device.getDevice()->CreateBuffer(
+		&vertexBufferDesc, &vertexData, &pVertexBuffer
+	));
+
+	//Set vertex buffer
+	UINT vertexStride = sizeof(Vertex);
+	UINT offset = 0;
+	device.getContext()->IASetVertexBuffers(0, 1, &pVertexBuffer, &vertexStride, &offset);
+
+	// Create input layout
+	ID3D11InputLayout* vertLayout;
+
 	CHECK_DX_ERROR( device.getDevice()->CreateInputLayout(
 		layout, numOfInputElement, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &vertLayout
 	));
+
+	// Set input layout
+	device.getContext()->IASetInputLayout( vertLayout );
+
+	// Set topology
+	device.getContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	//Create Viewport
 	D3D11_VIEWPORT viewport = {};
 	viewport.TopLeftX = 0;
 	viewport.TopLeftY = 0;
@@ -146,8 +230,8 @@ int main()
 	viewport.MinDepth = 0;
 	viewport.MaxDepth = 1;
 
+	//Set Viewport
 	device.getContext()->RSSetViewports(1, &viewport);
-	device.getContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	// temp tranformation data
 	float offsetX = .0f;
@@ -245,9 +329,9 @@ int main()
 		} else if (input.keyState[SDL_SCANCODE_S]) {
 			camPositionF.z -= cameraMoveSpeed * deltaTime;
 		} else if (input.keyState[SDL_SCANCODE_D]) {
-			camPositionF.x -= cameraMoveSpeed * deltaTime;
-		} else if (input.keyState[SDL_SCANCODE_A]) {
 			camPositionF.x += cameraMoveSpeed * deltaTime;
+		} else if (input.keyState[SDL_SCANCODE_A]) {
+			camPositionF.x -= cameraMoveSpeed * deltaTime;
 		} else if (input.keyState[SDL_SCANCODE_Q]) {
 			camPositionF.y -= cameraMoveSpeed * deltaTime;
 		} else if (input.keyState[SDL_SCANCODE_E]) {
@@ -310,24 +394,24 @@ int main()
 		// Alternating buffers
 		int currBackBuffer = static_cast<int>(swapChain3->GetCurrentBackBufferIndex());
 
-		ID3D11Texture2D* currBuffer = nullptr;
+		ID3D11Texture2D* backBuffer = nullptr;
 
 		CHECK_DX_ERROR(swapChain3->GetBuffer(
-			currBackBuffer, __uuidof(ID3D11Texture2D), (LPVOID*)&currBuffer
+			currBackBuffer, __uuidof(ID3D11Texture2D), (LPVOID*)&backBuffer
 		));
 
 		// Create render target view
 		ID3D11RenderTargetView* renderTargetView = nullptr;
 
 		CHECK_DX_ERROR( device.getDevice()->CreateRenderTargetView(
-			currBuffer, NULL, &renderTargetView
+			backBuffer, NULL, &renderTargetView
 		));
 
 		device.getContext()->OMSetRenderTargets(1, &renderTargetView, nullptr);
 		
 		device.getContext()->ClearRenderTargetView(renderTargetView, bgColor);
 
-		device.getContext()->Draw(3, 0);
+		device.getContext()->DrawIndexed(numOfIndices, 0, 0);
 
 		CHECK_DX_ERROR( swapChain3->Present( 0, 0) );
 
@@ -337,9 +421,11 @@ int main()
 		deltaTime = timer.getDeltaTime();
 
 		pConstBuffer->Release();
+
 	}
 
 	//Cleanup
+	vertLayout->Release();
 	swapChain3->Release();
 	dxgiFactory2->Release();
 

@@ -5,17 +5,11 @@ cbuffer constBuffer : register(b0) {
 }
 
 void vs_main (
-    in uint vertexID : SV_VertexID,
+    in float4 inPosition : POSITION,
     out float4 outPosition : SV_POSITION
 ) 
 {
-    const float4 pos[3] = {
-        float4(0, 0.5, 0, 1),
-        float4(0.5, -0.5, 0, 1),
-        float4(-0.5, -0.5, 0, 1)
-    };
-
-    float4 localPos = mul(transformation, pos[vertexID]);
+    float4 localPos = mul(transformation, inPosition);
     outPosition = mul(viewProjection, localPos);
 }
 
