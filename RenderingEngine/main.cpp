@@ -202,6 +202,7 @@ int main()
 	directionV = XMVector3Normalize(XMLoadFloat3(&directionF));
 
 	float cameraMoveSpeed = .001f;
+	float cameraRotateSpeed = .01f;
 
 	// Camera View Matrix
 	XMMATRIX camView;
@@ -259,8 +260,8 @@ int main()
 		} else if (input.getMouseButtonState(SDL_BUTTON_RIGHT)) {
 			std::pair<Sint32, Sint32> relMotion = input.getRelMouseMotion();
 
-			yaw += relMotion.first * .01f;
-			pitch += relMotion.second * .01f;
+			yaw += relMotion.first * cameraRotateSpeed;
+			pitch += relMotion.second * cameraRotateSpeed;
 
 			directionF.x = XMScalarCos(XMConvertToRadians(yaw)) * XMScalarCos(XMConvertToRadians(pitch));
 			directionF.y = XMScalarSin(XMConvertToRadians(pitch));
