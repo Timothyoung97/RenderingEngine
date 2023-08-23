@@ -185,28 +185,31 @@ int main()
 
 	// Camera's properties
 	XMVECTOR camPositionV = XMVectorSet(.0f, .0f, -3.0f, .0f);
-	XMVECTOR camTargetV = XMVectorSet(.0f, .0f, .0f, .0f);
+	//XMVECTOR camTargetV = XMVectorSet(.0f, .0f, .0f, .0f);
 	XMVECTOR camUpV = XMVectorSet(.0f, 1.0f, .0f, .0f);
-
-	XMVECTOR defaultFrontV = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
-	XMVECTOR defaultRightV = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
-	XMVECTOR camForwardV = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+	//XMVECTOR camForwardV = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
 	XMVECTOR camRightV = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
 
-	XMFLOAT3 pitchYawRoll(.0f, .0f, .0f);
+	//XMVECTOR defaultFrontV = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+	//XMVECTOR defaultRightV = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
+	XMVECTOR defaultUpV = XMVectorSet(.0f, 1.0f, .0f, .0f);
 
-	float yaw = 0;
+	//XMFLOAT3 pitchYawRoll(.0f, .0f, .0f);
+
+	float yaw = 90;
 	float pitch = 0;
 
 	XMFLOAT3 directionF;
 	directionF.x = XMScalarCos(XMConvertToRadians(yaw)) * XMScalarCos(XMConvertToRadians(pitch));
 	directionF.y = XMScalarSin(XMConvertToRadians(pitch));
 	directionF.z = XMScalarSin(XMConvertToRadians(yaw)) * XMScalarCos(XMConvertToRadians(pitch));
+
+	printf("x: %d, y: %d, z: %d\n", directionF.x, directionF.y, directionF.z);
 	
 	XMVECTOR directionV;
 	directionV = XMVector3Normalize(XMLoadFloat3(&directionF));
 
-	XMMATRIX camRotationMatrix;
+	//XMMATRIX camRotationMatrix;
 	
 	float cameraMoveSpeed = .001f;
 
@@ -265,31 +268,38 @@ int main()
 			camPositionF.y += cameraMoveSpeed * deltaTime;
 		} else if (input.getMouseButtonState(SDL_BUTTON_RIGHT)) {
 			std::pair<Sint32, Sint32> relMotion = input.getRelMouseMotion();
-			pitchYawRoll.y += relMotion.first * cameraMoveSpeed;
-			pitchYawRoll.x += relMotion.second * cameraMoveSpeed;
+			//pitchYawRoll.y += relMotion.first * cameraMoveSpeed;
+			//pitchYawRoll.x += relMotion.second * cameraMoveSpeed;
 
 			yaw += relMotion.first * cameraMoveSpeed;
 			pitch += relMotion.second * cameraMoveSpeed;
+			printf("yaw: %d, pitch: %d\n", yaw, pitch);
 			directionF.x = XMScalarCos(XMConvertToRadians(yaw)) * XMScalarCos(XMConvertToRadians(pitch));
 			directionF.y = XMScalarSin(XMConvertToRadians(pitch));
 			directionF.z = XMScalarSin(XMConvertToRadians(yaw)) * XMScalarCos(XMConvertToRadians(pitch));
+			printf("x: %d, y: %d, z: %d\n", directionF.x, directionF.y, directionF.z);
 			directionV = XMVector3Normalize(XMLoadFloat3(&directionF));
 		}
 
 		// Update camera
-		camRotationMatrix = XMMatrixRotationRollPitchYaw(pitchYawRoll.x, pitchYawRoll.y, 0);
-		camTargetV = XMVector3TransformCoord(defaultFrontV, camRotationMatrix);
-		camTargetV = XMVector3Normalize(camTargetV);
+		//camRotationMatrix = XMMatrixRotationRollPitchYaw(pitchYawRoll.x, pitchYawRoll.y, 0);
+		//camTargetV = XMVector3TransformCoord(defaultFrontV, camRotationMatrix);
+		//camTargetV = XMVector3Normalize(camTargetV);
 
-		camRightV = XMVector3TransformCoord(defaultRightV, camRotationMatrix);
-		camForwardV = XMVector3TransformCoord(defaultFrontV, camRotationMatrix);
-		camUpV = XMVector3Cross(camForwardV, camRightV);
+		//camRightV = XMVector3TransformCoord(defaultRightV, camRotationMatrix);
+		//camForwardV = XMVector3TransformCoord(defaultFrontV, camRotationMatrix);
+		//camUpV = XMVector3Cross(camForwardV, camRightV);
 
-		camTargetV += camPositionV;
+
+
+		camRightV = XMVector3Normalize(XMVector3Cross(directionV, defaultUpV));
+		camUpV = XMVector3Normalize(XMVector3Cross(camRightV, directionV));
+
+		//camTargetV += camPositionV;
 
 		camPositionV = XMLoadFloat4(&camPositionF);
 
-		camView = XMMatrixLookAtLH(camPositionV, camTargetV, camUpV);
+		camView = XMMatrixLookAtLH(camPositionV, camPositionV + directionV, camUpV);
 
 		// model matrix = scale -> rotate -> translate
 		XMMATRIX tf_matrix = XMMatrixMultiply(
