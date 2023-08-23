@@ -259,8 +259,8 @@ int main()
 		} else if (input.getMouseButtonState(SDL_BUTTON_RIGHT)) {
 			std::pair<Sint32, Sint32> relMotion = input.getRelMouseMotion();
 
-			yaw += relMotion.first * cameraMoveSpeed;
-			pitch += relMotion.second * cameraMoveSpeed;
+			yaw += relMotion.first * .01f;
+			pitch += relMotion.second * .01f;
 
 			directionF.x = XMScalarCos(XMConvertToRadians(yaw)) * XMScalarCos(XMConvertToRadians(pitch));
 			directionF.y = XMScalarSin(XMConvertToRadians(pitch));
