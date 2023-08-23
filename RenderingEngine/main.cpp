@@ -104,6 +104,13 @@ int main()
 
 	swapChain3 = (IDXGISwapChain3*) swapChain;
 
+	//Create index buffer
+
+	//Create vertex buffer
+
+	//Cube Vertices
+	
+
 	//Load pre-compiled shaders
 	ID3DBlob* pVSBlob = nullptr;
 	ID3DBlob* pPSBlob = nullptr;
@@ -223,45 +230,44 @@ int main()
 		XMStoreFloat4(&camPositionF, camPositionV);
 
 		// Control
-		if (input.getKeyState(SDL_SCANCODE_LEFT)) {
+		if (input.keyState[SDL_SCANCODE_LEFT]) {
 			offsetX -= translateSpeed * deltaTime;
-		} else if (input.getKeyState(SDL_SCANCODE_RIGHT)) {
+		} else if (input.keyState[SDL_SCANCODE_RIGHT]) {
 			offsetX += translateSpeed * deltaTime;
-		} else if (input.getKeyState(SDL_SCANCODE_UP)) {
+		} else if (input.keyState[SDL_SCANCODE_UP]) {
 			offsetY += translateSpeed * deltaTime;
-		} else if (input.getKeyState(SDL_SCANCODE_DOWN)) {
+		} else if (input.keyState[SDL_SCANCODE_DOWN]) {
 			offsetY -= translateSpeed * deltaTime;
-		} else if (input.getKeyState(SDL_SCANCODE_PAGEUP)) {
+		} else if (input.keyState[SDL_SCANCODE_PAGEUP]) {
 			scaleX += scaleSpeed * deltaTime;
 			scaleY += scaleSpeed * deltaTime;
-		} else if (input.getKeyState(SDL_SCANCODE_PAGEDOWN)) {
+		} else if (input.keyState[SDL_SCANCODE_PAGEDOWN]) {
 			scaleX -= scaleSpeed * deltaTime;
 			scaleY -= scaleSpeed * deltaTime;
-		} else if (input.getKeyState(SDL_SCANCODE_Z)) {
+		} else if (input.keyState[SDL_SCANCODE_Z]) {
 			rotateZ += rotateSpeed * deltaTime;
-		} else if (input.getKeyState(SDL_SCANCODE_1)) {
+		} else if (input.keyState[SDL_SCANCODE_1]) {
 			currTriColor = 0;
-		} else if (input.getKeyState(SDL_SCANCODE_2)) {
+		} else if (input.keyState[SDL_SCANCODE_2]) {
 			currTriColor = 1;
-		} else if (input.getKeyState(SDL_SCANCODE_3)) {
+		} else if (input.keyState[SDL_SCANCODE_3]) {
 			currTriColor = 2;
-		} else if (input.getKeyState(SDL_SCANCODE_W)) {
+		} else if (input.keyState[SDL_SCANCODE_W]) {
 			camPositionF.z += cameraMoveSpeed * deltaTime;
-		} else if (input.getKeyState(SDL_SCANCODE_S)) {
+		} else if (input.keyState[SDL_SCANCODE_S]) {
 			camPositionF.z -= cameraMoveSpeed * deltaTime;
-		} else if (input.getKeyState(SDL_SCANCODE_D)) {
+		} else if (input.keyState[SDL_SCANCODE_D]) {
 			camPositionF.x -= cameraMoveSpeed * deltaTime;
-		} else if (input.getKeyState(SDL_SCANCODE_A)) {
+		} else if (input.keyState[SDL_SCANCODE_A]) {
 			camPositionF.x += cameraMoveSpeed * deltaTime;
-		} else if (input.getKeyState(SDL_SCANCODE_Q)) {
+		} else if (input.keyState[SDL_SCANCODE_Q]) {
 			camPositionF.y -= cameraMoveSpeed * deltaTime;
-		} else if (input.getKeyState(SDL_SCANCODE_E)) {
+		} else if (input.keyState[SDL_SCANCODE_E]) {
 			camPositionF.y += cameraMoveSpeed * deltaTime;
-		} else if (input.getMouseButtonState(SDL_BUTTON_RIGHT)) {
-			std::pair<Sint32, Sint32> relMotion = input.getRelMouseMotion();
+		} else if (input.mouseButtonState[MOUSE_BUTTON_IDX(SDL_BUTTON_RIGHT)]) {
 
-			yaw -= relMotion.first * cameraRotateSpeed;
-			pitch -= relMotion.second * cameraRotateSpeed;
+			yaw -= input.deltaDisplacement.x * cameraRotateSpeed;
+			pitch -= input.deltaDisplacement.y * cameraRotateSpeed;
 
 			directionF.x = XMScalarCos(XMConvertToRadians(yaw)) * XMScalarCos(XMConvertToRadians(pitch));
 			directionF.y = XMScalarSin(XMConvertToRadians(pitch));

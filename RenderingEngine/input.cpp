@@ -16,44 +16,44 @@ void Input::updateInputEvent() {
 	switch (e.type) {
 	case SDL_KEYDOWN:
 		if (e.key.state == SDL_PRESSED) {
-			_keyState[e.key.keysym.scancode] = 1;
+			keyState[e.key.keysym.scancode] = 1;
 		}
 		break;
 	case SDL_KEYUP:
 		if (e.key.state == SDL_RELEASED) {
-			_keyState[e.key.keysym.scancode] = 0;
+			keyState[e.key.keysym.scancode] = 0;
 		}
 		break;
 	case SDL_MOUSEBUTTONDOWN:
 		if (e.button.state == SDL_PRESSED) {
-			_mouseButtonState[MOUSE_BUTTON_IDX(e.button.button)] = 1;
+			mouseButtonState[MOUSE_BUTTON_IDX(e.button.button)] = 1;
 			// mouse pressed position
-			_lastPos.first = e.button.x;
-			_lastPos.second = e.button.y;
+			lastPos.x = e.button.x;
+			lastPos.y = e.button.y;
 		}
 		break;
 	case SDL_MOUSEMOTION:
-		if (_mouseButtonState[MOUSE_BUTTON_IDX(SDL_BUTTON_RIGHT)]) {
+		if (mouseButtonState[MOUSE_BUTTON_IDX(SDL_BUTTON_RIGHT)]) {
 			// update mouse delta motion
-			_deltaDisplacement.first = e.motion.x - _lastPos.first;
-			_deltaDisplacement.second = e.motion.y - _lastPos.second;
-			_lastPos.first = e.motion.x;
-			_lastPos.second = e.motion.y;
+			deltaDisplacement.x = e.motion.x - lastPos.x;
+			deltaDisplacement.y = e.motion.y - lastPos.y;
+			lastPos.x = e.motion.x;
+			lastPos.y = e.motion.y;
 		}
 		break;
 	case SDL_MOUSEBUTTONUP:
 		if (e.button.state == SDL_RELEASED) {
-			_mouseButtonState[MOUSE_BUTTON_IDX(e.button.button)] = 0;
+			mouseButtonState[MOUSE_BUTTON_IDX(e.button.button)] = 0;
 
 			// set detla motion back to zero
-			_deltaDisplacement.first = 0;
-			_deltaDisplacement.second = 0;
-			_lastPos.first = 0;
-			_lastPos.second = 0;
+			deltaDisplacement.x = 0;
+			deltaDisplacement.y = 0;
+			lastPos.x = 0;
+			lastPos.y = 0;
 		}
 		break;
 	case SDL_QUIT:
-		_toQuit = true;
+		toQuit = true;
 		break;
 	default:
 		break;
@@ -61,19 +61,7 @@ void Input::updateInputEvent() {
 }
 
 bool Input::shouldQuit() {
-	return _toQuit;
-}
-
-int Input::getKeyState(SDL_Scancode keyIdx) {
-	return _keyState[keyIdx];
-}
-
-int Input::getMouseButtonState(int button_id) {
-	return _mouseButtonState[MOUSE_BUTTON_IDX(button_id)];
-}
-
-std::pair<Sint32, Sint32> Input::getRelMouseMotion() {
-	return _deltaDisplacement;
+	return toQuit;
 }
 
 Input::~Input() {};
