@@ -11,7 +11,5 @@ class Timer {
 public:
 	Timer();
 	double getDeltaTime();
-
-	~Timer() {};
 };
 }
