@@ -114,11 +114,11 @@ int main()
 	ID3DBlob* pPSBlob = nullptr;
 
 	CHECK_DX_ERROR( D3DReadFileToBlob(
-		L"./RenderingEngine/shaders/vertex_shader.bin", &pVSBlob
+		L"../RenderingEngine/shaders/vertex_shader.bin", &pVSBlob
 	));
 
 	CHECK_DX_ERROR( D3DReadFileToBlob(
-		L"./RenderingEngine/shaders/pixel_shader.bin", &pPSBlob
+		L"../RenderingEngine/shaders/pixel_shader.bin", &pPSBlob
 	));
 
 	ID3D11VertexShader* vertex_shader_ptr = nullptr;
@@ -215,6 +215,28 @@ int main()
 	CHECK_DX_ERROR( device.getDevice()->CreateInputLayout(
 		layout, numOfInputElement, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &vertLayout
 	));
+
+	//Create rasterizer buffer
+	ID3D11RasterizerState* pRasterizerState;
+
+	D3D11_RASTERIZER_DESC rasterizerDesc;
+	rasterizerDesc.FillMode = D3D11_FILL_SOLID;
+	rasterizerDesc.CullMode = D3D11_CULL_BACK;
+	rasterizerDesc.FrontCounterClockwise = TRUE;
+	rasterizerDesc.DepthBias = 0;
+	rasterizerDesc.DepthBiasClamp = 0;
+	rasterizerDesc.SlopeScaledDepthBias = 0;
+	rasterizerDesc.DepthClipEnable = FALSE;
+	rasterizerDesc.ScissorEnable = FALSE;
+	rasterizerDesc.MultisampleEnable = FALSE;
+	rasterizerDesc.AntialiasedLineEnable = FALSE;
+
+	CHECK_DX_ERROR(device.getDevice()->CreateRasterizerState(
+		&rasterizerDesc, &pRasterizerState
+	));
+	
+	//Set rasterizer state
+	device.getContext()->RSSetState(pRasterizerState);
 
 	// Set input layout
 	device.getContext()->IASetInputLayout( vertLayout );
