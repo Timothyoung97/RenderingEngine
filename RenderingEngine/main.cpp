@@ -1,21 +1,10 @@
 #define SDL_MAIN_HANDLED
 
-#include <SDL.h>
-#include <SDL_syswm.h>
-#include <dxgi.h>
-#include <dxgidebug.h>
-#include <dxgi1_2.h>
-#include <dxgi1_3.h>
 #include <dxgi1_4.h>
 #include <d3d11.h>
 #include <d3dcompiler.h>
 #include <DirectXMath.h>
-#include <DirectXColors.h>
-#include <stdio.h>
 
-#include <iostream>
-#include <fstream>
-#include <cassert>
 #include <vector>
 
 //Custom Header
@@ -30,11 +19,7 @@
 const int SCREEN_WIDTH = 800;
 const int SCREEN_HEIGHT = 800;
 
-// DXGI_DEBUG_ALL
-const GUID dxgi_debug_all = { 0xe48ae283, 0xda80, 0x490b, { 0x87, 0xe6, 0x43, 0xe9, 0xa9, 0xcf, 0xda, 0x8 } };
-
 using namespace DirectX;
-
 
 struct constBufferShaderResc {
 	XMMATRIX transformation;
