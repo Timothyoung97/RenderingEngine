@@ -14,6 +14,10 @@ Graphics Tasks:
     • Backface culling
     • Bucketizing Visuals
     • Multiple Render Passes
+• Directional Light
+    • Phong Lighting Equation
+    • Hardcoded ambient lighting
+    • "Special Matrix" for normals to accomodate scaling
 
 Done:
 • init d3d11 device/context, and clear swap chain to grey color
