@@ -1,8 +1,10 @@
 #include "device.h"
 
+using Microsoft::WRL::ComPtr;
+
 namespace tre {
 
-Device::Device() : device(nullptr), context(nullptr) {
+Device::Device() {
 	InitDXDevice();
 };
 
@@ -38,7 +40,5 @@ void Device::InitDXDevice() {
 };
 
 Device::~Device() {
-	context->Release();
-	device->Release();
 };
 }

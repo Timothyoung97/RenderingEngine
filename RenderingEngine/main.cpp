@@ -35,6 +35,7 @@ const GUID dxgi_debug_all = { 0xe48ae283, 0xda80, 0x490b, { 0x87, 0xe6, 0x43, 0x
 
 using namespace DirectX;
 
+
 struct constBufferShaderResc {
 	XMMATRIX transformation;
 	XMMATRIX viewProjection;
@@ -83,7 +84,7 @@ int main()
 	swapChainDesc.Flags = 0;
 
 	CHECK_DX_ERROR(factory.dxgiFactory2->CreateSwapChainForHwnd(
-		deviceAndContext.device, window.getWindowHandle(), &swapChainDesc, NULL, NULL, &swapChain
+		deviceAndContext.device.Get(), window.getWindowHandle(), &swapChainDesc, NULL, NULL, &swapChain
 	));
 
 	swapChain3 = (IDXGISwapChain3*) swapChain;

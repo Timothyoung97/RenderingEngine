@@ -1,14 +1,16 @@
 #pragma once
 
 #include <d3d11.h>
+#include <wrl/client.h>
+
 #include "dxdebug.h"
 
 namespace tre {
 class Device {
 
 public:
-	ID3D11Device* device;
-	ID3D11DeviceContext* context;
+	Microsoft::WRL::ComPtr<ID3D11Device> device;
+	Microsoft::WRL::ComPtr<ID3D11DeviceContext> context;
 
 	Device();
 
