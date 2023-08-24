@@ -26,8 +26,8 @@
 #include "device.h"
 
 //Screen dimension constants
-const int SCREEN_WIDTH = 640;
-const int SCREEN_HEIGHT = 480;
+const int SCREEN_WIDTH = 800;
+const int SCREEN_HEIGHT = 800;
 
 // DXGI_DEBUG_ALL
 const GUID dxgi_debug_all = { 0xe48ae283, 0xda80, 0x490b, { 0x87, 0xe6, 0x43, 0xe9, 0xa9, 0xcf, 0xda, 0x8 } };
@@ -114,11 +114,11 @@ int main()
 	ID3DBlob* pPSBlob = nullptr;
 
 	CHECK_DX_ERROR( D3DReadFileToBlob(
-		L"./RenderingEngine/shaders/vertex_shader.bin", &pVSBlob
+		L"../RenderingEngine/shaders/vertex_shader.bin", &pVSBlob
 	));
 
 	CHECK_DX_ERROR( D3DReadFileToBlob(
-		L"./RenderingEngine/shaders/pixel_shader.bin", &pPSBlob
+		L"../RenderingEngine/shaders/pixel_shader.bin", &pPSBlob
 	));
 
 	ID3D11VertexShader* vertex_shader_ptr = nullptr;
@@ -201,7 +201,6 @@ int main()
 	std::vector<Vertex> sphereVertices;
 
 	sphereVertices.push_back(Vertex(sphereNormal, colors[colorIdx]));
-	printf("x: %f, y: %f, z: %f\n", sphereNormal.x, sphereNormal.y, sphereNormal.z);
 
 	for (int i = 1; i < stackCount; i++) {
 		colorIdx = colorIdx == 0 ? 9 : colorIdx - 1;
@@ -212,8 +211,6 @@ int main()
 			sphereNormal.z = XMScalarSin(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
 			sphereVertices.push_back(Vertex(sphereNormal, colors[colorIdx]));
 			sectorAngle += sectorStep;
-			printf("x: %f, y: %f, z: %f\n", sphereNormal.x, sphereNormal.y, sphereNormal.z);
-
 		}
 		sectorAngle = 0;
 	}
@@ -222,8 +219,6 @@ int main()
 	sphereNormal.y = XMScalarSin(XMConvertToRadians(-90));
 	sphereNormal.z = XMScalarSin(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(-90));
 	sphereVertices.push_back(Vertex(sphereNormal, colors[colorIdx]));
-
-	printf("x: %f, y: %f, z: %f\n", sphereNormal.x, sphereNormal.y, sphereNormal.z);
 
 	//Sphere indices
 	std::vector<uint16_t> sphereIndices;
