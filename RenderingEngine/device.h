@@ -6,17 +6,13 @@
 namespace tre {
 class Device {
 
+public:
 	ID3D11Device* device;
 	ID3D11DeviceContext* context;
-
-public:
 
 	Device();
 
 	void InitDXDevice();
-
-	ID3D11Device* getDevice();
-	ID3D11DeviceContext* getContext();
 	
 	~Device();
 	Device(const Device&) = delete;

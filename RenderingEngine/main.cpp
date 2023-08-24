@@ -59,7 +59,7 @@ int main()
 	tre::Window window("RenderingEngine", SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	//Create Device 
-	tre::Device device;
+	tre::Device deviceAndContext;
 
 	//Create dxgiFactory
 	IDXGIFactory2* dxgiFactory2 = nullptr;
@@ -104,7 +104,7 @@ int main()
 	swapChainDesc.Flags = 0;
 
 	CHECK_DX_ERROR( dxgiFactory2->CreateSwapChainForHwnd(
-		device.getDevice(), window.getWindowHandle(), &swapChainDesc, NULL, NULL, &swapChain
+		deviceAndContext.device, window.getWindowHandle(), &swapChainDesc, NULL, NULL, &swapChain
 	));
 
 	swapChain3 = (IDXGISwapChain3*) swapChain;
@@ -124,16 +124,16 @@ int main()
 	ID3D11VertexShader* vertex_shader_ptr = nullptr;
 	ID3D11PixelShader* pixel_shader_ptr = nullptr;
 
-	CHECK_DX_ERROR( device.getDevice()->CreateVertexShader(
+	CHECK_DX_ERROR(deviceAndContext.device->CreateVertexShader(
 		pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), NULL, &vertex_shader_ptr
 	));
 
-	CHECK_DX_ERROR( device.getDevice()->CreatePixelShader( 
+	CHECK_DX_ERROR(deviceAndContext.device->CreatePixelShader(
 		pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), NULL, &pixel_shader_ptr
 	));
 
-	device.getContext()->VSSetShader(vertex_shader_ptr, NULL, 0u);
-	device.getContext()->PSSetShader(pixel_shader_ptr, NULL, 0u);
+	deviceAndContext.context->VSSetShader(vertex_shader_ptr, NULL, 0u);
+	deviceAndContext.context->PSSetShader(pixel_shader_ptr, NULL, 0u);
 
 	// Colors
 	XMFLOAT4 colors[10] = {
@@ -325,12 +325,12 @@ int main()
 	//indexData.pSysMem = &indices;
 	indexData.pSysMem = sphereIndices.data();
 
-	CHECK_DX_ERROR( device.getDevice()->CreateBuffer(
+	CHECK_DX_ERROR(deviceAndContext.device->CreateBuffer(
 		&indexBufferDesc, &indexData, &pIndexBuffer
 	));
 
 	//Set index buffer
-	device.getContext()->IASetIndexBuffer(pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+	deviceAndContext.context->IASetIndexBuffer(pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
 	//Create vertex buffer
 	ID3D11Buffer* pVertexBuffer;
@@ -348,19 +348,19 @@ int main()
 	//vertexData.pSysMem = &cubeVertex;
 	vertexData.pSysMem = sphereVertices.data();
 
-	CHECK_DX_ERROR(device.getDevice()->CreateBuffer(
+	CHECK_DX_ERROR(deviceAndContext.device->CreateBuffer(
 		&vertexBufferDesc, &vertexData, &pVertexBuffer
 	));
 
 	//Set vertex buffer
 	UINT vertexStride = sizeof(Vertex);
 	UINT offset = 0;
-	device.getContext()->IASetVertexBuffers(0, 1, &pVertexBuffer, &vertexStride, &offset);
+	deviceAndContext.context->IASetVertexBuffers(0, 1, &pVertexBuffer, &vertexStride, &offset);
 
 	// Create input layout
 	ID3D11InputLayout* vertLayout;
 
-	CHECK_DX_ERROR( device.getDevice()->CreateInputLayout(
+	CHECK_DX_ERROR(deviceAndContext.device->CreateInputLayout(
 		layout, numOfInputElement, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &vertLayout
 	));
 
@@ -379,18 +379,18 @@ int main()
 	rasterizerDesc.MultisampleEnable = FALSE;
 	rasterizerDesc.AntialiasedLineEnable = FALSE;
 
-	CHECK_DX_ERROR(device.getDevice()->CreateRasterizerState(
+	CHECK_DX_ERROR(deviceAndContext.device->CreateRasterizerState(
 		&rasterizerDesc, &pRasterizerState
 	));
 	
 	//Set rasterizer state
-	device.getContext()->RSSetState(pRasterizerState);
+	deviceAndContext.context->RSSetState(pRasterizerState);
 
 	// Set input layout
-	device.getContext()->IASetInputLayout( vertLayout );
+	deviceAndContext.context->IASetInputLayout( vertLayout );
 
 	// Set topology
-	device.getContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	deviceAndContext.context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	//Create Viewport
 	D3D11_VIEWPORT viewport = {};
@@ -402,7 +402,7 @@ int main()
 	viewport.MaxDepth = 1;
 
 	//Set Viewport
-	device.getContext()->RSSetViewports(1, &viewport);
+	deviceAndContext.context->RSSetViewports(1, &viewport);
 
 	// temp tranformation data
 	float offsetX = .0f;
@@ -555,12 +555,12 @@ int main()
 
 		D3D11_SUBRESOURCE_DATA csd = {};
 		csd.pSysMem = &cbsr;
-		CHECK_DX_ERROR( device.getDevice()->CreateBuffer(
+		CHECK_DX_ERROR(deviceAndContext.device->CreateBuffer(
 			&constantBufferDesc, &csd, &pConstBuffer
 		));
 
-		device.getContext()->VSSetConstantBuffers(0u, 1u, &pConstBuffer);
-		device.getContext()->PSSetConstantBuffers(0u, 1u, &pConstBuffer);
+		deviceAndContext.context->VSSetConstantBuffers(0u, 1u, &pConstBuffer);
+		deviceAndContext.context->PSSetConstantBuffers(0u, 1u, &pConstBuffer);
 
 		// Alternating buffers
 		int currBackBuffer = static_cast<int>(swapChain3->GetCurrentBackBufferIndex());
@@ -574,16 +574,16 @@ int main()
 		// Create render target view
 		ID3D11RenderTargetView* renderTargetView = nullptr;
 
-		CHECK_DX_ERROR( device.getDevice()->CreateRenderTargetView(
+		CHECK_DX_ERROR(deviceAndContext.device->CreateRenderTargetView(
 			backBuffer, NULL, &renderTargetView
 		));
 
-		device.getContext()->OMSetRenderTargets(1, &renderTargetView, nullptr);
+		deviceAndContext.context->OMSetRenderTargets(1, &renderTargetView, nullptr);
 		
-		device.getContext()->ClearRenderTargetView(renderTargetView, bgColor);
+		deviceAndContext.context->ClearRenderTargetView(renderTargetView, bgColor);
 
-		//device.getContext()->DrawIndexed(numOfIndices, 0, 0);
-		device.getContext()->DrawIndexed(numOfSphereIndices, 0, 0);
+		//device.context->DrawIndexed(numOfIndices, 0, 0);
+		deviceAndContext.context->DrawIndexed(numOfSphereIndices, 0, 0);
 
 		CHECK_DX_ERROR( swapChain3->Present( 0, 0) );
 

@@ -37,13 +37,6 @@ void Device::InitDXDevice() {
 	d3dDebug->Release();
 };
 
-ID3D11Device* Device::getDevice() {
-	return device;
-}
-ID3D11DeviceContext* Device::getContext() {
-	return context;
-};
-
 Device::~Device() {
 	context->Release();
 	device->Release();
