@@ -16,7 +16,6 @@ public:
 
 	void InitDXDevice();
 	
-	~Device();
 	Device(const Device&) = delete;
 	Device& operator=(const Device&) = delete;
 
