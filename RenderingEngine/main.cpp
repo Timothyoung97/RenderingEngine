@@ -24,6 +24,7 @@
 #include "input.h"
 #include "dxdebug.h"
 #include "device.h"
+#include "factory.h"
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 800;
@@ -62,29 +63,7 @@ int main()
 	tre::Device deviceAndContext;
 
 	//Create dxgiFactory
-	IDXGIFactory2* dxgiFactory2 = nullptr;
-
-	CHECK_DX_ERROR( CreateDXGIFactory2( 
-		DXGI_CREATE_FACTORY_DEBUG, __uuidof(IDXGIFactory2), reinterpret_cast<void**>(&dxgiFactory2)
-	));
-
-	//Create DXGI debug layer
-	IDXGIDebug1* dxgiDebug = nullptr;
-	if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&dxgiDebug))))
-	{
-		dxgiDebug->EnableLeakTrackingForThread();
-		IDXGIInfoQueue* dxgiInfoQueue = nullptr;
-		if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&dxgiInfoQueue))))
-		{
-
-			dxgiInfoQueue->SetBreakOnSeverity(dxgi_debug_all, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_CORRUPTION, true);
-			dxgiInfoQueue->SetBreakOnSeverity(dxgi_debug_all, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_ERROR, true);
-			dxgiInfoQueue->SetBreakOnSeverity(dxgi_debug_all, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_WARNING, true);
-
-			dxgiInfoQueue->Release();
-			dxgiDebug->Release();
-		}
-	}
+	tre::Factory factory;
 
 	//Create SwapChain
 	IDXGISwapChain1* swapChain = nullptr;
@@ -103,7 +82,7 @@ int main()
 	swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
 	swapChainDesc.Flags = 0;
 
-	CHECK_DX_ERROR( dxgiFactory2->CreateSwapChainForHwnd(
+	CHECK_DX_ERROR(factory.dxgiFactory2->CreateSwapChainForHwnd(
 		deviceAndContext.device, window.getWindowHandle(), &swapChainDesc, NULL, NULL, &swapChain
 	));
 
@@ -599,7 +578,6 @@ int main()
 	//Cleanup
 	vertLayout->Release();
 	swapChain3->Release();
-	dxgiFactory2->Release();
 
 	return 0;
 }
