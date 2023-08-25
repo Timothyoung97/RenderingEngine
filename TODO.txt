@@ -5,7 +5,7 @@ Graphics Tasks:
     • Loading images from disk (use https://github.com/nothings/stb/blob/master/stb_image.h)
     • Allocating GPU Buffer & CPU Upload Buffer to upload image bytes to GPU
 • Numerous cubes & spheres
-    • general Renderer, Depth Buffer, Depth States
+    • general purpose Renderer, Depth Buffer, Depth States
 • Transparent cube
     • Blend states
     • Backface culling
@@ -14,7 +14,15 @@ Graphics Tasks:
 • Directional Light
     • Phong Lighting Equation
     • Hardcoded ambient lighting
-    • "Special Matrix" for normals to accomodate scaling
+• Normal Mapping
+    • detailed per-pixel lighting
+    • TBN matrix
+• Mesh loading
+    • use library: https://github.com/tinyobjloader/tinyobjloader or https://github.com/assimp/assimp
+    • Manage scene objects' meshes & materials
+    • non-trivial general-purpose scene rendering
+    • Example high quality obj scenes: https://casual-effects.com/data/index.html
+    • Start with the cube
 
 Done:
 • init d3d11 device/context, and clear swap chain to grey color
