@@ -22,12 +22,15 @@ public:
 	Cube3d(float unitLength);
 };
 
-//class Sphere3d
-//{
-//public:
-//	vector<Vertex> sphere3dVertices;
-//	vector<uint16_t> sphere3dIndices;
-//
-//	Sphere3d();
-//};
+class Sphere3d
+{
+public:
+	vector<Vertex> vertices;
+	vector<uint16_t> indices;
+
+	Sphere3d(float r, int sectorCount, int stackCount);
+
+	XMFLOAT3 findCoordinate(XMFLOAT3 unitVector, float radius);
+	XMVECTOR convertToVector(float vectorComponentValue, int idx);
+};
 }
