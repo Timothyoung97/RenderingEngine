@@ -1,10 +1,12 @@
 #define SDL_MAIN_HANDLED
-#define STB_IMAGE_IMPLEMENTATION
 
 #include <dxgi1_4.h>
 #include <d3d11.h>
 #include <d3dcompiler.h>
 #include <DirectXMath.h>
+
+#define STB_IMAGE_IMPLEMENTATION
+#define STBI_ASSERT(x)
 #include <stb_image.h>
 
 #include <vector>
@@ -45,6 +47,13 @@ const UINT numOfInputElement = ARRAYSIZE(layout);
 
 int main()
 {
+
+	// load image using stb
+	int imgWidth, imgHeight, imgChannels;
+	unsigned char* img = stbi_load("../UV_image.jpg", &imgWidth, &imgHeight, &imgChannels, 0);
+	STBI_ASSERT(img);
+	printf("Img width: %d, Img height: %d, Img channels: %d\n", imgWidth, imgHeight, imgChannels);
+
 	//Create Window
 	tre::Window window("RenderingEngine", SCREEN_WIDTH, SCREEN_HEIGHT);
 
