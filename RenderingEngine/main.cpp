@@ -1,9 +1,11 @@
 #define SDL_MAIN_HANDLED
+#define STB_IMAGE_IMPLEMENTATION
 
 #include <dxgi1_4.h>
 #include <d3d11.h>
 #include <d3dcompiler.h>
 #include <DirectXMath.h>
+#include <stb_image.h>
 
 #include <vector>
 
