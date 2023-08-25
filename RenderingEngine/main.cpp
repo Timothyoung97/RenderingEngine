@@ -20,6 +20,7 @@
 #include "device.h"
 #include "factory.h"
 #include "swapchain.h"
+#include "object3d.h"
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 800;
@@ -32,11 +33,6 @@ struct constBufferShaderResc {
 	XMMATRIX transformation;
 	XMMATRIX viewProjection;
 	//XMFLOAT4 rgbaColor;
-};
-
-struct Vertex {
-	XMFLOAT3 pos;
-	XMFLOAT2 uvCoord;
 };
 
 //Input Layout
@@ -89,62 +85,8 @@ int main()
 	deviceAndContext.context->VSSetShader(vertex_shader_ptr, NULL, 0u);
 	deviceAndContext.context->PSSetShader(pixel_shader_ptr, NULL, 0u);
 
-	//Cube Vertices
-	Vertex cubeVertex[] = {
-		// Back
-		XMFLOAT3(.5f, -.5f, .5f), XMFLOAT2(0, 1), // 0
-		XMFLOAT3(-.5f, -.5f, .5f), XMFLOAT2(1, 1),
-		XMFLOAT3(.5f, .5f, .5f), XMFLOAT2(0, 0),
-		XMFLOAT3(-.5f, .5f, .5f), XMFLOAT2(1, 0),
-		
-		// Right
-		XMFLOAT3(.5f, -.5f, -.5f), XMFLOAT2(0, 1), // 4
-		XMFLOAT3(.5f, -.5f, .5f), XMFLOAT2(1, 1),
-		XMFLOAT3(.5f, .5f, -.5f), XMFLOAT2(0, 0),
-		XMFLOAT3(.5f, .5f, .5f), XMFLOAT2(1, 0),
-		
-		// top
-		XMFLOAT3(-.5f, .5f, -.5f), XMFLOAT2(0, 1), // 8
-		XMFLOAT3(.5f, .5f, -.5f), XMFLOAT2(1, 1),
-		XMFLOAT3(-.5f, .5f, .5f), XMFLOAT2(0, 0),
-		XMFLOAT3(.5f, .5f, .5f), XMFLOAT2(1, 0),
-
-		// Front
-		XMFLOAT3(-.5f, -.5f, -.5f), XMFLOAT2(0, 1), // 12
-		XMFLOAT3(.5f, -.5f, -.5f), XMFLOAT2(1, 1),
-		XMFLOAT3(-.5f, .5f, -.5f), XMFLOAT2(0, 0),
-		XMFLOAT3(.5f, .5f, -.5f), XMFLOAT2(1, 0),
-
-		// Left
-		XMFLOAT3(-.5f, -.5f, .5f), XMFLOAT2(0, 1), // 16
-		XMFLOAT3(-.5f, -.5f, -.5f), XMFLOAT2(1, 1),
-		XMFLOAT3(-.5f, .5f, .5f), XMFLOAT2(0, 0),
-		XMFLOAT3(-.5f, .5f, -.5f), XMFLOAT2(1, 0),
-
-		// bottom
-		XMFLOAT3(-.5f, -.5f, .5f), XMFLOAT2(0, 1), // 20
-		XMFLOAT3(.5f, -.5f, .5f), XMFLOAT2(1, 1),
-		XMFLOAT3(-.5f, -.5f, -.5f), XMFLOAT2(0, 0),
-		XMFLOAT3(.5f, -.5f, -.5f), XMFLOAT2(1, 0) // 23
-	};
-
-	//Cube Indices
-	uint16_t indices[] = {
-		0, 1, 2, // back
-		2, 1, 3,
-		4, 5 ,6, // right
-		6, 5, 7,
-		8, 9, 10, // top
-		10, 9, 11,
-		12, 13, 14, // front
-		14, 13, 15, 
-		16, 17, 18, // left
-		18, 17, 19,
-		20, 21, 22, // bottom
-		22, 21, 23
-	};
-
-	const UINT numOfIndices = ARRAYSIZE(indices);
+	// 3D object
+	tre::Cube3d cube(.5f);
 
 	//Create index buffer
 	ID3D11Buffer* pIndexBuffer;
@@ -154,12 +96,12 @@ int main()
 	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	indexBufferDesc.CPUAccessFlags = 0;
 	indexBufferDesc.MiscFlags = 0u;
-	indexBufferDesc.ByteWidth = sizeof(indices);
+	indexBufferDesc.ByteWidth = static_cast<UINT>(sizeof(uint16_t) * cube.indices.size());
 	//indexBufferDesc.ByteWidth = sizeof(uint16_t) * numOfSphereIndices;
 	indexBufferDesc.StructureByteStride = 0u;
 
 	D3D11_SUBRESOURCE_DATA indexData = {};
-	indexData.pSysMem = &indices;
+	indexData.pSysMem = cube.indices.data();
 	//indexData.pSysMem = sphereIndices.data();
 
 	CHECK_DX_ERROR(deviceAndContext.device->CreateBuffer(
@@ -177,12 +119,12 @@ int main()
 	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	vertexBufferDesc.CPUAccessFlags = 0;
 	vertexBufferDesc.MiscFlags = 0u;
-	vertexBufferDesc.ByteWidth = sizeof(cubeVertex);
+	vertexBufferDesc.ByteWidth = static_cast<UINT>(sizeof(Vertex) * cube.vertices.size());
 	//vertexBufferDesc.ByteWidth = sizeof(Vertex) * sphereVertices.size();
 	vertexBufferDesc.StructureByteStride = 0u;
 
 	D3D11_SUBRESOURCE_DATA vertexData = {};
-	vertexData.pSysMem = &cubeVertex;
+	vertexData.pSysMem = cube.vertices.data();
 	//vertexData.pSysMem = sphereVertices.data();
 
 	CHECK_DX_ERROR(deviceAndContext.device->CreateBuffer(
@@ -487,7 +429,7 @@ int main()
 		deviceAndContext.context->ClearRenderTargetView(renderTargetView, bgColor);
 
 		//device.context->DrawIndexed(numOfIndices, 0, 0);
-		deviceAndContext.context->DrawIndexed(numOfIndices, 0, 0);
+		deviceAndContext.context->DrawIndexed(cube.indices.size(), 0, 0);
 
 		CHECK_DX_ERROR(swapchain.mainSwapchain->Present( 0, 0) );
 
