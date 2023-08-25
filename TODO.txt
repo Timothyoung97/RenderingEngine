@@ -1,7 +1,4 @@
 Graphics Tasks:
-• 1 red Cube & Sphere (code-generated mesh)
-    • basics of 3D geometry
-    • generate, create & bind vertex/index buffers
 • Albedo texture
     • Texture Sampling
     • UV coordinates
@@ -30,6 +27,9 @@ Done:
     • view & projection matrices
     • yaw, pitch, roll controls
     • polar coordinates
+• 1 red Cube & Sphere (code-generated mesh)
+    • basics of 3D geometry
+    • generate, create & bind vertex/index buffers
 
 //////////////////////////////////////////////////////////////////////////////
 

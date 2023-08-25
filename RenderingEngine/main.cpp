@@ -1,21 +1,10 @@
 #define SDL_MAIN_HANDLED
 
-#include <SDL.h>
-#include <SDL_syswm.h>
-#include <dxgi.h>
-#include <dxgidebug.h>
-#include <dxgi1_2.h>
-#include <dxgi1_3.h>
 #include <dxgi1_4.h>
 #include <d3d11.h>
 #include <d3dcompiler.h>
 #include <DirectXMath.h>
-#include <DirectXColors.h>
-#include <stdio.h>
 
-#include <iostream>
-#include <fstream>
-#include <cassert>
 #include <vector>
 
 //Custom Header
@@ -24,13 +13,12 @@
 #include "input.h"
 #include "dxdebug.h"
 #include "device.h"
+#include "factory.h"
+#include "swapchain.h"
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 800;
 const int SCREEN_HEIGHT = 800;
-
-// DXGI_DEBUG_ALL
-const GUID dxgi_debug_all = { 0xe48ae283, 0xda80, 0x490b, { 0x87, 0xe6, 0x43, 0xe9, 0xa9, 0xcf, 0xda, 0x8 } };
 
 using namespace DirectX;
 
@@ -59,55 +47,15 @@ int main()
 	tre::Window window("RenderingEngine", SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	//Create Device 
-	tre::Device device;
+	tre::Device deviceAndContext;
 
 	//Create dxgiFactory
-	IDXGIFactory2* dxgiFactory2 = nullptr;
-
-	CHECK_DX_ERROR( CreateDXGIFactory2( 
-		DXGI_CREATE_FACTORY_DEBUG, __uuidof(IDXGIFactory2), reinterpret_cast<void**>(&dxgiFactory2)
-	));
-
-	//Create DXGI debug layer
-	IDXGIDebug1* dxgiDebug = nullptr;
-	if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&dxgiDebug))))
-	{
-		dxgiDebug->EnableLeakTrackingForThread();
-		IDXGIInfoQueue* dxgiInfoQueue = nullptr;
-		if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&dxgiInfoQueue))))
-		{
-
-			dxgiInfoQueue->SetBreakOnSeverity(dxgi_debug_all, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_CORRUPTION, true);
-			dxgiInfoQueue->SetBreakOnSeverity(dxgi_debug_all, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_ERROR, true);
-			dxgiInfoQueue->SetBreakOnSeverity(dxgi_debug_all, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_WARNING, true);
-
-			dxgiInfoQueue->Release();
-			dxgiDebug->Release();
-		}
-	}
+	tre::Factory factory;
 
 	//Create SwapChain
-	IDXGISwapChain1* swapChain = nullptr;
-	IDXGISwapChain3* swapChain3 = nullptr;
-
-	DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
-	swapChainDesc.Width = SCREEN_WIDTH;
-	swapChainDesc.Height = SCREEN_HEIGHT;
-	swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	swapChainDesc.Stereo = false;
-	swapChainDesc.SampleDesc = DXGI_SAMPLE_DESC{ 1, 0 };
-	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	swapChainDesc.BufferCount = 2;
-	swapChainDesc.Scaling = DXGI_SCALING_NONE;
-	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-	swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
-	swapChainDesc.Flags = 0;
-
-	CHECK_DX_ERROR( dxgiFactory2->CreateSwapChainForHwnd(
-		device.getDevice(), window.getWindowHandle(), &swapChainDesc, NULL, NULL, &swapChain
-	));
-
-	swapChain3 = (IDXGISwapChain3*) swapChain;
+	tre::Swapchain swapchain;
+	swapchain.DescSwapchain(SCREEN_WIDTH, SCREEN_HEIGHT);
+	swapchain.InitSwapchainViaHwnd(factory.dxgiFactory2, deviceAndContext.device, window.getWindowHandle());
 	
 	//Load pre-compiled shaders
 	ID3DBlob* pVSBlob = nullptr;
@@ -124,16 +72,16 @@ int main()
 	ID3D11VertexShader* vertex_shader_ptr = nullptr;
 	ID3D11PixelShader* pixel_shader_ptr = nullptr;
 
-	CHECK_DX_ERROR( device.getDevice()->CreateVertexShader(
+	CHECK_DX_ERROR(deviceAndContext.device->CreateVertexShader(
 		pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), NULL, &vertex_shader_ptr
 	));
 
-	CHECK_DX_ERROR( device.getDevice()->CreatePixelShader( 
+	CHECK_DX_ERROR(deviceAndContext.device->CreatePixelShader(
 		pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), NULL, &pixel_shader_ptr
 	));
 
-	device.getContext()->VSSetShader(vertex_shader_ptr, NULL, 0u);
-	device.getContext()->PSSetShader(pixel_shader_ptr, NULL, 0u);
+	deviceAndContext.context->VSSetShader(vertex_shader_ptr, NULL, 0u);
+	deviceAndContext.context->PSSetShader(pixel_shader_ptr, NULL, 0u);
 
 	// Colors
 	XMFLOAT4 colors[10] = {
@@ -325,12 +273,12 @@ int main()
 	//indexData.pSysMem = &indices;
 	indexData.pSysMem = sphereIndices.data();
 
-	CHECK_DX_ERROR( device.getDevice()->CreateBuffer(
+	CHECK_DX_ERROR(deviceAndContext.device->CreateBuffer(
 		&indexBufferDesc, &indexData, &pIndexBuffer
 	));
 
 	//Set index buffer
-	device.getContext()->IASetIndexBuffer(pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+	deviceAndContext.context->IASetIndexBuffer(pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
 	//Create vertex buffer
 	ID3D11Buffer* pVertexBuffer;
@@ -348,19 +296,19 @@ int main()
 	//vertexData.pSysMem = &cubeVertex;
 	vertexData.pSysMem = sphereVertices.data();
 
-	CHECK_DX_ERROR(device.getDevice()->CreateBuffer(
+	CHECK_DX_ERROR(deviceAndContext.device->CreateBuffer(
 		&vertexBufferDesc, &vertexData, &pVertexBuffer
 	));
 
 	//Set vertex buffer
 	UINT vertexStride = sizeof(Vertex);
 	UINT offset = 0;
-	device.getContext()->IASetVertexBuffers(0, 1, &pVertexBuffer, &vertexStride, &offset);
+	deviceAndContext.context->IASetVertexBuffers(0, 1, &pVertexBuffer, &vertexStride, &offset);
 
 	// Create input layout
 	ID3D11InputLayout* vertLayout;
 
-	CHECK_DX_ERROR( device.getDevice()->CreateInputLayout(
+	CHECK_DX_ERROR(deviceAndContext.device->CreateInputLayout(
 		layout, numOfInputElement, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &vertLayout
 	));
 
@@ -379,18 +327,18 @@ int main()
 	rasterizerDesc.MultisampleEnable = FALSE;
 	rasterizerDesc.AntialiasedLineEnable = FALSE;
 
-	CHECK_DX_ERROR(device.getDevice()->CreateRasterizerState(
+	CHECK_DX_ERROR(deviceAndContext.device->CreateRasterizerState(
 		&rasterizerDesc, &pRasterizerState
 	));
 	
 	//Set rasterizer state
-	device.getContext()->RSSetState(pRasterizerState);
+	deviceAndContext.context->RSSetState(pRasterizerState);
 
 	// Set input layout
-	device.getContext()->IASetInputLayout( vertLayout );
+	deviceAndContext.context->IASetInputLayout( vertLayout );
 
 	// Set topology
-	device.getContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	deviceAndContext.context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	//Create Viewport
 	D3D11_VIEWPORT viewport = {};
@@ -402,7 +350,7 @@ int main()
 	viewport.MaxDepth = 1;
 
 	//Set Viewport
-	device.getContext()->RSSetViewports(1, &viewport);
+	deviceAndContext.context->RSSetViewports(1, &viewport);
 
 	// temp tranformation data
 	float offsetX = .0f;
@@ -555,37 +503,37 @@ int main()
 
 		D3D11_SUBRESOURCE_DATA csd = {};
 		csd.pSysMem = &cbsr;
-		CHECK_DX_ERROR( device.getDevice()->CreateBuffer(
+		CHECK_DX_ERROR(deviceAndContext.device->CreateBuffer(
 			&constantBufferDesc, &csd, &pConstBuffer
 		));
 
-		device.getContext()->VSSetConstantBuffers(0u, 1u, &pConstBuffer);
-		device.getContext()->PSSetConstantBuffers(0u, 1u, &pConstBuffer);
+		deviceAndContext.context->VSSetConstantBuffers(0u, 1u, &pConstBuffer);
+		deviceAndContext.context->PSSetConstantBuffers(0u, 1u, &pConstBuffer);
 
 		// Alternating buffers
-		int currBackBuffer = static_cast<int>(swapChain3->GetCurrentBackBufferIndex());
+		int currBackBuffer = static_cast<int>(swapchain.mainSwapchain->GetCurrentBackBufferIndex());
 
 		ID3D11Texture2D* backBuffer = nullptr;
 
-		CHECK_DX_ERROR(swapChain3->GetBuffer(
+		CHECK_DX_ERROR(swapchain.mainSwapchain->GetBuffer(
 			currBackBuffer, __uuidof(ID3D11Texture2D), (LPVOID*)&backBuffer
 		));
 
 		// Create render target view
 		ID3D11RenderTargetView* renderTargetView = nullptr;
 
-		CHECK_DX_ERROR( device.getDevice()->CreateRenderTargetView(
+		CHECK_DX_ERROR(deviceAndContext.device->CreateRenderTargetView(
 			backBuffer, NULL, &renderTargetView
 		));
 
-		device.getContext()->OMSetRenderTargets(1, &renderTargetView, nullptr);
+		deviceAndContext.context->OMSetRenderTargets(1, &renderTargetView, nullptr);
 		
-		device.getContext()->ClearRenderTargetView(renderTargetView, bgColor);
+		deviceAndContext.context->ClearRenderTargetView(renderTargetView, bgColor);
 
-		//device.getContext()->DrawIndexed(numOfIndices, 0, 0);
-		device.getContext()->DrawIndexed(numOfSphereIndices, 0, 0);
+		//device.context->DrawIndexed(numOfIndices, 0, 0);
+		deviceAndContext.context->DrawIndexed(numOfSphereIndices, 0, 0);
 
-		CHECK_DX_ERROR( swapChain3->Present( 0, 0) );
+		CHECK_DX_ERROR(swapchain.mainSwapchain->Present( 0, 0) );
 
 		while (timer.getDeltaTime() < 1000.0 / 30) {
 		}
@@ -598,8 +546,6 @@ int main()
 
 	//Cleanup
 	vertLayout->Release();
-	swapChain3->Release();
-	dxgiFactory2->Release();
 
 	return 0;
 }
