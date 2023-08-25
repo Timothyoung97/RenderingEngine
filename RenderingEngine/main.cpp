@@ -14,6 +14,7 @@
 #include "dxdebug.h"
 #include "device.h"
 #include "factory.h"
+#include "swapchain.h"
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 800;
@@ -52,27 +53,9 @@ int main()
 	tre::Factory factory;
 
 	//Create SwapChain
-	IDXGISwapChain1* swapChain = nullptr;
-	IDXGISwapChain3* swapChain3 = nullptr;
-
-	DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
-	swapChainDesc.Width = SCREEN_WIDTH;
-	swapChainDesc.Height = SCREEN_HEIGHT;
-	swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	swapChainDesc.Stereo = false;
-	swapChainDesc.SampleDesc = DXGI_SAMPLE_DESC{ 1, 0 };
-	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	swapChainDesc.BufferCount = 2;
-	swapChainDesc.Scaling = DXGI_SCALING_NONE;
-	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-	swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
-	swapChainDesc.Flags = 0;
-
-	CHECK_DX_ERROR(factory.dxgiFactory2->CreateSwapChainForHwnd(
-		deviceAndContext.device.Get(), window.getWindowHandle(), &swapChainDesc, NULL, NULL, &swapChain
-	));
-
-	swapChain3 = (IDXGISwapChain3*) swapChain;
+	tre::Swapchain swapchain;
+	swapchain.DescSwapchain(SCREEN_WIDTH, SCREEN_HEIGHT);
+	swapchain.InitSwapchainViaHwnd(factory.dxgiFactory2, deviceAndContext.device, window.getWindowHandle());
 	
 	//Load pre-compiled shaders
 	ID3DBlob* pVSBlob = nullptr;
@@ -528,11 +511,11 @@ int main()
 		deviceAndContext.context->PSSetConstantBuffers(0u, 1u, &pConstBuffer);
 
 		// Alternating buffers
-		int currBackBuffer = static_cast<int>(swapChain3->GetCurrentBackBufferIndex());
+		int currBackBuffer = static_cast<int>(swapchain.mainSwapchain->GetCurrentBackBufferIndex());
 
 		ID3D11Texture2D* backBuffer = nullptr;
 
-		CHECK_DX_ERROR(swapChain3->GetBuffer(
+		CHECK_DX_ERROR(swapchain.mainSwapchain->GetBuffer(
 			currBackBuffer, __uuidof(ID3D11Texture2D), (LPVOID*)&backBuffer
 		));
 
@@ -550,7 +533,7 @@ int main()
 		//device.context->DrawIndexed(numOfIndices, 0, 0);
 		deviceAndContext.context->DrawIndexed(numOfSphereIndices, 0, 0);
 
-		CHECK_DX_ERROR( swapChain3->Present( 0, 0) );
+		CHECK_DX_ERROR(swapchain.mainSwapchain->Present( 0, 0) );
 
 		while (timer.getDeltaTime() < 1000.0 / 30) {
 		}
@@ -563,7 +546,6 @@ int main()
 
 	//Cleanup
 	vertLayout->Release();
-	swapChain3->Release();
 
 	return 0;
 }

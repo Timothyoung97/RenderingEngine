@@ -6,11 +6,11 @@ namespace tre {
 
 Swapchain::Swapchain() {};
 
-void Swapchain::InitSwapchain(int screenWidth, int screenHeight, ) {
+void Swapchain::DescSwapchain(int screenWidth, int screenHeight) {
 
-	DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
-	swapChainDesc.Width = SCREEN_WIDTH;
-	swapChainDesc.Height = SCREEN_HEIGHT;
+	swapChainDesc = {};
+	swapChainDesc.Width = screenWidth;
+	swapChainDesc.Height = screenHeight;
 	swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	swapChainDesc.Stereo = false;
 	swapChainDesc.SampleDesc = DXGI_SAMPLE_DESC{ 1, 0 };
@@ -20,13 +20,13 @@ void Swapchain::InitSwapchain(int screenWidth, int screenHeight, ) {
 	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 	swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
 	swapChainDesc.Flags = 0;
-
-	CHECK_DX_ERROR(factory.dxgiFactory2->CreateSwapChainForHwnd(
-		deviceAndContext.device.Get(), window.getWindowHandle(), &swapChainDesc, NULL, NULL, &swapChain
-	));
-
-	swapChain3 = (IDXGISwapChain3*)swapChain;
 }
 
+void Swapchain::InitSwapchainViaHwnd(ComPtr<IDXGIFactory2> dxgiFactory, ComPtr<ID3D11Device> device, HWND window) {
+	
+	CHECK_DX_ERROR(dxgiFactory->CreateSwapChainForHwnd(
+		device.Get(), window, &swapChainDesc, NULL, NULL, tempSwapchain.GetAddressOf()));
 
+	CHECK_DX_ERROR(tempSwapchain.As(&mainSwapchain));
+}
 }
