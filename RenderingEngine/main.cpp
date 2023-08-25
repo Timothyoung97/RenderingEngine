@@ -4,9 +4,9 @@
 #include <d3d11.h>
 #include <d3dcompiler.h>
 #include <DirectXMath.h>
+#include <wrl/client.h>
 
 #define STB_IMAGE_IMPLEMENTATION
-#define STBI_ASSERT(x)
 #include <stb_image.h>
 
 #include <vector>
@@ -25,6 +25,7 @@ const int SCREEN_WIDTH = 800;
 const int SCREEN_HEIGHT = 800;
 
 using namespace DirectX;
+using Microsoft::WRL::ComPtr;
 
 struct constBufferShaderResc {
 	XMMATRIX transformation;
@@ -34,25 +35,31 @@ struct constBufferShaderResc {
 
 struct Vertex {
 	XMFLOAT3 pos;
-	XMFLOAT4 color;
+	XMFLOAT2 uvCoord;
 };
 
 //Input Layout
 D3D11_INPUT_ELEMENT_DESC layout[] = {
 	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0 , D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0}
+	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0}
 };
 
 const UINT numOfInputElement = ARRAYSIZE(layout);
 
 int main()
 {
-
 	// load image using stb
 	int imgWidth, imgHeight, imgChannels;
 	unsigned char* img = stbi_load("../UV_image.jpg", &imgWidth, &imgHeight, &imgChannels, 0);
-	STBI_ASSERT(img);
+	if (img == NULL) {
+		printf("Error loading image");
+	}
 	printf("Img width: %d, Img height: %d, Img channels: %d\n", imgWidth, imgHeight, imgChannels);
+
+	ComPtr<ID3D11ShaderResourceView> texture;
+	ComPtr<ID3D11SamplerState> samplerState;
+
+
 
 	//Create Window
 	tre::Window window("RenderingEngine", SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -94,179 +101,192 @@ int main()
 	deviceAndContext.context->VSSetShader(vertex_shader_ptr, NULL, 0u);
 	deviceAndContext.context->PSSetShader(pixel_shader_ptr, NULL, 0u);
 
-	// Colors
-	XMFLOAT4 colors[10] = {
-		{1.0f, .0f, .0f, 1.0f},
-		{.0f, 1.0f, .0f, 1.0f},
-		{.0f, .0f, 1.0f, 1.0f},
-		{1.0f, 1.0f, .0f, 1.0f},
-		{1.0f, .0f, 1.0f, 1.0f},
-		{.0f, 1.0f, 1.0f, 1.0f},
-		{.5f, .0f, .5f, 1.0f},
-		{1.0f, .0f, .3f, 1.0f},
-		{1.0f, .0f, .2f, 1.0f},
-		{.0f, .7f, .0f, 1.0f},
+	//Cube Vertices
+	Vertex cubeVertex[] = {
+		// Back
+		XMFLOAT3(.5f, -.5f, .5f), XMFLOAT2(0, 1), // 0
+		XMFLOAT3(-.5f, -.5f, .5f), XMFLOAT2(1, 1),
+		XMFLOAT3(.5f, .5f, .5f), XMFLOAT2(0, 0),
+		XMFLOAT3(-.5f, .5f, .5f), XMFLOAT2(1, 0),
+		
+		// Right
+		XMFLOAT3(.5f, -.5f, -.5f), XMFLOAT2(0, 1), // 4
+		XMFLOAT3(.5f, -.5f, .5f), XMFLOAT2(1, 1),
+		XMFLOAT3(.5f, .5f, -.5f), XMFLOAT2(0, 0),
+		XMFLOAT3(.5f, .5f, .5f), XMFLOAT2(1, 0),
+		
+		// top
+		XMFLOAT3(-.5f, .5f, -.5f), XMFLOAT2(0, 1), // 8
+		XMFLOAT3(.5f, .5f, -.5f), XMFLOAT2(1, 1),
+		XMFLOAT3(-.5f, .5f, .5f), XMFLOAT2(0, 0),
+		XMFLOAT3(.5f, .5f, .5f), XMFLOAT2(1, 0),
+
+		// Front
+		XMFLOAT3(-.5f, -.5f, -.5f), XMFLOAT2(0, 1), // 12
+		XMFLOAT3(.5f, -.5f, -.5f), XMFLOAT2(1, 1),
+		XMFLOAT3(-.5f, .5f, -.5f), XMFLOAT2(0, 0),
+		XMFLOAT3(.5f, .5f, -.5f), XMFLOAT2(1, 0),
+
+		// Left
+		XMFLOAT3(-.5f, -.5f, .5f), XMFLOAT2(0, 1), // 16
+		XMFLOAT3(-.5f, -.5f, -.5f), XMFLOAT2(1, 1),
+		XMFLOAT3(-.5f, .5f, .5f), XMFLOAT2(0, 0),
+		XMFLOAT3(-.5f, .5f, -.5f), XMFLOAT2(1, 0),
+
+		// bottom
+		XMFLOAT3(-.5f, -.5f, .5f), XMFLOAT2(0, 1), // 20
+		XMFLOAT3(.5f, -.5f, .5f), XMFLOAT2(1, 1),
+		XMFLOAT3(-.5f, -.5f, -.5f), XMFLOAT2(0, 0),
+		XMFLOAT3(.5f, -.5f, -.5f), XMFLOAT2(1, 0) // 23
 	};
 
-	////Cube Vertices
-	//Vertex cubeVertex[] = {
-	//	XMFLOAT3(-.5, .5, -.5), {1.0f, .0f, .0f, 1.0f},
-	//	XMFLOAT3(-.5, .5, .5), {.0f, 1.0f, .0f, 1.0f},
-	//	XMFLOAT3(.5, .5, .5), {.0f, .0f, 1.0f, 1.0f},
-	//	XMFLOAT3(.5, .5, -.5), {1.0f, 1.0f, .0f, 1.0f},
-	//	XMFLOAT3(.5, -.5, -.5), {1.0f, .0f, 1.0f, 1.0f},
-	//	XMFLOAT3(.5, -.5, .5), {.0f, 1.0f, 1.0f, 1.0f},
-	//	XMFLOAT3(-.5, -.5, .5), {.5f, .5f, .5f, 1.0f},
-	//	XMFLOAT3(-.5, -.5, -.5), {.75f, .5f, .75f, 1.0f}
-	//};
+	//Cube Indices
+	uint16_t indices[] = {
+		0, 1, 2, // back
+		2, 1, 3,
+		4, 5 ,6, // right
+		6, 5, 7,
+		8, 9, 10, // top
+		10, 9, 11,
+		12, 13, 14, // front
+		14, 13, 15, 
+		16, 17, 18, // left
+		18, 17, 19,
+		20, 21, 22, // bottom
+		22, 21, 23
+	};
 
-	////Cube Indices
-	//uint16_t indices[] = {
-	//	0, 7, 3, // -z
-	//	3, 7, 4,
-	//	1, 0, 2, // +y
-	//	2, 0, 3,
-	//	3, 4, 2, // +x
-	//	2, 4, 5,
-	//	7, 6, 4, // -y
-	//	4, 6, 5,
-	//	2, 5, 1, // +z
-	//	1, 5, 6,
-	//	1, 6, 0, // -x
-	//	0, 6, 7
-	//};
+	const UINT numOfIndices = ARRAYSIZE(indices);
 
-	//const UINT numOfIndices = ARRAYSIZE(indices);
+	//float stackAngle = 90;
+	//float sectorAngle = 0;
 
-	float stackAngle = 90;
-	float sectorAngle = 0;
+	//XMFLOAT3 sphereNormal;
 
-	XMFLOAT3 sphereNormal;
+	//sphereNormal.x = XMScalarCos(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
+	//sphereNormal.y = XMScalarSin(XMConvertToRadians(stackAngle));
+	//sphereNormal.z = XMScalarSin(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
 
-	sphereNormal.x = XMScalarCos(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
-	sphereNormal.y = XMScalarSin(XMConvertToRadians(stackAngle));
-	sphereNormal.z = XMScalarSin(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
+	////Sphere Properties
+	//float radius = .5f;
+	//int sectorCount = 10;
+	//int stackCount = 10;
 
-	//Sphere Properties
-	float radius = .5f;
-	int sectorCount = 10;
-	int stackCount = 10;
+	//float sectorStep = 2 * 180 / sectorCount;
+	//float stackStep = 180 / stackCount;
+	//int colorIdx = 0;
 
-	float sectorStep = 2 * 180 / sectorCount;
-	float stackStep = 180 / stackCount;
-	int colorIdx = 0;
+	////Sphere Vertices
+	//std::vector<Vertex> sphereVertices;
 
-	//Sphere Vertices
-	std::vector<Vertex> sphereVertices;
+	//sphereVertices.push_back(Vertex(sphereNormal, colors[colorIdx]));
 
-	sphereVertices.push_back(Vertex(sphereNormal, colors[colorIdx]));
+	//for (int i = 1; i < stackCount; i++) {
+	//	colorIdx = colorIdx == 0 ? 9 : colorIdx - 1;
+	//	stackAngle -= stackStep;
+	//	for (int j = 0; j < sectorCount; j++) {
+	//		sphereNormal.x = XMScalarCos(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
+	//		sphereNormal.y = XMScalarSin(XMConvertToRadians(stackAngle));
+	//		sphereNormal.z = XMScalarSin(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
+	//		sphereVertices.push_back(Vertex(sphereNormal, colors[colorIdx]));
+	//		sectorAngle += sectorStep;
+	//	}
+	//	sectorAngle = 0;
+	//}
 
-	for (int i = 1; i < stackCount; i++) {
-		colorIdx = colorIdx == 0 ? 9 : colorIdx - 1;
-		stackAngle -= stackStep;
-		for (int j = 0; j < sectorCount; j++) {
-			sphereNormal.x = XMScalarCos(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
-			sphereNormal.y = XMScalarSin(XMConvertToRadians(stackAngle));
-			sphereNormal.z = XMScalarSin(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
-			sphereVertices.push_back(Vertex(sphereNormal, colors[colorIdx]));
-			sectorAngle += sectorStep;
-		}
-		sectorAngle = 0;
-	}
+	//sphereNormal.x = XMScalarCos(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(-90));
+	//sphereNormal.y = XMScalarSin(XMConvertToRadians(-90));
+	//sphereNormal.z = XMScalarSin(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(-90));
+	//sphereVertices.push_back(Vertex(sphereNormal, colors[colorIdx]));
 
-	sphereNormal.x = XMScalarCos(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(-90));
-	sphereNormal.y = XMScalarSin(XMConvertToRadians(-90));
-	sphereNormal.z = XMScalarSin(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(-90));
-	sphereVertices.push_back(Vertex(sphereNormal, colors[colorIdx]));
+	////Sphere indices
+	//std::vector<uint16_t> sphereIndices;
 
-	//Sphere indices
-	std::vector<uint16_t> sphereIndices;
+	////Build north indices
+	//int northPoleIdx = 0;
+	//int nextIdx = 1;
+	//for (int i = 0; i < sectorCount; i++) {
+	//	
+	//	if (i == sectorCount - 1) {
+	//		sphereIndices.push_back(northPoleIdx);
+	//		sphereIndices.push_back(nextIdx);
+	//		sphereIndices.push_back(1);
+	//		break;
+	//	}
+	//	
+	//	sphereIndices.push_back(northPoleIdx);
+	//	sphereIndices.push_back(nextIdx);
+	//	sphereIndices.push_back(nextIdx + 1);
+	//	nextIdx++;
+	//}
 
-	//Build north indices
-	int northPoleIdx = 0;
-	int nextIdx = 1;
-	for (int i = 0; i < sectorCount; i++) {
-		
-		if (i == sectorCount - 1) {
-			sphereIndices.push_back(northPoleIdx);
-			sphereIndices.push_back(nextIdx);
-			sphereIndices.push_back(1);
-			break;
-		}
-		
-		sphereIndices.push_back(northPoleIdx);
-		sphereIndices.push_back(nextIdx);
-		sphereIndices.push_back(nextIdx + 1);
-		nextIdx++;
-	}
+	//// Build middle
+	//// 
+	//// k1 - k1 + 1
+	//// | a / |
+	//// |  /  |
+	//// | / b |
+	//// k2 - k2 + 1
+	//int upperStackIdx = 1;
+	//int lowerStackIdx = upperStackIdx + sectorCount;
+	//
+	//for (int i = 1; i < stackCount - 1; i++) {
 
-	// Build middle
-	// 
-	// k1 - k1 + 1
-	// | a / |
-	// |  /  |
-	// | / b |
-	// k2 - k2 + 1
-	int upperStackIdx = 1;
-	int lowerStackIdx = upperStackIdx + sectorCount;
-	
-	for (int i = 1; i < stackCount - 1; i++) {
+	//	for (int j = 0; j < sectorCount; j++) {
+	//		
+	//		if (j == sectorCount - 1) {
+	//			// triangle a
+	//			sphereIndices.push_back(upperStackIdx);
+	//			sphereIndices.push_back(lowerStackIdx);
+	//			sphereIndices.push_back(upperStackIdx - sectorCount + 1);
 
-		for (int j = 0; j < sectorCount; j++) {
-			
-			if (j == sectorCount - 1) {
-				// triangle a
-				sphereIndices.push_back(upperStackIdx);
-				sphereIndices.push_back(lowerStackIdx);
-				sphereIndices.push_back(upperStackIdx - sectorCount + 1);
+	//			//triangle b
+	//			sphereIndices.push_back(upperStackIdx - sectorCount + 1);
+	//			sphereIndices.push_back(lowerStackIdx);
+	//			sphereIndices.push_back(lowerStackIdx - sectorCount + 1);
 
-				//triangle b
-				sphereIndices.push_back(upperStackIdx - sectorCount + 1);
-				sphereIndices.push_back(lowerStackIdx);
-				sphereIndices.push_back(lowerStackIdx - sectorCount + 1);
+	//			upperStackIdx++;
+	//			lowerStackIdx++;
 
-				upperStackIdx++;
-				lowerStackIdx++;
+	//			break;
+	//		}
 
-				break;
-			}
+	//		// triangle a
+	//		sphereIndices.push_back(upperStackIdx);
+	//		sphereIndices.push_back(lowerStackIdx);
+	//		sphereIndices.push_back(upperStackIdx + 1);
 
-			// triangle a
-			sphereIndices.push_back(upperStackIdx);
-			sphereIndices.push_back(lowerStackIdx);
-			sphereIndices.push_back(upperStackIdx + 1);
+	//		//triangle b
+	//		sphereIndices.push_back(upperStackIdx + 1);
+	//		sphereIndices.push_back(lowerStackIdx);
+	//		sphereIndices.push_back(lowerStackIdx + 1);
 
-			//triangle b
-			sphereIndices.push_back(upperStackIdx + 1);
-			sphereIndices.push_back(lowerStackIdx);
-			sphereIndices.push_back(lowerStackIdx + 1);
+	//		upperStackIdx++;
+	//		lowerStackIdx++;
 
-			upperStackIdx++;
-			lowerStackIdx++;
+	//	}
+	//}
 
-		}
-	}
+	//// Build bottom
+	//int southPoleIdx = sphereVertices.size() - 1;
+	//lowerStackIdx = sphereVertices.size() - 1 - sectorCount;
 
-	// Build bottom
-	int southPoleIdx = sphereVertices.size() - 1;
-	lowerStackIdx = sphereVertices.size() - 1 - sectorCount;
+	//for (int i = 0; i < sectorCount; i++) {
 
-	for (int i = 0; i < sectorCount; i++) {
+	//	if (i == sectorCount - 1) {
+	//		sphereIndices.push_back(lowerStackIdx);
+	//		sphereIndices.push_back(southPoleIdx);
+	//		sphereIndices.push_back(lowerStackIdx - sectorCount + 1);
+	//		break;
+	//	}
 
-		if (i == sectorCount - 1) {
-			sphereIndices.push_back(lowerStackIdx);
-			sphereIndices.push_back(southPoleIdx);
-			sphereIndices.push_back(lowerStackIdx - sectorCount + 1);
-			break;
-		}
+	//	sphereIndices.push_back(lowerStackIdx);
+	//	sphereIndices.push_back(southPoleIdx);
+	//	sphereIndices.push_back(lowerStackIdx + 1);
+	//	lowerStackIdx++;
+	//}
 
-		sphereIndices.push_back(lowerStackIdx);
-		sphereIndices.push_back(southPoleIdx);
-		sphereIndices.push_back(lowerStackIdx + 1);
-		lowerStackIdx++;
-	}
-
-	UINT numOfSphereIndices = sphereIndices.size();
+	//UINT numOfSphereIndices = sphereIndices.size();
 
 	//Create index buffer
 	ID3D11Buffer* pIndexBuffer;
@@ -276,13 +296,13 @@ int main()
 	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	indexBufferDesc.CPUAccessFlags = 0;
 	indexBufferDesc.MiscFlags = 0u;
-	//indexBufferDesc.ByteWidth = sizeof(indices);
-	indexBufferDesc.ByteWidth = sizeof(uint16_t) * numOfSphereIndices;
+	indexBufferDesc.ByteWidth = sizeof(indices);
+	//indexBufferDesc.ByteWidth = sizeof(uint16_t) * numOfSphereIndices;
 	indexBufferDesc.StructureByteStride = 0u;
 
 	D3D11_SUBRESOURCE_DATA indexData = {};
-	//indexData.pSysMem = &indices;
-	indexData.pSysMem = sphereIndices.data();
+	indexData.pSysMem = &indices;
+	//indexData.pSysMem = sphereIndices.data();
 
 	CHECK_DX_ERROR(deviceAndContext.device->CreateBuffer(
 		&indexBufferDesc, &indexData, &pIndexBuffer
@@ -299,13 +319,13 @@ int main()
 	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	vertexBufferDesc.CPUAccessFlags = 0;
 	vertexBufferDesc.MiscFlags = 0u;
-	//vertexBufferDesc.ByteWidth = sizeof(cubeVertex);
-	vertexBufferDesc.ByteWidth = sizeof(Vertex) * sphereVertices.size();
+	vertexBufferDesc.ByteWidth = sizeof(cubeVertex);
+	//vertexBufferDesc.ByteWidth = sizeof(Vertex) * sphereVertices.size();
 	vertexBufferDesc.StructureByteStride = 0u;
 
 	D3D11_SUBRESOURCE_DATA vertexData = {};
-	//vertexData.pSysMem = &cubeVertex;
-	vertexData.pSysMem = sphereVertices.data();
+	vertexData.pSysMem = &cubeVertex;
+	//vertexData.pSysMem = sphereVertices.data();
 
 	CHECK_DX_ERROR(deviceAndContext.device->CreateBuffer(
 		&vertexBufferDesc, &vertexData, &pVertexBuffer
@@ -542,7 +562,7 @@ int main()
 		deviceAndContext.context->ClearRenderTargetView(renderTargetView, bgColor);
 
 		//device.context->DrawIndexed(numOfIndices, 0, 0);
-		deviceAndContext.context->DrawIndexed(numOfSphereIndices, 0, 0);
+		deviceAndContext.context->DrawIndexed(numOfIndices, 0, 0);
 
 		CHECK_DX_ERROR(swapchain.mainSwapchain->Present( 0, 0) );
 
