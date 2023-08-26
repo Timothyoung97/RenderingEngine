@@ -43,17 +43,14 @@ Done:
 
 Engine Tasks:
 • Remove the Windows console for the application
-    • It should be done in CMake
-• Define your own "assert" macro in Release
-    • Or find some way to re-enable the C-library's assert macro in Release
-• command line arguments
-    • use the 'cxxopts' library: https://github.com/jarro2783/cxxopts
-• simple text logging
-    • can use 'spdlog' library: https://github.com/gabime/spdlog
-• integrate & implement simple math & colors library
-    • use typedefs for classes in DirectXMath.h & DirectXColors.h
-• External Shader Compilation app
-    • use .bat file, or simple application (any language), to use DXC on all your Shaders
+• Assertions
+• Command line arguments
+    • https://github.com/jarro2783/cxxopts
+• Text logging
+    • https://github.com/gabime/spdlog
+• Basic Editor Suite
+    • https://github.com/ocornut/imgui
+    • https://github.com/samhocevar/portable-file-dialogs
 
 Done:
 • dont use SDL_PollEvent. use SDL_PeepEvents instead. see: https://wiki.libsdl.org/SDL2/SDL_PeepEvents
