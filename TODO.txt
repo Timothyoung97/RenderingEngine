@@ -5,7 +5,7 @@ Graphics Tasks:
     • Loading images from disk (use https://github.com/nothings/stb/blob/master/stb_image.h)
     • Allocating GPU Buffer & CPU Upload Buffer to upload image bytes to GPU
 • Numerous cubes & spheres
-    • general Renderer, Depth Buffer, Depth States
+    • general purpose Renderer, Depth Buffer, Depth States
 • Transparent cube
     • Blend states
     • Backface culling
@@ -14,7 +14,15 @@ Graphics Tasks:
 • Directional Light
     • Phong Lighting Equation
     • Hardcoded ambient lighting
-    • "Special Matrix" for normals to accomodate scaling
+• Normal Mapping
+    • detailed per-pixel lighting
+    • TBN matrix
+• Mesh loading
+    • use library: https://github.com/tinyobjloader/tinyobjloader or https://github.com/assimp/assimp
+    • Manage scene objects' meshes & materials
+    • non-trivial general-purpose scene rendering
+    • Example high quality obj scenes: https://casual-effects.com/data/index.html
+    • Start with the cube
 
 Done:
 • init d3d11 device/context, and clear swap chain to grey color
@@ -35,17 +43,14 @@ Done:
 
 Engine Tasks:
 • Remove the Windows console for the application
-    • It should be done in CMake
-• Define your own "assert" macro in Release
-    • Or find some way to re-enable the C-library's assert macro in Release
-• command line arguments
-    • use the 'cxxopts' library: https://github.com/jarro2783/cxxopts
-• simple text logging
-    • can use 'spdlog' library: https://github.com/gabime/spdlog
-• integrate & implement simple math & colors library
-    • use typedefs for classes in DirectXMath.h & DirectXColors.h
-• External Shader Compilation app
-    • use .bat file, or simple application (any language), to use DXC on all your Shaders
+• Assertions
+• Command line arguments
+    • https://github.com/jarro2783/cxxopts
+• Text logging
+    • https://github.com/gabime/spdlog
+• Basic Editor Suite
+    • https://github.com/ocornut/imgui
+    • https://github.com/samhocevar/portable-file-dialogs
 
 Done:
 • dont use SDL_PollEvent. use SDL_PeepEvents instead. see: https://wiki.libsdl.org/SDL2/SDL_PeepEvents
