@@ -65,6 +65,13 @@ Cube3d::Cube3d(float unitLength) {
 
 Sphere3d::Sphere3d(float r, int sectorC, int stackC) {
 
+	//Sphere Properties
+	float radius = r;
+	int sectorCount = sectorC;
+	int stackCount = stackC;
+	float sectorStep = 2 * 180 / sectorCount;
+	float stackStep = 180 / stackCount;
+
 	float stackAngle = 90;
 	float sectorAngle = 0;
 
@@ -74,18 +81,16 @@ Sphere3d::Sphere3d(float r, int sectorC, int stackC) {
 	sphereNormal.y = XMScalarSin(XMConvertToRadians(stackAngle));
 	sphereNormal.z = XMScalarSin(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
 
-	//Sphere Properties
-	float radius = r;
-	int sectorCount = sectorC;
-	int stackCount = stackC;
-	float sectorStep = 2 * 180 / sectorCount;
-	float stackStep = 180 / stackCount;
-
-	float u = 0;
+	//build north pole
 	float v = 0;
+	float u = 0;
 
-	vertices.push_back(Vertex(findCoordinate(sphereNormal, radius), XMFLOAT2(u, v)));
+	for (int i = 0; i < sectorCount; i++) {
+		u = XMConvertToRadians(i * sectorStep + sectorStep / 2) / XM_2PI;
+		vertices.push_back(Vertex(findCoordinate(sphereNormal, radius), XMFLOAT2(u, v)));
+	}
 
+	//build middle sec
 	for (int i = 1; i < stackCount; i++) {
 		stackAngle -= stackStep;
 		v = XMConvertToRadians(i * stackStep) / XM_PI;
@@ -97,31 +102,31 @@ Sphere3d::Sphere3d(float r, int sectorC, int stackC) {
 			vertices.push_back(Vertex(findCoordinate(sphereNormal, radius), XMFLOAT2(u, v)));
 			sectorAngle += sectorStep;
 		}
+
+		// one more vertice to map u to 1
 		sectorAngle = 0;
+		sphereNormal.x = XMScalarCos(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
+		sphereNormal.y = XMScalarSin(XMConvertToRadians(stackAngle));
+		sphereNormal.z = XMScalarSin(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
+		vertices.push_back(Vertex(findCoordinate(sphereNormal, radius), XMFLOAT2(1, v))); 
 	}
 
+	//build south pole
 	sphereNormal.x = XMScalarCos(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(-90));
 	sphereNormal.y = XMScalarSin(XMConvertToRadians(-90));
 	sphereNormal.z = XMScalarSin(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(-90));
-	vertices.push_back(Vertex(findCoordinate(sphereNormal, radius), XMFLOAT2(1, 1)));
 
+	for (int i = 0; i < sectorCount; i++) {
+		u = XMConvertToRadians(i * sectorStep + sectorStep / 2) / XM_2PI;
+		vertices.push_back(Vertex(findCoordinate(sphereNormal, radius), XMFLOAT2(u, 1)));
+	}
 
 	//Build north pole indices
-	int northPoleIdx = 0;
-	int nextIdx = 1;
 	for (int i = 0; i < sectorCount; i++) {
-	
-		if (i == sectorCount - 1) {
-			indices.push_back(northPoleIdx);
-			indices.push_back(nextIdx);
-			indices.push_back(1);
-			break;
-		}
-	
-		indices.push_back(northPoleIdx);
-		indices.push_back(nextIdx);
-		indices.push_back(nextIdx + 1);
-		nextIdx++;
+		int nextStackIdx = i + sectorCount;
+		indices.push_back(i);
+		indices.push_back(nextStackIdx);
+		indices.push_back(nextStackIdx + 1);
 	}
 
 	// Build middle
@@ -131,30 +136,13 @@ Sphere3d::Sphere3d(float r, int sectorC, int stackC) {
 	// |  /  |
 	// | / b |
 	// k2 - k2 + 1
-	int upperStackIdx = 1;
-	int lowerStackIdx = upperStackIdx + sectorCount;
+	int upperStackIdx = sectorCount; // upperStackIdx = 0 + sectorCount
+	int lowerStackIdx = upperStackIdx + sectorCount + 1; // lowerStackIdx = upperStackIdx + sectorCount + 1
 
 	for (int i = 1; i < stackCount - 1; i++) {
 
 		for (int j = 0; j < sectorCount; j++) {
-		
-			if (j == sectorCount - 1) {
-				// triangle a
-				indices.push_back(upperStackIdx);
-				indices.push_back(lowerStackIdx);
-				indices.push_back(upperStackIdx - sectorCount + 1);
-
-				//triangle b
-				indices.push_back(upperStackIdx - sectorCount + 1);
-				indices.push_back(lowerStackIdx);
-				indices.push_back(lowerStackIdx - sectorCount + 1);
-
-				upperStackIdx++;
-				lowerStackIdx++;
-
-				break;
-			}
-
+	
 			// triangle a
 			indices.push_back(upperStackIdx);
 			indices.push_back(lowerStackIdx);
@@ -167,27 +155,20 @@ Sphere3d::Sphere3d(float r, int sectorC, int stackC) {
 
 			upperStackIdx++;
 			lowerStackIdx++;
-
 		}
+		upperStackIdx++;
+		lowerStackIdx++;
 	}
 
 	// Build south pole indices
-	int southPoleIdx = vertices.size() - 1;
-	lowerStackIdx = vertices.size() - 1 - sectorCount;
+	int southPoleIdx = vertices.size() - sectorCount;
 
 	for (int i = 0; i < sectorCount; i++) {
-
-		if (i == sectorCount - 1) {
-			indices.push_back(lowerStackIdx);
-			indices.push_back(southPoleIdx);
-			indices.push_back(lowerStackIdx - sectorCount + 1);
-			break;
-		}
-
-		indices.push_back(lowerStackIdx);
+		int upperIdx = southPoleIdx - sectorCount - 1;
+		indices.push_back(upperIdx);
 		indices.push_back(southPoleIdx);
-		indices.push_back(lowerStackIdx + 1);
-		lowerStackIdx++;
+		indices.push_back(upperIdx + 1);
+		southPoleIdx++;
 	}
 }
 
