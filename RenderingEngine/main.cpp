@@ -212,10 +212,10 @@ int main()
 	deviceAndContext.context->PSSetSamplers(0, 1, pSamplerState.GetAddressOf());
 
 	// Create input layout
-	ID3D11InputLayout* vertLayout;
+	ComPtr<ID3D11InputLayout> vertLayout;
 
 	CHECK_DX_ERROR(deviceAndContext.device->CreateInputLayout(
-		layout, numOfInputElement, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &vertLayout
+		layout, numOfInputElement, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), vertLayout.GetAddressOf()
 	));
 
 	//Create Depth/Stencil 
@@ -244,7 +244,7 @@ int main()
 	));
 
 	//Create rasterizer buffer
-	ID3D11RasterizerState* pRasterizerState;
+	ComPtr<ID3D11RasterizerState> pRasterizerState;
 
 	D3D11_RASTERIZER_DESC rasterizerDesc;
 	rasterizerDesc.FillMode = D3D11_FILL_SOLID;
@@ -263,10 +263,10 @@ int main()
 	));
 	
 	//Set rasterizer state
-	deviceAndContext.context->RSSetState(pRasterizerState);
+	deviceAndContext.context->RSSetState(pRasterizerState.Get());
 
 	//Set input layout
-	deviceAndContext.context->IASetInputLayout( vertLayout );
+	deviceAndContext.context->IASetInputLayout( vertLayout.Get() );
 
 	//Set topology
 	deviceAndContext.context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -433,8 +433,6 @@ int main()
 	}
 
 	//Cleanup
-	vertLayout->Release();
-
 
 	return 0;
 }
