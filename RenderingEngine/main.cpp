@@ -217,6 +217,31 @@ int main()
 		layout, numOfInputElement, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &vertLayout
 	));
 
+	//Create Depth/Stencil 
+	ComPtr<ID3D11DepthStencilView> depthStencilView;
+	ComPtr<ID3D11Texture2D> depthStencilBuffer;
+
+	D3D11_TEXTURE2D_DESC depthStencilDesc;
+	depthStencilDesc.Width = SCREEN_WIDTH;
+	depthStencilDesc.Height = SCREEN_HEIGHT;
+	depthStencilDesc.MipLevels = 1;
+	depthStencilDesc.ArraySize = 1;
+	depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	depthStencilDesc.SampleDesc.Count = 1;
+	depthStencilDesc.SampleDesc.Quality = 0;
+	depthStencilDesc.Usage = D3D11_USAGE_DEFAULT;
+	depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	depthStencilDesc.CPUAccessFlags = 0;
+	depthStencilDesc.MiscFlags = 0;
+
+	CHECK_DX_ERROR(deviceAndContext.device->CreateTexture2D(
+		&depthStencilDesc, nullptr, depthStencilBuffer.GetAddressOf()
+	));
+
+	CHECK_DX_ERROR(deviceAndContext.device->CreateDepthStencilView(
+		depthStencilBuffer.Get(), nullptr, depthStencilView.GetAddressOf()
+	));
+
 	//Create rasterizer buffer
 	ID3D11RasterizerState* pRasterizerState;
 
@@ -429,9 +454,11 @@ int main()
 			backBuffer, NULL, &renderTargetView
 		));
 
-		deviceAndContext.context->OMSetRenderTargets(1, &renderTargetView, nullptr);
+		deviceAndContext.context->OMSetRenderTargets(1, &renderTargetView, depthStencilView.Get());
 		
 		deviceAndContext.context->ClearRenderTargetView(renderTargetView, bgColor);
+
+		deviceAndContext.context->ClearDepthStencilView(depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 		//device.context->DrawIndexed(numOfIndices, 0, 0);
 		deviceAndContext.context->DrawIndexed(cube.indices.size(), 0, 0);
@@ -448,6 +475,9 @@ int main()
 
 	//Cleanup
 	vertLayout->Release();
+
+	depthStencilView->Release();
+	depthStencilBuffer->Release();
 
 	return 0;
 }
