@@ -11,8 +11,6 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-#include <vector>
-
 //Custom Header
 #include "timer.h"
 #include "window.h"
@@ -34,7 +32,6 @@ using Microsoft::WRL::ComPtr;
 struct constBufferShaderResc {
 	XMMATRIX transformation;
 	XMMATRIX viewProjection;
-	//XMFLOAT4 rgbaColor;
 };
 
 //Input Layout
@@ -447,7 +444,6 @@ int main()
 		deltaTime = timer.getDeltaTime();
 
 		pConstBuffer->Release();
-
 	}
 
 	//Cleanup
