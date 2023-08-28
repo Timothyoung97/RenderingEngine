@@ -29,7 +29,7 @@ public:
 	Camera(float width, float height);
 
 	void updateCamera();
-	void moveCamera(float offset);
+	void moveCamera(XMVECTOR offset);
 	void turnCamera(float yawOffset, float pitchOffset);
 };
 }

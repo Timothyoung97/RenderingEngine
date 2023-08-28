@@ -21,6 +21,7 @@
 #include "swapchain.h"
 #include "object3d.h"
 #include "utility.h"
+#include "camera.h"
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 800;
@@ -311,34 +312,9 @@ int main()
 	//Delta Time between frame
 	double deltaTime = 0;
 
-	// Camera's properties
-	XMVECTOR defaultUpV = XMVectorSet(.0f, 1.0f, .0f, .0f);
+	// Create Camera
+	tre::Camera cam(SCREEN_WIDTH, SCREEN_HEIGHT);
 	
-	XMVECTOR camPositionV = XMVectorSet(.0f, .0f, -3.0f, .0f);
-	XMVECTOR camUpV = XMVectorSet(.0f, 1.0f, .0f, .0f);
-	XMVECTOR camRightV = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
-
-	float yaw = 90;
-	float pitch = 0;
-
-	XMFLOAT3 directionF;
-	directionF.x = XMScalarCos(XMConvertToRadians(yaw)) * XMScalarCos(XMConvertToRadians(pitch));
-	directionF.y = XMScalarSin(XMConvertToRadians(pitch));
-	directionF.z = XMScalarSin(XMConvertToRadians(yaw)) * XMScalarCos(XMConvertToRadians(pitch));
-
-	XMVECTOR directionV;
-	directionV = XMVector3Normalize(XMLoadFloat3(&directionF));
-
-	float cameraMoveSpeed = .001f;
-	float cameraRotateSpeed = .01f;
-
-	// Camera View Matrix
-	XMMATRIX camView;
-
-	// Projection Matrix
-	XMMATRIX camProjection;
-	camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0f), static_cast<float>(SCREEN_WIDTH / SCREEN_HEIGHT), 1.0f, 1000.0f);
-
 	// main loop
 	while (!input.shouldQuit())
 	{
@@ -371,34 +347,20 @@ int main()
 		} else if (input.keyState[SDL_SCANCODE_3]) {
 			currTriColor = 2;
 		} else if (input.keyState[SDL_SCANCODE_W]) { // control camera movement
-			camPositionV = XMVectorAdd(camPositionV, directionV * cameraMoveSpeed * deltaTime);
+			cam.moveCamera(cam.directionV * deltaTime);
 		} else if (input.keyState[SDL_SCANCODE_S]) {
-			camPositionV = XMVectorAdd(camPositionV, -directionV * cameraMoveSpeed * deltaTime);
+			cam.moveCamera(-cam.directionV * deltaTime);
 		} else if (input.keyState[SDL_SCANCODE_D]) {
-			camPositionV = XMVectorAdd(camPositionV, -camRightV * cameraMoveSpeed * deltaTime);
+			cam.moveCamera(-cam.camRightV * deltaTime);
 		} else if (input.keyState[SDL_SCANCODE_A]) {
-			camPositionV = XMVectorAdd(camPositionV, camRightV * cameraMoveSpeed * deltaTime);
+			cam.moveCamera(cam.camRightV * deltaTime);
 		} else if (input.keyState[SDL_SCANCODE_Q]) {
-			camPositionV = XMVectorAdd(camPositionV, defaultUpV * cameraMoveSpeed * deltaTime);
+			cam.moveCamera(cam.defaultUpV * deltaTime);
 		} else if (input.keyState[SDL_SCANCODE_E]) {
-			camPositionV = XMVectorAdd(camPositionV, -defaultUpV * cameraMoveSpeed * deltaTime);
+			cam.moveCamera(-cam.defaultUpV * deltaTime);
 		} else if (input.mouseButtonState[MOUSE_BUTTON_IDX(SDL_BUTTON_RIGHT)]) { // control camera angle
-
-			yaw -= input.deltaDisplacement.x * cameraRotateSpeed;
-			pitch -= input.deltaDisplacement.y * cameraRotateSpeed;
-
-			directionF.x = XMScalarCos(XMConvertToRadians(yaw)) * XMScalarCos(XMConvertToRadians(pitch));
-			directionF.y = XMScalarSin(XMConvertToRadians(pitch));
-			directionF.z = XMScalarSin(XMConvertToRadians(yaw)) * XMScalarCos(XMConvertToRadians(pitch));
-
-			directionV = XMVector3Normalize(XMLoadFloat3(&directionF));
+			cam.turnCamera(input.deltaDisplacement.x, input.deltaDisplacement.y);
 		}
-
-		// Update camera
-		camRightV = XMVector3Normalize(XMVector3Cross(directionV, defaultUpV));
-		camUpV = XMVector3Normalize(XMVector3Cross(camRightV, directionV));
-
-		camView = XMMatrixLookAtLH(camPositionV, camPositionV + directionV, camUpV);
 
 		// model matrix = scale -> rotate -> translate
 		XMMATRIX tf_matrix = XMMatrixMultiply(
@@ -412,7 +374,7 @@ int main()
 		// Constant Buffer Shader Resource
 		constBufferShaderResc cbsr;
 		cbsr.transformation = tf_matrix;
-		cbsr.viewProjection = XMMatrixMultiply(camView, camProjection);
+		cbsr.viewProjection = XMMatrixMultiply(cam.camView, cam.camProjection);
 		//cbsr.rgbaColor = triangleColor[currTriColor];
 
 		// Constant buffer

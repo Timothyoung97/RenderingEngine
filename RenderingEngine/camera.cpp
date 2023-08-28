@@ -31,8 +31,8 @@ Camera::Camera(float width, float height) {
 	camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0f), static_cast<float>(width / height), 1.0f, 1000.0f);
 }
 
-void Camera::moveCamera(float offset) { 
-	camPositionV = XMVectorAdd(camPositionV, directionV * offset * cameraMoveSpeed);
+void Camera::moveCamera(XMVECTOR offset) {
+	camPositionV = XMVectorAdd(camPositionV, offset * cameraMoveSpeed);
 	updateCamera();
 }
 
@@ -45,6 +45,7 @@ void Camera::turnCamera(float yawOffset, float pitchOffset) {
 	directionF.z = XMScalarSin(XMConvertToRadians(yaw)) * XMScalarCos(XMConvertToRadians(pitch));
 
 	directionV = XMVector3Normalize(XMLoadFloat3(&directionF));
+	updateCamera();
 }
 
 void Camera::updateCamera() {
