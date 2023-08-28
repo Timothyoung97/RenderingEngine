@@ -6,7 +6,6 @@
 #include <DirectXMath.h>
 #include <DirectXColors.h>
 #include <wrl/client.h>
-
 #include "spdlog/spdlog.h"
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -23,6 +22,11 @@
 #include "factory.h"
 #include "swapchain.h"
 #include "object3d.h"
+
+#include <string>
+#include <iostream>
+#include <codecvt>
+#include <locale>
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 800;
@@ -47,6 +51,13 @@ const UINT numOfInputElement = ARRAYSIZE(layout);
 
 int main()
 {
+	string filepath = __FILE__;
+	size_t lastSlash = filepath.find_last_of("\\/");
+
+	string basePath = filepath.substr(0, lastSlash + 1);
+
+	std::cout << "Base path: " << basePath << std::endl;
+	
 	//Create Window
 	tre::Window window("RenderingEngine", SCREEN_WIDTH, SCREEN_HEIGHT);
 
@@ -65,12 +76,15 @@ int main()
 	ID3DBlob* pVSBlob = nullptr;
 	ID3DBlob* pPSBlob = nullptr;
 
+	wstring vsFpath = wstring_convert<codecvt_utf8<wchar_t>>().from_bytes(basePath) + L"shaders\\vertex_shader.bin";
+	wstring psFpath = wstring_convert<codecvt_utf8<wchar_t>>().from_bytes(basePath) + L"shaders\\pixel_shader.bin";
+
 	CHECK_DX_ERROR( D3DReadFileToBlob(
-		L"../RenderingEngine/shaders/vertex_shader.bin", &pVSBlob
+		vsFpath.c_str(), &pVSBlob
 	));
 
 	CHECK_DX_ERROR( D3DReadFileToBlob(
-		L"../RenderingEngine/shaders/pixel_shader.bin", &pPSBlob
+		psFpath.c_str(), &pPSBlob
 	));
 
 	ID3D11VertexShader* vertex_shader_ptr = nullptr;
@@ -139,8 +153,10 @@ int main()
 	deviceAndContext.context->IASetVertexBuffers(0, 1, &pVertexBuffer, &vertexStride, &offset);
 
 	// load image using stb
+	string texturePath = basePath + "textures\\UV_image.jpg";
+
 	int imgWidth, imgHeight, imgChannels, desiredChannels = 4;
-	unsigned char* img = stbi_load("../RenderingEngine/textures/UV_image.jpg", &imgWidth, &imgHeight, &imgChannels, desiredChannels);
+	unsigned char* img = stbi_load(texturePath.c_str(), &imgWidth, &imgHeight, &imgChannels, desiredChannels);
 	if (img == NULL) {
 		printf("Error loading image");
 	}
