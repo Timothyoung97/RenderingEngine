@@ -147,7 +147,7 @@ int main()
 	int imgWidth, imgHeight, imgChannels, desiredChannels = 4;
 	unsigned char* img = stbi_load(texturePath.c_str(), &imgWidth, &imgHeight, &imgChannels, desiredChannels);
 	if (img == NULL) {
-		printf("Error loading image");
+		spdlog::error("Error loading image");
 	}
 	spdlog::info("Img width: {}, Img height: {}, Img channels: {}\n", imgWidth, imgHeight, imgChannels);
 
