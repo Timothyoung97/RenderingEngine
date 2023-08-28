@@ -341,19 +341,19 @@ int main()
 			currTriColor = 1;
 		} else if (input.keyState[SDL_SCANCODE_3]) {
 			currTriColor = 2;
-		} else if (input.keyState[SDL_SCANCODE_W]) {
-			camPositionF.z += cameraMoveSpeed * deltaTime;
+		} else if (input.keyState[SDL_SCANCODE_W]) { // control camera movement
+			camPositionV = XMVectorAdd(camPositionV, directionV * cameraMoveSpeed * deltaTime);
 		} else if (input.keyState[SDL_SCANCODE_S]) {
-			camPositionF.z -= cameraMoveSpeed * deltaTime;
+			camPositionV = XMVectorAdd(camPositionV, -directionV * cameraMoveSpeed * deltaTime);
 		} else if (input.keyState[SDL_SCANCODE_D]) {
-			camPositionF.x += cameraMoveSpeed * deltaTime;
+			camPositionV = XMVectorAdd(camPositionV, -camRightV * cameraMoveSpeed * deltaTime);
 		} else if (input.keyState[SDL_SCANCODE_A]) {
-			camPositionF.x -= cameraMoveSpeed * deltaTime;
+			camPositionV = XMVectorAdd(camPositionV, camRightV * cameraMoveSpeed * deltaTime);
 		} else if (input.keyState[SDL_SCANCODE_Q]) {
-			camPositionF.y -= cameraMoveSpeed * deltaTime;
+			camPositionV = XMVectorAdd(camPositionV, defaultUpV * cameraMoveSpeed * deltaTime);
 		} else if (input.keyState[SDL_SCANCODE_E]) {
-			camPositionF.y += cameraMoveSpeed * deltaTime;
-		} else if (input.mouseButtonState[MOUSE_BUTTON_IDX(SDL_BUTTON_RIGHT)]) {
+			camPositionV = XMVectorAdd(camPositionV, -defaultUpV * cameraMoveSpeed * deltaTime);
+		} else if (input.mouseButtonState[MOUSE_BUTTON_IDX(SDL_BUTTON_RIGHT)]) { // control camera angle
 
 			yaw -= input.deltaDisplacement.x * cameraRotateSpeed;
 			pitch -= input.deltaDisplacement.y * cameraRotateSpeed;
@@ -368,8 +368,6 @@ int main()
 		// Update camera
 		camRightV = XMVector3Normalize(XMVector3Cross(directionV, defaultUpV));
 		camUpV = XMVector3Normalize(XMVector3Cross(camRightV, directionV));
-
-		camPositionV = XMLoadFloat4(&camPositionF);
 
 		camView = XMMatrixLookAtLH(camPositionV, camPositionV + directionV, camUpV);
 
