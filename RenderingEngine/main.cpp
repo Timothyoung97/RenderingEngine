@@ -435,8 +435,6 @@ int main()
 	//Cleanup
 	vertLayout->Release();
 
-	depthStencilView->Release();
-	depthStencilBuffer->Release();
 
 	return 0;
 }
