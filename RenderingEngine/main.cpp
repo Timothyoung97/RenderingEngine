@@ -140,7 +140,7 @@ int main()
 
 	// load image using stb
 	int imgWidth, imgHeight, imgChannels, desiredChannels = 4;
-	unsigned char* img = stbi_load("../UV_image.jpg", &imgWidth, &imgHeight, &imgChannels, desiredChannels);
+	unsigned char* img = stbi_load("../RenderingEngine/textures/UV_image.jpg", &imgWidth, &imgHeight, &imgChannels, desiredChannels);
 	if (img == NULL) {
 		printf("Error loading image");
 	}
