@@ -92,7 +92,7 @@ int main()
 	deviceAndContext.context->PSSetShader(pixel_shader_ptr, NULL, 0u);
 
 	// 3D object
-	tre::Sphere3d cube(.5f, 10, 10);
+	tre::Object3d cube = tre::Sphere3d(.5f, 10, 10);
 
 	//Create index buffer
 	ID3D11Buffer* pIndexBuffer;
