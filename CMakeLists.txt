@@ -14,8 +14,9 @@ target_include_directories(RenderingEngine PUBLIC "${CMAKE_CURRENT_LIST_DIR}/ext
 target_link_libraries(RenderingEngine ${CMAKE_CURRENT_LIST_DIR}/external/SDL2/lib/x64/SDL2.lib)
 target_link_libraries(RenderingEngine d3d11 dxgi d3dcompiler)
 
-set(SUBSYSTEM_LINKER_OPTIONS "/SUBSYSTEM:WINDOWS" "/ENTRY:mainCRTStartup")
-target_link_options(RenderingEngine PRIVATE ${SUBSYSTEM_LINKER_OPTIONS})
+if(MSVC)
+	set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
+endif()
 
 target_compile_definitions(RenderingEngine PUBLIC _CRT_SECURE_NO_WARNINGS NOMINMAX WIN32_LEAN_AND_MEAN)
 
