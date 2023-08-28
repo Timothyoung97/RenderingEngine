@@ -149,7 +149,7 @@ int main()
 	if (img == NULL) {
 		printf("Error loading image");
 	}
-	printf("Img width: %d, Img height: %d, Img channels: %d\n", imgWidth, imgHeight, imgChannels);
+	spdlog::info("Img width: {}, Img height: {}, Img channels: {}\n", imgWidth, imgHeight, imgChannels);
 
 	// Create texture
 	D3D11_TEXTURE2D_DESC texture2dDesc;
