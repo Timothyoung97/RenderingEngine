@@ -264,10 +264,10 @@ int main()
 	//Set rasterizer state
 	deviceAndContext.context->RSSetState(pRasterizerState);
 
-	// Set input layout
+	//Set input layout
 	deviceAndContext.context->IASetInputLayout( vertLayout );
 
-	// Set topology
+	//Set topology
 	deviceAndContext.context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	//Create Viewport
@@ -346,9 +346,6 @@ int main()
 
 		// Update keyboard event
 		input.updateInputEvent();
-
-		XMFLOAT4 camPositionF;
-		XMStoreFloat4(&camPositionF, camPositionV);
 
 		// Control
 		if (input.keyState[SDL_SCANCODE_LEFT]) {
