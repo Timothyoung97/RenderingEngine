@@ -42,7 +42,6 @@ Done:
 //////////////////////////////////////////////////////////////////////////////
 
 Engine Tasks:
-• Remove the Windows console for the application
 • Assertions
 • Command line arguments
     • https://github.com/jarro2783/cxxopts
@@ -58,3 +57,4 @@ Done:
 • frame rate controller
 • Utilize CMake to generate project files
     • SDL header files should be in project & repo. Binary files must not.
+• Remove the Windows console for the application
