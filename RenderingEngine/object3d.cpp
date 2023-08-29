@@ -1,45 +1,59 @@
 #include "object3d.h"
 
 namespace tre {
+
 Cube3d::Cube3d(float unitLength) {
+	create(XMFLOAT3(.0f, .0f, .0f), unitLength);
+}
+
+Cube3d::Cube3d(XMFLOAT3 origin, float unitLength) {
+	create(origin, unitLength);
+}
+
+void Cube3d::create(XMFLOAT3 origin, float unitLength) {
+	
+	float x, y, z;
+	x = origin.x;
+	y = origin.y;
+	z = origin.z;
 
 	//Cube Vertices
 	Vertex vertex[] = {
 		// Back
-		XMFLOAT3(unitLength, -unitLength, unitLength), XMFLOAT2(0, 1), // 0
-		XMFLOAT3(-unitLength, -unitLength, unitLength), XMFLOAT2(1, 1),
-		XMFLOAT3(unitLength, unitLength, unitLength), XMFLOAT2(0, 0),
-		XMFLOAT3(-unitLength, unitLength, unitLength), XMFLOAT2(1, 0),
+		XMFLOAT3(x + unitLength, y - unitLength, z + unitLength), XMFLOAT2(0, 1), // 0
+		XMFLOAT3(x - unitLength, y - unitLength, z + unitLength), XMFLOAT2(1, 1),
+		XMFLOAT3(x + unitLength, y + unitLength, z + unitLength), XMFLOAT2(0, 0),
+		XMFLOAT3(x - unitLength, y + unitLength, z + unitLength), XMFLOAT2(1, 0),
 
 		// Right
-		XMFLOAT3(unitLength, -unitLength, -unitLength), XMFLOAT2(0, 1), // 4
-		XMFLOAT3(unitLength, -unitLength, unitLength), XMFLOAT2(1, 1),
-		XMFLOAT3(unitLength, unitLength, -unitLength), XMFLOAT2(0, 0),
-		XMFLOAT3(unitLength, unitLength, unitLength), XMFLOAT2(1, 0),
+		XMFLOAT3(x + unitLength, y - unitLength, z - unitLength), XMFLOAT2(0, 1), // 4
+		XMFLOAT3(x + unitLength, y - unitLength, z + unitLength), XMFLOAT2(1, 1),
+		XMFLOAT3(x + unitLength, y + unitLength, z - unitLength), XMFLOAT2(0, 0),
+		XMFLOAT3(x + unitLength, y + unitLength, z + unitLength), XMFLOAT2(1, 0),
 
 		// top
-		XMFLOAT3(-unitLength, unitLength, -unitLength), XMFLOAT2(0, 1), // 8
-		XMFLOAT3(unitLength, unitLength, -unitLength), XMFLOAT2(1, 1),
-		XMFLOAT3(-unitLength, unitLength, unitLength), XMFLOAT2(0, 0),
-		XMFLOAT3(unitLength, unitLength, unitLength), XMFLOAT2(1, 0),
+		XMFLOAT3(x - unitLength, y + unitLength, z - unitLength), XMFLOAT2(0, 1), // 8
+		XMFLOAT3(x + unitLength, y + unitLength, z - unitLength), XMFLOAT2(1, 1),
+		XMFLOAT3(x - unitLength, y + unitLength, z + unitLength), XMFLOAT2(0, 0),
+		XMFLOAT3(x + unitLength, y + unitLength, z + unitLength), XMFLOAT2(1, 0),
 
 		// Front
-		XMFLOAT3(-unitLength, -unitLength, -unitLength), XMFLOAT2(0, 1), // 12
-		XMFLOAT3(unitLength, -unitLength, -unitLength), XMFLOAT2(1, 1),
-		XMFLOAT3(-unitLength, unitLength, -unitLength), XMFLOAT2(0, 0),
-		XMFLOAT3(unitLength, unitLength, -unitLength), XMFLOAT2(1, 0),
+		XMFLOAT3(x - unitLength, y - unitLength, z - unitLength), XMFLOAT2(0, 1), // 12
+		XMFLOAT3(x + unitLength, y - unitLength, z - unitLength), XMFLOAT2(1, 1),
+		XMFLOAT3(x - unitLength, y + unitLength, z - unitLength), XMFLOAT2(0, 0),
+		XMFLOAT3(x + unitLength, y + unitLength, z - unitLength), XMFLOAT2(1, 0),
 
 		// Left
-		XMFLOAT3(-unitLength, -unitLength, unitLength), XMFLOAT2(0, 1), // 16
-		XMFLOAT3(-unitLength, -unitLength, -unitLength), XMFLOAT2(1, 1),
-		XMFLOAT3(-unitLength, unitLength, unitLength), XMFLOAT2(0, 0),
-		XMFLOAT3(-unitLength, unitLength, -unitLength), XMFLOAT2(1, 0),
+		XMFLOAT3(x - unitLength, y - unitLength, z + unitLength), XMFLOAT2(0, 1), // 16
+		XMFLOAT3(x - unitLength, y - unitLength, z - unitLength), XMFLOAT2(1, 1),
+		XMFLOAT3(x - unitLength, y + unitLength, z + unitLength), XMFLOAT2(0, 0),
+		XMFLOAT3(x - unitLength, y + unitLength, z - unitLength), XMFLOAT2(1, 0),
 
 		// bottom
-		XMFLOAT3(-unitLength, -unitLength, unitLength), XMFLOAT2(0, 1), // 20
-		XMFLOAT3(unitLength, -unitLength, unitLength), XMFLOAT2(1, 1),
-		XMFLOAT3(-unitLength, -unitLength, -unitLength), XMFLOAT2(0, 0),
-		XMFLOAT3(unitLength, -unitLength, -unitLength), XMFLOAT2(1, 0) // 23
+		XMFLOAT3(x - unitLength, y - unitLength, z + unitLength), XMFLOAT2(0, 1), // 20
+		XMFLOAT3(x + unitLength, y - unitLength, z + unitLength), XMFLOAT2(1, 1),
+		XMFLOAT3(x - unitLength, y - unitLength, z - unitLength), XMFLOAT2(0, 0),
+		XMFLOAT3(x + unitLength, y - unitLength, z - unitLength), XMFLOAT2(1, 0) // 23
 	};
 
 	vertices.assign(begin(vertex), end(vertex));
@@ -64,6 +78,14 @@ Cube3d::Cube3d(float unitLength) {
 }
 
 Sphere3d::Sphere3d(float r, int sectorC, int stackC) {
+	create(XMFLOAT3(.0f, .0f, .0f), r, sectorC, stackC);
+}
+
+Sphere3d::Sphere3d(XMFLOAT3 origin, float r, int sectorC, int stackC) {
+	create(origin, r, sectorC, stackC);
+}
+
+void Sphere3d::create(XMFLOAT3 origin, float r, int sectorC, int stackC) {
 
 	//Sphere Properties
 	float radius = r;
@@ -75,7 +97,7 @@ Sphere3d::Sphere3d(float r, int sectorC, int stackC) {
 	float stackAngle = 90;
 	float sectorAngle = 0;
 
-	XMFLOAT3 sphereNormal;
+	XMFLOAT3 sphereNormal(origin.x, origin.y, origin.z);
 
 	sphereNormal.x = XMScalarCos(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
 	sphereNormal.y = XMScalarSin(XMConvertToRadians(stackAngle));
@@ -108,7 +130,7 @@ Sphere3d::Sphere3d(float r, int sectorC, int stackC) {
 		sphereNormal.x = XMScalarCos(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
 		sphereNormal.y = XMScalarSin(XMConvertToRadians(stackAngle));
 		sphereNormal.z = XMScalarSin(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
-		vertices.push_back(Vertex(findCoordinate(sphereNormal, radius), XMFLOAT2(1, v))); 
+		vertices.push_back(Vertex(findCoordinate(sphereNormal, radius), XMFLOAT2(1, v)));
 	}
 
 	//build south pole
@@ -142,7 +164,7 @@ Sphere3d::Sphere3d(float r, int sectorC, int stackC) {
 	for (int i = 1; i < stackCount - 1; i++) {
 
 		for (int j = 0; j < sectorCount; j++) {
-	
+
 			// triangle a
 			indices.push_back(upperStackIdx);
 			indices.push_back(lowerStackIdx);

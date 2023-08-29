@@ -16,6 +16,7 @@ target_link_libraries(RenderingEngine d3d11 dxgi d3dcompiler)
 
 if(MSVC)
 	set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
+    target_compile_options(RenderingEngine PRIVATE "/MP")
 endif()
 
 target_compile_definitions(RenderingEngine PUBLIC _CRT_SECURE_NO_WARNINGS NOMINMAX WIN32_LEAN_AND_MEAN)

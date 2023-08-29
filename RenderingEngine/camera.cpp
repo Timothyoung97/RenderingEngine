@@ -6,7 +6,7 @@ Camera::Camera(float width, float height) {
 	defaultUpV = XMVectorSet(.0f, 1.0f, .0f, .0f); // always point up in the positive y axis
 
 	// Init Values for Camera
-	camPositionV = XMVectorSet(.0f, .0f, -3.0f, .0f);
+	camPositionV = XMVectorSet(.0f, .0f, -10.0f, .0f);
 	camUpV = XMVectorSet(.0f, 1.0f, .0f, .0f);
 	camRightV = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
 

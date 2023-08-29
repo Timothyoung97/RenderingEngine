@@ -13,24 +13,28 @@ struct Vertex {
 
 namespace tre {
 
-class Cube3d
-{
+class Object3d {
 public:
+
 	vector<Vertex> vertices;
 	vector<uint16_t> indices;
-
-	Cube3d(float unitLength);
 };
 
-class Sphere3d
-{
+class Cube3d : public Object3d {
 public:
-	vector<Vertex> vertices;
-	vector<uint16_t> indices;
 
-	Sphere3d(float r, int sectorCount, int stackCount);
+	Cube3d(float unitLength);
+	Cube3d(XMFLOAT3 origin, float unitLength);
+	void create(XMFLOAT3 origin, float unitLength);
+};
 
+class Sphere3d : public Object3d {
+public:
+
+	Sphere3d(float r, int sectorC, int stackC);
+	Sphere3d(XMFLOAT3 origin, float r, int sectorC, int stackC);
+	
+	void create(XMFLOAT3 origin, float r, int sectorC, int stackC);
 	XMFLOAT3 findCoordinate(XMFLOAT3 unitVector, float radius);
-	XMVECTOR convertToVector(float vectorComponentValue, int idx);
 };
 }

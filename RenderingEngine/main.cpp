@@ -22,6 +22,7 @@
 #include "object3d.h"
 #include "utility.h"
 #include "camera.h"
+#include "constbuffer_mgr.h"
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 800;
@@ -29,11 +30,6 @@ const int SCREEN_HEIGHT = 800;
 
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;
-
-struct constBufferShaderResc {
-	XMMATRIX transformation;
-	XMMATRIX viewProjection;
-};
 
 //Input Layout
 D3D11_INPUT_ELEMENT_DESC layout[] = {
@@ -92,7 +88,7 @@ int main()
 	deviceAndContext.context->PSSetShader(pixel_shader_ptr, NULL, 0u);
 
 	// 3D object
-	tre::Sphere3d cube(.5f, 10, 10);
+	tre::Object3d cube = tre::Sphere3d(.5f, 10, 10);
 
 	//Create index buffer
 	ID3D11Buffer* pIndexBuffer;
@@ -292,6 +288,9 @@ int main()
 	float scaleY = 1.0f;
 	float scaleSpeed = .001f;
 
+	float localYaw = .0f; // in degree
+	float localPitch = .0f; // in degree
+	float localRoll = .0f; // in degree
 	float rotateZ = .0f;
 	float rotateSpeed = .1f;
 
@@ -312,9 +311,12 @@ int main()
 	//Delta Time between frame
 	double deltaTime = 0;
 
-	// Create Camera
+	//Create Camera
 	tre::Camera cam(SCREEN_WIDTH, SCREEN_HEIGHT);
 	
+	//Create const buffer manager
+	tre::ConstantBufferManager cbm;
+
 	// main loop
 	while (!input.shouldQuit())
 	{
@@ -347,6 +349,7 @@ int main()
 		} else if (input.keyState[SDL_SCANCODE_3]) {
 			currTriColor = 2;
 		} else if (input.keyState[SDL_SCANCODE_W]) { // control camera movement
+			spdlog::info("moving");
 			cam.moveCamera(cam.directionV * deltaTime);
 		} else if (input.keyState[SDL_SCANCODE_S]) {
 			cam.moveCamera(-cam.directionV * deltaTime);
@@ -360,42 +363,9 @@ int main()
 			cam.moveCamera(-cam.defaultUpV * deltaTime);
 		} else if (input.mouseButtonState[MOUSE_BUTTON_IDX(SDL_BUTTON_RIGHT)]) { // control camera angle
 			cam.turnCamera(input.deltaDisplacement.x, input.deltaDisplacement.y);
+		} else if (input.keyState[SDL_SCANCODE_SPACE]) {
+			cbm.addRandomConstBufferResc(cam.camView, cam.camProjection); // add new const buffer config
 		}
-
-		// model matrix = scale -> rotate -> translate
-		XMMATRIX tf_matrix = XMMatrixMultiply(
-			XMMatrixScaling(scaleX, scaleY, 1),
-			XMMatrixMultiply(
-				XMMatrixRotationZ(XMConvertToRadians(rotateZ)),
-				XMMatrixTranslation(offsetX, offsetY, 0)
-			)
-		);
-
-		// Constant Buffer Shader Resource
-		constBufferShaderResc cbsr;
-		cbsr.transformation = tf_matrix;
-		cbsr.viewProjection = XMMatrixMultiply(cam.camView, cam.camProjection);
-		//cbsr.rgbaColor = triangleColor[currTriColor];
-
-		// Constant buffer
-		D3D11_BUFFER_DESC constantBufferDesc;
-		constantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		constantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-		constantBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		constantBufferDesc.MiscFlags = 0u;
-		constantBufferDesc.ByteWidth = sizeof(cbsr);
-		constantBufferDesc.StructureByteStride = 0u;
-
-		ID3D11Buffer* pConstBuffer;
-
-		D3D11_SUBRESOURCE_DATA csd = {};
-		csd.pSysMem = &cbsr;
-		CHECK_DX_ERROR(deviceAndContext.device->CreateBuffer(
-			&constantBufferDesc, &csd, &pConstBuffer
-		));
-
-		deviceAndContext.context->VSSetConstantBuffers(0u, 1u, &pConstBuffer);
-		deviceAndContext.context->PSSetConstantBuffers(0u, 1u, &pConstBuffer);
 
 		// Alternating buffers
 		int currBackBuffer = static_cast<int>(swapchain.mainSwapchain->GetCurrentBackBufferIndex());
@@ -419,8 +389,22 @@ int main()
 
 		deviceAndContext.context->ClearDepthStencilView(depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-		//device.context->DrawIndexed(numOfIndices, 0, 0);
-		deviceAndContext.context->DrawIndexed(cube.indices.size(), 0, 0);
+
+		for (int i = 0; i < cbm.constBufferShaderRescList.size(); i++) {
+
+			cbm.updateCamMatrix(i, cam.camView, cam.camProjection);
+
+			cbm.csd.pSysMem = &cbm.constBufferShaderRescList[i];
+
+			CHECK_DX_ERROR(deviceAndContext.device->CreateBuffer(
+				&cbm.constantBufferDesc, &cbm.csd, cbm.pConstBuffer.GetAddressOf()
+			));
+
+			deviceAndContext.context->VSSetConstantBuffers(0u, 1u, cbm.pConstBuffer.GetAddressOf());
+			deviceAndContext.context->PSSetConstantBuffers(0u, 1u, cbm.pConstBuffer.GetAddressOf());
+
+			deviceAndContext.context->DrawIndexed(cube.indices.size(), 0, 0);
+		}
 
 		CHECK_DX_ERROR(swapchain.mainSwapchain->Present( 0, 0) );
 
@@ -429,7 +413,6 @@ int main()
 
 		deltaTime = timer.getDeltaTime();
 
-		pConstBuffer->Release();
 	}
 
 	//Cleanup
