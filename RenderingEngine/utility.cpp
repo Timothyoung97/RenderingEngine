@@ -17,4 +17,8 @@ string Utility::convertToStr(wstring wstr) {
 	return wstring_convert<std::codecvt_utf8<wchar_t>>().to_bytes(wstr);
 }
 
+int Utility::genRandomInt(int maxValue) {
+	return rand() % maxValue;
+}
+
 }

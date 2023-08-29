@@ -18,5 +18,6 @@ public:
 
 	wstring convertToWstr(string str);
 	string convertToStr(wstring wstr);
+	static int genRandomInt(int maxValue);
 };
 }
