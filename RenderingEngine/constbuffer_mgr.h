@@ -36,6 +36,7 @@ public:
 		XMMATRIX camView, XMMATRIX camProjection);
 
 	void addRandomConstBufferResc(XMMATRIX camView, XMMATRIX camProjection);
+	void updateCamMatrix(int idx, XMMATRIX camView, XMMATRIX camProjection);
 
 };
 }

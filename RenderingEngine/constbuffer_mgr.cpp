@@ -34,12 +34,24 @@ void ConstantBufferManager::addNewConstBufferResc(
 }
 
 void ConstantBufferManager::addRandomConstBufferResc(XMMATRIX camView, XMMATRIX camProjection) {
+
+	float scaleValue = Utility::getRandomInt(3);
+	float offsetX = Utility::getRandomFloatRange(-5.0f, 5.0f);
+	float offsetY = Utility::getRandomFloatRange(-5.0f, 5.0f);
+	float offsetZ = Utility::getRandomFloatRange(-5.0f, 5.0f);
+
 	addNewConstBufferResc(
-		Utility::genRandomInt(10), Utility::genRandomInt(10), Utility::genRandomInt(10),
-		Utility::genRandomInt(2), Utility::genRandomInt(2), Utility::genRandomInt(2),
-		Utility::genRandomInt(360), Utility::genRandomInt(360), Utility::genRandomInt(360),
+		offsetX, offsetY, offsetZ,
+		scaleValue, scaleValue, scaleValue,
+		Utility::getRandomInt(360), Utility::getRandomInt(360), Utility::getRandomInt(360),
 		camView, camProjection
 	);
+}
+
+void ConstantBufferManager::updateCamMatrix(int idx, XMMATRIX camView, XMMATRIX camProjection) {
+	assert(constBufferShaderRescList.size() > 0);
+	assert(0 <= idx && idx <= constBufferShaderRescList.size() - 1);
+	constBufferShaderRescList[idx].viewProjection = XMMatrixMultiply(camView, camProjection);
 }
 
 }
