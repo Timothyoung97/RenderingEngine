@@ -292,6 +292,9 @@ int main()
 	float scaleY = 1.0f;
 	float scaleSpeed = .001f;
 
+	float localYaw = .0f; // in degree
+	float localPitch = .0f; // in degree
+	float localRoll = .0f; // in degree
 	float rotateZ = .0f;
 	float rotateSpeed = .1f;
 
@@ -360,6 +363,10 @@ int main()
 			cam.moveCamera(-cam.defaultUpV * deltaTime);
 		} else if (input.mouseButtonState[MOUSE_BUTTON_IDX(SDL_BUTTON_RIGHT)]) { // control camera angle
 			cam.turnCamera(input.deltaDisplacement.x, input.deltaDisplacement.y);
+		} else if (input.keyState[SDL_SCANCODE_SPACE]) {
+			spdlog::info("Add more shapes\n");
+			// add configuration to constant buffer
+			// use a vector to track each object's transform (such as transformation, rotation, scale)
 		}
 
 		// model matrix = scale -> rotate -> translate
@@ -371,11 +378,21 @@ int main()
 			)
 		);
 
+
+		// A for loop to draw all generated constant buffer config
+		/*
+		for eachConfig in list:
+			set subresource data 
+			create buffer
+			set VSConstBUffer
+			set PSConstBuffer
+		*/
+
+
 		// Constant Buffer Shader Resource
 		constBufferShaderResc cbsr;
 		cbsr.transformation = tf_matrix;
 		cbsr.viewProjection = XMMatrixMultiply(cam.camView, cam.camProjection);
-		//cbsr.rgbaColor = triangleColor[currTriColor];
 
 		// Constant buffer
 		D3D11_BUFFER_DESC constantBufferDesc;
@@ -386,13 +403,15 @@ int main()
 		constantBufferDesc.ByteWidth = sizeof(cbsr);
 		constantBufferDesc.StructureByteStride = 0u;
 
-		ID3D11Buffer* pConstBuffer;
+		ID3D11Buffer* pConstBuffer = nullptr;
 
 		D3D11_SUBRESOURCE_DATA csd = {};
 		csd.pSysMem = &cbsr;
 		CHECK_DX_ERROR(deviceAndContext.device->CreateBuffer(
 			&constantBufferDesc, &csd, &pConstBuffer
 		));
+
+		assert(pConstBuffer != nullptr);
 
 		deviceAndContext.context->VSSetConstantBuffers(0u, 1u, &pConstBuffer);
 		deviceAndContext.context->PSSetConstantBuffers(0u, 1u, &pConstBuffer);
@@ -419,7 +438,31 @@ int main()
 
 		deviceAndContext.context->ClearDepthStencilView(depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-		//device.context->DrawIndexed(numOfIndices, 0, 0);
+		deviceAndContext.context->DrawIndexed(cube.indices.size(), 0, 0);
+
+		// draw one more sphere
+		// model matrix = scale -> rotate -> translate
+		tf_matrix = XMMatrixMultiply(
+		XMMatrixScaling(scaleX, scaleY, 1),
+			XMMatrixMultiply(
+				XMMatrixRotationZ(XMConvertToRadians(rotateZ)),
+				XMMatrixTranslation(offsetX+2, offsetY+2, 0)
+			)
+		);
+
+		// Constant Buffer Shader Resource
+		cbsr.transformation = tf_matrix;
+		cbsr.viewProjection = XMMatrixMultiply(cam.camView, cam.camProjection);
+
+		// Constant buffer
+		csd.pSysMem = &cbsr;
+		CHECK_DX_ERROR(deviceAndContext.device->CreateBuffer(
+			&constantBufferDesc, &csd, &pConstBuffer
+		));
+
+		deviceAndContext.context->VSSetConstantBuffers(0u, 1u, &pConstBuffer);
+		deviceAndContext.context->PSSetConstantBuffers(0u, 1u, &pConstBuffer);
+
 		deviceAndContext.context->DrawIndexed(cube.indices.size(), 0, 0);
 
 		CHECK_DX_ERROR(swapchain.mainSwapchain->Present( 0, 0) );
