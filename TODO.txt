@@ -9,6 +9,7 @@ Graphics Tasks:
 • Directional Light
     • Phong Lighting Equation
     • Hardcoded ambient lighting
+• Point Lights
 • Normal Mapping
     • detailed per-pixel lighting
     • TBN matrix
