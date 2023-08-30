@@ -3,6 +3,9 @@
 namespace tre {
 
 Utility::Utility() {
+
+	srand(time(NULL));
+
 	string filepath = __FILE__;
 	size_t lastSlash = filepath.find_last_of("\\/");
 	basePathStr = filepath.substr(0, lastSlash + 1);
