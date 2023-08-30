@@ -18,7 +18,7 @@ struct constBufferShaderResc {
 
 namespace tre {
 
-class ConstantBufferManager {
+class ConstantBuffer {
 public:
 	D3D11_BUFFER_DESC constantBufferDesc;
 	D3D11_SUBRESOURCE_DATA csd = {};
@@ -29,7 +29,7 @@ public:
 
 	vector<constBufferShaderResc> constBufferShaderRescList;
 
-	ConstantBufferManager();
+	ConstantBuffer();
 };
 
 }

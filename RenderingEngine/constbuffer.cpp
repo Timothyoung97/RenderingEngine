@@ -1,8 +1,8 @@
-#include "constbuffer_mgr.h"
+#include "constbuffer.h"
 
 namespace tre {
 
-ConstantBufferManager::ConstantBufferManager() {
+ConstantBuffer::ConstantBuffer() {
 	constantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	constantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	constantBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;

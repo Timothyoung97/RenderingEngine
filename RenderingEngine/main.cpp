@@ -22,7 +22,7 @@
 #include "object3d.h"
 #include "utility.h"
 #include "camera.h"
-#include "constbuffer_mgr.h"
+#include "constbuffer.h"
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 800;
@@ -321,7 +321,7 @@ int main()
 	tre::Camera cam(SCREEN_WIDTH, SCREEN_HEIGHT);
 	
 	//Create const buffer manager
-	tre::ConstantBufferManager cbm;
+	tre::ConstantBuffer cb;
 
 	vector<ObjectProperty> objPropQ;
 
@@ -406,24 +406,24 @@ int main()
 
 
 		// Set camera view const buffer
-		cbm.constBufferCamResc.matrix = XMMatrixMultiply(cam.camView, cam.camProjection);
+		cb.constBufferCamResc.matrix = XMMatrixMultiply(cam.camView, cam.camProjection);
 
-		cbm.csd.pSysMem = &cbm.constBufferCamResc;
+		cb.csd.pSysMem = &cb.constBufferCamResc;
 
 		CHECK_DX_ERROR(deviceAndContext.device->CreateBuffer(
-			&cbm.constantBufferDesc, &cbm.csd, cbm.pConstBuffer.GetAddressOf()
+			&cb.constantBufferDesc, &cb.csd, cb.pConstBuffer.GetAddressOf()
 		));
 
-		deviceAndContext.context->VSSetConstantBuffers(0u, 1u, cbm.pConstBuffer.GetAddressOf());
+		deviceAndContext.context->VSSetConstantBuffers(0u, 1u, cb.pConstBuffer.GetAddressOf());
 
-		deviceAndContext.context->PSSetConstantBuffers(0u, 1u, cbm.pConstBuffer.GetAddressOf());
+		deviceAndContext.context->PSSetConstantBuffers(0u, 1u, cb.pConstBuffer.GetAddressOf());
 
 		// Draw each objects
 		for (int i = 0; i < objPropQ.size(); i++) {
 
 			ObjectProperty currObjProp = objPropQ[i];
 
-			cbm.constBufferModelResc.matrix = XMMatrixMultiply(
+			cb.constBufferModelResc.matrix = XMMatrixMultiply(
 				XMMatrixScaling(currObjProp.scale.x, currObjProp.scale.y, currObjProp.scale.z),
 				XMMatrixMultiply(
 					XMMatrixRotationRollPitchYaw(XMConvertToRadians(currObjProp.rotation.x), XMConvertToRadians(currObjProp.rotation.y), XMConvertToRadians(currObjProp.rotation.z)),
@@ -431,14 +431,14 @@ int main()
 				)
 			);
 
-			cbm.csd.pSysMem = &cbm.constBufferModelResc;
+			cb.csd.pSysMem = &cb.constBufferModelResc;
 
 			CHECK_DX_ERROR(deviceAndContext.device->CreateBuffer(
-				&cbm.constantBufferDesc, &cbm.csd, cbm.pConstBuffer.GetAddressOf()
+				&cb.constantBufferDesc, &cb.csd, cb.pConstBuffer.GetAddressOf()
 			));
 
-			deviceAndContext.context->VSSetConstantBuffers(1u, 1u, cbm.pConstBuffer.GetAddressOf());
-			deviceAndContext.context->PSSetConstantBuffers(1u, 1u, cbm.pConstBuffer.GetAddressOf());
+			deviceAndContext.context->VSSetConstantBuffers(1u, 1u, cb.pConstBuffer.GetAddressOf());
+			deviceAndContext.context->PSSetConstantBuffers(1u, 1u, cb.pConstBuffer.GetAddressOf());
 
 			deviceAndContext.context->DrawIndexed(cube.indices.size(), 0, 0);
 		}
