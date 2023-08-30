@@ -37,6 +37,12 @@ D3D11_INPUT_ELEMENT_DESC layout[] = {
 	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0}
 };
 
+struct ObjectProperty {
+	XMFLOAT3 translation;
+	XMFLOAT3 scale;
+	XMFLOAT3 rotation;
+};
+
 const UINT numOfInputElement = ARRAYSIZE(layout);
 
 int main()
