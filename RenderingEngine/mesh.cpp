@@ -1,4 +1,8 @@
+#include <vector>
+
 #include "mesh.h"
+#include "dxdebug.h"
+
 
 namespace tre {
 
@@ -212,7 +216,7 @@ void Mesh::createVertexAndIndexBuffer(ID3D11Device* device, vector<Vertex> verti
 	vertexData.pSysMem = vertices.data();
 
 	CHECK_DX_ERROR(device->CreateBuffer(
-		&vertexBufferDesc, &vertexData, &pVertexBuffer
+		&vertexBufferDesc, &vertexData, pVertexBuffer.GetAddressOf()
 	));
 
 	//Create index buffer
@@ -228,7 +232,7 @@ void Mesh::createVertexAndIndexBuffer(ID3D11Device* device, vector<Vertex> verti
 	indexData.pSysMem = indices.data();
 
 	CHECK_DX_ERROR(device->CreateBuffer(
-		&indexBufferDesc, &indexData, &pIndexBuffer
+		&indexBufferDesc, &indexData, pIndexBuffer.GetAddressOf()
 	));
 
 	//Store index size
