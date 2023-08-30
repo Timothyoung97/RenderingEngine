@@ -19,7 +19,7 @@
 #include "device.h"
 #include "factory.h"
 #include "swapchain.h"
-#include "object3d.h"
+#include "mesh.h"
 #include "utility.h"
 #include "camera.h"
 #include "constbuffer.h"
@@ -94,7 +94,7 @@ int main()
 	deviceAndContext.context->PSSetShader(pixel_shader_ptr, NULL, 0u);
 
 	// 3D object
-	tre::Object3d cube = tre::Sphere3d(.5f, 10, 10);
+	tre::CubeMesh cube = tre::CubeMesh(3.0f);
 
 	//Create index buffer
 	ID3D11Buffer* pIndexBuffer;

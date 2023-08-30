@@ -1,16 +1,16 @@
-#include "object3d.h"
+#include "mesh.h"
 
 namespace tre {
 
-Cube3d::Cube3d(float unitLength) {
+CubeMesh::CubeMesh(float unitLength) {
 	create(XMFLOAT3(.0f, .0f, .0f), unitLength);
 }
 
-Cube3d::Cube3d(XMFLOAT3 origin, float unitLength) {
+CubeMesh::CubeMesh(XMFLOAT3 origin, float unitLength) {
 	create(origin, unitLength);
 }
 
-void Cube3d::create(XMFLOAT3 origin, float unitLength) {
+void CubeMesh::create(XMFLOAT3 origin, float unitLength) {
 	
 	float x, y, z;
 	x = origin.x;
@@ -77,15 +77,15 @@ void Cube3d::create(XMFLOAT3 origin, float unitLength) {
 	indices.assign(begin(index), end(index));
 }
 
-Sphere3d::Sphere3d(float r, int sectorC, int stackC) {
+SphereMesh::SphereMesh(float r, int sectorC, int stackC) {
 	create(XMFLOAT3(.0f, .0f, .0f), r, sectorC, stackC);
 }
 
-Sphere3d::Sphere3d(XMFLOAT3 origin, float r, int sectorC, int stackC) {
+SphereMesh::SphereMesh(XMFLOAT3 origin, float r, int sectorC, int stackC) {
 	create(origin, r, sectorC, stackC);
 }
 
-void Sphere3d::create(XMFLOAT3 origin, float r, int sectorC, int stackC) {
+void SphereMesh::create(XMFLOAT3 origin, float r, int sectorC, int stackC) {
 
 	//Sphere Properties
 	float radius = r;
@@ -194,7 +194,7 @@ void Sphere3d::create(XMFLOAT3 origin, float r, int sectorC, int stackC) {
 	}
 }
 
-XMFLOAT3 Sphere3d::findCoordinate(XMFLOAT3 unitVector, float radius) {
+XMFLOAT3 SphereMesh::findCoordinate(XMFLOAT3 unitVector, float radius) {
 	return XMFLOAT3(unitVector.x * radius, unitVector.y * radius, unitVector.z * radius);
 }
 
