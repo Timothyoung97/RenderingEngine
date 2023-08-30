@@ -10,22 +10,28 @@ using namespace std;
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;
 
-struct constBufferShaderResc {
+struct constBufferShaderRescCam {
 	XMMATRIX matrix;
+};
+
+struct constBufferShaderRescModel {
+	XMMATRIX matrix;
+	XMFLOAT4 color;
+	UINT isWithTexture;
 };
 
 namespace tre {
 
 class ConstantBuffer {
 public:
-	D3D11_BUFFER_DESC constantBufferDesc;
+	D3D11_BUFFER_DESC constantBufferDescCam;
+	D3D11_BUFFER_DESC constantBufferDescModel;
+
 	D3D11_SUBRESOURCE_DATA csd = {};
 	ComPtr<ID3D11Buffer> pConstBuffer;
 
-	constBufferShaderResc constBufferCamResc;
-	constBufferShaderResc constBufferModelResc;
-
-	vector<constBufferShaderResc> constBufferShaderRescList;
+	constBufferShaderRescCam constBufferRescCam;
+	constBufferShaderRescModel constBufferRescModel;
 
 	ConstantBuffer();
 };
