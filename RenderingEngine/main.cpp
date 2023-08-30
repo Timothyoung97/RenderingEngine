@@ -335,7 +335,7 @@ int main()
 		// Draw each objects
 		for (int i = 0; i < objQ.size(); i++) {
 
-			tre::Object currObj = objQ[i];
+			const tre::Object &currObj = objQ[i];
 
 			//Set vertex buffer
 			UINT vertexStride = sizeof(Vertex);
