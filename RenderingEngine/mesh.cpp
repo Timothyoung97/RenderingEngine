@@ -2,58 +2,51 @@
 
 namespace tre {
 
-CubeMesh::CubeMesh(float unitLength) {
-	create(XMFLOAT3(.0f, .0f, .0f), unitLength);
+CubeMesh::CubeMesh() {
+	create();
 }
 
-CubeMesh::CubeMesh(XMFLOAT3 origin, float unitLength) {
-	create(origin, unitLength);
-}
+void CubeMesh::create() {
 
-void CubeMesh::create(XMFLOAT3 origin, float unitLength) {
-	
-	float x, y, z;
-	x = origin.x;
-	y = origin.y;
-	z = origin.z;
+	float unitLength = .5f;
 
 	//Cube Vertices
 	Vertex vertex[] = {
 		// Back
-		XMFLOAT3(x + unitLength, y - unitLength, z + unitLength), XMFLOAT2(0, 1), // 0
-		XMFLOAT3(x - unitLength, y - unitLength, z + unitLength), XMFLOAT2(1, 1),
-		XMFLOAT3(x + unitLength, y + unitLength, z + unitLength), XMFLOAT2(0, 0),
-		XMFLOAT3(x - unitLength, y + unitLength, z + unitLength), XMFLOAT2(1, 0),
+		XMFLOAT3(unitLength, -unitLength, unitLength), XMFLOAT2(0, 1), // 0
+		XMFLOAT3(-unitLength, -unitLength, unitLength), XMFLOAT2(1, 1),
+		XMFLOAT3(unitLength, unitLength, unitLength), XMFLOAT2(0, 0),
+		XMFLOAT3(-unitLength, unitLength, unitLength), XMFLOAT2(1, 0),
 
 		// Right
-		XMFLOAT3(x + unitLength, y - unitLength, z - unitLength), XMFLOAT2(0, 1), // 4
-		XMFLOAT3(x + unitLength, y - unitLength, z + unitLength), XMFLOAT2(1, 1),
-		XMFLOAT3(x + unitLength, y + unitLength, z - unitLength), XMFLOAT2(0, 0),
-		XMFLOAT3(x + unitLength, y + unitLength, z + unitLength), XMFLOAT2(1, 0),
+		XMFLOAT3(unitLength, -unitLength, -unitLength), XMFLOAT2(0, 1), // 4
+		XMFLOAT3(unitLength, -unitLength, unitLength), XMFLOAT2(1, 1),
+		XMFLOAT3(unitLength, unitLength, -unitLength), XMFLOAT2(0, 0),
+		XMFLOAT3(unitLength, unitLength, unitLength), XMFLOAT2(1, 0),
 
 		// top
-		XMFLOAT3(x - unitLength, y + unitLength, z - unitLength), XMFLOAT2(0, 1), // 8
-		XMFLOAT3(x + unitLength, y + unitLength, z - unitLength), XMFLOAT2(1, 1),
-		XMFLOAT3(x - unitLength, y + unitLength, z + unitLength), XMFLOAT2(0, 0),
-		XMFLOAT3(x + unitLength, y + unitLength, z + unitLength), XMFLOAT2(1, 0),
+		XMFLOAT3(-unitLength, unitLength, -unitLength), XMFLOAT2(0, 1), // 8
+		XMFLOAT3(unitLength, unitLength, -unitLength), XMFLOAT2(1, 1),
+		XMFLOAT3(-unitLength, unitLength, unitLength), XMFLOAT2(0, 0),
+		XMFLOAT3(unitLength, unitLength, unitLength), XMFLOAT2(1, 0),
 
 		// Front
-		XMFLOAT3(x - unitLength, y - unitLength, z - unitLength), XMFLOAT2(0, 1), // 12
-		XMFLOAT3(x + unitLength, y - unitLength, z - unitLength), XMFLOAT2(1, 1),
-		XMFLOAT3(x - unitLength, y + unitLength, z - unitLength), XMFLOAT2(0, 0),
-		XMFLOAT3(x + unitLength, y + unitLength, z - unitLength), XMFLOAT2(1, 0),
+		XMFLOAT3(-unitLength, -unitLength, -unitLength), XMFLOAT2(0, 1), // 12
+		XMFLOAT3(unitLength, -unitLength, -unitLength), XMFLOAT2(1, 1),
+		XMFLOAT3(-unitLength, unitLength, -unitLength), XMFLOAT2(0, 0),
+		XMFLOAT3(unitLength, unitLength, -unitLength), XMFLOAT2(1, 0),
 
 		// Left
-		XMFLOAT3(x - unitLength, y - unitLength, z + unitLength), XMFLOAT2(0, 1), // 16
-		XMFLOAT3(x - unitLength, y - unitLength, z - unitLength), XMFLOAT2(1, 1),
-		XMFLOAT3(x - unitLength, y + unitLength, z + unitLength), XMFLOAT2(0, 0),
-		XMFLOAT3(x - unitLength, y + unitLength, z - unitLength), XMFLOAT2(1, 0),
+		XMFLOAT3(-unitLength, -unitLength, unitLength), XMFLOAT2(0, 1), // 16
+		XMFLOAT3(-unitLength, -unitLength, -unitLength), XMFLOAT2(1, 1),
+		XMFLOAT3(-unitLength, unitLength, unitLength), XMFLOAT2(0, 0),
+		XMFLOAT3(-unitLength, unitLength, -unitLength), XMFLOAT2(1, 0),
 
 		// bottom
-		XMFLOAT3(x - unitLength, y - unitLength, z + unitLength), XMFLOAT2(0, 1), // 20
-		XMFLOAT3(x + unitLength, y - unitLength, z + unitLength), XMFLOAT2(1, 1),
-		XMFLOAT3(x - unitLength, y - unitLength, z - unitLength), XMFLOAT2(0, 0),
-		XMFLOAT3(x + unitLength, y - unitLength, z - unitLength), XMFLOAT2(1, 0) // 23
+		XMFLOAT3(-unitLength, -unitLength, unitLength), XMFLOAT2(0, 1), // 20
+		XMFLOAT3(unitLength, -unitLength, unitLength), XMFLOAT2(1, 1),
+		XMFLOAT3(-unitLength, -unitLength, -unitLength), XMFLOAT2(0, 0),
+		XMFLOAT3(unitLength, -unitLength, -unitLength), XMFLOAT2(1, 0) // 23
 	};
 
 	vertices.assign(begin(vertex), end(vertex));
@@ -77,18 +70,14 @@ void CubeMesh::create(XMFLOAT3 origin, float unitLength) {
 	indices.assign(begin(index), end(index));
 }
 
-SphereMesh::SphereMesh(float r, int sectorC, int stackC) {
-	create(XMFLOAT3(.0f, .0f, .0f), r, sectorC, stackC);
+SphereMesh::SphereMesh(int sectorC, int stackC) {
+	create(sectorC, stackC);
 }
 
-SphereMesh::SphereMesh(XMFLOAT3 origin, float r, int sectorC, int stackC) {
-	create(origin, r, sectorC, stackC);
-}
-
-void SphereMesh::create(XMFLOAT3 origin, float r, int sectorC, int stackC) {
+void SphereMesh::create(int sectorC, int stackC) {
 
 	//Sphere Properties
-	float radius = r;
+	float radius = .5f;
 	int sectorCount = sectorC;
 	int stackCount = stackC;
 	float sectorStep = 2 * 180 / sectorCount;
@@ -97,7 +86,7 @@ void SphereMesh::create(XMFLOAT3 origin, float r, int sectorC, int stackC) {
 	float stackAngle = 90;
 	float sectorAngle = 0;
 
-	XMFLOAT3 sphereNormal(origin.x, origin.y, origin.z);
+	XMFLOAT3 sphereNormal;
 
 	sphereNormal.x = XMScalarCos(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
 	sphereNormal.y = XMScalarSin(XMConvertToRadians(stackAngle));

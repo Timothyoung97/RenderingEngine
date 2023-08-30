@@ -94,7 +94,7 @@ int main()
 	deviceAndContext.context->PSSetShader(pixel_shader_ptr, NULL, 0u);
 
 	// 3D object
-	tre::CubeMesh cube = tre::CubeMesh(3.0f);
+	tre::CubeMesh cube = tre::CubeMesh();
 
 	//Create index buffer
 	ID3D11Buffer* pIndexBuffer;

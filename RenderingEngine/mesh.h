@@ -23,18 +23,16 @@ public:
 class CubeMesh : public Mesh {
 public:
 
-	CubeMesh(float unitLength);
-	CubeMesh(XMFLOAT3 origin, float unitLength);
-	void create(XMFLOAT3 origin, float unitLength);
+	CubeMesh();
+	void create();
 };
 
 class SphereMesh : public Mesh {
 public:
 
-	SphereMesh(float r, int sectorC, int stackC);
-	SphereMesh(XMFLOAT3 origin, float r, int sectorC, int stackC);
+	SphereMesh(int sectorC, int stackC);
 	
-	void create(XMFLOAT3 origin, float r, int sectorC, int stackC);
+	void create(int sectorC, int stackC);
 	XMFLOAT3 findCoordinate(XMFLOAT3 unitVector, float radius);
 };
 }
