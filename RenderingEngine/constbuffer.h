@@ -6,8 +6,6 @@
 
 #include <vector>
 
-#include "utility.h"
-
 using namespace std;
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;
