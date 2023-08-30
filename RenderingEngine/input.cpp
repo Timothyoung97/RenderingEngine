@@ -28,17 +28,17 @@ void Input::updateInputEvent() {
 		if (e.button.state == SDL_PRESSED) {
 			mouseButtonState[MOUSE_BUTTON_IDX(e.button.button)] = 1;
 			// mouse pressed position
-			lastPos.x = e.button.x;
-			lastPos.y = e.button.y;
+			lastPos.x = (float) e.button.x;
+			lastPos.y = (float) e .button.y;
 		}
 		break;
 	case SDL_MOUSEMOTION:
 		if (mouseButtonState[MOUSE_BUTTON_IDX(SDL_BUTTON_RIGHT)]) {
 			// update mouse delta motion
-			deltaDisplacement.x = e.motion.x - lastPos.x;
-			deltaDisplacement.y = e.motion.y - lastPos.y;
-			lastPos.x = e.motion.x;
-			lastPos.y = e.motion.y;
+			deltaDisplacement.x = (float) e.motion.x - lastPos.x;
+			deltaDisplacement.y = (float) e.motion.y - lastPos.y;
+			lastPos.x = (float) e.motion.x;
+			lastPos.y = (float) e.motion.y;
 		}
 		break;
 	case SDL_MOUSEBUTTONUP:

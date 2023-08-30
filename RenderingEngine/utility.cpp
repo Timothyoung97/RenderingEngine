@@ -4,7 +4,7 @@ namespace tre {
 
 Utility::Utility() {
 
-	srand(time(NULL));
+	srand((uint32_t) time(NULL));
 
 	string filepath = __FILE__;
 	size_t lastSlash = filepath.find_last_of("\\/");

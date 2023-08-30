@@ -10,6 +10,6 @@ class Timer {
 
 public:
 	Timer();
-	double getDeltaTime();
+	float getDeltaTime();
 };
 }

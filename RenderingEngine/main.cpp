@@ -275,7 +275,7 @@ int main()
 	int currTriColor = 0;
 
 	//Delta Time between frame
-	double deltaTime = 0;
+	float deltaTime = 0;
 
 	//Create Camera
 	tre::Camera cam(SCREEN_WIDTH, SCREEN_HEIGHT);

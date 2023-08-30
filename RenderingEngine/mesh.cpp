@@ -105,7 +105,7 @@ void CubeMesh::create(ID3D11Device* device) {
 	));
 
 	//Store index size
-	indexSize = indices.size();
+	indexSize = (int) indices.size();
 }
 
 SphereMesh::SphereMesh(ID3D11Device* device, int sectorC, int stackC) {
@@ -121,8 +121,8 @@ void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC) {
 	float radius = .5f;
 	int sectorCount = sectorC;
 	int stackCount = stackC;
-	float sectorStep = 2 * 180 / sectorCount;
-	float stackStep = 180 / stackCount;
+	float sectorStep = 2 * 180.0f / sectorCount;
+	float stackStep = 180.0f / stackCount;
 
 	float stackAngle = 90;
 	float sectorAngle = 0;
@@ -213,7 +213,7 @@ void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC) {
 	}
 
 	// Build south pole indices
-	int southPoleIdx = vertices.size() - sectorCount;
+	int southPoleIdx = (int) vertices.size() - sectorCount;
 
 	for (int i = 0; i < sectorCount; i++) {
 		int upperIdx = southPoleIdx - sectorCount - 1;
@@ -256,7 +256,7 @@ void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC) {
 	));
 
 	//Store index size
-	indexSize = indices.size();
+	indexSize = (int) indices.size();
 }
 
 XMFLOAT3 SphereMesh::findCoordinate(XMFLOAT3 unitVector, float radius) {
