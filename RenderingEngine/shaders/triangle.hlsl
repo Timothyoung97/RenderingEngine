@@ -1,6 +1,9 @@
 cbuffer constBuffer : register(b0) {
-    matrix transformation; 
     matrix viewProjection;
+}
+
+cbuffer constBuffer2 : register(b1) {
+    matrix transformation; 
 }
 
 Texture2D ObjTexture;
