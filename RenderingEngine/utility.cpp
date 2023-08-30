@@ -8,18 +8,18 @@ Utility::Utility() {
 
 	srand((uint32_t) time(NULL));
 
-	string filepath = __FILE__;
+	std::string filepath = __FILE__;
 	size_t lastSlash = filepath.find_last_of("\\/");
 	basePathStr = filepath.substr(0, lastSlash + 1);
-	basePathWstr = wstring_convert<codecvt_utf8<wchar_t>>().from_bytes(filepath.substr(0, lastSlash + 1));
+	basePathWstr = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(filepath.substr(0, lastSlash + 1));
 }
 
-wstring Utility::convertToWstr(string str) {
-	return wstring_convert<codecvt_utf8<wchar_t>>().from_bytes(str);
+std::wstring Utility::convertToWstr(std::string str) {
+	return std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(str);
 }
 
-string Utility::convertToStr(wstring wstr) {
-	return wstring_convert<std::codecvt_utf8<wchar_t>>().to_bytes(wstr);
+std::string Utility::convertToStr(std::wstring wstr) {
+	return std::wstring_convert<std::codecvt_utf8<wchar_t>>().to_bytes(wstr);
 }
 
 int Utility::getRandomInt(int maxValue) {

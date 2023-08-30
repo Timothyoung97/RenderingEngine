@@ -9,11 +9,11 @@
 
 namespace tre {
 
-Texture::Texture(ID3D11Device* device, string filepath) {
+Texture::Texture(ID3D11Device* device, std::string filepath) {
 	createTexture(device, filepath);
 }
 
-void Texture::createTexture(ID3D11Device* device, string filepath) {
+void Texture::createTexture(ID3D11Device* device, std::string filepath) {
 
 	// load image
 	int imgWidth, imgHeight, imgChannels, desiredChannels = 4;

@@ -81,8 +81,8 @@ int main()
 	ID3DBlob* pVSBlob = nullptr;
 	ID3DBlob* pPSBlob = nullptr;
 
-	wstring vsFpath = util.basePathWstr + L"shaders\\vertex_shader.bin";
-	wstring psFpath = util.basePathWstr + L"shaders\\pixel_shader.bin";
+	std::wstring vsFpath = util.basePathWstr + L"shaders\\vertex_shader.bin";
+	std::wstring psFpath = util.basePathWstr + L"shaders\\pixel_shader.bin";
 
 	CHECK_DX_ERROR( D3DReadFileToBlob(
 		vsFpath.c_str(), &pVSBlob
@@ -228,7 +228,7 @@ int main()
 	//Create const buffer manager
 	tre::ConstantBuffer cb;
 
-	vector<tre::Object> objQ;
+	std::vector<tre::Object> objQ;
 
 	// main loop
 	while (!input.shouldQuit())

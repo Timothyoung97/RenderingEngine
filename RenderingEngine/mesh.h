@@ -6,7 +6,6 @@
 
 #include <vector>
 
-using namespace std;
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;
 
@@ -23,7 +22,7 @@ public:
 	ComPtr<ID3D11Buffer> pIndexBuffer;
 	ComPtr<ID3D11Buffer> pVertexBuffer;
 	int indexSize;
-	void createVertexAndIndexBuffer(ID3D11Device* device, const vector<Vertex> &vertices, const vector<uint16_t> &indices);
+	void createVertexAndIndexBuffer(ID3D11Device* device, const std::vector<Vertex> &vertices, const std::vector<uint16_t> &indices);
 
 };
 

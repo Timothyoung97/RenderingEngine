@@ -5,19 +5,17 @@
 #include <codecvt>
 #include <locale>
 
-using namespace std;
-
 namespace tre {
 class Utility {
 
 public:
-	string basePathStr;
-	wstring basePathWstr;
+	std::string basePathStr;
+	std::wstring basePathWstr;
 
 	Utility();
 
-	wstring convertToWstr(string str);
-	string convertToStr(wstring wstr);
+	std::wstring convertToWstr(std::string str);
+	std::string convertToStr(std::wstring wstr);
 	static int getRandomInt(int maxValue); // inclusive of max
 	static int getRandomIntRange(int minValue, int maxValue); // inclusive min and max
 	static float getRandomFloat(float maxValue);

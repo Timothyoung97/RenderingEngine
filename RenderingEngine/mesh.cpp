@@ -12,8 +12,8 @@ CubeMesh::CubeMesh(ID3D11Device* device) {
 
 void CubeMesh::create(ID3D11Device* device) {
 
-	vector<Vertex> vertices;
-	vector<uint16_t> indices;
+	std::vector<Vertex> vertices;
+	std::vector<uint16_t> indices;
 
 	float unitLength = .5f;
 
@@ -56,7 +56,7 @@ void CubeMesh::create(ID3D11Device* device) {
 		XMFLOAT3(unitLength, -unitLength, -unitLength), XMFLOAT2(1, 0) // 23
 	};
 
-	vertices.assign(begin(vertex), end(vertex));
+	vertices.assign(std::begin(vertex), std::end(vertex));
 
 	//Cube Indices
 	uint16_t index[] = {
@@ -74,7 +74,7 @@ void CubeMesh::create(ID3D11Device* device) {
 		22, 21, 23
 	};
 
-	indices.assign(begin(index), end(index));
+	indices.assign(std::begin(index), std::end(index));
 
 	createVertexAndIndexBuffer(device, vertices, indices);
 }
@@ -85,8 +85,8 @@ SphereMesh::SphereMesh(ID3D11Device* device, int sectorC, int stackC) {
 
 void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC) {
 
-	vector<Vertex> vertices;
-	vector<uint16_t> indices;
+	std::vector<Vertex> vertices;
+	std::vector<uint16_t> indices;
 
 	//Sphere Properties
 	float radius = .5f;
@@ -201,7 +201,7 @@ XMFLOAT3 SphereMesh::findCoordinate(XMFLOAT3 unitVector, float radius) {
 	return XMFLOAT3(unitVector.x * radius, unitVector.y * radius, unitVector.z * radius);
 }
 
-void Mesh::createVertexAndIndexBuffer(ID3D11Device* device, const vector<Vertex>& vertices, const vector<uint16_t>& indices) {
+void Mesh::createVertexAndIndexBuffer(ID3D11Device* device, const std::vector<Vertex>& vertices, const std::vector<uint16_t>& indices) {
 
 	//Create vertex buffer
 	D3D11_BUFFER_DESC vertexBufferDesc;
