@@ -23,7 +23,7 @@ public:
 	ComPtr<ID3D11Buffer> pIndexBuffer;
 	ComPtr<ID3D11Buffer> pVertexBuffer;
 	int indexSize;
-	void createVertexAndIndexBuffer(ID3D11Device* device, vector<Vertex> vertices, vector<uint16_t> indices);
+	void createVertexAndIndexBuffer(ID3D11Device* device, const vector<Vertex> &vertices, const vector<uint16_t> &indices);
 
 };
 

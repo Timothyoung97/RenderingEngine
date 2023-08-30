@@ -201,7 +201,7 @@ XMFLOAT3 SphereMesh::findCoordinate(XMFLOAT3 unitVector, float radius) {
 	return XMFLOAT3(unitVector.x * radius, unitVector.y * radius, unitVector.z * radius);
 }
 
-void Mesh::createVertexAndIndexBuffer(ID3D11Device* device, vector<Vertex> vertices, vector<uint16_t> indices) {
+void Mesh::createVertexAndIndexBuffer(ID3D11Device* device, const vector<Vertex>& vertices, const vector<uint16_t>& indices) {
 
 	//Create vertex buffer
 	D3D11_BUFFER_DESC vertexBufferDesc;
