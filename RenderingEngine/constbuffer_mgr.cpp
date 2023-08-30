@@ -2,13 +2,15 @@
 
 namespace tre {
 
-ConstantBufferManager::ConstantBufferManager() {
+ConstantBufferManager::ConstantBufferManager(XMMATRIX camView, XMMATRIX camProjection) {
 	constantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	constantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	constantBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	constantBufferDesc.MiscFlags = 0u;
 	constantBufferDesc.ByteWidth = sizeof(constBufferShaderResc);
 	constantBufferDesc.StructureByteStride = 0u;
+
+	constBufferCamResc.matrix = XMMatrixMultiply(camView, camProjection);
 }
 
 void ConstantBufferManager::addNewConstBufferResc(
@@ -27,8 +29,7 @@ void ConstantBufferManager::addNewConstBufferResc(
 	);
 
 	constBufferShaderResc cbsr;
-	cbsr.transformation = tf_matrix;
-	cbsr.viewProjection = XMMatrixMultiply(camView, camProjection);
+	cbsr.matrix = tf_matrix;
 
 	constBufferShaderRescList.push_back(cbsr);
 }
@@ -47,11 +48,4 @@ void ConstantBufferManager::addRandomConstBufferResc(XMMATRIX camView, XMMATRIX 
 		camView, camProjection
 	);
 }
-
-void ConstantBufferManager::updateCamMatrix(int idx, XMMATRIX camView, XMMATRIX camProjection) {
-	assert(constBufferShaderRescList.size() > 0);
-	assert(0 <= idx && idx <= constBufferShaderRescList.size() - 1);
-	constBufferShaderRescList[idx].viewProjection = XMMatrixMultiply(camView, camProjection);
-}
-
 }

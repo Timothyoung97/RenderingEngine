@@ -13,8 +13,7 @@ using namespace DirectX;
 using Microsoft::WRL::ComPtr;
 
 struct constBufferShaderResc {
-	XMMATRIX transformation;
-	XMMATRIX viewProjection;
+	XMMATRIX matrix;
 };
 
 namespace tre {
@@ -25,9 +24,11 @@ public:
 	D3D11_SUBRESOURCE_DATA csd = {};
 	ComPtr<ID3D11Buffer> pConstBuffer;
 
+	constBufferShaderResc constBufferCamResc;
+
 	vector<constBufferShaderResc> constBufferShaderRescList;
 	
-	ConstantBufferManager();
+	ConstantBufferManager(XMMATRIX camView, XMMATRIX camProjection);
 
 	void addNewConstBufferResc(
 		float offsetX, float offsetY, float offsetZ, 
@@ -36,7 +37,5 @@ public:
 		XMMATRIX camView, XMMATRIX camProjection);
 
 	void addRandomConstBufferResc(XMMATRIX camView, XMMATRIX camProjection);
-	void updateCamMatrix(int idx, XMMATRIX camView, XMMATRIX camProjection);
-
 };
 }

@@ -315,7 +315,7 @@ int main()
 	tre::Camera cam(SCREEN_WIDTH, SCREEN_HEIGHT);
 	
 	//Create const buffer manager
-	tre::ConstantBufferManager cbm;
+	tre::ConstantBufferManager cbm(cam.camView, cam.camProjection);
 
 	// main loop
 	while (!input.shouldQuit())
@@ -390,9 +390,21 @@ int main()
 		deviceAndContext.context->ClearDepthStencilView(depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 
-		for (int i = 0; i < cbm.constBufferShaderRescList.size(); i++) {
+		// Set camera view const buffer
+		cbm.constBufferCamResc.matrix = XMMatrixMultiply(cam.camView, cam.camProjection);
 
-			cbm.updateCamMatrix(i, cam.camView, cam.camProjection);
+		cbm.csd.pSysMem = &cbm.constBufferCamResc;
+
+		CHECK_DX_ERROR(deviceAndContext.device->CreateBuffer(
+			&cbm.constantBufferDesc, &cbm.csd, cbm.pConstBuffer.GetAddressOf()
+		));
+
+		deviceAndContext.context->VSSetConstantBuffers(0u, 1u, cbm.pConstBuffer.GetAddressOf());
+
+		deviceAndContext.context->PSSetConstantBuffers(0u, 1u, cbm.pConstBuffer.GetAddressOf());
+
+		// Draw each objects
+		for (int i = 0; i < cbm.constBufferShaderRescList.size(); i++) {
 
 			cbm.csd.pSysMem = &cbm.constBufferShaderRescList[i];
 
@@ -400,8 +412,8 @@ int main()
 				&cbm.constantBufferDesc, &cbm.csd, cbm.pConstBuffer.GetAddressOf()
 			));
 
-			deviceAndContext.context->VSSetConstantBuffers(0u, 1u, cbm.pConstBuffer.GetAddressOf());
-			deviceAndContext.context->PSSetConstantBuffers(0u, 1u, cbm.pConstBuffer.GetAddressOf());
+			deviceAndContext.context->VSSetConstantBuffers(1u, 1u, cbm.pConstBuffer.GetAddressOf());
+			deviceAndContext.context->PSSetConstantBuffers(1u, 1u, cbm.pConstBuffer.GetAddressOf());
 
 			deviceAndContext.context->DrawIndexed(cube.indices.size(), 0, 0);
 		}
