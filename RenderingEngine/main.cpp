@@ -21,6 +21,7 @@
 #include "camera.h"
 #include "constbuffer.h"
 #include "texture.h"
+#include "object.h"
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 800;
@@ -42,6 +43,20 @@ struct ObjectProperty {
 };
 
 const UINT numOfInputElement = ARRAYSIZE(layout);
+
+XMFLOAT4 colors[10] = {
+{0, 0, 0, 0},
+{1, 0, 0, 1},
+{1, 1, 0, 1},
+{1, 1, 1, 1},
+{1, 0, 1, 1},
+{0, 1, 0, 1},
+{0, 0, 1, 1},
+{.5, 0, 0, 1},
+{0, .5, 0, 1},
+{0, 0, .5, 1}
+};
+
 
 int main()
 {
@@ -91,24 +106,17 @@ int main()
 	deviceAndContext.context->VSSetShader(vertex_shader_ptr, NULL, 0u);
 	deviceAndContext.context->PSSetShader(pixel_shader_ptr, NULL, 0u);
 
-	// 3D object
-	tre::CubeMesh cube = tre::CubeMesh(deviceAndContext.device.Get());
-	tre::SphereMesh sphere = tre::SphereMesh(deviceAndContext.device.Get(), 10, 10);
-
-	//Set index buffer
-	deviceAndContext.context->IASetIndexBuffer(cube.pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
-
-	//Set vertex buffer
-	UINT vertexStride = sizeof(Vertex);
-	UINT offset = 0;
-	deviceAndContext.context->IASetVertexBuffers(0, 1, cube.pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
+	// 3D objects
+	tre::Mesh meshes[2] = { 
+		tre::CubeMesh(deviceAndContext.device.Get()), 
+		tre::SphereMesh(deviceAndContext.device.Get(), 10, 10) 
+	};
 
 	// Create texture
-	tre::Texture texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\UV_image.jpg");
-
-	// set shader resc view and sampler
-	deviceAndContext.context->PSSetShaderResources(0, 1, texture.pShaderResView.GetAddressOf());
-	deviceAndContext.context->PSSetSamplers(0, 1, texture.pSamplerState.GetAddressOf());
+	tre::Texture textures[2] = { 
+		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\UV_image.jpg"), 
+		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\UV_image2.jpg") 
+	};
 
 	// Create input layout
 	ComPtr<ID3D11InputLayout> vertLayout;
@@ -220,7 +228,7 @@ int main()
 	//Create const buffer manager
 	tre::ConstantBuffer cb;
 
-	vector<ObjectProperty> objPropQ;
+	vector<tre::Object> objQ;
 
 	// main loop
 	while (!input.shouldQuit())
@@ -254,7 +262,6 @@ int main()
 		} else if (input.keyState[SDL_SCANCODE_3]) {
 			currTriColor = 2;
 		} else if (input.keyState[SDL_SCANCODE_W]) { // control camera movement
-			spdlog::info("moving");
 			cam.moveCamera(cam.directionV * deltaTime);
 		} else if (input.keyState[SDL_SCANCODE_S]) {
 			cam.moveCamera(-cam.directionV * deltaTime);
@@ -270,13 +277,23 @@ int main()
 			cam.turnCamera(input.deltaDisplacement.x, input.deltaDisplacement.y);
 		} else if (input.keyState[SDL_SCANCODE_SPACE]) {
 
-			ObjectProperty objProp{
-				XMFLOAT3(tre::Utility::getRandomFloatRange(-5, 5), tre::Utility::getRandomFloatRange(-5, 5), tre::Utility::getRandomFloatRange(-5, 5)),
-				XMFLOAT3(tre::Utility::getRandomFloat(3), tre::Utility::getRandomFloat(3), tre::Utility::getRandomFloat(3)),
-				XMFLOAT3(tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360))
-			};
+			tre::Object newObj;
+			newObj.pObjMesh = &meshes[tre::Utility::getRandomInt(1)];
+			newObj.objPos = XMFLOAT3(tre::Utility::getRandomFloatRange(-5, 5), tre::Utility::getRandomFloatRange(-5, 5), tre::Utility::getRandomFloatRange(-5, 5));
+			newObj.objScale = XMFLOAT3(tre::Utility::getRandomFloat(3), tre::Utility::getRandomFloat(3), tre::Utility::getRandomFloat(3));
+			newObj.objRotation = XMFLOAT3(tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360));
+
+			if (tre::Utility::getRandomInt(1) == 1) {
+				newObj.pObjTexture = &textures[tre::Utility::getRandomInt(1)];
+				newObj.isObjWithTexture = 1;
+				newObj.objColor = XMFLOAT4();
+			} else {
+				newObj.pObjTexture = &textures[tre::Utility::getRandomInt(1)];
+				newObj.isObjWithTexture = 0;
+				newObj.objColor = colors[tre::Utility::getRandomInt(9)];
+			}
 			
-			objPropQ.push_back(objProp);
+			objQ.push_back(newObj);
 		}
 
 		// Alternating buffers
@@ -303,12 +320,12 @@ int main()
 
 
 		// Set camera view const buffer
-		cb.constBufferCamResc.matrix = XMMatrixMultiply(cam.camView, cam.camProjection);
+		cb.constBufferRescCam.matrix = XMMatrixMultiply(cam.camView, cam.camProjection);
 
-		cb.csd.pSysMem = &cb.constBufferCamResc;
+		cb.csd.pSysMem = &cb.constBufferRescCam;
 
 		CHECK_DX_ERROR(deviceAndContext.device->CreateBuffer(
-			&cb.constantBufferDesc, &cb.csd, cb.pConstBuffer.GetAddressOf()
+			&cb.constantBufferDescCam, &cb.csd, cb.pConstBuffer.GetAddressOf()
 		));
 
 		deviceAndContext.context->VSSetConstantBuffers(0u, 1u, cb.pConstBuffer.GetAddressOf());
@@ -316,28 +333,44 @@ int main()
 		deviceAndContext.context->PSSetConstantBuffers(0u, 1u, cb.pConstBuffer.GetAddressOf());
 
 		// Draw each objects
-		for (int i = 0; i < objPropQ.size(); i++) {
+		for (int i = 0; i < objQ.size(); i++) {
 
-			ObjectProperty currObjProp = objPropQ[i];
+			tre::Object currObj = objQ[i];
 
-			cb.constBufferModelResc.matrix = XMMatrixMultiply(
-				XMMatrixScaling(currObjProp.scale.x, currObjProp.scale.y, currObjProp.scale.z),
+			//Set vertex buffer
+			UINT vertexStride = sizeof(Vertex);
+			UINT offset = 0;
+			deviceAndContext.context->IASetVertexBuffers(0, 1, currObj.pObjMesh->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
+
+			//Set index buffer
+			deviceAndContext.context->IASetIndexBuffer(currObj.pObjMesh->pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
+
+			//set shader resc view and sampler
+			deviceAndContext.context->PSSetShaderResources(0, 1, currObj.pObjTexture->pShaderResView.GetAddressOf());
+			deviceAndContext.context->PSSetSamplers(0, 1, currObj.pObjTexture->pSamplerState.GetAddressOf());
+
+			//Config const buffer
+			cb.constBufferRescModel.matrix = XMMatrixMultiply(
+				XMMatrixScaling(currObj.objScale.x, currObj.objScale.y, currObj.objScale.z),
 				XMMatrixMultiply(
-					XMMatrixRotationRollPitchYaw(XMConvertToRadians(currObjProp.rotation.x), XMConvertToRadians(currObjProp.rotation.y), XMConvertToRadians(currObjProp.rotation.z)),
-					XMMatrixTranslation(currObjProp.translation.x, currObjProp.translation.y, currObjProp.translation.z)
+					XMMatrixRotationRollPitchYaw(XMConvertToRadians(currObj.objRotation.x), XMConvertToRadians(currObj.objRotation.x), XMConvertToRadians(currObj.objRotation.x)),
+					XMMatrixTranslation(currObj.objPos.x, currObj.objPos.y, currObj.objPos.z)
 				)
 			);
+			cb.constBufferRescModel.isWithTexture = currObj.isObjWithTexture;
+			cb.constBufferRescModel.color = currObj.objColor;
 
-			cb.csd.pSysMem = &cb.constBufferModelResc;
+			//map to data to subresouce
+			cb.csd.pSysMem = &cb.constBufferRescModel;
 
 			CHECK_DX_ERROR(deviceAndContext.device->CreateBuffer(
-				&cb.constantBufferDesc, &cb.csd, cb.pConstBuffer.GetAddressOf()
+				&cb.constantBufferDescModel, &cb.csd, cb.pConstBuffer.GetAddressOf()
 			));
 
 			deviceAndContext.context->VSSetConstantBuffers(1u, 1u, cb.pConstBuffer.GetAddressOf());
 			deviceAndContext.context->PSSetConstantBuffers(1u, 1u, cb.pConstBuffer.GetAddressOf());
 
-			deviceAndContext.context->DrawIndexed(cube.indexSize, 0, 0);
+			deviceAndContext.context->DrawIndexed(currObj.pObjMesh->indexSize, 0, 0);
 		}
 
 		CHECK_DX_ERROR(swapchain.mainSwapchain->Present( 0, 0) );
