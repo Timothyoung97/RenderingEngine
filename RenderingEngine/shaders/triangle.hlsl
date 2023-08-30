@@ -3,7 +3,9 @@ cbuffer constBuffer : register(b0) {
 }
 
 cbuffer constBuffer2 : register(b1) {
-    matrix transformation; 
+    matrix transformation;
+    bool isWithTexture;
+    float4 color;
 }
 
 Texture2D ObjTexture;
@@ -30,6 +32,10 @@ void ps_main (
     in float2 vOutTexCoord : TEXCOORD,
     out float4 outTarget: SV_TARGET
 ) 
-{
-    outTarget = ObjTexture.Sample(ObjSamplerState, vOutTexCoord);
+{   
+    if (isWithTexture) {
+        outTarget = ObjTexture.Sample(ObjSamplerState, vOutTexCoord);
+    } else {
+        outTarget = color;
+    }
 }
