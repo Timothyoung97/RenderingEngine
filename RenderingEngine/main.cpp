@@ -103,7 +103,7 @@ int main()
 	UINT offset = 0;
 	deviceAndContext.context->IASetVertexBuffers(0, 1, cube.pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
 
-	//Create texture
+	// Create texture
 	tre::Texture texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\UV_image.jpg");
 
 	// set shader resc view and sampler
