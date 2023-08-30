@@ -10,9 +10,9 @@ using Microsoft::WRL::ComPtr;
 namespace tre {
 
 class Texture {
+
 public:
 	ComPtr<ID3D11ShaderResourceView> pShaderResView;
-	ComPtr<ID3D11SamplerState> pSamplerState;
 
 	Texture(ID3D11Device* device, std::string filepath);
 

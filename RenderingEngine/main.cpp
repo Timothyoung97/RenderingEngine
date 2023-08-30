@@ -22,6 +22,7 @@
 #include "constbuffer.h"
 #include "texture.h"
 #include "object.h"
+#include "sampler.h"
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 800;
@@ -34,12 +35,6 @@ using Microsoft::WRL::ComPtr;
 D3D11_INPUT_ELEMENT_DESC layout[] = {
 	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0 , D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0}
-};
-
-struct ObjectProperty {
-	XMFLOAT3 translation;
-	XMFLOAT3 scale;
-	XMFLOAT3 rotation;
 };
 
 const UINT numOfInputElement = ARRAYSIZE(layout);
@@ -76,6 +71,10 @@ int main()
 	tre::Swapchain swapchain;
 	swapchain.DescSwapchain(SCREEN_WIDTH, SCREEN_HEIGHT);
 	swapchain.InitSwapchainViaHwnd(factory.dxgiFactory2, deviceAndContext.device, window.getWindowHandle());
+
+	//Create Sampler
+	tre::Sampler sampler(deviceAndContext.device.Get());
+	deviceAndContext.context->PSSetSamplers(0, 1, sampler.pSamplerState.GetAddressOf());
 
 	//Load pre-compiled shaders
 	ID3DBlob* pVSBlob = nullptr;
@@ -117,6 +116,7 @@ int main()
 		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\UV_image.jpg"), 
 		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\UV_image2.jpg") 
 	};
+
 
 	// Create input layout
 	ComPtr<ID3D11InputLayout> vertLayout;
@@ -347,7 +347,6 @@ int main()
 
 			//set shader resc view and sampler
 			deviceAndContext.context->PSSetShaderResources(0, 1, currObj.pObjTexture->pShaderResView.GetAddressOf());
-			deviceAndContext.context->PSSetSamplers(0, 1, currObj.pObjTexture->pSamplerState.GetAddressOf());
 
 			//Config const buffer
 			cb.constBufferRescModel.matrix = XMMatrixMultiply(
@@ -379,7 +378,6 @@ int main()
 		}
 
 		deltaTime = timer.getDeltaTime();
-
 	}
 
 	//Cleanup
