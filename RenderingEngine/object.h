@@ -1,17 +1,30 @@
 #pragma once
 
+#include <DirectXMath.h>
+
 #include "mesh.h"
+#include "texture.h"
+
+using namespace DirectX;
 
 namespace tre {
-
+	
 class Object {
 public:
-	Mesh* objectMesh;
-	// make a pointer to texture
+	Mesh* pObjMesh;
+	Texture* pObjTexture;
 
-	XMFLOAT3 position;
-	XMFLOAT3 scale;
-	XMFLOAT3 rotation;
+	XMFLOAT3 objPos;
+	XMFLOAT3 objScale;
+	XMFLOAT3 objRotation;
+
+	bool isObjWithTexture;
+	XMFLOAT4 objColor;
+
+
+	Object(Mesh* pMesh, Texture* pTexture, XMFLOAT3 position, XMFLOAT3 scale, XMFLOAT3 rotation);
+	
+	void createObj(Mesh* pMesh, Texture* pTexture, XMFLOAT3 position, XMFLOAT3 scale, XMFLOAT3 rotation, bool isWithTexture, XMFLOAT4 color);
 
 };
 
