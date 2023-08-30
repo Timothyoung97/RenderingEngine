@@ -1,13 +1,7 @@
 #pragma once
 
 #include <d3d11.h>
-#include <spdlog/spdlog.h>
 #include <wrl/client.h>
-
-
-#include <string>
-
-#include "dxdebug.h"
 
 using namespace std;
 using Microsoft::WRL::ComPtr;

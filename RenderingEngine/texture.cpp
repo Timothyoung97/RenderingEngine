@@ -1,7 +1,11 @@
-#include "texture.h"
-
+#include <spdlog/spdlog.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+
+#include <string>
+
+#include "texture.h"
+#include "dxdebug.h"
 
 namespace tre {
 
