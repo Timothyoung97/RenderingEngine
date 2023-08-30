@@ -4,8 +4,6 @@
 #include <dxgi1_4.h>
 #include "wrl/client.h"
 
-#include "dxdebug.h"
-
 namespace tre {
 class Swapchain {
 	Microsoft::WRL::ComPtr<IDXGISwapChain1> tempSwapchain;

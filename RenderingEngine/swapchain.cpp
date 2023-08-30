@@ -1,4 +1,5 @@
 #include "swapchain.h"
+#include "dxdebug.h"
 
 using Microsoft::WRL::ComPtr;
 
