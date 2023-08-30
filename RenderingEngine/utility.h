@@ -4,7 +4,6 @@
 #include <iostream>
 #include <codecvt>
 #include <locale>
-#include <assert.h>
 
 using namespace std;
 
