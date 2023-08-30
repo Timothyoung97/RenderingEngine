@@ -4,8 +4,8 @@ cbuffer constBuffer : register(b0) {
 
 cbuffer constBuffer2 : register(b1) {
     matrix transformation;
-    bool isWithTexture;
     float4 color;
+    uint isWithTexture;
 }
 
 Texture2D ObjTexture;
