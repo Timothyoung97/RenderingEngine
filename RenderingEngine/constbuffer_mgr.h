@@ -25,17 +25,11 @@ public:
 	ComPtr<ID3D11Buffer> pConstBuffer;
 
 	constBufferShaderResc constBufferCamResc;
+	constBufferShaderResc constBufferModelResc;
 
 	vector<constBufferShaderResc> constBufferShaderRescList;
-	
-	ConstantBufferManager(XMMATRIX camView, XMMATRIX camProjection);
 
-	void addNewConstBufferResc(
-		float offsetX, float offsetY, float offsetZ, 
-		float scaleX, float scaleY, float scaleZ, 
-		float localYaw, float localPitch, float localRoll,
-		XMMATRIX camView, XMMATRIX camProjection);
-
-	void addRandomConstBufferResc(XMMATRIX camView, XMMATRIX camProjection);
+	ConstantBufferManager();
 };
+
 }

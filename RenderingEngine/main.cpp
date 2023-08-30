@@ -321,7 +321,9 @@ int main()
 	tre::Camera cam(SCREEN_WIDTH, SCREEN_HEIGHT);
 	
 	//Create const buffer manager
-	tre::ConstantBufferManager cbm(cam.camView, cam.camProjection);
+	tre::ConstantBufferManager cbm;
+
+	vector<ObjectProperty> objPropQ;
 
 	// main loop
 	while (!input.shouldQuit())
@@ -370,7 +372,14 @@ int main()
 		} else if (input.mouseButtonState[MOUSE_BUTTON_IDX(SDL_BUTTON_RIGHT)]) { // control camera angle
 			cam.turnCamera(input.deltaDisplacement.x, input.deltaDisplacement.y);
 		} else if (input.keyState[SDL_SCANCODE_SPACE]) {
-			cbm.addRandomConstBufferResc(cam.camView, cam.camProjection); // add new const buffer config
+
+			ObjectProperty objProp{
+				XMFLOAT3(tre::Utility::getRandomFloatRange(-5, 5), tre::Utility::getRandomFloatRange(-5, 5), tre::Utility::getRandomFloatRange(-5, 5)),
+				XMFLOAT3(tre::Utility::getRandomFloat(3), tre::Utility::getRandomFloat(3), tre::Utility::getRandomFloat(3)),
+				XMFLOAT3(tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360))
+			};
+			
+			objPropQ.push_back(objProp);
 		}
 
 		// Alternating buffers
@@ -410,9 +419,19 @@ int main()
 		deviceAndContext.context->PSSetConstantBuffers(0u, 1u, cbm.pConstBuffer.GetAddressOf());
 
 		// Draw each objects
-		for (int i = 0; i < cbm.constBufferShaderRescList.size(); i++) {
+		for (int i = 0; i < objPropQ.size(); i++) {
 
-			cbm.csd.pSysMem = &cbm.constBufferShaderRescList[i];
+			ObjectProperty currObjProp = objPropQ[i];
+
+			cbm.constBufferModelResc.matrix = XMMatrixMultiply(
+				XMMatrixScaling(currObjProp.scale.x, currObjProp.scale.y, currObjProp.scale.z),
+				XMMatrixMultiply(
+					XMMatrixRotationRollPitchYaw(XMConvertToRadians(currObjProp.rotation.x), XMConvertToRadians(currObjProp.rotation.y), XMConvertToRadians(currObjProp.rotation.z)),
+					XMMatrixTranslation(currObjProp.translation.x, currObjProp.translation.y, currObjProp.translation.z)
+				)
+			);
+
+			cbm.csd.pSysMem = &cbm.constBufferModelResc;
 
 			CHECK_DX_ERROR(deviceAndContext.device->CreateBuffer(
 				&cbm.constantBufferDesc, &cbm.csd, cbm.pConstBuffer.GetAddressOf()
