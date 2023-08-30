@@ -72,40 +72,7 @@ void CubeMesh::create(ID3D11Device* device) {
 
 	indices.assign(begin(index), end(index));
 
-	//Create vertex buffer
-	D3D11_BUFFER_DESC vertexBufferDesc;
-	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	vertexBufferDesc.CPUAccessFlags = 0;
-	vertexBufferDesc.MiscFlags = 0u;
-	vertexBufferDesc.ByteWidth = static_cast<UINT>(sizeof(Vertex) * vertices.size());
-	vertexBufferDesc.StructureByteStride = 0u;
-
-	D3D11_SUBRESOURCE_DATA vertexData = {};
-	vertexData.pSysMem = vertices.data();
-
-	CHECK_DX_ERROR(device->CreateBuffer(
-		&vertexBufferDesc, &vertexData, &pVertexBuffer
-	));
-
-	//Create index buffer
-	D3D11_BUFFER_DESC indexBufferDesc;
-	indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	indexBufferDesc.CPUAccessFlags = 0;
-	indexBufferDesc.MiscFlags = 0u;
-	indexBufferDesc.ByteWidth = static_cast<UINT>(sizeof(uint16_t) * indices.size());
-	indexBufferDesc.StructureByteStride = 0u;
-
-	D3D11_SUBRESOURCE_DATA indexData = {};
-	indexData.pSysMem = indices.data();
-
-	CHECK_DX_ERROR(device->CreateBuffer(
-		&indexBufferDesc, &indexData, &pIndexBuffer
-	));
-
-	//Store index size
-	indexSize = (int) indices.size();
+	createVertexAndIndexBuffer(device, vertices, indices);
 }
 
 SphereMesh::SphereMesh(ID3D11Device* device, int sectorC, int stackC) {
@@ -223,6 +190,15 @@ void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC) {
 		southPoleIdx++;
 	}
 
+	createVertexAndIndexBuffer(device, vertices, indices);
+}
+
+XMFLOAT3 SphereMesh::findCoordinate(XMFLOAT3 unitVector, float radius) {
+	return XMFLOAT3(unitVector.x * radius, unitVector.y * radius, unitVector.z * radius);
+}
+
+void Mesh::createVertexAndIndexBuffer(ID3D11Device* device, vector<Vertex> vertices, vector<uint16_t> indices) {
+
 	//Create vertex buffer
 	D3D11_BUFFER_DESC vertexBufferDesc;
 	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
@@ -258,9 +234,4 @@ void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC) {
 	//Store index size
 	indexSize = (int) indices.size();
 }
-
-XMFLOAT3 SphereMesh::findCoordinate(XMFLOAT3 unitVector, float radius) {
-	return XMFLOAT3(unitVector.x * radius, unitVector.y * radius, unitVector.z * radius);
-}
-
 }

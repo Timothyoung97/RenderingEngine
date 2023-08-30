@@ -22,6 +22,7 @@ public:
 	ID3D11Buffer* pVertexBuffer;
 	int indexSize;
 
+	void createVertexAndIndexBuffer(ID3D11Device* device, vector<Vertex> vertices, vector<uint16_t> indices);
 };
 
 class CubeMesh : public Mesh {
