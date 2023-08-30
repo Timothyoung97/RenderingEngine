@@ -94,55 +94,15 @@ int main()
 	deviceAndContext.context->PSSetShader(pixel_shader_ptr, NULL, 0u);
 
 	// 3D object
-	tre::CubeMesh cube = tre::CubeMesh();
-
-	//Create index buffer
-	ID3D11Buffer* pIndexBuffer;
-
-	D3D11_BUFFER_DESC indexBufferDesc;
-	indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	indexBufferDesc.CPUAccessFlags = 0;
-	indexBufferDesc.MiscFlags = 0u;
-	indexBufferDesc.ByteWidth = static_cast<UINT>(sizeof(uint16_t) * cube.indices.size());
-	//indexBufferDesc.ByteWidth = sizeof(uint16_t) * numOfSphereIndices;
-	indexBufferDesc.StructureByteStride = 0u;
-
-	D3D11_SUBRESOURCE_DATA indexData = {};
-	indexData.pSysMem = cube.indices.data();
-	//indexData.pSysMem = sphereIndices.data();
-
-	CHECK_DX_ERROR(deviceAndContext.device->CreateBuffer(
-		&indexBufferDesc, &indexData, &pIndexBuffer
-	));
+	tre::CubeMesh cube = tre::CubeMesh(deviceAndContext.device.Get());
 
 	//Set index buffer
-	deviceAndContext.context->IASetIndexBuffer(pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
-
-	//Create vertex buffer
-	ID3D11Buffer* pVertexBuffer;
-
-	D3D11_BUFFER_DESC vertexBufferDesc;
-	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	vertexBufferDesc.CPUAccessFlags = 0;
-	vertexBufferDesc.MiscFlags = 0u;
-	vertexBufferDesc.ByteWidth = static_cast<UINT>(sizeof(Vertex) * cube.vertices.size());
-	//vertexBufferDesc.ByteWidth = sizeof(Vertex) * sphereVertices.size();
-	vertexBufferDesc.StructureByteStride = 0u;
-
-	D3D11_SUBRESOURCE_DATA vertexData = {};
-	vertexData.pSysMem = cube.vertices.data();
-	//vertexData.pSysMem = sphereVertices.data();
-
-	CHECK_DX_ERROR(deviceAndContext.device->CreateBuffer(
-		&vertexBufferDesc, &vertexData, &pVertexBuffer
-	));
+	deviceAndContext.context->IASetIndexBuffer(cube.pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
 	//Set vertex buffer
 	UINT vertexStride = sizeof(Vertex);
 	UINT offset = 0;
-	deviceAndContext.context->IASetVertexBuffers(0, 1, &pVertexBuffer, &vertexStride, &offset);
+	deviceAndContext.context->IASetVertexBuffers(0, 1, &cube.pVertexBuffer, &vertexStride, &offset);
 
 	// load image using stb
 	string texturePath = util.basePathStr + "textures\\UV_image.jpg";
@@ -440,7 +400,7 @@ int main()
 			deviceAndContext.context->VSSetConstantBuffers(1u, 1u, cb.pConstBuffer.GetAddressOf());
 			deviceAndContext.context->PSSetConstantBuffers(1u, 1u, cb.pConstBuffer.GetAddressOf());
 
-			deviceAndContext.context->DrawIndexed(cube.indices.size(), 0, 0);
+			deviceAndContext.context->DrawIndexed(cube.indexSize, 0, 0);
 		}
 
 		CHECK_DX_ERROR(swapchain.mainSwapchain->Present( 0, 0) );

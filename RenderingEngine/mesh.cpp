@@ -2,11 +2,14 @@
 
 namespace tre {
 
-CubeMesh::CubeMesh() {
-	create();
+CubeMesh::CubeMesh(ID3D11Device* device) {
+	create(device);
 }
 
-void CubeMesh::create() {
+void CubeMesh::create(ID3D11Device* device) {
+
+	vector<Vertex> vertices;
+	vector<uint16_t> indices;
 
 	float unitLength = .5f;
 
@@ -68,13 +71,51 @@ void CubeMesh::create() {
 	};
 
 	indices.assign(begin(index), end(index));
+
+	//Create vertex buffer
+	D3D11_BUFFER_DESC vertexBufferDesc;
+	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	vertexBufferDesc.CPUAccessFlags = 0;
+	vertexBufferDesc.MiscFlags = 0u;
+	vertexBufferDesc.ByteWidth = static_cast<UINT>(sizeof(Vertex) * vertices.size());
+	vertexBufferDesc.StructureByteStride = 0u;
+
+	D3D11_SUBRESOURCE_DATA vertexData = {};
+	vertexData.pSysMem = vertices.data();
+
+	CHECK_DX_ERROR(device->CreateBuffer(
+		&vertexBufferDesc, &vertexData, &pVertexBuffer
+	));
+
+	//Create index buffer
+	D3D11_BUFFER_DESC indexBufferDesc;
+	indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	indexBufferDesc.CPUAccessFlags = 0;
+	indexBufferDesc.MiscFlags = 0u;
+	indexBufferDesc.ByteWidth = static_cast<UINT>(sizeof(uint16_t) * indices.size());
+	indexBufferDesc.StructureByteStride = 0u;
+
+	D3D11_SUBRESOURCE_DATA indexData = {};
+	indexData.pSysMem = indices.data();
+
+	CHECK_DX_ERROR(device->CreateBuffer(
+		&indexBufferDesc, &indexData, &pIndexBuffer
+	));
+
+	//Store index size
+	indexSize = indices.size();
 }
 
-SphereMesh::SphereMesh(int sectorC, int stackC) {
-	create(sectorC, stackC);
+SphereMesh::SphereMesh(ID3D11Device* device, int sectorC, int stackC) {
+	create(device, sectorC, stackC);
 }
 
-void SphereMesh::create(int sectorC, int stackC) {
+void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC) {
+
+	vector<Vertex> vertices;
+	vector<uint16_t> indices;
 
 	//Sphere Properties
 	float radius = .5f;
@@ -181,6 +222,41 @@ void SphereMesh::create(int sectorC, int stackC) {
 		indices.push_back(upperIdx + 1);
 		southPoleIdx++;
 	}
+
+	//Create vertex buffer
+	D3D11_BUFFER_DESC vertexBufferDesc;
+	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	vertexBufferDesc.CPUAccessFlags = 0;
+	vertexBufferDesc.MiscFlags = 0u;
+	vertexBufferDesc.ByteWidth = static_cast<UINT>(sizeof(Vertex) * vertices.size());
+	vertexBufferDesc.StructureByteStride = 0u;
+
+	D3D11_SUBRESOURCE_DATA vertexData = {};
+	vertexData.pSysMem = vertices.data();
+
+	CHECK_DX_ERROR(device->CreateBuffer(
+		&vertexBufferDesc, &vertexData, &pVertexBuffer
+	));
+
+	//Create index buffer
+	D3D11_BUFFER_DESC indexBufferDesc;
+	indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	indexBufferDesc.CPUAccessFlags = 0;
+	indexBufferDesc.MiscFlags = 0u;
+	indexBufferDesc.ByteWidth = static_cast<UINT>(sizeof(uint16_t) * indices.size());
+	indexBufferDesc.StructureByteStride = 0u;
+
+	D3D11_SUBRESOURCE_DATA indexData = {};
+	indexData.pSysMem = indices.data();
+
+	CHECK_DX_ERROR(device->CreateBuffer(
+		&indexBufferDesc, &indexData, &pIndexBuffer
+	));
+
+	//Store index size
+	indexSize = indices.size();
 }
 
 XMFLOAT3 SphereMesh::findCoordinate(XMFLOAT3 unitVector, float radius) {
