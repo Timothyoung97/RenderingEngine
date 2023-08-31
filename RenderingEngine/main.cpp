@@ -326,6 +326,9 @@ int main()
 			if (newObj.isObjWithTexture && newObj.pObjTexture->hasAlphaChannel || newObj.objColor.w < 1.0f) {
 
 				// find its distance from cam
+				XMVECTOR objPosV(newObj.objPos.x, newObj.objPos.y, newObj.objPos.z);
+
+				XMVECTOR distFromCam = XMVector3Length(objPosV - cam.camPositionV);
 
 				transparentObjQ.push_back(newObj);
 			} else {
