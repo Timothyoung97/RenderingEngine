@@ -175,7 +175,6 @@ int main()
 
 	//Create rasterizer buffer
 	ComPtr<ID3D11RasterizerState> pRasterizerStateCCW;
-	ComPtr<ID3D11RasterizerState> pRasterizerStateCW;
 
 	D3D11_RASTERIZER_DESC rasterizerDesc;
 	rasterizerDesc.FillMode = D3D11_FILL_SOLID;
@@ -192,14 +191,6 @@ int main()
 	CHECK_DX_ERROR(deviceAndContext.device->CreateRasterizerState(
 		&rasterizerDesc, &pRasterizerStateCCW
 	));
-
-	rasterizerDesc.FrontCounterClockwise = FALSE;
-	CHECK_DX_ERROR(deviceAndContext.device->CreateRasterizerState(
-		&rasterizerDesc, &pRasterizerStateCW
-	));
-	
-	//Set rasterizer state
-	deviceAndContext.context->RSSetState(pRasterizerStateCCW.Get());
 
 	//Set input layout
 	deviceAndContext.context->IASetInputLayout( vertLayout.Get() );
