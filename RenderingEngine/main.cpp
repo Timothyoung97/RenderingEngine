@@ -158,11 +158,11 @@ int main()
 
 	D3D11_RENDER_TARGET_BLEND_DESC rtbd;
 	rtbd.BlendEnable = TRUE;
-	rtbd.SrcBlend = D3D11_BLEND_ONE;
-	rtbd.DestBlend = D3D11_BLEND_ZERO;
+	rtbd.SrcBlend = D3D11_BLEND_SRC_ALPHA;
+	rtbd.DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
 	rtbd.BlendOp = D3D11_BLEND_OP_ADD;
-	rtbd.SrcBlendAlpha = D3D11_BLEND_ONE;
-	rtbd.DestBlendAlpha = D3D11_BLEND_ZERO;
+	rtbd.SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
+	rtbd.DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
 	rtbd.BlendOpAlpha = D3D11_BLEND_OP_ADD;
 	rtbd.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
@@ -320,7 +320,8 @@ int main()
 			}
 			
 			// transparent queue -> object with texture with alpha channel or object with color.w below 1.0f
-			if ((newObj.isObjWithTexture && newObj.pObjTexture->hasAlphaChannel) || (!newObj.isObjWithTexture && newObj.objColor.w < 1.0f)) {
+			if ((newObj.isObjWithTexture && newObj.pObjTexture->hasAlphaChannel) 
+				|| (!newObj.isObjWithTexture && newObj.objColor.w < 1.0f)) {
 
 				// find its distance from cam
 				XMVECTOR objPosV{ newObj.objPos.x, newObj.objPos.y, newObj.objPos.z };
@@ -378,14 +379,58 @@ int main()
 		deviceAndContext.context->VSSetConstantBuffers(0u, 1u, cb.pConstBuffer.GetAddressOf());
 		deviceAndContext.context->PSSetConstantBuffers(0u, 1u, cb.pConstBuffer.GetAddressOf());
 
+		//Set rasterizer state
+		deviceAndContext.context->RSSetState(pRasterizerStateCCW.Get());
+
 		// Set blend state for opaque obj
-		float blendFactor[] = { .75f, .75f, .75f, 1.0f };
 		deviceAndContext.context->OMSetBlendState(0, 0, 0xffffffff);
 
 		// Draw all opaque objects
 		for (int i = 0; i < opaqueObjQ.size(); i++) {
 
 			const tre::Object &currObj = opaqueObjQ[i];
+
+			//Set vertex buffer
+			UINT vertexStride = sizeof(Vertex);
+			UINT offset = 0;
+			deviceAndContext.context->IASetVertexBuffers(0, 1, currObj.pObjMesh->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
+
+			//Set index buffer
+			deviceAndContext.context->IASetIndexBuffer(currObj.pObjMesh->pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
+
+			//set shader resc view and sampler
+			deviceAndContext.context->PSSetShaderResources(0, 1, currObj.pObjTexture->pShaderResView.GetAddressOf());
+
+			//Config const buffer
+			cb.constBufferRescModel.matrix = XMMatrixMultiply(
+				XMMatrixScaling(currObj.objScale.x, currObj.objScale.y, currObj.objScale.z),
+				XMMatrixMultiply(
+					XMMatrixRotationRollPitchYaw(XMConvertToRadians(currObj.objRotation.x), XMConvertToRadians(currObj.objRotation.x), XMConvertToRadians(currObj.objRotation.x)),
+					XMMatrixTranslation(currObj.objPos.x, currObj.objPos.y, currObj.objPos.z)
+				)
+			);
+			cb.constBufferRescModel.isWithTexture = currObj.isObjWithTexture;
+			cb.constBufferRescModel.color = currObj.objColor;
+
+			//map to data to subresouce
+			cb.csd.pSysMem = &cb.constBufferRescModel;
+
+			CHECK_DX_ERROR(deviceAndContext.device->CreateBuffer(
+				&cb.constantBufferDescModel, &cb.csd, cb.pConstBuffer.GetAddressOf()
+			));
+
+			deviceAndContext.context->VSSetConstantBuffers(1u, 1u, cb.pConstBuffer.GetAddressOf());
+			deviceAndContext.context->PSSetConstantBuffers(1u, 1u, cb.pConstBuffer.GetAddressOf());
+
+			deviceAndContext.context->DrawIndexed(currObj.pObjMesh->indexSize, 0, 0);
+		}
+
+		// Set blend state for transparent obj
+		deviceAndContext.context->OMSetBlendState(transparency, NULL, 0xffffffff);
+
+		// Draw all transparent objects
+		for (int i = 0; i < transparentObjQ.size(); i++) {
+			const tre::Object& currObj = transparentObjQ[i];
 
 			//Set vertex buffer
 			UINT vertexStride = sizeof(Vertex);
