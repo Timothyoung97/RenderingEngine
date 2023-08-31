@@ -171,35 +171,13 @@ int main()
 	//Set Viewport
 	deviceAndContext.context->RSSetViewports(1, &viewport);
 
-	// temp tranformation data
-	float offsetX = .0f;
-	float offsetY = .0f;
-	float translateSpeed = .001f;
-
-	float scaleX = 1.0f;
-	float scaleY = 1.0f;
-	float scaleSpeed = .001f;
-
-	float localYaw = .0f; // in degree
-	float localPitch = .0f; // in degree
-	float localRoll = .0f; // in degree
-	float rotateZ = .0f;
-	float rotateSpeed = .1f;
 
 	//Input Handler
 	tre::Input input;
 	
-	//Colors
+	//Background Color
 	float bgColor[4] = { .5f, .5f, .5f, 1.0f };
 	
-	XMFLOAT4 triangleColor[3] = {
-		{1, 0, 0, 1},
-		{0, 1, 0, 1},
-		{0, 0, 1, 1}
-	};
-
-	int currTriColor = 0;
-
 	//Delta Time between frame
 	float deltaTime = 0;
 
@@ -227,29 +205,7 @@ int main()
 		input.updateInputEvent();
 
 		// Control
-		if (input.keyState[SDL_SCANCODE_LEFT]) {
-			offsetX -= translateSpeed * deltaTime;
-		} else if (input.keyState[SDL_SCANCODE_RIGHT]) {
-			offsetX += translateSpeed * deltaTime;
-		} else if (input.keyState[SDL_SCANCODE_UP]) {
-			offsetY += translateSpeed * deltaTime;
-		} else if (input.keyState[SDL_SCANCODE_DOWN]) {
-			offsetY -= translateSpeed * deltaTime;
-		} else if (input.keyState[SDL_SCANCODE_PAGEUP]) {
-			scaleX += scaleSpeed * deltaTime;
-			scaleY += scaleSpeed * deltaTime;
-		} else if (input.keyState[SDL_SCANCODE_PAGEDOWN]) {
-			scaleX -= scaleSpeed * deltaTime;
-			scaleY -= scaleSpeed * deltaTime;
-		} else if (input.keyState[SDL_SCANCODE_Z]) {
-			rotateZ += rotateSpeed * deltaTime;
-		} else if (input.keyState[SDL_SCANCODE_1]) {
-			currTriColor = 0;
-		} else if (input.keyState[SDL_SCANCODE_2]) {
-			currTriColor = 1;
-		} else if (input.keyState[SDL_SCANCODE_3]) {
-			currTriColor = 2;
-		} else if (input.keyState[SDL_SCANCODE_W]) { // control camera movement
+		if (input.keyState[SDL_SCANCODE_W]) { // control camera movement
 			cam.moveCamera(cam.directionV * deltaTime);
 		} else if (input.keyState[SDL_SCANCODE_S]) {
 			cam.moveCamera(-cam.directionV * deltaTime);
