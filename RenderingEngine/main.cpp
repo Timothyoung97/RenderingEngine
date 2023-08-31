@@ -155,7 +155,7 @@ int main()
 
 	D3D11_RENDER_TARGET_BLEND_DESC rtbd;
 	rtbd.BlendEnable = TRUE;
-	rtbd.SrcBlend = D3D11_BLEND_SRC_COLOR;
+	rtbd.SrcBlend = D3D11_BLEND_ONE;
 	rtbd.DestBlend = D3D11_BLEND_BLEND_FACTOR;
 	rtbd.BlendOp = D3D11_BLEND_OP_ADD;
 	rtbd.SrcBlendAlpha = D3D11_BLEND_ONE;
@@ -253,7 +253,8 @@ int main()
 	//Create const buffer manager
 	tre::ConstantBuffer cb;
 
-	std::vector<tre::Object> objQ;
+	std::vector<tre::Object> opaqueObjQ;
+	std::vector<tre::Object> transparentObjQ;
 
 	// main loop
 	while (!input.shouldQuit())
@@ -302,23 +303,31 @@ int main()
 			cam.turnCamera(input.deltaDisplacement.x, input.deltaDisplacement.y);
 		} else if (input.keyState[SDL_SCANCODE_SPACE]) {
 
+			// Create new obj
 			tre::Object newObj;
 			newObj.pObjMesh = &meshes[tre::Utility::getRandomInt(1)];
 			newObj.objPos = XMFLOAT3(tre::Utility::getRandomFloatRange(-5, 5), tre::Utility::getRandomFloatRange(-5, 5), tre::Utility::getRandomFloatRange(-5, 5));
 			newObj.objScale = XMFLOAT3(tre::Utility::getRandomFloat(3), tre::Utility::getRandomFloat(3), tre::Utility::getRandomFloat(3));
 			newObj.objRotation = XMFLOAT3(tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360));
 
+			// With/Without texture
 			if (tre::Utility::getRandomInt(1) == 1) {
-				newObj.pObjTexture = &textures[tre::Utility::getRandomInt(1)];
+				newObj.pObjTexture = &textures[tre::Utility::getRandomInt(2)];
 				newObj.isObjWithTexture = 1;
 				newObj.objColor = XMFLOAT4();
 			} else {
-				newObj.pObjTexture = &textures[tre::Utility::getRandomInt(1)];
+				newObj.pObjTexture = &textures[tre::Utility::getRandomInt(2)];
 				newObj.isObjWithTexture = 0;
 				newObj.objColor = colors[tre::Utility::getRandomInt(9)];
 			}
 			
-			objQ.push_back(newObj);
+			// transparent queue -> object with texture with alpha channel or object with color.z below 1.0f
+			if (newObj.isObjWithTexture && newObj.pObjTexture->hasAlphaChannel || newObj.objColor.z < 1.0f) {
+				transparentObjQ.push_back(newObj);
+			} else {
+				opaqueObjQ.push_back(newObj);
+			}
+			
 		}
 
 		// Alternating buffers
@@ -357,10 +366,10 @@ int main()
 
 		deviceAndContext.context->PSSetConstantBuffers(0u, 1u, cb.pConstBuffer.GetAddressOf());
 
-		// Draw each objects
-		for (int i = 0; i < objQ.size(); i++) {
+		// Draw all opaque objects
+		for (int i = 0; i < opaqueObjQ.size(); i++) {
 
-			const tre::Object &currObj = objQ[i];
+			const tre::Object &currObj = opaqueObjQ[i];
 
 			//Set vertex buffer
 			UINT vertexStride = sizeof(Vertex);
