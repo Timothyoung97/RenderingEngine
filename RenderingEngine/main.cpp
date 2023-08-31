@@ -27,6 +27,7 @@
 #include "texture.h"
 #include "object.h"
 #include "sampler.h"
+#include "rasterizer.h"
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 800;
@@ -174,23 +175,7 @@ int main()
 	deviceAndContext.device->CreateBlendState(&blendDesc, &transparency);
 
 	//Create rasterizer buffer
-	ComPtr<ID3D11RasterizerState> pRasterizerStateCCW;
-
-	D3D11_RASTERIZER_DESC rasterizerDesc;
-	rasterizerDesc.FillMode = D3D11_FILL_SOLID;
-	rasterizerDesc.CullMode = D3D11_CULL_BACK;
-	rasterizerDesc.FrontCounterClockwise = TRUE;
-	rasterizerDesc.DepthBias = 0;
-	rasterizerDesc.DepthBiasClamp = 0;
-	rasterizerDesc.SlopeScaledDepthBias = 0;
-	rasterizerDesc.DepthClipEnable = FALSE;
-	rasterizerDesc.ScissorEnable = FALSE;
-	rasterizerDesc.MultisampleEnable = FALSE;
-	rasterizerDesc.AntialiasedLineEnable = FALSE;
-
-	CHECK_DX_ERROR(deviceAndContext.device->CreateRasterizerState(
-		&rasterizerDesc, &pRasterizerStateCCW
-	));
+	tre::Rasterizer rasterizer(deviceAndContext.device.Get());
 
 	//Set input layout
 	deviceAndContext.context->IASetInputLayout( vertLayout.Get() );
@@ -380,7 +365,7 @@ int main()
 		deviceAndContext.context->PSSetConstantBuffers(0u, 1u, cb.pConstBuffer.GetAddressOf());
 
 		//Set rasterizer state
-		deviceAndContext.context->RSSetState(pRasterizerStateCCW.Get());
+		deviceAndContext.context->RSSetState(rasterizer.pRasterizerState.Get());
 
 		// Set blend state for opaque obj
 		deviceAndContext.context->OMSetBlendState(0, 0, 0xffffffff);
