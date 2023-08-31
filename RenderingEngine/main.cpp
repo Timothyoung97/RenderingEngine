@@ -2,9 +2,7 @@
 
 #include <dxgi1_4.h>
 #include <d3d11.h>
-#include <d3dcompiler.h>
 #include <DirectXMath.h>
-#include <DirectXColors.h>
 #include <wrl/client.h>
 #include "spdlog/spdlog.h"
 
@@ -83,7 +81,6 @@ int main()
 
 	//Load pre-compiled shaders
 	tre::Shader shader(util.basePathWstr + L"shaders\\vertex_shader.bin", util.basePathWstr + L"shaders\\pixel_shader.bin", deviceAndContext.device.Get());
-
 	deviceAndContext.context->VSSetShader(shader.pVS.Get(), NULL, 0u);
 	deviceAndContext.context->PSSetShader(shader.pPS.Get(), NULL, 0u);
 
