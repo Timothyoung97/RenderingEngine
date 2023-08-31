@@ -8,6 +8,10 @@
 #include <wrl/client.h>
 #include "spdlog/spdlog.h"
 
+#include <algorithm>
+#include <functional>
+#include <array>
+
 //Custom Header
 #include "timer.h"
 #include "window.h"
@@ -51,7 +55,6 @@ XMFLOAT4 colors[10] = {
 {0, .5, 0, 1},
 {0, 0, .5, 1}
 };
-
 
 int main()
 {
@@ -326,16 +329,27 @@ int main()
 			if (newObj.isObjWithTexture && newObj.pObjTexture->hasAlphaChannel || newObj.objColor.w < 1.0f) {
 
 				// find its distance from cam
-				XMVECTOR objPosV(newObj.objPos.x, newObj.objPos.y, newObj.objPos.z);
+				XMVECTOR objPosV{ newObj.objPos.x, newObj.objPos.y, newObj.objPos.z };
 
-				XMVECTOR distFromCam = XMVector3Length(objPosV - cam.camPositionV);
+				XMVECTOR distFromCamV = XMVector3Length(objPosV - cam.camPositionV); // length of vector is replicated in all components 
+				
+				XMFLOAT4 distFromCamF;
+				XMStoreFloat4(&distFromCamF, distFromCamV);
+
+				newObj.distFromCam = distFromCamF.x;
 
 				transparentObjQ.push_back(newObj);
+
+				// sort the vector -> object with greater dist from cam is at the front of the Q
+				std::sort(transparentObjQ.begin(), transparentObjQ.end(), [](const tre::Object& obj1, const tre::Object& obj2) { return obj1.distFromCam > obj2.distFromCam; });
+
 			} else {
 				opaqueObjQ.push_back(newObj);
 			}
 			
 		}
+
+
 
 		// Alternating buffers
 		int currBackBuffer = static_cast<int>(swapchain.mainSwapchain->GetCurrentBackBufferIndex());
