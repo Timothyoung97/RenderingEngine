@@ -11,6 +11,7 @@ using Microsoft::WRL::ComPtr;
 
 struct Vertex {
 	XMFLOAT3 pos;
+	XMFLOAT3 normal;
 	XMFLOAT2 uvCoord;
 };
 
