@@ -1,11 +1,4 @@
 Graphics Tasks:
-• Numerous cubes & spheres
-    • general purpose Renderer, Depth Buffer, Depth States
-• Transparent cube
-    • Blend states
-    • Backface culling
-    • Bucketizing Visuals
-    • Multiple Render Passes
 • Directional Light
     • Phong Lighting Equation
     • Hardcoded ambient lighting
@@ -44,6 +37,13 @@ Done:
     • UV coordinates
     • Loading images from disk (use https://github.com/nothings/stb/blob/master/stb_image.h)
     • Allocating GPU Buffer & CPU Upload Buffer to upload image bytes to GPU (Task removed)
+• Numerous cubes & spheres
+    • general purpose Renderer, Depth Buffer, Depth States
+• Transparent cube
+    • Blend states
+    • Backface culling
+    • Bucketizing Visuals
+    • Multiple Render Passes
 
 //////////////////////////////////////////////////////////////////////////////
 
