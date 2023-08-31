@@ -112,9 +112,10 @@ int main()
 	};
 
 	// Create texture
-	tre::Texture textures[2] = { 
+	tre::Texture textures[3] = { 
 		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\UV_image.jpg"), 
-		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\UV_image2.jpg") 
+		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\UV_image2.jpg"),
+		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\UV_image_a.png")
 	};
 
 	// Create input layout
