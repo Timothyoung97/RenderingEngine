@@ -156,7 +156,7 @@ int main()
 	D3D11_RENDER_TARGET_BLEND_DESC rtbd;
 	rtbd.BlendEnable = TRUE;
 	rtbd.SrcBlend = D3D11_BLEND_ONE;
-	rtbd.DestBlend = D3D11_BLEND_BLEND_FACTOR;
+	rtbd.DestBlend = D3D11_BLEND_ZERO;
 	rtbd.BlendOp = D3D11_BLEND_OP_ADD;
 	rtbd.SrcBlendAlpha = D3D11_BLEND_ONE;
 	rtbd.DestBlendAlpha = D3D11_BLEND_ZERO;
@@ -164,7 +164,8 @@ int main()
 	rtbd.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
 	D3D11_BLEND_DESC blendDesc;
-	blendDesc.AlphaToCoverageEnable = TRUE;
+	blendDesc.AlphaToCoverageEnable = FALSE;
+	blendDesc.IndependentBlendEnable = FALSE;
 	blendDesc.RenderTarget[0] = rtbd;
 	
 	deviceAndContext.device->CreateBlendState(&blendDesc, &transparency);
@@ -321,8 +322,11 @@ int main()
 				newObj.objColor = colors[tre::Utility::getRandomInt(9)];
 			}
 			
-			// transparent queue -> object with texture with alpha channel or object with color.z below 1.0f
-			if (newObj.isObjWithTexture && newObj.pObjTexture->hasAlphaChannel || newObj.objColor.z < 1.0f) {
+			// transparent queue -> object with texture with alpha channel or object with color.w below 1.0f
+			if (newObj.isObjWithTexture && newObj.pObjTexture->hasAlphaChannel || newObj.objColor.w < 1.0f) {
+
+				// find its distance from cam
+
 				transparentObjQ.push_back(newObj);
 			} else {
 				opaqueObjQ.push_back(newObj);
