@@ -12,6 +12,8 @@ namespace tre {
 class Texture {
 
 public:
+	bool hasAlphaChannel = FALSE;
+
 	ComPtr<ID3D11ShaderResourceView> pShaderResView;
 
 	Texture(ID3D11Device* device, std::string filepath);
