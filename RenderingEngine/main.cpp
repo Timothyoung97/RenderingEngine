@@ -210,20 +210,25 @@ int main()
 		// Control
 		if (input.keyState[SDL_SCANCODE_W]) { // control camera movement
 			cam.moveCamera(cam.directionV * deltaTime);
+			toRecalDistFromCam = TRUE;
 		} else if (input.keyState[SDL_SCANCODE_S]) {
 			cam.moveCamera(-cam.directionV * deltaTime);
+			toRecalDistFromCam = TRUE;
 		} else if (input.keyState[SDL_SCANCODE_D]) {
 			cam.moveCamera(-cam.camRightV * deltaTime);
+			toRecalDistFromCam = TRUE;
 		} else if (input.keyState[SDL_SCANCODE_A]) {
 			cam.moveCamera(cam.camRightV * deltaTime);
+			toRecalDistFromCam = TRUE;
 		} else if (input.keyState[SDL_SCANCODE_Q]) {
 			cam.moveCamera(cam.defaultUpV * deltaTime);
+			toRecalDistFromCam = TRUE;
 		} else if (input.keyState[SDL_SCANCODE_E]) {
 			cam.moveCamera(-cam.defaultUpV * deltaTime);
+			toRecalDistFromCam = TRUE;
 		} else if (input.mouseButtonState[MOUSE_BUTTON_IDX(SDL_BUTTON_RIGHT)]) { // control camera angle
 			cam.turnCamera(input.deltaDisplacement.x, input.deltaDisplacement.y);
 		} else if (input.keyState[SDL_SCANCODE_SPACE]) {
-
 			// Create new obj
 			tre::Object newObj;
 
@@ -249,14 +254,7 @@ int main()
 				|| (!newObj.isObjWithTexture && newObj.objColor.w < 1.0f)) {
 
 				// find its distance from cam
-				XMVECTOR objPosV{ newObj.objPos.x, newObj.objPos.y, newObj.objPos.z };
-
-				XMVECTOR distFromCamV = XMVector3Length(objPosV - cam.camPositionV); // length of vector is replicated in all components 
-				
-				XMFLOAT4 distFromCamF;
-				XMStoreFloat4(&distFromCamF, distFromCamV);
-
-				newObj.distFromCam = distFromCamF.x;
+				newObj.distFromCam = tre::Utility::distBetweentObjToCam(newObj.objPos, cam.camPositionV);
 
 				transparentObjQ.push_back(newObj);
 
@@ -309,6 +307,13 @@ int main()
 
 		// Set blend state for transparent obj
 		deviceAndContext.context->OMSetBlendState(transparency, NULL, 0xffffffff);
+
+		if (toRecalDistFromCam) {
+			for (int i = 0; i < transparentObjQ.size(); i++) {
+				transparentObjQ[i].distFromCam = tre::Utility::distBetweentObjToCam(transparentObjQ[i].objPos, cam.camPositionV);
+			}
+			toSortTransparentQ = TRUE;
+		}
 
 		// sort the vector -> object with greater dist from cam is at the front of the Q
 		if (toSortTransparentQ) {

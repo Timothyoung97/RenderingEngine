@@ -43,4 +43,16 @@ float Utility::getRandomFloatRange(float minValue, float maxValue) {
 	return minValue + static_cast<float>(rand()) * static_cast<float>(maxValue - minValue) / RAND_MAX;;
 }
 
+float Utility::distBetweentObjToCam(XMFLOAT3 objPosF, XMVECTOR camPosV) {
+
+	XMVECTOR objPosV{ objPosF.x, objPosF.y, objPosF.z };
+
+	XMVECTOR distFromCamV = XMVector3Length(objPosV - camPosV); // length of vector is replicated in all components 
+
+	XMFLOAT4 distFromCamF;
+	XMStoreFloat4(&distFromCamF, distFromCamV);
+
+	return distFromCamF.x;
+}
+
 }

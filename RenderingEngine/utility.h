@@ -1,5 +1,9 @@
 #pragma once
 
+#include <DirectXMath.h>
+
+using namespace DirectX;
+
 namespace tre {
 class Utility {
 
@@ -15,5 +19,6 @@ public:
 	static int getRandomIntRange(int minValue, int maxValue); // inclusive min and max
 	static float getRandomFloat(float maxValue);
 	static float getRandomFloatRange(float minValue, float maxValue);
+	static float distBetweentObjToCam(XMFLOAT3 objPosF, XMVECTOR camPosV);
 };
 }
