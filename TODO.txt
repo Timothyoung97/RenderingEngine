@@ -13,6 +13,11 @@ Graphics Tasks:
 • Normal Mapping
     • detailed per-pixel lighting
     • TBN matrix
+• Frustum Culling
+    • Bounding Volume generation (Sphere & AABB)
+    • shape-frustum intersection tests
+    • debug color if intersecting or completely inside frustum
+    • stress test (populate scene with >10,000 objects spread out)
 • Mesh loading
     • use library: https://github.com/tinyobjloader/tinyobjloader or https://github.com/assimp/assimp
     • Manage scene objects' meshes & materials
