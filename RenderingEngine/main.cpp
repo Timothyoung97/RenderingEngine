@@ -150,9 +150,6 @@ int main()
 	
 	deviceAndContext.device->CreateBlendState(&blendDesc, &transparency);
 
-	//Create rasterizer buffer
-	tre::Rasterizer rasterizer(deviceAndContext.device.Get());
-
 	//Set input layout
 	deviceAndContext.context->IASetInputLayout( vertLayout.Get() );
 
@@ -171,6 +168,9 @@ int main()
 	//Set Viewport
 	deviceAndContext.context->RSSetViewports(1, &viewport);
 
+	//Create & Set rasterizer buffer
+	tre::Rasterizer rasterizer(deviceAndContext.device.Get());
+	deviceAndContext.context->RSSetState(rasterizer.pRasterizerStateFCCW.Get());
 
 	//Input Handler
 	tre::Input input;
@@ -192,6 +192,9 @@ int main()
 
 	std::vector<tre::Object> opaqueObjQ;
 	std::vector<tre::Object> transparentObjQ;
+
+	bool toSortTransparentQ = FALSE;
+	bool toRecalDistFromCam = FALSE;
 
 	//set blend factor
 	float blendFactor[] = { 1, 1, 1, 1 };
@@ -223,9 +226,11 @@ int main()
 
 			// Create new obj
 			tre::Object newObj;
+
+			float scaleVal = tre::Utility::getRandomFloat(3);
 			newObj.pObjMesh = &meshes[tre::Utility::getRandomInt(1)];
 			newObj.objPos = XMFLOAT3(tre::Utility::getRandomFloatRange(-5, 5), tre::Utility::getRandomFloatRange(-5, 5), tre::Utility::getRandomFloatRange(-5, 5));
-			newObj.objScale = XMFLOAT3(tre::Utility::getRandomFloat(3), tre::Utility::getRandomFloat(3), tre::Utility::getRandomFloat(3));
+			newObj.objScale = XMFLOAT3(scaleVal, scaleVal, scaleVal);
 			newObj.objRotation = XMFLOAT3(tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360));
 
 			// With/Without texture
@@ -255,13 +260,11 @@ int main()
 
 				transparentObjQ.push_back(newObj);
 
-				// sort the vector -> object with greater dist from cam is at the front of the Q
-				std::sort(transparentObjQ.begin(), transparentObjQ.end(), [](const tre::Object& obj1, const tre::Object& obj2) { return obj1.distFromCam > obj2.distFromCam; });
+				toSortTransparentQ = TRUE;
 
 			} else {
 				opaqueObjQ.push_back(newObj);
 			}
-			
 		}
 
 		// Alternating buffers
@@ -298,17 +301,20 @@ int main()
 		deviceAndContext.context->VSSetConstantBuffers(0u, 1u, cb.pConstBuffer.GetAddressOf());
 		deviceAndContext.context->PSSetConstantBuffers(0u, 1u, cb.pConstBuffer.GetAddressOf());
 
-		//Set rasterizer state
-		deviceAndContext.context->RSSetState(rasterizer.pRasterizerState.Get());
-
 		// Set blend state for opaque obj
-		deviceAndContext.context->OMSetBlendState(0, 0, 0xffffffff);
+		deviceAndContext.context->OMSetBlendState(0, NULL, 0xffffffff);
 
 		//// Draw all opaque objects
 		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cb, opaqueObjQ);
 
 		// Set blend state for transparent obj
 		deviceAndContext.context->OMSetBlendState(transparency, NULL, 0xffffffff);
+
+		// sort the vector -> object with greater dist from cam is at the front of the Q
+		if (toSortTransparentQ) {
+			std::sort(transparentObjQ.begin(), transparentObjQ.end(), [](const tre::Object& obj1, const tre::Object& obj2) { return obj1.distFromCam > obj2.distFromCam; });
+			toSortTransparentQ = FALSE;
+		}
 
 		// Draw all transparent objects
 		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cb, transparentObjQ);
