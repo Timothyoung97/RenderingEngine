@@ -27,6 +27,7 @@
 #include "sampler.h"
 #include "rasterizer.h"
 #include "shader.h"
+#include "renderer.h"
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 800;
@@ -205,6 +206,9 @@ int main()
 	//Create Camera
 	tre::Camera cam(SCREEN_WIDTH, SCREEN_HEIGHT);
 	
+	//Create Renderer
+	tre::Renderer renderer;
+
 	//Create const buffer manager
 	tre::ConstantBuffer cb;
 
@@ -326,7 +330,6 @@ int main()
 
 		deviceAndContext.context->ClearDepthStencilView(depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-
 		// Set camera view const buffer
 		cb.constBufferRescCam.matrix = XMMatrixMultiply(cam.camView, cam.camProjection);
 
@@ -345,87 +348,14 @@ int main()
 		// Set blend state for opaque obj
 		deviceAndContext.context->OMSetBlendState(0, 0, 0xffffffff);
 
-		// Draw all opaque objects
-		for (int i = 0; i < opaqueObjQ.size(); i++) {
-
-			const tre::Object &currObj = opaqueObjQ[i];
-
-			//Set vertex buffer
-			UINT vertexStride = sizeof(Vertex);
-			UINT offset = 0;
-			deviceAndContext.context->IASetVertexBuffers(0, 1, currObj.pObjMesh->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
-
-			//Set index buffer
-			deviceAndContext.context->IASetIndexBuffer(currObj.pObjMesh->pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
-
-			//set shader resc view and sampler
-			deviceAndContext.context->PSSetShaderResources(0, 1, currObj.pObjTexture->pShaderResView.GetAddressOf());
-
-			//Config const buffer
-			cb.constBufferRescModel.matrix = XMMatrixMultiply(
-				XMMatrixScaling(currObj.objScale.x, currObj.objScale.y, currObj.objScale.z),
-				XMMatrixMultiply(
-					XMMatrixRotationRollPitchYaw(XMConvertToRadians(currObj.objRotation.x), XMConvertToRadians(currObj.objRotation.x), XMConvertToRadians(currObj.objRotation.x)),
-					XMMatrixTranslation(currObj.objPos.x, currObj.objPos.y, currObj.objPos.z)
-				)
-			);
-			cb.constBufferRescModel.isWithTexture = currObj.isObjWithTexture;
-			cb.constBufferRescModel.color = currObj.objColor;
-
-			//map to data to subresouce
-			cb.csd.pSysMem = &cb.constBufferRescModel;
-
-			CHECK_DX_ERROR(deviceAndContext.device->CreateBuffer(
-				&cb.constantBufferDescModel, &cb.csd, cb.pConstBuffer.GetAddressOf()
-			));
-
-			deviceAndContext.context->VSSetConstantBuffers(1u, 1u, cb.pConstBuffer.GetAddressOf());
-			deviceAndContext.context->PSSetConstantBuffers(1u, 1u, cb.pConstBuffer.GetAddressOf());
-
-			deviceAndContext.context->DrawIndexed(currObj.pObjMesh->indexSize, 0, 0);
-		}
+		//// Draw all opaque objects
+		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cb, opaqueObjQ);
 
 		// Set blend state for transparent obj
 		deviceAndContext.context->OMSetBlendState(transparency, NULL, 0xffffffff);
 
 		// Draw all transparent objects
-		for (int i = 0; i < transparentObjQ.size(); i++) {
-			const tre::Object& currObj = transparentObjQ[i];
-
-			//Set vertex buffer
-			UINT vertexStride = sizeof(Vertex);
-			UINT offset = 0;
-			deviceAndContext.context->IASetVertexBuffers(0, 1, currObj.pObjMesh->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
-
-			//Set index buffer
-			deviceAndContext.context->IASetIndexBuffer(currObj.pObjMesh->pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
-
-			//set shader resc view and sampler
-			deviceAndContext.context->PSSetShaderResources(0, 1, currObj.pObjTexture->pShaderResView.GetAddressOf());
-
-			//Config const buffer
-			cb.constBufferRescModel.matrix = XMMatrixMultiply(
-				XMMatrixScaling(currObj.objScale.x, currObj.objScale.y, currObj.objScale.z),
-				XMMatrixMultiply(
-					XMMatrixRotationRollPitchYaw(XMConvertToRadians(currObj.objRotation.x), XMConvertToRadians(currObj.objRotation.x), XMConvertToRadians(currObj.objRotation.x)),
-					XMMatrixTranslation(currObj.objPos.x, currObj.objPos.y, currObj.objPos.z)
-				)
-			);
-			cb.constBufferRescModel.isWithTexture = currObj.isObjWithTexture;
-			cb.constBufferRescModel.color = currObj.objColor;
-
-			//map to data to subresouce
-			cb.csd.pSysMem = &cb.constBufferRescModel;
-
-			CHECK_DX_ERROR(deviceAndContext.device->CreateBuffer(
-				&cb.constantBufferDescModel, &cb.csd, cb.pConstBuffer.GetAddressOf()
-			));
-
-			deviceAndContext.context->VSSetConstantBuffers(1u, 1u, cb.pConstBuffer.GetAddressOf());
-			deviceAndContext.context->PSSetConstantBuffers(1u, 1u, cb.pConstBuffer.GetAddressOf());
-
-			deviceAndContext.context->DrawIndexed(currObj.pObjMesh->indexSize, 0, 0);
-		}
+		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cb, transparentObjQ);
 
 		CHECK_DX_ERROR(swapchain.mainSwapchain->Present( 0, 0) );
 
