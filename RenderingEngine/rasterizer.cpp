@@ -14,13 +14,15 @@ Rasterizer::Rasterizer(ID3D11Device* device) {
 	rasterizerDesc.ScissorEnable = FALSE;
 	rasterizerDesc.MultisampleEnable = FALSE;
 	rasterizerDesc.AntialiasedLineEnable = FALSE;
-}
 
-void Rasterizer::createRasterizer(ID3D11Device* device) {
 	CHECK_DX_ERROR(device->CreateRasterizerState(
-		&rasterizerDesc, &pRasterizerState
+		&rasterizerDesc, pRasterizerStateFCCW.GetAddressOf()
 	));
 
+	rasterizerDesc.CullMode = D3D11_CULL_NONE;
+	CHECK_DX_ERROR(device->CreateRasterizerState(
+		&rasterizerDesc, pRasterizerStateNoCull.GetAddressOf()
+	));
 }
 
 }
