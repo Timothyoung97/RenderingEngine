@@ -117,7 +117,6 @@ int main()
 		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\UV_image2.jpg") 
 	};
 
-
 	// Create input layout
 	ComPtr<ID3D11InputLayout> vertLayout;
 
@@ -150,8 +149,28 @@ int main()
 		depthStencilBuffer.Get(), nullptr, depthStencilView.GetAddressOf()
 	));
 
+	//Blend State
+	ID3D11BlendState* transparency;
+
+	D3D11_RENDER_TARGET_BLEND_DESC rtbd;
+	rtbd.BlendEnable = TRUE;
+	rtbd.SrcBlend = D3D11_BLEND_SRC_COLOR;
+	rtbd.DestBlend = D3D11_BLEND_BLEND_FACTOR;
+	rtbd.BlendOp = D3D11_BLEND_OP_ADD;
+	rtbd.SrcBlendAlpha = D3D11_BLEND_ONE;
+	rtbd.DestBlendAlpha = D3D11_BLEND_ZERO;
+	rtbd.BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	rtbd.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+	D3D11_BLEND_DESC blendDesc;
+	blendDesc.AlphaToCoverageEnable = TRUE;
+	blendDesc.RenderTarget[0] = rtbd;
+	
+	deviceAndContext.device->CreateBlendState(&blendDesc, &transparency);
+
 	//Create rasterizer buffer
-	ComPtr<ID3D11RasterizerState> pRasterizerState;
+	ComPtr<ID3D11RasterizerState> pRasterizerStateCCW;
+	ComPtr<ID3D11RasterizerState> pRasterizerStateCW;
 
 	D3D11_RASTERIZER_DESC rasterizerDesc;
 	rasterizerDesc.FillMode = D3D11_FILL_SOLID;
@@ -166,11 +185,16 @@ int main()
 	rasterizerDesc.AntialiasedLineEnable = FALSE;
 
 	CHECK_DX_ERROR(deviceAndContext.device->CreateRasterizerState(
-		&rasterizerDesc, &pRasterizerState
+		&rasterizerDesc, &pRasterizerStateCCW
+	));
+
+	rasterizerDesc.FrontCounterClockwise = FALSE;
+	CHECK_DX_ERROR(deviceAndContext.device->CreateRasterizerState(
+		&rasterizerDesc, &pRasterizerStateCW
 	));
 	
 	//Set rasterizer state
-	deviceAndContext.context->RSSetState(pRasterizerState.Get());
+	deviceAndContext.context->RSSetState(pRasterizerStateCCW.Get());
 
 	//Set input layout
 	deviceAndContext.context->IASetInputLayout( vertLayout.Get() );
