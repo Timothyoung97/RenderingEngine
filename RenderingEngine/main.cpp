@@ -2,11 +2,13 @@
 
 #include <dxgi1_4.h>
 #include <d3d11.h>
-#include <d3dcompiler.h>
 #include <DirectXMath.h>
-#include <DirectXColors.h>
 #include <wrl/client.h>
 #include "spdlog/spdlog.h"
+
+#include <algorithm>
+#include <functional>
+#include <array>
 
 //Custom Header
 #include "timer.h"
@@ -22,6 +24,10 @@
 #include "constbuffer.h"
 #include "texture.h"
 #include "object.h"
+#include "sampler.h"
+#include "rasterizer.h"
+#include "shader.h"
+#include "renderer.h"
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 800;
@@ -36,27 +42,20 @@ D3D11_INPUT_ELEMENT_DESC layout[] = {
 	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0}
 };
 
-struct ObjectProperty {
-	XMFLOAT3 translation;
-	XMFLOAT3 scale;
-	XMFLOAT3 rotation;
-};
-
 const UINT numOfInputElement = ARRAYSIZE(layout);
 
 XMFLOAT4 colors[10] = {
 {0, 0, 0, 0},
-{1, 0, 0, 1},
-{1, 1, 0, 1},
+{1, 0, 0, .1f},
+{1, 1, 0, .1f},
 {1, 1, 1, 1},
-{1, 0, 1, 1},
+{1, 0, 1, .1f},
 {0, 1, 0, 1},
-{0, 0, 1, 1},
-{.5, 0, 0, 1},
-{0, .5, 0, 1},
+{0, 0, 1, .1f},
+{.5, 0, 0, .1f},
+{0, .5, 0, .1f},
 {0, 0, .5, 1}
 };
-
 
 int main()
 {
@@ -77,34 +76,14 @@ int main()
 	swapchain.DescSwapchain(SCREEN_WIDTH, SCREEN_HEIGHT);
 	swapchain.InitSwapchainViaHwnd(factory.dxgiFactory2, deviceAndContext.device, window.getWindowHandle());
 
+	//Create Sampler
+	tre::Sampler sampler(deviceAndContext.device.Get());
+	deviceAndContext.context->PSSetSamplers(0, 1, sampler.pSamplerState.GetAddressOf());
+
 	//Load pre-compiled shaders
-	ID3DBlob* pVSBlob = nullptr;
-	ID3DBlob* pPSBlob = nullptr;
-
-	std::wstring vsFpath = util.basePathWstr + L"shaders\\vertex_shader.bin";
-	std::wstring psFpath = util.basePathWstr + L"shaders\\pixel_shader.bin";
-
-	CHECK_DX_ERROR( D3DReadFileToBlob(
-		vsFpath.c_str(), &pVSBlob
-	));
-
-	CHECK_DX_ERROR( D3DReadFileToBlob(
-		psFpath.c_str(), &pPSBlob
-	));
-
-	ID3D11VertexShader* vertex_shader_ptr = nullptr;
-	ID3D11PixelShader* pixel_shader_ptr = nullptr;
-
-	CHECK_DX_ERROR(deviceAndContext.device->CreateVertexShader(
-		pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), NULL, &vertex_shader_ptr
-	));
-
-	CHECK_DX_ERROR(deviceAndContext.device->CreatePixelShader(
-		pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), NULL, &pixel_shader_ptr
-	));
-
-	deviceAndContext.context->VSSetShader(vertex_shader_ptr, NULL, 0u);
-	deviceAndContext.context->PSSetShader(pixel_shader_ptr, NULL, 0u);
+	tre::Shader shader(util.basePathWstr + L"shaders\\vertex_shader.bin", util.basePathWstr + L"shaders\\pixel_shader.bin", deviceAndContext.device.Get());
+	deviceAndContext.context->VSSetShader(shader.pVS.Get(), NULL, 0u);
+	deviceAndContext.context->PSSetShader(shader.pPS.Get(), NULL, 0u);
 
 	// 3D objects
 	tre::Mesh meshes[2] = { 
@@ -113,16 +92,17 @@ int main()
 	};
 
 	// Create texture
-	tre::Texture textures[2] = { 
+	tre::Texture textures[3] = { 
 		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\UV_image.jpg"), 
-		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\UV_image2.jpg") 
+		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\UV_image2.jpg"),
+		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\UV_image_a.png")
 	};
 
 	// Create input layout
 	ComPtr<ID3D11InputLayout> vertLayout;
 
 	CHECK_DX_ERROR(deviceAndContext.device->CreateInputLayout(
-		layout, numOfInputElement, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), vertLayout.GetAddressOf()
+		layout, numOfInputElement, shader.pVSBlob.Get()->GetBufferPointer(), shader.pVSBlob.Get()->GetBufferSize(), vertLayout.GetAddressOf()
 	));
 
 	//Create Depth/Stencil 
@@ -150,27 +130,25 @@ int main()
 		depthStencilBuffer.Get(), nullptr, depthStencilView.GetAddressOf()
 	));
 
-	//Create rasterizer buffer
-	ComPtr<ID3D11RasterizerState> pRasterizerState;
+	//Blend State
+	ID3D11BlendState* transparency;
 
-	D3D11_RASTERIZER_DESC rasterizerDesc;
-	rasterizerDesc.FillMode = D3D11_FILL_SOLID;
-	rasterizerDesc.CullMode = D3D11_CULL_BACK;
-	rasterizerDesc.FrontCounterClockwise = TRUE;
-	rasterizerDesc.DepthBias = 0;
-	rasterizerDesc.DepthBiasClamp = 0;
-	rasterizerDesc.SlopeScaledDepthBias = 0;
-	rasterizerDesc.DepthClipEnable = FALSE;
-	rasterizerDesc.ScissorEnable = FALSE;
-	rasterizerDesc.MultisampleEnable = FALSE;
-	rasterizerDesc.AntialiasedLineEnable = FALSE;
+	D3D11_RENDER_TARGET_BLEND_DESC rtbd;
+	rtbd.BlendEnable = TRUE;
+	rtbd.SrcBlend = D3D11_BLEND_SRC_ALPHA;
+	rtbd.DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+	rtbd.BlendOp = D3D11_BLEND_OP_ADD;
+	rtbd.SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
+	rtbd.DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
+	rtbd.BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	rtbd.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
-	CHECK_DX_ERROR(deviceAndContext.device->CreateRasterizerState(
-		&rasterizerDesc, &pRasterizerState
-	));
+	D3D11_BLEND_DESC blendDesc;
+	blendDesc.AlphaToCoverageEnable = FALSE;
+	blendDesc.IndependentBlendEnable = FALSE;
+	blendDesc.RenderTarget[0] = rtbd;
 	
-	//Set rasterizer state
-	deviceAndContext.context->RSSetState(pRasterizerState.Get());
+	deviceAndContext.device->CreateBlendState(&blendDesc, &transparency);
 
 	//Set input layout
 	deviceAndContext.context->IASetInputLayout( vertLayout.Get() );
@@ -190,45 +168,36 @@ int main()
 	//Set Viewport
 	deviceAndContext.context->RSSetViewports(1, &viewport);
 
-	// temp tranformation data
-	float offsetX = .0f;
-	float offsetY = .0f;
-	float translateSpeed = .001f;
-
-	float scaleX = 1.0f;
-	float scaleY = 1.0f;
-	float scaleSpeed = .001f;
-
-	float localYaw = .0f; // in degree
-	float localPitch = .0f; // in degree
-	float localRoll = .0f; // in degree
-	float rotateZ = .0f;
-	float rotateSpeed = .1f;
+	//Create & Set rasterizer buffer
+	tre::Rasterizer rasterizer(deviceAndContext.device.Get());
+	deviceAndContext.context->RSSetState(rasterizer.pRasterizerStateFCCW.Get());
 
 	//Input Handler
 	tre::Input input;
 	
-	//Colors
+	//Background Color
 	float bgColor[4] = { .5f, .5f, .5f, 1.0f };
 	
-	XMFLOAT4 triangleColor[3] = {
-		{1, 0, 0, 1},
-		{0, 1, 0, 1},
-		{0, 0, 1, 1}
-	};
-
-	int currTriColor = 0;
-
 	//Delta Time between frame
 	float deltaTime = 0;
 
 	//Create Camera
 	tre::Camera cam(SCREEN_WIDTH, SCREEN_HEIGHT);
 	
+	//Create Renderer
+	tre::Renderer renderer;
+
 	//Create const buffer manager
 	tre::ConstantBuffer cb;
 
-	std::vector<tre::Object> objQ;
+	std::vector<tre::Object> opaqueObjQ;
+	std::vector<tre::Object> transparentObjQ;
+
+	bool toSortTransparentQ = FALSE;
+	bool toRecalDistFromCam = FALSE;
+
+	//set blend factor
+	float blendFactor[] = { 1, 1, 1, 1 };
 
 	// main loop
 	while (!input.shouldQuit())
@@ -239,61 +208,61 @@ int main()
 		input.updateInputEvent();
 
 		// Control
-		if (input.keyState[SDL_SCANCODE_LEFT]) {
-			offsetX -= translateSpeed * deltaTime;
-		} else if (input.keyState[SDL_SCANCODE_RIGHT]) {
-			offsetX += translateSpeed * deltaTime;
-		} else if (input.keyState[SDL_SCANCODE_UP]) {
-			offsetY += translateSpeed * deltaTime;
-		} else if (input.keyState[SDL_SCANCODE_DOWN]) {
-			offsetY -= translateSpeed * deltaTime;
-		} else if (input.keyState[SDL_SCANCODE_PAGEUP]) {
-			scaleX += scaleSpeed * deltaTime;
-			scaleY += scaleSpeed * deltaTime;
-		} else if (input.keyState[SDL_SCANCODE_PAGEDOWN]) {
-			scaleX -= scaleSpeed * deltaTime;
-			scaleY -= scaleSpeed * deltaTime;
-		} else if (input.keyState[SDL_SCANCODE_Z]) {
-			rotateZ += rotateSpeed * deltaTime;
-		} else if (input.keyState[SDL_SCANCODE_1]) {
-			currTriColor = 0;
-		} else if (input.keyState[SDL_SCANCODE_2]) {
-			currTriColor = 1;
-		} else if (input.keyState[SDL_SCANCODE_3]) {
-			currTriColor = 2;
-		} else if (input.keyState[SDL_SCANCODE_W]) { // control camera movement
+		if (input.keyState[SDL_SCANCODE_W]) { // control camera movement
 			cam.moveCamera(cam.directionV * deltaTime);
+			toRecalDistFromCam = TRUE;
 		} else if (input.keyState[SDL_SCANCODE_S]) {
 			cam.moveCamera(-cam.directionV * deltaTime);
+			toRecalDistFromCam = TRUE;
 		} else if (input.keyState[SDL_SCANCODE_D]) {
 			cam.moveCamera(-cam.camRightV * deltaTime);
+			toRecalDistFromCam = TRUE;
 		} else if (input.keyState[SDL_SCANCODE_A]) {
 			cam.moveCamera(cam.camRightV * deltaTime);
+			toRecalDistFromCam = TRUE;
 		} else if (input.keyState[SDL_SCANCODE_Q]) {
 			cam.moveCamera(cam.defaultUpV * deltaTime);
+			toRecalDistFromCam = TRUE;
 		} else if (input.keyState[SDL_SCANCODE_E]) {
 			cam.moveCamera(-cam.defaultUpV * deltaTime);
+			toRecalDistFromCam = TRUE;
 		} else if (input.mouseButtonState[MOUSE_BUTTON_IDX(SDL_BUTTON_RIGHT)]) { // control camera angle
 			cam.turnCamera(input.deltaDisplacement.x, input.deltaDisplacement.y);
 		} else if (input.keyState[SDL_SCANCODE_SPACE]) {
-
+			// Create new obj
 			tre::Object newObj;
+
+			float scaleVal = tre::Utility::getRandomFloat(3);
 			newObj.pObjMesh = &meshes[tre::Utility::getRandomInt(1)];
 			newObj.objPos = XMFLOAT3(tre::Utility::getRandomFloatRange(-5, 5), tre::Utility::getRandomFloatRange(-5, 5), tre::Utility::getRandomFloatRange(-5, 5));
-			newObj.objScale = XMFLOAT3(tre::Utility::getRandomFloat(3), tre::Utility::getRandomFloat(3), tre::Utility::getRandomFloat(3));
+			newObj.objScale = XMFLOAT3(scaleVal, scaleVal, scaleVal);
 			newObj.objRotation = XMFLOAT3(tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360));
 
+			// With/Without texture
 			if (tre::Utility::getRandomInt(1) == 1) {
-				newObj.pObjTexture = &textures[tre::Utility::getRandomInt(1)];
+				newObj.pObjTexture = &textures[tre::Utility::getRandomInt(2)];
 				newObj.isObjWithTexture = 1;
 				newObj.objColor = XMFLOAT4();
 			} else {
-				newObj.pObjTexture = &textures[tre::Utility::getRandomInt(1)];
+				newObj.pObjTexture = &textures[tre::Utility::getRandomInt(2)];
 				newObj.isObjWithTexture = 0;
 				newObj.objColor = colors[tre::Utility::getRandomInt(9)];
 			}
 			
-			objQ.push_back(newObj);
+			// transparent queue -> object with texture with alpha channel or object with color.w below 1.0f
+			if ((newObj.isObjWithTexture && newObj.pObjTexture->hasAlphaChannel) 
+				|| (!newObj.isObjWithTexture && newObj.objColor.w < 1.0f)) {
+
+				// find its distance from cam
+				newObj.distFromCam = tre::Utility::distBetweentObjToCam(newObj.objPos, cam.camPositionV);
+
+				transparentObjQ.push_back(newObj);
+
+				toSortTransparentQ = TRUE;
+
+			} else {
+				opaqueObjQ.push_back(newObj);
+			}
 		}
 
 		// Alternating buffers
@@ -318,7 +287,6 @@ int main()
 
 		deviceAndContext.context->ClearDepthStencilView(depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-
 		// Set camera view const buffer
 		cb.constBufferRescCam.matrix = XMMatrixMultiply(cam.camView, cam.camProjection);
 
@@ -329,49 +297,33 @@ int main()
 		));
 
 		deviceAndContext.context->VSSetConstantBuffers(0u, 1u, cb.pConstBuffer.GetAddressOf());
-
 		deviceAndContext.context->PSSetConstantBuffers(0u, 1u, cb.pConstBuffer.GetAddressOf());
 
-		// Draw each objects
-		for (int i = 0; i < objQ.size(); i++) {
+		// Set blend state for opaque obj
+		deviceAndContext.context->OMSetBlendState(0, NULL, 0xffffffff);
 
-			tre::Object currObj = objQ[i];
+		//// Draw all opaque objects
+		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cb, opaqueObjQ);
 
-			//Set vertex buffer
-			UINT vertexStride = sizeof(Vertex);
-			UINT offset = 0;
-			deviceAndContext.context->IASetVertexBuffers(0, 1, currObj.pObjMesh->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
+		// Set blend state for transparent obj
+		deviceAndContext.context->OMSetBlendState(transparency, NULL, 0xffffffff);
 
-			//Set index buffer
-			deviceAndContext.context->IASetIndexBuffer(currObj.pObjMesh->pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
-
-			//set shader resc view and sampler
-			deviceAndContext.context->PSSetShaderResources(0, 1, currObj.pObjTexture->pShaderResView.GetAddressOf());
-			deviceAndContext.context->PSSetSamplers(0, 1, currObj.pObjTexture->pSamplerState.GetAddressOf());
-
-			//Config const buffer
-			cb.constBufferRescModel.matrix = XMMatrixMultiply(
-				XMMatrixScaling(currObj.objScale.x, currObj.objScale.y, currObj.objScale.z),
-				XMMatrixMultiply(
-					XMMatrixRotationRollPitchYaw(XMConvertToRadians(currObj.objRotation.x), XMConvertToRadians(currObj.objRotation.x), XMConvertToRadians(currObj.objRotation.x)),
-					XMMatrixTranslation(currObj.objPos.x, currObj.objPos.y, currObj.objPos.z)
-				)
-			);
-			cb.constBufferRescModel.isWithTexture = currObj.isObjWithTexture;
-			cb.constBufferRescModel.color = currObj.objColor;
-
-			//map to data to subresouce
-			cb.csd.pSysMem = &cb.constBufferRescModel;
-
-			CHECK_DX_ERROR(deviceAndContext.device->CreateBuffer(
-				&cb.constantBufferDescModel, &cb.csd, cb.pConstBuffer.GetAddressOf()
-			));
-
-			deviceAndContext.context->VSSetConstantBuffers(1u, 1u, cb.pConstBuffer.GetAddressOf());
-			deviceAndContext.context->PSSetConstantBuffers(1u, 1u, cb.pConstBuffer.GetAddressOf());
-
-			deviceAndContext.context->DrawIndexed(currObj.pObjMesh->indexSize, 0, 0);
+		if (toRecalDistFromCam) {
+			for (int i = 0; i < transparentObjQ.size(); i++) {
+				transparentObjQ[i].distFromCam = tre::Utility::distBetweentObjToCam(transparentObjQ[i].objPos, cam.camPositionV);
+			}
+			toSortTransparentQ = TRUE;
+			toRecalDistFromCam = FALSE;
 		}
+
+		// sort the vector -> object with greater dist from cam is at the front of the Q
+		if (toSortTransparentQ) {
+			std::sort(transparentObjQ.begin(), transparentObjQ.end(), [](const tre::Object& obj1, const tre::Object& obj2) { return obj1.distFromCam > obj2.distFromCam; });
+			toSortTransparentQ = FALSE;
+		}
+
+		// Draw all transparent objects
+		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cb, transparentObjQ);
 
 		CHECK_DX_ERROR(swapchain.mainSwapchain->Present( 0, 0) );
 
@@ -379,7 +331,6 @@ int main()
 		}
 
 		deltaTime = timer.getDeltaTime();
-
 	}
 
 	//Cleanup
