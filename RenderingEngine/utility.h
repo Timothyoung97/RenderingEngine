@@ -1,10 +1,5 @@
 #pragma once
 
-#include <string>
-#include <iostream>
-#include <codecvt>
-#include <locale>
-
 namespace tre {
 class Utility {
 

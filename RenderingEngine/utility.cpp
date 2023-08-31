@@ -1,4 +1,7 @@
 #include <assert.h>
+#include <iostream>
+#include <codecvt>
+#include <locale>
 
 #include "utility.h"
 

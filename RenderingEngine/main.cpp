@@ -28,6 +28,7 @@
 #include "object.h"
 #include "sampler.h"
 #include "rasterizer.h"
+#include "shader.h"
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 800;
@@ -81,33 +82,10 @@ int main()
 	deviceAndContext.context->PSSetSamplers(0, 1, sampler.pSamplerState.GetAddressOf());
 
 	//Load pre-compiled shaders
-	ID3DBlob* pVSBlob = nullptr;
-	ID3DBlob* pPSBlob = nullptr;
+	tre::Shader shader(util.basePathWstr + L"shaders\\vertex_shader.bin", util.basePathWstr + L"shaders\\pixel_shader.bin", deviceAndContext.device.Get());
 
-	std::wstring vsFpath = util.basePathWstr + L"shaders\\vertex_shader.bin";
-	std::wstring psFpath = util.basePathWstr + L"shaders\\pixel_shader.bin";
-
-	CHECK_DX_ERROR( D3DReadFileToBlob(
-		vsFpath.c_str(), &pVSBlob
-	));
-
-	CHECK_DX_ERROR( D3DReadFileToBlob(
-		psFpath.c_str(), &pPSBlob
-	));
-
-	ID3D11VertexShader* vertex_shader_ptr = nullptr;
-	ID3D11PixelShader* pixel_shader_ptr = nullptr;
-
-	CHECK_DX_ERROR(deviceAndContext.device->CreateVertexShader(
-		pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), NULL, &vertex_shader_ptr
-	));
-
-	CHECK_DX_ERROR(deviceAndContext.device->CreatePixelShader(
-		pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), NULL, &pixel_shader_ptr
-	));
-
-	deviceAndContext.context->VSSetShader(vertex_shader_ptr, NULL, 0u);
-	deviceAndContext.context->PSSetShader(pixel_shader_ptr, NULL, 0u);
+	deviceAndContext.context->VSSetShader(shader.pVS.Get(), NULL, 0u);
+	deviceAndContext.context->PSSetShader(shader.pPS.Get(), NULL, 0u);
 
 	// 3D objects
 	tre::Mesh meshes[2] = { 
@@ -126,7 +104,7 @@ int main()
 	ComPtr<ID3D11InputLayout> vertLayout;
 
 	CHECK_DX_ERROR(deviceAndContext.device->CreateInputLayout(
-		layout, numOfInputElement, pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), vertLayout.GetAddressOf()
+		layout, numOfInputElement, shader.pVSBlob.Get()->GetBufferPointer(), shader.pVSBlob.Get()->GetBufferSize(), vertLayout.GetAddressOf()
 	));
 
 	//Create Depth/Stencil 
