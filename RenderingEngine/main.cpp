@@ -326,7 +326,7 @@ int main()
 			}
 			
 			// transparent queue -> object with texture with alpha channel or object with color.w below 1.0f
-			if (newObj.isObjWithTexture && newObj.pObjTexture->hasAlphaChannel || newObj.objColor.w < 1.0f) {
+			if ((newObj.isObjWithTexture && newObj.pObjTexture->hasAlphaChannel) || (!newObj.isObjWithTexture && newObj.objColor.w < 1.0f)) {
 
 				// find its distance from cam
 				XMVECTOR objPosV{ newObj.objPos.x, newObj.objPos.y, newObj.objPos.z };
@@ -348,8 +348,6 @@ int main()
 			}
 			
 		}
-
-
 
 		// Alternating buffers
 		int currBackBuffer = static_cast<int>(swapchain.mainSwapchain->GetCurrentBackBufferIndex());
@@ -384,8 +382,11 @@ int main()
 		));
 
 		deviceAndContext.context->VSSetConstantBuffers(0u, 1u, cb.pConstBuffer.GetAddressOf());
-
 		deviceAndContext.context->PSSetConstantBuffers(0u, 1u, cb.pConstBuffer.GetAddressOf());
+
+		// Set blend state for opaque obj
+		float blendFactor[] = { .75f, .75f, .75f, 1.0f };
+		deviceAndContext.context->OMSetBlendState(0, 0, 0xffffffff);
 
 		// Draw all opaque objects
 		for (int i = 0; i < opaqueObjQ.size(); i++) {
