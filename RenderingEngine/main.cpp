@@ -251,6 +251,9 @@ int main()
 	std::vector<tre::Object> opaqueObjQ;
 	std::vector<tre::Object> transparentObjQ;
 
+	//set blend factor
+	float blendFactor[] = { 1, 1, 1, 1 };
+
 	// main loop
 	while (!input.shouldQuit())
 	{
