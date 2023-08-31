@@ -313,6 +313,7 @@ int main()
 				transparentObjQ[i].distFromCam = tre::Utility::distBetweentObjToCam(transparentObjQ[i].objPos, cam.camPositionV);
 			}
 			toSortTransparentQ = TRUE;
+			toRecalDistFromCam = FALSE;
 		}
 
 		// sort the vector -> object with greater dist from cam is at the front of the Q
