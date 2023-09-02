@@ -87,7 +87,7 @@ int main()
 	deviceAndContext.context->PSSetShader(shader.pPS.Get(), NULL, 0u);
 
 	// 3D objects
-	tre::Mesh meshes[2] = { 
+	tre::Mesh meshes[2] = {
 		tre::CubeMesh(deviceAndContext.device.Get()), 
 		tre::SphereMesh(deviceAndContext.device.Get(), 10, 10) 
 	};
