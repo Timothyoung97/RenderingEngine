@@ -28,6 +28,7 @@
 #include "rasterizer.h"
 #include "shader.h"
 #include "renderer.h"
+#include "light.h"
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 800;
@@ -200,6 +201,11 @@ int main()
 	//set blend factor
 	float blendFactor[] = { 1, 1, 1, 1 };
 
+	// set light
+	Light light{
+		XMFLOAT3(.25f, .5f, 1.0f), .0f, XMFLOAT4(.5f, .5f, .5f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
+	};
+
 	// main loop
 	while (!input.shouldQuit())
 	{
@@ -290,6 +296,7 @@ int main()
 
 		// Set camera view const buffer
 		cb.constBufferRescCam.matrix = XMMatrixMultiply(cam.camView, cam.camProjection);
+		cb.constBufferRescCam.light = light;
 
 		cb.csd.pSysMem = &cb.constBufferRescCam;
 
@@ -303,7 +310,7 @@ int main()
 		// Set blend state for opaque obj
 		deviceAndContext.context->OMSetBlendState(0, NULL, 0xffffffff);
 
-		//// Draw all opaque objects
+		// Draw all opaque objects
 		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cb, opaqueObjQ);
 
 		// Set blend state for transparent obj

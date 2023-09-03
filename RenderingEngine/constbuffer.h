@@ -6,11 +6,14 @@
 
 #include <vector>
 
+#include <light.h>
+
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;
 
 struct constBufferShaderRescCam {
 	XMMATRIX matrix;
+	Light light;
 };
 
 struct constBufferShaderRescModel {
