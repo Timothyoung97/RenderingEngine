@@ -33,10 +33,12 @@ void Renderer::draw(ID3D11Device* device, ID3D11DeviceContext* context, tre::Con
 			)
 		);
 		
+		XMMATRIX normalMatrix = XMMatrixTranspose(XMMatrixInverse(nullptr, cb.constBufferRescModel.transformationLocal));
+
 		XMFLOAT3X3 normalFloat3x3;
-		XMStoreFloat3x3(&normalFloat3x3, cb.constBufferRescModel.transformationLocal);
-		XMMATRIX normalMatrix = XMMatrixTranspose(XMMatrixInverse(nullptr, XMLoadFloat3x3(&normalFloat3x3)));
-		cb.constBufferRescModel.normalMatrix = normalMatrix;
+		XMStoreFloat3x3(&normalFloat3x3, normalMatrix);
+
+		cb.constBufferRescModel.normalMatrix = XMLoadFloat3x3(&normalFloat3x3);
 
 		cb.constBufferRescModel.isWithTexture = currObj.isObjWithTexture;
 		cb.constBufferRescModel.color = currObj.objColor;
@@ -48,6 +50,7 @@ void Renderer::draw(ID3D11Device* device, ID3D11DeviceContext* context, tre::Con
 			&cb.constantBufferDescModel, &cb.csd, cb.pConstBuffer.GetAddressOf()
 		));
 
+		//Set const buffer for pixel and vertex shader
 		context->VSSetConstantBuffers(1u, 1u, cb.pConstBuffer.GetAddressOf());
 		context->PSSetConstantBuffers(1u, 1u, cb.pConstBuffer.GetAddressOf());
 

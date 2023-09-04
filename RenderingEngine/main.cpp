@@ -202,16 +202,23 @@ int main()
 	float blendFactor[] = { 1, 1, 1, 1 };
 
 	// set light
-	Light light{
-		XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT4(.5f, .5f, .5f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
+	Light light {
+		XMFLOAT3(.0f, .0f, .0f),
+		.0f,
+		XMFLOAT3(.0f, .0f, .0f),
+		100.0f,
+		XMFLOAT3(.0f, .2f, .0f),
+		.0f,
+		XMFLOAT4(.1f, .1f, .1f, .1f),
+		XMFLOAT4(.5f, .5f, .5f, .5f)
 	};
 
-	float stackAngle = 45.0f;
+	float stackAngle = .0f;
 	float sectorAngle = .0f;
 
-	light.direction.x = XMScalarCos(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
-	light.direction.y = XMScalarSin(XMConvertToRadians(stackAngle));
-	light.direction.z = XMScalarSin(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
+	light.pos.x = XMScalarCos(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
+	light.pos.y = XMScalarSin(XMConvertToRadians(stackAngle));
+	light.pos.z = XMScalarSin(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
 
 	// main loop
 	while (!input.shouldQuit())
@@ -350,9 +357,9 @@ int main()
 		sectorAngle += 10.0f;
 		if (sectorAngle == 360.0f) sectorAngle = 0;
 
-		light.direction.x = XMScalarCos(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
-		light.direction.y = XMScalarSin(XMConvertToRadians(stackAngle));
-		light.direction.z = XMScalarSin(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
+		light.pos.x = XMScalarCos(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
+		light.pos.y = XMScalarSin(XMConvertToRadians(stackAngle));
+		light.pos.z = XMScalarSin(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
 		
 	}
 
