@@ -203,8 +203,15 @@ int main()
 
 	// set light
 	Light light{
-		XMFLOAT3(.25f, .5f, 1.0f), .0f, XMFLOAT4(.5f, .5f, .5f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
+		XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT4(.5f, .5f, .5f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
 	};
+
+	float stackAngle = 45.0f;
+	float sectorAngle = .0f;
+
+	light.direction.x = XMScalarCos(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
+	light.direction.y = XMScalarSin(XMConvertToRadians(stackAngle));
+	light.direction.z = XMScalarSin(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
 
 	// main loop
 	while (!input.shouldQuit())
@@ -339,6 +346,14 @@ int main()
 		}
 
 		deltaTime = timer.getDeltaTime();
+
+		sectorAngle += 10.0f;
+		if (sectorAngle == 360.0f) sectorAngle = 0;
+
+		light.direction.x = XMScalarCos(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
+		light.direction.y = XMScalarSin(XMConvertToRadians(stackAngle));
+		light.direction.z = XMScalarSin(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
+		
 	}
 
 	//Cleanup
