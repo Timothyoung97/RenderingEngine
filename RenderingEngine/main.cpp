@@ -202,16 +202,34 @@ int main()
 	float blendFactor[] = { 1, 1, 1, 1 };
 
 	// set light
-	Light light{
+	Light dirlight{
 		XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT4(.5f, .5f, .5f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
 	};
 
-	float stackAngle = 45.0f;
-	float sectorAngle = .0f;
+	float stackAngleDirLight = 45.0f;
+	float sectorAngleDirLight = .0f;
 
-	light.direction.x = XMScalarCos(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
-	light.direction.y = XMScalarSin(XMConvertToRadians(stackAngle));
-	light.direction.z = XMScalarSin(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
+	dirlight.direction.x = XMScalarCos(XMConvertToRadians(sectorAngleDirLight)) * XMScalarCos(XMConvertToRadians(stackAngleDirLight));
+	dirlight.direction.y = XMScalarSin(XMConvertToRadians(stackAngleDirLight));
+	dirlight.direction.z = XMScalarSin(XMConvertToRadians(sectorAngleDirLight)) * XMScalarCos(XMConvertToRadians(stackAngleDirLight));
+
+	PointLight pointLight{
+		XMFLOAT3(.0f, -3.0f, .0f),
+		.0f,
+		XMFLOAT3(.0f, .0f, .0f),
+		100.0f,
+		XMFLOAT3(.0f, .2f, .0f),
+		.0f,
+		XMFLOAT4(.1f, .1f, .1f, .1f),
+		XMFLOAT4(.5f, .5f, .5f, .5f)
+	};
+
+	float stackAnglePointLight = .0f;
+	float sectorAnglePointLight = .0f;
+
+	pointLight.pos.x = pointLight.pos.x + XMScalarCos(XMConvertToRadians(sectorAnglePointLight)) * XMScalarCos(XMConvertToRadians(stackAnglePointLight));
+	pointLight.pos.y = pointLight.pos.y + XMScalarSin(XMConvertToRadians(stackAnglePointLight));
+	pointLight.pos.z = pointLight.pos.z + XMScalarSin(XMConvertToRadians(sectorAnglePointLight)) * XMScalarCos(XMConvertToRadians(stackAnglePointLight));
 
 	// main loop
 	while (!input.shouldQuit())
@@ -303,7 +321,8 @@ int main()
 
 		// Set camera view const buffer
 		cb.constBufferRescCam.viewProjection = XMMatrixMultiply(cam.camView, cam.camProjection);
-		cb.constBufferRescCam.light = light;
+		cb.constBufferRescCam.light = dirlight;
+		cb.constBufferRescCam.pointLight = pointLight;
 
 		cb.csd.pSysMem = &cb.constBufferRescCam;
 
@@ -347,13 +366,19 @@ int main()
 
 		deltaTime = timer.getDeltaTime();
 
-		sectorAngle += 10.0f;
-		if (sectorAngle == 360.0f) sectorAngle = 0;
+		sectorAngleDirLight += 10.0f;
+		if (sectorAngleDirLight == 360.0f) sectorAngleDirLight = 0;
 
-		light.direction.x = XMScalarCos(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
-		light.direction.y = XMScalarSin(XMConvertToRadians(stackAngle));
-		light.direction.z = XMScalarSin(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
-		
+		dirlight.direction.x = XMScalarCos(XMConvertToRadians(sectorAngleDirLight)) * XMScalarCos(XMConvertToRadians(stackAngleDirLight));
+		dirlight.direction.y = XMScalarSin(XMConvertToRadians(stackAngleDirLight));
+		dirlight.direction.z = XMScalarSin(XMConvertToRadians(sectorAngleDirLight)) * XMScalarCos(XMConvertToRadians(stackAngleDirLight));
+
+		sectorAnglePointLight += 10.0f;
+		if (sectorAnglePointLight == 360.0f) sectorAnglePointLight = 0;
+
+		pointLight.pos.x = pointLight.pos.x + XMScalarCos(XMConvertToRadians(sectorAnglePointLight)) * XMScalarCos(XMConvertToRadians(stackAnglePointLight));
+		pointLight.pos.y = pointLight.pos.y + XMScalarSin(XMConvertToRadians(stackAnglePointLight));
+		pointLight.pos.z = pointLight.pos.z + XMScalarSin(XMConvertToRadians(sectorAnglePointLight)) * XMScalarCos(XMConvertToRadians(stackAnglePointLight));
 	}
 
 	//Cleanup
