@@ -17,6 +17,14 @@ Graphics Tasks:
     • non-trivial general-purpose scene rendering
     • Example high quality obj scenes: https://casual-effects.com/data/index.html
     • Start with the cube
+• Shadow Maps
+    • Start with simple single-cascade hard shadows
+    • Render opaque geometry in Directional Light-Space w/ front-face culling to a high resolution shadow map
+    • Generate Shadow Mask Texture
+    • Sample Shadow Mask Texture in Shader to attenuate lighting
+    • Implement soft shadows via PCF
+        • Further improve soft shadows with with a "Comparison Sampler"
+    • Improve resolution with Cascaded Shadow Maps
 
 Done:
 • init d3d11 device/context, and clear swap chain to grey color
