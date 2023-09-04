@@ -90,7 +90,7 @@ void ps_main (
         fColor /= light.att[0] + (light.att[1] * d) + (light.att[2] * (d*d)); // Light's falloff factor
     }
 
-    fColor = saturate(fColor + sampleTexture.xyz * 0.1); // add ambient light
+    fColor = saturate(fColor + sampleTexture.xyz * 0.1); // add ambient light (using hardcoded ambient light)
 
     outTarget = float4(fColor, sampleTexture.a); // RGB + Alpha Channel
 };
