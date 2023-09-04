@@ -66,7 +66,7 @@ void ps_main (
     // Final Color
     float3 fColor;
     fColor = sampleTexture.xyz * light.ambient.xyz;
-    fColor += saturate(dot(light.dir, vOutNormal.xyz) * light.diffuse.xyz * sampleTexture.xyz);
+    fColor += saturate(dot(light.dir, vOutNormal.xyz)) * light.diffuse.xyz * sampleTexture.xyz;
 
     outTarget = float4(fColor, sampleTexture.a);
 };
