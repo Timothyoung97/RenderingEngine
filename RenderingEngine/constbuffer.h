@@ -12,12 +12,13 @@ using namespace DirectX;
 using Microsoft::WRL::ComPtr;
 
 struct constBufferShaderRescCam {
-	XMMATRIX matrix;
+	XMMATRIX viewProjection;
 	Light light;
 };
 
 struct constBufferShaderRescModel {
-	XMMATRIX matrix;
+	XMMATRIX transformationLocal;
+	XMMATRIX normalMatrix;
 	XMFLOAT4 color;
 	UINT isWithTexture;
 };

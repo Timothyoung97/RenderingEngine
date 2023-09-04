@@ -13,6 +13,7 @@ cbuffer constBuffer : register(b0) {
 // Per Object
 cbuffer constBuffer2 : register(b1) {
     matrix transformation;
+    matrix normalMatrix;
     float4 color;
     uint isWithTexture;
 };
@@ -36,9 +37,8 @@ void vs_main (
     outPosition = mul(viewProjection, localPos);
 
     // Normal
-    float4 tempInNormal = float4(inNormal, 1);
-    float4 localNormal = mul(transformation, tempInNormal);
-    outNormal = mul(viewProjection, localNormal);
+    float4 tempInNormal = float4(inNormal, 0);
+    outNormal = mul(normalMatrix, tempInNormal);
 
     // Texture
     outTexCoord = inTexCoord;
