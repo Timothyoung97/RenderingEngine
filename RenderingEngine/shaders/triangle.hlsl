@@ -1,5 +1,11 @@
 struct Light {
     float3 dir;
+    float4 ambient;
+    float4 diffuse;
+};
+
+struct PointLight {
+    float3 dir;
     float3 pos;
     float range;
     float3 att;
@@ -10,7 +16,10 @@ struct Light {
 // Global 
 cbuffer constBuffer : register(b0) {
     matrix viewProjection;
-    Light light;
+    // add inverse viewProject
+    Light dirLight;
+    PointLight pointLight;
+
 };
 
 // Per Object
@@ -71,22 +80,23 @@ void ps_main (
         sampleTexture = color;
     }
 
-    // init pixel color with hardcoded ambient
-    float3 fColor = sampleTexture.xyz * 0.1f;
+    // init pixel color with directional light
+    float3 fColor = saturate(dot(dirLight.dir, vOutNormal.xyz)) * dirLight.diffuse.xyz * sampleTexture.xyz;
+    fColor += sampleTexture.xyz * .1f; // with ambient lighting
 
     // vector between light pos and pixel pos
-    float3 pixelToLightV = light.pos - vOutLocalPosition.xyz; 
+    float3 pixelToLightV = pointLight.pos - vOutLocalPosition.xyz;
     float d = length(pixelToLightV);
 
     // local lighting
     float3 localLight = float3(.0f, .0f, .0f);
-    if (d <= light.range) {
+    if (d <= pointLight.range) {
         pixelToLightV = pixelToLightV / d; // convert pixelToLightV to an unit vector
         float cosAngle = dot(pixelToLightV, vOutNormal.xyz); // find the cos(angle) between light and normal
 
         if (cosAngle > 0.0f) {
-            localLight = cosAngle * sampleTexture.xyz * light.diffuse.xyz; // add light to finalColor of pixel
-            localLight = localLight / (light.att[0] + (light.att[1] * d) + (light.att[2] * (d*d))); // Light's falloff factor
+            localLight = cosAngle * sampleTexture.xyz * pointLight.diffuse.xyz; // add light to finalColor of pixel
+            localLight = localLight / (pointLight.att[0] + (pointLight.att[1] * d) + (pointLight.att[2] * (d*d))); // Light's falloff factor
         }
     }
 

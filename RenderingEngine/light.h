@@ -6,6 +6,13 @@ using namespace DirectX;
 
 struct Light {
 	XMFLOAT3 direction;
+	float pad;
+	XMFLOAT4 ambient;
+	XMFLOAT4 diffuse;
+};
+
+struct PointLight {
+	XMFLOAT3 direction;
 	float pad1;
 	XMFLOAT3 pos;
 	float range;
