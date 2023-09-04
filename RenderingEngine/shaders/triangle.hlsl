@@ -1,5 +1,8 @@
 struct Light {
     float3 dir;
+    float3 pos;
+    float range;
+    float3 att;
     float4 ambient;
     float4 diffuse;
 };
@@ -63,10 +66,31 @@ void ps_main (
         sampleTexture = color;
     }
 
-    // Final Color
-    float3 fColor;
-    fColor = saturate(dot(light.dir, vOutNormal.xyz)) * light.diffuse.xyz * sampleTexture.xyz;
-    fColor += sampleTexture.xyz * 0.1;
+    // init pixel color
+    float3 fColor = float3(0.0f, 0.0f, 0.0f);
+
+    // vector between light pos and pixel pos
+    float3 PixelToLightV = light.pos - vOutPosition.xyz; 
+    float d = length(PixelToLightV);
+
+    // ambient
+    float3 fAmbient = sampleTexture.xyz * 0.1f;
+
+    // out of range pixel
+    if (d > light.range) {
+        outTarget = float4(fAmbient, sampleTexture.a);
+        return;
+    }
+
+    PixelToLightV /= d; // convert PixelToLightV to an unit vector
+    float cosAngle = dot(PixelToLightV, vOutNormal.xyz); // find the cos(angle) between light and normal
+
+    if (cosAngle > 0.0f) {
+        fColor += cosAngle * sampleTexture.xyz * light.diffuse.xyz; // add light to finalColor of pixel
+        fColor /= light.att[0] + (light.att[1] * d) + (light.att[2] * (d*d)); // Light's falloff factor
+    }
+
+    fColor = saturate(fColor + sampleTexture.xyz * 0.1); // add ambient light
 
     outTarget = float4(fColor, sampleTexture.a); // RGB + Alpha Channel
 };
