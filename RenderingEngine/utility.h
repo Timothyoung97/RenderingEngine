@@ -20,5 +20,6 @@ public:
 	static float getRandomFloat(float maxValue);
 	static float getRandomFloatRange(float minValue, float maxValue);
 	static float distBetweentObjToCam(XMFLOAT3 objPosF, XMVECTOR camPosV);
+	static XMFLOAT3 getRotatePosition(XMFLOAT3 objOrigin, float stackAngle, float sectorAngle, float radius);
 };
 }

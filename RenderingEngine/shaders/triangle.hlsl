@@ -81,7 +81,7 @@ void ps_main (
 
     // init pixel color with directional light
     float3 fColor = saturate(dot(dirLight.dir, vOutNormal.xyz)) * dirLight.diffuse.xyz * sampleTexture.xyz;
-    fColor += sampleTexture.xyz * .1f; // with ambient lighting
+    fColor += sampleTexture.xyz * .1f; // with ambient lighting (hard coded)
 
     float3 pixelLightColor = float3(.0f, .0f, .0f);
 
