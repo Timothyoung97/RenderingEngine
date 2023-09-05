@@ -25,6 +25,10 @@ Graphics Tasks:
     • Implement soft shadows via PCF
         • Further improve soft shadows with with a "Comparison Sampler"
     • Improve resolution with Cascaded Shadow Maps
+• Deferred Shading Renderer
+    • 2 GBuffers to start: Albedo & Normal
+    • Full screen pass (Quad or Triangle) for lighting
+        • Reconstruct world position from depth buffer
 
 Done:
 • init d3d11 device/context, and clear swap chain to grey color
