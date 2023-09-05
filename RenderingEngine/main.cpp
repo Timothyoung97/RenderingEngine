@@ -85,8 +85,9 @@ int main()
 	//Load pre-compiled shaders
 	tre::VertexShader vertex_shader(util.basePathWstr + L"shaders\\vertex_shader.bin", deviceAndContext.device.Get());
 	tre::PixelShader pixel_shader(util.basePathWstr + L"shaders\\pixel_shader.bin", deviceAndContext.device.Get());
+	tre::PixelShader light_pixel_shader(util.basePathWstr + L"shaders\\light_pixel.bin", deviceAndContext.device.Get());
+
 	deviceAndContext.context->VSSetShader(vertex_shader.pShader.Get(), NULL, 0u);
-	deviceAndContext.context->PSSetShader(pixel_shader.pShader.Get(), NULL, 0u);
 
 	// 3D objects
 	tre::Mesh meshes[2] = {
@@ -338,6 +339,9 @@ int main()
 		// Set blend state for opaque obj
 		deviceAndContext.context->OMSetBlendState(0, NULL, 0xffffffff);
 
+		// Set Pixel Shader
+		deviceAndContext.context->PSSetShader(pixel_shader.pShader.Get(), NULL, 0u);
+
 		// Draw all opaque objects
 		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateFCCW.Get(), cb, opaqueObjQ);
 
@@ -384,6 +388,9 @@ int main()
 		if (stackAnglePtLight[3] == 360.0f) stackAnglePtLight[3] = .0f;
 		pointLight[3].pos = tre::Utility::getRotatePosition(originPtLight[3], stackAnglePtLight[3], sectorAnglePtLight[3], 5.0f);
 		lightObjQ[3].objPos = pointLight[3].pos;
+
+		// Set Pixel Shader for light
+		deviceAndContext.context->PSSetShader(light_pixel_shader.pShader.Get(), NULL, 0u);
 
 		// Draw all light object wireframe
 		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, lightObjQ);
