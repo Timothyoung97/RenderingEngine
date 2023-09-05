@@ -206,19 +206,16 @@ int main()
 		XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT4(.5f, .5f, .5f, 1.0f), XMFLOAT4(.0f, .0f, .0f, .0f)
 	};
 
-	float stackAngleDirLight = 45.0f;
-	float sectorAngleDirLight = .0f;
-
-	dirlight.direction.x = XMScalarCos(XMConvertToRadians(sectorAngleDirLight)) * XMScalarCos(XMConvertToRadians(stackAngleDirLight));
-	dirlight.direction.y = XMScalarSin(XMConvertToRadians(stackAngleDirLight));
-	dirlight.direction.z = XMScalarSin(XMConvertToRadians(sectorAngleDirLight)) * XMScalarCos(XMConvertToRadians(stackAngleDirLight));
-
 	PointLight pointLight[4] = {
-		{ XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT3(3.0f, .0f, 3.0f), 100.0f, XMFLOAT3(.0f, .2f, .0f), .0f, XMFLOAT4(.1f, .1f, .1f, .1f), XMFLOAT4(.5f, .5f, .5f, .5f) },
-		{ XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT3(3.0f, .0f, -3.0f), 100.0f, XMFLOAT3(.0f, .2f, .0f), .0f, XMFLOAT4(.1f, .1f, .1f, .1f), XMFLOAT4(.5f, .5f, .5f, .5f) },
-		{ XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT3(-3.0f, .0f, 3.0f), 100.0f, XMFLOAT3(.0f, .2f, .0f), .0f, XMFLOAT4(.1f, .1f, .1f, .1f), XMFLOAT4(.5f, .5f, .5f, .5f) },
-		{ XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT3(-3.0f, .0f, -3.0f), 100.0f, XMFLOAT3(.0f, .2f, .0f), .0f, XMFLOAT4(.1f, .1f, .1f, .1f), XMFLOAT4(.5f, .5f, .5f, .5f) },
+		{ XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT3(.0f, .0f, .0f), 100.0f, XMFLOAT3(.0f, .2f, .0f), .0f, XMFLOAT4(.1f, .1f, .1f, .1f), XMFLOAT4(.5f, .5f, .5f, .5f) },
+		{ XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT3(.0f, .0f, .0f), 100.0f, XMFLOAT3(.0f, .2f, .0f), .0f, XMFLOAT4(.1f, .1f, .1f, .1f), XMFLOAT4(.5f, .5f, .5f, .5f) },
+		{ XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT3(.0f, .0f, .0f), 100.0f, XMFLOAT3(.0f, .2f, .0f), .0f, XMFLOAT4(.1f, .1f, .1f, .1f), XMFLOAT4(.5f, .5f, .5f, .5f) },
+		{ XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT3(.0f, .0f, .0f), 100.0f, XMFLOAT3(.0f, .2f, .0f), .0f, XMFLOAT4(.1f, .1f, .1f, .1f), XMFLOAT4(.5f, .5f, .5f, .5f) },
 	};
+
+	float stackAnglePtLight[] = { .0f, .0f, .0f, .0f };
+	float sectorAnglePtLight[] = { .0f, .0f, .0f, -90.0f };
+	XMFLOAT3 originPtLight[] = { XMFLOAT3(3.0f, 3.0f, 3.0f),  XMFLOAT3(-3.0f, -3.0f, -3.0f), XMFLOAT3(.0f, .0f, .0f), XMFLOAT3(-1.0f, .0f, -1.0f) };
 
 	// main loop
 	while (!input.shouldQuit())
@@ -350,17 +347,30 @@ int main()
 
 		CHECK_DX_ERROR(swapchain.mainSwapchain->Present( 0, 0) );
 
-		while (timer.getDeltaTime() < 1000.0 / 60) {
+		while (timer.getDeltaTime() < 1000.0 / 30) {
 		}
 
 		deltaTime = timer.getDeltaTime();
 
-		sectorAngleDirLight += 10.0f;
-		if (sectorAngleDirLight == 360.0f) sectorAngleDirLight = 0;
+		// rotate point light 1
+		sectorAnglePtLight[0] += 1.0f;
+		if (sectorAnglePtLight[0] == 360.0f) sectorAnglePtLight[0] = .0f;
+		pointLight[0].pos = tre::Utility::getRotatePosition(originPtLight[0], stackAnglePtLight[0], sectorAnglePtLight[0], 1.0f);
 
-		//dirlight.direction.x = XMScalarCos(XMConvertToRadians(sectorAngleDirLight)) * XMScalarCos(XMConvertToRadians(stackAngleDirLight));
-		//dirlight.direction.y = XMScalarSin(XMConvertToRadians(stackAngleDirLight));
-		//dirlight.direction.z = XMScalarSin(XMConvertToRadians(sectorAngleDirLight)) * XMScalarCos(XMConvertToRadians(stackAngleDirLight));
+		// rotate point light 2
+		stackAnglePtLight[1] += 1.0f;
+		if (stackAnglePtLight[1] == 360.0f) stackAnglePtLight[1] = .0f;
+		pointLight[1].pos = tre::Utility::getRotatePosition(originPtLight[1], stackAnglePtLight[1], sectorAnglePtLight[1], 1.0f);
+
+		// rotate point light 3
+		sectorAnglePtLight[2] += 5.0f;
+		if (sectorAnglePtLight[2] == 360.0f) sectorAnglePtLight[2] = .0f;
+		pointLight[2].pos = tre::Utility::getRotatePosition(originPtLight[2], stackAnglePtLight[2], sectorAnglePtLight[2], 5.0f);
+
+		// rotate point light 4
+		stackAnglePtLight[3] += 5.0f;
+		if (stackAnglePtLight[3] == 360.0f) stackAnglePtLight[3] = .0f;
+		pointLight[3].pos = tre::Utility::getRotatePosition(originPtLight[3], stackAnglePtLight[3], sectorAnglePtLight[3], 5.0f);
 	}
 
 	//Cleanup
