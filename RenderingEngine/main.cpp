@@ -203,7 +203,7 @@ int main()
 
 	// set light
 	Light dirlight{
-		XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT4(.5f, .5f, .5f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
+		XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT4(.5f, .5f, .5f, 1.0f), XMFLOAT4(.0f, .0f, .0f, .0f)
 	};
 
 	float stackAngleDirLight = 45.0f;
@@ -213,23 +213,12 @@ int main()
 	dirlight.direction.y = XMScalarSin(XMConvertToRadians(stackAngleDirLight));
 	dirlight.direction.z = XMScalarSin(XMConvertToRadians(sectorAngleDirLight)) * XMScalarCos(XMConvertToRadians(stackAngleDirLight));
 
-	PointLight pointLight{
-		XMFLOAT3(.0f, -3.0f, .0f),
-		.0f,
-		XMFLOAT3(.0f, .0f, .0f),
-		100.0f,
-		XMFLOAT3(.0f, .2f, .0f),
-		.0f,
-		XMFLOAT4(.1f, .1f, .1f, .1f),
-		XMFLOAT4(.5f, .5f, .5f, .5f)
+	PointLight pointLight[4] = {
+		{ XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT3(3.0f, .0f, 3.0f), 100.0f, XMFLOAT3(.0f, .2f, .0f), .0f, XMFLOAT4(.1f, .1f, .1f, .1f), XMFLOAT4(.5f, .5f, .5f, .5f) },
+		{ XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT3(3.0f, .0f, -3.0f), 100.0f, XMFLOAT3(.0f, .2f, .0f), .0f, XMFLOAT4(.1f, .1f, .1f, .1f), XMFLOAT4(.5f, .5f, .5f, .5f) },
+		{ XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT3(-3.0f, .0f, 3.0f), 100.0f, XMFLOAT3(.0f, .2f, .0f), .0f, XMFLOAT4(.1f, .1f, .1f, .1f), XMFLOAT4(.5f, .5f, .5f, .5f) },
+		{ XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT3(-3.0f, .0f, -3.0f), 100.0f, XMFLOAT3(.0f, .2f, .0f), .0f, XMFLOAT4(.1f, .1f, .1f, .1f), XMFLOAT4(.5f, .5f, .5f, .5f) },
 	};
-
-	float stackAnglePointLight = .0f;
-	float sectorAnglePointLight = .0f;
-
-	pointLight.pos.x = pointLight.pos.x + XMScalarCos(XMConvertToRadians(sectorAnglePointLight)) * XMScalarCos(XMConvertToRadians(stackAnglePointLight));
-	pointLight.pos.y = pointLight.pos.y + XMScalarSin(XMConvertToRadians(stackAnglePointLight));
-	pointLight.pos.z = pointLight.pos.z + XMScalarSin(XMConvertToRadians(sectorAnglePointLight)) * XMScalarCos(XMConvertToRadians(stackAnglePointLight));
 
 	// main loop
 	while (!input.shouldQuit())
@@ -322,7 +311,7 @@ int main()
 		// Set camera view const buffer
 		cb.constBufferRescCam.viewProjection = XMMatrixMultiply(cam.camView, cam.camProjection);
 		cb.constBufferRescCam.light = dirlight;
-		cb.constBufferRescCam.pointLight = pointLight;
+		std::copy(std::begin(pointLight), std::end(pointLight), std::begin(cb.constBufferRescCam.pointLight));
 
 		cb.csd.pSysMem = &cb.constBufferRescCam;
 
@@ -361,7 +350,7 @@ int main()
 
 		CHECK_DX_ERROR(swapchain.mainSwapchain->Present( 0, 0) );
 
-		while (timer.getDeltaTime() < 1000.0 / 30) {
+		while (timer.getDeltaTime() < 1000.0 / 60) {
 		}
 
 		deltaTime = timer.getDeltaTime();
@@ -369,16 +358,9 @@ int main()
 		sectorAngleDirLight += 10.0f;
 		if (sectorAngleDirLight == 360.0f) sectorAngleDirLight = 0;
 
-		dirlight.direction.x = XMScalarCos(XMConvertToRadians(sectorAngleDirLight)) * XMScalarCos(XMConvertToRadians(stackAngleDirLight));
-		dirlight.direction.y = XMScalarSin(XMConvertToRadians(stackAngleDirLight));
-		dirlight.direction.z = XMScalarSin(XMConvertToRadians(sectorAngleDirLight)) * XMScalarCos(XMConvertToRadians(stackAngleDirLight));
-
-		sectorAnglePointLight += 10.0f;
-		if (sectorAnglePointLight == 360.0f) sectorAnglePointLight = 0;
-
-		pointLight.pos.x = pointLight.pos.x + XMScalarCos(XMConvertToRadians(sectorAnglePointLight)) * XMScalarCos(XMConvertToRadians(stackAnglePointLight));
-		pointLight.pos.y = pointLight.pos.y + XMScalarSin(XMConvertToRadians(stackAnglePointLight));
-		pointLight.pos.z = pointLight.pos.z + XMScalarSin(XMConvertToRadians(sectorAnglePointLight)) * XMScalarCos(XMConvertToRadians(stackAnglePointLight));
+		//dirlight.direction.x = XMScalarCos(XMConvertToRadians(sectorAngleDirLight)) * XMScalarCos(XMConvertToRadians(stackAngleDirLight));
+		//dirlight.direction.y = XMScalarSin(XMConvertToRadians(stackAngleDirLight));
+		//dirlight.direction.z = XMScalarSin(XMConvertToRadians(sectorAngleDirLight)) * XMScalarCos(XMConvertToRadians(stackAngleDirLight));
 	}
 
 	//Cleanup

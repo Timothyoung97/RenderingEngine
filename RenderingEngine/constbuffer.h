@@ -14,7 +14,7 @@ using Microsoft::WRL::ComPtr;
 struct constBufferShaderRescCam {
 	XMMATRIX viewProjection;
 	Light light;
-	PointLight pointLight;
+	PointLight pointLight[4];
 };
 
 struct constBufferShaderRescModel {
