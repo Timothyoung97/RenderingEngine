@@ -32,8 +32,8 @@
 #include "light.h"
 
 //Screen dimension constants
-const int SCREEN_WIDTH = 800;
-const int SCREEN_HEIGHT = 800;
+const int SCREEN_WIDTH = 1920;
+const int SCREEN_HEIGHT = 1020;
 
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;
