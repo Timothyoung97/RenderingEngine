@@ -8,13 +8,9 @@
 #include "object.h"
 #include "constbuffer.h"
 
-
 namespace tre {
 class Renderer {
 public:
-
-	Renderer();
-
-	void draw(ID3D11Device* device, ID3D11DeviceContext* context, tre::ConstantBuffer& cb, const std::vector<Object>& objQ);
+	void draw(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11RasterizerState* rasterizerState, tre::ConstantBuffer& cb, const std::vector<Object>& objQ);
 };
 }

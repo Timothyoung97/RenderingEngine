@@ -5,8 +5,6 @@ using Microsoft::WRL::ComPtr;
 
 namespace tre {
 
-Swapchain::Swapchain() {};
-
 void Swapchain::DescSwapchain(int screenWidth, int screenHeight) {
 
 	swapChainDesc = {};

@@ -6,8 +6,6 @@
 
 namespace tre {
 
-Mesh::Mesh() {};
-
 CubeMesh::CubeMesh(ID3D11Device* device) {
 	create(device);
 }

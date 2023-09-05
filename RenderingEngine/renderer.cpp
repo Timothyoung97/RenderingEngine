@@ -5,10 +5,10 @@
 
 namespace tre {
 
-Renderer::Renderer() {}
+void Renderer::draw(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11RasterizerState* rasterizerState, tre::ConstantBuffer& cb, const std::vector<Object>& objQ) {
 
-void Renderer::draw(ID3D11Device* device, ID3D11DeviceContext* context, tre::ConstantBuffer& cb, const std::vector<Object>& objQ) {
-
+	context->RSSetState(rasterizerState);
+	
 	for (int i = 0; i < objQ.size(); i++) {
 
 		const tre::Object& currObj = objQ[i];

@@ -22,6 +22,7 @@
 #include "utility.h"
 #include "camera.h"
 #include "constbuffer.h"
+#include "depthbuffer.h"
 #include "texture.h"
 #include "object.h"
 #include "sampler.h"
@@ -83,9 +84,11 @@ int main()
 	deviceAndContext.context->PSSetSamplers(0, 1, sampler.pSamplerState.GetAddressOf());
 
 	//Load pre-compiled shaders
-	tre::Shader shader(util.basePathWstr + L"shaders\\vertex_shader.bin", util.basePathWstr + L"shaders\\pixel_shader.bin", deviceAndContext.device.Get());
-	deviceAndContext.context->VSSetShader(shader.pVS.Get(), NULL, 0u);
-	deviceAndContext.context->PSSetShader(shader.pPS.Get(), NULL, 0u);
+	tre::VertexShader vertex_shader(util.basePathWstr + L"shaders\\vertex_shader.bin", deviceAndContext.device.Get());
+	tre::PixelShader pixel_shader(util.basePathWstr + L"shaders\\pixel_shader.bin", deviceAndContext.device.Get());
+	tre::PixelShader light_pixel_shader(util.basePathWstr + L"shaders\\light_pixel.bin", deviceAndContext.device.Get());
+
+	deviceAndContext.context->VSSetShader(vertex_shader.pShader.Get(), NULL, 0u);
 
 	// 3D objects
 	tre::Mesh meshes[2] = {
@@ -104,33 +107,11 @@ int main()
 	ComPtr<ID3D11InputLayout> vertLayout;
 
 	CHECK_DX_ERROR(deviceAndContext.device->CreateInputLayout(
-		layout, numOfInputElement, shader.pVSBlob.Get()->GetBufferPointer(), shader.pVSBlob.Get()->GetBufferSize(), vertLayout.GetAddressOf()
+		layout, numOfInputElement, vertex_shader.pBlob.Get()->GetBufferPointer(), vertex_shader.pBlob.Get()->GetBufferSize(), vertLayout.GetAddressOf()
 	));
 
 	//Create Depth/Stencil 
-	ComPtr<ID3D11DepthStencilView> depthStencilView;
-	ComPtr<ID3D11Texture2D> depthStencilBuffer;
-
-	D3D11_TEXTURE2D_DESC depthStencilDesc;
-	depthStencilDesc.Width = SCREEN_WIDTH;
-	depthStencilDesc.Height = SCREEN_HEIGHT;
-	depthStencilDesc.MipLevels = 1;
-	depthStencilDesc.ArraySize = 1;
-	depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	depthStencilDesc.SampleDesc.Count = 1;
-	depthStencilDesc.SampleDesc.Quality = 0;
-	depthStencilDesc.Usage = D3D11_USAGE_DEFAULT;
-	depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-	depthStencilDesc.CPUAccessFlags = 0;
-	depthStencilDesc.MiscFlags = 0;
-
-	CHECK_DX_ERROR(deviceAndContext.device->CreateTexture2D(
-		&depthStencilDesc, nullptr, depthStencilBuffer.GetAddressOf()
-	));
-
-	CHECK_DX_ERROR(deviceAndContext.device->CreateDepthStencilView(
-		depthStencilBuffer.Get(), nullptr, depthStencilView.GetAddressOf()
-	));
+	tre::DepthBuffer depthBuffer(deviceAndContext.device.Get(), SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	//Blend State
 	ID3D11BlendState* transparency;
@@ -170,9 +151,8 @@ int main()
 	//Set Viewport
 	deviceAndContext.context->RSSetViewports(1, &viewport);
 
-	//Create & Set rasterizer buffer
+	//Create rasterizer buffer
 	tre::Rasterizer rasterizer(deviceAndContext.device.Get());
-	deviceAndContext.context->RSSetState(rasterizer.pRasterizerStateFCCW.Get());
 
 	//Input Handler
 	tre::Input input;
@@ -203,33 +183,36 @@ int main()
 
 	// set light
 	Light dirlight{
-		XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT4(.5f, .5f, .5f, 1.0f), XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
+		XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT4(.5f, .5f, .5f, 1.0f), XMFLOAT4(.0f, .0f, .0f, .0f)
 	};
 
-	float stackAngleDirLight = 45.0f;
-	float sectorAngleDirLight = .0f;
-
-	dirlight.direction.x = XMScalarCos(XMConvertToRadians(sectorAngleDirLight)) * XMScalarCos(XMConvertToRadians(stackAngleDirLight));
-	dirlight.direction.y = XMScalarSin(XMConvertToRadians(stackAngleDirLight));
-	dirlight.direction.z = XMScalarSin(XMConvertToRadians(sectorAngleDirLight)) * XMScalarCos(XMConvertToRadians(stackAngleDirLight));
-
-	PointLight pointLight{
-		XMFLOAT3(.0f, -3.0f, .0f),
-		.0f,
-		XMFLOAT3(.0f, .0f, .0f),
-		100.0f,
-		XMFLOAT3(.0f, .2f, .0f),
-		.0f,
-		XMFLOAT4(.1f, .1f, .1f, .1f),
-		XMFLOAT4(.5f, .5f, .5f, .5f)
+	PointLight pointLight[4] = {
+		{ XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT3(.0f, .0f, .0f), 100.0f, XMFLOAT3(.0f, .2f, .0f), .0f, XMFLOAT4(.1f, .1f, .1f, .1f), XMFLOAT4(.5f, .5f, .5f, .5f) },
+		{ XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT3(.0f, .0f, .0f), 100.0f, XMFLOAT3(.0f, .2f, .0f), .0f, XMFLOAT4(.1f, .1f, .1f, .1f), XMFLOAT4(.5f, .5f, .5f, .5f) },
+		{ XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT3(.0f, .0f, .0f), 100.0f, XMFLOAT3(.0f, .2f, .0f), .0f, XMFLOAT4(.1f, .1f, .1f, .1f), XMFLOAT4(.5f, .5f, .5f, .5f) },
+		{ XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT3(.0f, .0f, .0f), 100.0f, XMFLOAT3(.0f, .2f, .0f), .0f, XMFLOAT4(.1f, .1f, .1f, .1f), XMFLOAT4(.5f, .5f, .5f, .5f) },
 	};
 
-	float stackAnglePointLight = .0f;
-	float sectorAnglePointLight = .0f;
+	float stackAnglePtLight[] = { .0f, .0f, .0f, .0f };
+	float sectorAnglePtLight[] = { .0f, .0f, .0f, -90.0f };
+	XMFLOAT3 originPtLight[] = { XMFLOAT3(3.0f, 3.0f, 3.0f),  XMFLOAT3(-3.0f, -3.0f, -3.0f), XMFLOAT3(.0f, .0f, .0f), XMFLOAT3(-1.0f, .0f, -1.0f) };
 
-	pointLight.pos.x = pointLight.pos.x + XMScalarCos(XMConvertToRadians(sectorAnglePointLight)) * XMScalarCos(XMConvertToRadians(stackAnglePointLight));
-	pointLight.pos.y = pointLight.pos.y + XMScalarSin(XMConvertToRadians(stackAnglePointLight));
-	pointLight.pos.z = pointLight.pos.z + XMScalarSin(XMConvertToRadians(sectorAnglePointLight)) * XMScalarCos(XMConvertToRadians(stackAnglePointLight));
+	// light wireframe obj
+	std::vector<tre::Object> lightObjQ;
+
+	for (int i = 0; i < 4; i++) {
+		tre::Object newLightObj;
+
+		newLightObj.pObjMesh = &meshes[1]; // sphere
+		newLightObj.objPos = originPtLight[i];
+		newLightObj.objScale = XMFLOAT3(1.0f, 1.0f, 1.0f);
+		newLightObj.objRotation = XMFLOAT3(.0f, .0f, .0f);
+		newLightObj.pObjTexture = &textures[0];
+		newLightObj.isObjWithTexture = 0;
+		newLightObj.objColor = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+
+		lightObjQ.push_back(newLightObj);
+	}
 
 	// main loop
 	while (!input.shouldQuit())
@@ -269,14 +252,13 @@ int main()
 			newObj.objPos = XMFLOAT3(tre::Utility::getRandomFloatRange(-5, 5), tre::Utility::getRandomFloatRange(-5, 5), tre::Utility::getRandomFloatRange(-5, 5));
 			newObj.objScale = XMFLOAT3(scaleVal, scaleVal, scaleVal);
 			newObj.objRotation = XMFLOAT3(tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360));
+			newObj.pObjTexture = &textures[tre::Utility::getRandomInt(2)];
 
 			// With/Without texture
 			if (tre::Utility::getRandomInt(1) == 1) {
-				newObj.pObjTexture = &textures[tre::Utility::getRandomInt(2)];
 				newObj.isObjWithTexture = 1;
 				newObj.objColor = XMFLOAT4();
 			} else {
-				newObj.pObjTexture = &textures[tre::Utility::getRandomInt(2)];
 				newObj.isObjWithTexture = 0;
 				newObj.objColor = colors[tre::Utility::getRandomInt(9)];
 			}
@@ -313,16 +295,16 @@ int main()
 			backBuffer, NULL, &renderTargetView
 		));
 
-		deviceAndContext.context->OMSetRenderTargets(1, &renderTargetView, depthStencilView.Get());
+		deviceAndContext.context->OMSetRenderTargets(1, &renderTargetView, depthBuffer.depthStencilView.Get());
 		
 		deviceAndContext.context->ClearRenderTargetView(renderTargetView, bgColor);
 
-		deviceAndContext.context->ClearDepthStencilView(depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+		deviceAndContext.context->ClearDepthStencilView(depthBuffer.depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 		// Set camera view const buffer
 		cb.constBufferRescCam.viewProjection = XMMatrixMultiply(cam.camView, cam.camProjection);
 		cb.constBufferRescCam.light = dirlight;
-		cb.constBufferRescCam.pointLight = pointLight;
+		std::copy(std::begin(pointLight), std::end(pointLight), std::begin(cb.constBufferRescCam.pointLight));
 
 		cb.csd.pSysMem = &cb.constBufferRescCam;
 
@@ -336,8 +318,14 @@ int main()
 		// Set blend state for opaque obj
 		deviceAndContext.context->OMSetBlendState(0, NULL, 0xffffffff);
 
+		// Set depth test for opaque obj
+		deviceAndContext.context->OMSetDepthStencilState(depthBuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
+
+		// Set Pixel Shader
+		deviceAndContext.context->PSSetShader(pixel_shader.pShader.Get(), NULL, 0u);
+
 		// Draw all opaque objects
-		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cb, opaqueObjQ);
+		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateFCCW.Get(), cb, opaqueObjQ);
 
 		// Set blend state for transparent obj
 		deviceAndContext.context->OMSetBlendState(transparency, NULL, 0xffffffff);
@@ -356,8 +344,44 @@ int main()
 			toSortTransparentQ = FALSE;
 		}
 
+		// Set depth test for transparent obj
+		deviceAndContext.context->OMSetDepthStencilState(depthBuffer.pDSStateWithDepthTWriteDisabled.Get(), 0);
+
 		// Draw all transparent objects
-		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cb, transparentObjQ);
+		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateFCCW.Get(), cb, transparentObjQ);
+
+		// rotate point light 1
+		sectorAnglePtLight[0] += 1.0f;
+		if (sectorAnglePtLight[0] == 360.0f) sectorAnglePtLight[0] = .0f;
+		pointLight[0].pos = tre::Utility::getRotatePosition(originPtLight[0], stackAnglePtLight[0], sectorAnglePtLight[0], 1.0f);
+		lightObjQ[0].objPos = pointLight[0].pos;
+
+		// rotate point light 2
+		stackAnglePtLight[1] += 1.0f;
+		if (stackAnglePtLight[1] == 360.0f) stackAnglePtLight[1] = .0f;
+		pointLight[1].pos = tre::Utility::getRotatePosition(originPtLight[1], stackAnglePtLight[1], sectorAnglePtLight[1], 1.0f);
+		lightObjQ[1].objPos = pointLight[1].pos;
+
+		// rotate point light 3
+		sectorAnglePtLight[2] += 5.0f;
+		if (sectorAnglePtLight[2] == 360.0f) sectorAnglePtLight[2] = .0f;
+		pointLight[2].pos = tre::Utility::getRotatePosition(originPtLight[2], stackAnglePtLight[2], sectorAnglePtLight[2], 5.0f);
+		lightObjQ[2].objPos = pointLight[2].pos;
+
+		// rotate point light 4
+		stackAnglePtLight[3] += 5.0f;
+		if (stackAnglePtLight[3] == 360.0f) stackAnglePtLight[3] = .0f;
+		pointLight[3].pos = tre::Utility::getRotatePosition(originPtLight[3], stackAnglePtLight[3], sectorAnglePtLight[3], 5.0f);
+		lightObjQ[3].objPos = pointLight[3].pos;
+
+		// Set Pixel Shader for light
+		deviceAndContext.context->PSSetShader(light_pixel_shader.pShader.Get(), NULL, 0u);
+
+		// Set depth test for light
+		deviceAndContext.context->OMSetDepthStencilState(depthBuffer.pDSStateWithoutDepthT.Get(), 0);
+		
+		// Draw all light object wireframe
+		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, lightObjQ);
 
 		CHECK_DX_ERROR(swapchain.mainSwapchain->Present( 0, 0) );
 
@@ -365,20 +389,6 @@ int main()
 		}
 
 		deltaTime = timer.getDeltaTime();
-
-		sectorAngleDirLight += 10.0f;
-		if (sectorAngleDirLight == 360.0f) sectorAngleDirLight = 0;
-
-		dirlight.direction.x = XMScalarCos(XMConvertToRadians(sectorAngleDirLight)) * XMScalarCos(XMConvertToRadians(stackAngleDirLight));
-		dirlight.direction.y = XMScalarSin(XMConvertToRadians(stackAngleDirLight));
-		dirlight.direction.z = XMScalarSin(XMConvertToRadians(sectorAngleDirLight)) * XMScalarCos(XMConvertToRadians(stackAngleDirLight));
-
-		sectorAnglePointLight += 10.0f;
-		if (sectorAnglePointLight == 360.0f) sectorAnglePointLight = 0;
-
-		pointLight.pos.x = pointLight.pos.x + XMScalarCos(XMConvertToRadians(sectorAnglePointLight)) * XMScalarCos(XMConvertToRadians(stackAnglePointLight));
-		pointLight.pos.y = pointLight.pos.y + XMScalarSin(XMConvertToRadians(stackAnglePointLight));
-		pointLight.pos.z = pointLight.pos.z + XMScalarSin(XMConvertToRadians(sectorAnglePointLight)) * XMScalarCos(XMConvertToRadians(stackAnglePointLight));
 	}
 
 	//Cleanup

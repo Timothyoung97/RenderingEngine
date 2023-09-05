@@ -6,8 +6,6 @@
 
 namespace tre {
 
-Object::Object() {};
-
 void Object::createObj(Mesh* pMesh, Texture* pTexture, XMFLOAT3 position, XMFLOAT3 scale, XMFLOAT3 rotation, bool isWithTexture, XMFLOAT4 color) {
 	pObjMesh = pMesh;
 	pObjTexture = pTexture;

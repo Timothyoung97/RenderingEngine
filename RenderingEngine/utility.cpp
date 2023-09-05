@@ -55,4 +55,12 @@ float Utility::distBetweentObjToCam(XMFLOAT3 objPosF, XMVECTOR camPosV) {
 	return distFromCamF.x;
 }
 
+XMFLOAT3 Utility::getRotatePosition(XMFLOAT3 objOrigin, float stackAngle, float sectorAngle, float radius) {
+	XMFLOAT3 rotatedPosition;
+	rotatedPosition.x = objOrigin.x + radius * XMScalarCos(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
+	rotatedPosition.y = objOrigin.y + radius * XMScalarSin(XMConvertToRadians(stackAngle));
+	rotatedPosition.z = objOrigin.z + radius * XMScalarSin(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
+	return rotatedPosition;
+}
+
 }

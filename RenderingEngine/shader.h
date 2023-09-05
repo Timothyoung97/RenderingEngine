@@ -9,13 +9,21 @@ using Microsoft::WRL::ComPtr;
 
 namespace tre {
 class Shader {
-
 public:
-	ComPtr<ID3DBlob> pVSBlob;
-	ComPtr<ID3DBlob> pPSBlob;
-	ComPtr<ID3D11VertexShader> pVS;
-	ComPtr<ID3D11PixelShader> pPS;
-
-	Shader(std::wstring vsFpath, std::wstring psFpath, ID3D11Device* device);
+	ComPtr<ID3DBlob> pBlob;
 };
+
+class VertexShader : public Shader {
+public:
+	ComPtr<ID3D11VertexShader> pShader;
+	VertexShader(std::wstring fPath, ID3D11Device* device);
+
+};
+
+class PixelShader : public Shader {
+public:
+	ComPtr<ID3D11PixelShader> pShader;
+	PixelShader(std::wstring fPath, ID3D11Device* device);
+};
+
 }

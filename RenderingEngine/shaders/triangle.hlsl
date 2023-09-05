@@ -16,9 +16,8 @@ struct PointLight {
 // Global 
 cbuffer constBuffer : register(b0) {
     matrix viewProjection;
-    // add inverse viewProject
     Light dirLight;
-    PointLight pointLight;
+    PointLight pointLight[4];
 
 };
 
@@ -82,23 +81,31 @@ void ps_main (
 
     // init pixel color with directional light
     float3 fColor = saturate(dot(dirLight.dir, vOutNormal.xyz)) * dirLight.diffuse.xyz * sampleTexture.xyz;
-    fColor += sampleTexture.xyz * .1f; // with ambient lighting
+    fColor += sampleTexture.xyz * .1f; // with ambient lighting (hard coded)
 
-    // vector between light pos and pixel pos
-    float3 pixelToLightV = pointLight.pos - vOutLocalPosition.xyz;
-    float d = length(pixelToLightV);
+    float3 pixelLightColor = float3(.0f, .0f, .0f);
 
     // local lighting
-    float3 localLight = float3(.0f, .0f, .0f);
-    if (d <= pointLight.range) {
-        pixelToLightV = pixelToLightV / d; // convert pixelToLightV to an unit vector
-        float cosAngle = dot(pixelToLightV, vOutNormal.xyz); // find the cos(angle) between light and normal
+    for (int i = 0; i < 4; i++) {
 
-        if (cosAngle > 0.0f) {
-            localLight = cosAngle * sampleTexture.xyz * pointLight.diffuse.xyz; // add light to finalColor of pixel
-            localLight = localLight / (pointLight.att[0] + (pointLight.att[1] * d) + (pointLight.att[2] * (d*d))); // Light's falloff factor
+        // vector between light pos and pixel pos
+        float3 pixelToLightV = pointLight[i].pos - vOutLocalPosition.xyz;
+        float d = length(pixelToLightV);   
+
+        float3 localLight = float3(.0f, .0f, .0f);
+    
+        if (d <= pointLight[i].range) {
+            pixelToLightV = pixelToLightV / d; // convert pixelToLightV to an unit vector
+            float cosAngle = dot(pixelToLightV, vOutNormal.xyz); // find the cos(angle) between light and normal
+
+            if (cosAngle > 0.0f) {
+                localLight = cosAngle * sampleTexture.xyz * pointLight[i].diffuse.xyz; // add light to finalColor of pixel
+                localLight = localLight / (pointLight[i].att[0] + (pointLight[i].att[1] * d) + (pointLight[i].att[2] * (d*d))); // Light's falloff factor
+            }
         }
+
+        pixelLightColor += localLight;
     }
 
-    outTarget = float4(fColor + localLight, sampleTexture.a); // RGB + Alpha Channel
+    outTarget = float4(fColor + pixelLightColor, sampleTexture.a); // RGB + Alpha Channel
 };
