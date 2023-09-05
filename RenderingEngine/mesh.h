@@ -20,7 +20,6 @@ namespace tre {
 class Mesh {
 public:
 
-	Mesh();
 	ComPtr<ID3D11Buffer> pIndexBuffer;
 	ComPtr<ID3D11Buffer> pVertexBuffer;
 	int indexSize;

@@ -12,8 +12,6 @@ public:
 	Microsoft::WRL::ComPtr<IDXGISwapChain3> mainSwapchain;
 	DXGI_SWAP_CHAIN_DESC1 swapChainDesc;
 
-	Swapchain();
-
 	void DescSwapchain(int screenWidth, int screenHeight);
 
 	void InitSwapchainViaHwnd(
