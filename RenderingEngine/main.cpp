@@ -83,9 +83,10 @@ int main()
 	deviceAndContext.context->PSSetSamplers(0, 1, sampler.pSamplerState.GetAddressOf());
 
 	//Load pre-compiled shaders
-	tre::Shader shader(util.basePathWstr + L"shaders\\vertex_shader.bin", util.basePathWstr + L"shaders\\pixel_shader.bin", deviceAndContext.device.Get());
-	deviceAndContext.context->VSSetShader(shader.pVS.Get(), NULL, 0u);
-	deviceAndContext.context->PSSetShader(shader.pPS.Get(), NULL, 0u);
+	tre::VertexShader vertex_shader(util.basePathWstr + L"shaders\\vertex_shader.bin", deviceAndContext.device.Get());
+	tre::PixelShader pixel_shader(util.basePathWstr + L"shaders\\pixel_shader.bin", deviceAndContext.device.Get());
+	deviceAndContext.context->VSSetShader(vertex_shader.pShader.Get(), NULL, 0u);
+	deviceAndContext.context->PSSetShader(pixel_shader.pShader.Get(), NULL, 0u);
 
 	// 3D objects
 	tre::Mesh meshes[2] = {
@@ -104,7 +105,7 @@ int main()
 	ComPtr<ID3D11InputLayout> vertLayout;
 
 	CHECK_DX_ERROR(deviceAndContext.device->CreateInputLayout(
-		layout, numOfInputElement, shader.pVSBlob.Get()->GetBufferPointer(), shader.pVSBlob.Get()->GetBufferSize(), vertLayout.GetAddressOf()
+		layout, numOfInputElement, vertex_shader.pBlob.Get()->GetBufferPointer(), vertex_shader.pBlob.Get()->GetBufferSize(), vertLayout.GetAddressOf()
 	));
 
 	//Create Depth/Stencil 
