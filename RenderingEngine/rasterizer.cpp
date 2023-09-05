@@ -23,6 +23,13 @@ Rasterizer::Rasterizer(ID3D11Device* device) {
 	CHECK_DX_ERROR(device->CreateRasterizerState(
 		&rasterizerDesc, pRasterizerStateNoCull.GetAddressOf()
 	));
+
+	rasterizerDesc.FillMode = D3D11_FILL_WIREFRAME;
+	CHECK_DX_ERROR(device->CreateRasterizerState(
+		&rasterizerDesc, pRasterizerStateWireFrame.GetAddressOf()
+	));
+
+
 }
 
 }
