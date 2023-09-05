@@ -170,9 +170,8 @@ int main()
 	//Set Viewport
 	deviceAndContext.context->RSSetViewports(1, &viewport);
 
-	//Create & Set rasterizer buffer
+	//Create rasterizer buffer
 	tre::Rasterizer rasterizer(deviceAndContext.device.Get());
-	deviceAndContext.context->RSSetState(rasterizer.pRasterizerStateFCCW.Get());
 
 	//Input Handler
 	tre::Input input;
@@ -323,7 +322,7 @@ int main()
 		deviceAndContext.context->OMSetBlendState(0, NULL, 0xffffffff);
 
 		// Draw all opaque objects
-		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cb, opaqueObjQ);
+		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateFCCW.Get(), cb, opaqueObjQ);
 
 		// Set blend state for transparent obj
 		deviceAndContext.context->OMSetBlendState(transparency, NULL, 0xffffffff);
@@ -343,7 +342,7 @@ int main()
 		}
 
 		// Draw all transparent objects
-		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cb, transparentObjQ);
+		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateFCCW.Get(), cb, transparentObjQ);
 
 		CHECK_DX_ERROR(swapchain.mainSwapchain->Present( 0, 0) );
 
