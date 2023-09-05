@@ -29,6 +29,7 @@ Graphics Tasks:
     • 2 GBuffers to start: Albedo & Normal
     • Full screen pass (Quad or Triangle) for lighting
         • Reconstruct world position from depth buffer
+    • Utilize light volumes for point lights
 
 Done:
 • init d3d11 device/context, and clear swap chain to grey color
