@@ -318,6 +318,9 @@ int main()
 		// Set blend state for opaque obj
 		deviceAndContext.context->OMSetBlendState(0, NULL, 0xffffffff);
 
+		// Set depth test for opaque obj
+		deviceAndContext.context->OMSetDepthStencilState(depthBuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
+
 		// Set Pixel Shader
 		deviceAndContext.context->PSSetShader(pixel_shader.pShader.Get(), NULL, 0u);
 
@@ -340,6 +343,9 @@ int main()
 			std::sort(transparentObjQ.begin(), transparentObjQ.end(), [](const tre::Object& obj1, const tre::Object& obj2) { return obj1.distFromCam > obj2.distFromCam; });
 			toSortTransparentQ = FALSE;
 		}
+
+		// Set depth test for transparent obj
+		deviceAndContext.context->OMSetDepthStencilState(depthBuffer.pDSStateWithDepthTWriteDisabled.Get(), 0);
 
 		// Draw all transparent objects
 		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateFCCW.Get(), cb, transparentObjQ);
@@ -371,8 +377,9 @@ int main()
 		// Set Pixel Shader for light
 		deviceAndContext.context->PSSetShader(light_pixel_shader.pShader.Get(), NULL, 0u);
 
-		// TODO: Turn off depth testing
-
+		// Set depth test for light
+		deviceAndContext.context->OMSetDepthStencilState(depthBuffer.pDSStateWithoutDepthT.Get(), 0);
+		
 		// Draw all light object wireframe
 		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, lightObjQ);
 
