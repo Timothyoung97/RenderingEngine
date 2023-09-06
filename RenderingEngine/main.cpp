@@ -97,11 +97,12 @@ int main()
 	};
 
 	// Create texture
-	tre::Texture textures[4] = { 
+	tre::Texture textures[5] = { 
 		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\UV_image.jpg"), 
 		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\UV_image2.jpg"),
 		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\UV_image_a.png"),
-		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\glTF.png")
+		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\glTF.png"),
+		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\glTF_normal.png")
 	};
 
 	// Create input layout
