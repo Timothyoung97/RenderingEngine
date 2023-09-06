@@ -99,16 +99,14 @@ void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC) {
 	float sectorAngle = 0;
 
 	XMFLOAT3 sphereNormal = tre::Utility::getRotatePosition(XMFLOAT3(.0f, .0f, .0f), stackAngle, sectorAngle, 1.0f);
-
-	XMFLOAT3 sphereTangent(.0f, .0f, .0f); // stackAngle should always to 0
-
-	// TODO: Add sphere tangent
+	XMFLOAT3 sphereTangent(1.0f, .0f, .0f);
 
 	//build north pole
+	//north pole tangent hardcoded to vector(1, 0, 0)
 	float v = 0;
 	float u = 0;
 
-	for (int i = 0; i < sectorCount; i++) {
+	for (int i = 0; i < sectorCount; i++) { // [0 .. sectorCount - 1]
 		u = XMConvertToRadians(i * sectorStep + sectorStep / 2) / XM_2PI;
 		vertices.push_back(Vertex(findCoordinate(sphereNormal, radius), sphereNormal, sphereTangent, XMFLOAT2(u, v)));
 	}
@@ -133,8 +131,31 @@ void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC) {
 		vertices.push_back(Vertex(findCoordinate(sphereNormal, radius), sphereNormal, sphereTangent, XMFLOAT2(1, v)));
 	}
 
+	//calculate tangent in middle sec
+	int idx = sectorCount;
+	for (int i = 1; i < stackCount; i++) { // each stack line has sectorCount + 1 vertices
+		for (int j = 0; j < sectorCount; j++) {
+			XMVECTOR left;
+			XMVECTOR right = XMLoadFloat3(&vertices[idx + 1].tangent);
+
+			if (j == 0) {
+				left = XMLoadFloat3(&vertices[idx + sectorCount - 1].tangent);
+				XMStoreFloat3(&vertices[idx + sectorCount].tangent, XMVector3Normalize(right - left));
+			} else {
+				left = XMLoadFloat3(&vertices[idx - 1].tangent);
+			}
+
+			XMStoreFloat3(&vertices[idx].tangent, XMVector3Normalize(right - left));
+
+			idx++;
+		}
+		idx += 2; // increment to the next stack line
+	}
+
 	//build south pole
+	//south pole tangent hardcoded to vector(1, 0, 0)
 	sphereNormal = tre::Utility::getRotatePosition(XMFLOAT3(.0f, .0f, .0f), -90.0f, sectorAngle, 1.0f);
+	sphereTangent = XMFLOAT3(1.0f, .0f, .0f);
 
 	for (int i = 0; i < sectorCount; i++) {
 		u = XMConvertToRadians(i * sectorStep + sectorStep / 2) / XM_2PI;
@@ -163,7 +184,7 @@ void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC) {
 
 		for (int j = 0; j < sectorCount; j++) {
 
-			// triangle a
+			//triangle a
 			indices.push_back(upperStackIdx);
 			indices.push_back(lowerStackIdx);
 			indices.push_back(upperStackIdx + 1);
