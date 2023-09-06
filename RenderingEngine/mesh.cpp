@@ -111,6 +111,8 @@ void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC) {
 		vertices.push_back(Vertex(findCoordinate(sphereNormal, radius), sphereNormal, sphereTangent, XMFLOAT2(u, v)));
 	}
 
+	spdlog::info("vectices count now: {}", vertices.size());
+
 	//build middle sec
 	for (int i = 1; i < stackCount; i++) {
 		stackAngle -= stackStep;
@@ -131,25 +133,29 @@ void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC) {
 		vertices.push_back(Vertex(findCoordinate(sphereNormal, radius), sphereNormal, sphereTangent, XMFLOAT2(1, v)));
 	}
 
+	spdlog::info("vectices count now: {}", vertices.size());
+
 	//calculate tangent in middle sec
 	int idx = sectorCount;
 	for (int i = 1; i < stackCount; i++) { // each stack line has sectorCount + 1 vertices
+		spdlog::info("stack now: {}", i);
 		for (int j = 0; j < sectorCount; j++) {
+			spdlog::info("sector now: {}, idx now: {}", j, idx);
 			XMVECTOR left;
-			XMVECTOR right = XMLoadFloat3(&vertices[idx + 1].tangent);
+			XMVECTOR right = XMLoadFloat3(&vertices[idx + 1].normal);
 
 			if (j == 0) {
-				left = XMLoadFloat3(&vertices[idx + sectorCount - 1].tangent);
+				left = XMLoadFloat3(&vertices[idx + sectorCount - 1].normal);
 				XMStoreFloat3(&vertices[idx + sectorCount].tangent, XMVector3Normalize(right - left));
 			} else {
-				left = XMLoadFloat3(&vertices[idx - 1].tangent);
+				left = XMLoadFloat3(&vertices[idx - 1].normal);
 			}
 
 			XMStoreFloat3(&vertices[idx].tangent, XMVector3Normalize(right - left));
 
 			idx++;
 		}
-		idx += 2; // increment to the next stack line
+		idx ++; // increment to the next stack line
 	}
 
 	//build south pole
