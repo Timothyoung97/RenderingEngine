@@ -295,23 +295,25 @@ int main()
 				opaqueObjQ.push_back(newObj);
 			}
 		}
-		else if (input.keyState[SDL_SCANCODE_RSHIFT]) { // create only cube with normal mapping
+		else if (input.keyState[SDL_SCANCODE_RSHIFT]) { // create obj with normal mapping
 			
-			tre::Object cube;
+			tre::Object newNorObj;
 
 			float scaleVal = tre::Utility::getRandomFloat(3);
-			cube.pObjMesh = &meshes[0];
-			cube.objPos = XMFLOAT3(tre::Utility::getRandomFloatRange(-5, 5), tre::Utility::getRandomFloatRange(-5, 5), tre::Utility::getRandomFloatRange(-5, 5));
-			cube.objScale = XMFLOAT3(scaleVal, scaleVal, scaleVal);
-			cube.objRotation = XMFLOAT3(tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360));
-			cube.pObjTexture = &textures[4];
-			cube.isObjWithTexture = 1;
-			cube.pObjNormalMap = &normals[1];
-			cube.isObjWithNormalMap = 1;
-			cube.objColor = XMFLOAT4();
-			cube.distFromCam = tre::Utility::distBetweentObjToCam(cube.objPos, cam.camPositionV);
+			int textureIdx = tre::Utility::getRandomInt(1);
+			newNorObj.pObjMesh = &meshes[tre::Utility::getRandomInt(1)];
+			newNorObj.objPos = XMFLOAT3(tre::Utility::getRandomFloatRange(-5, 5), tre::Utility::getRandomFloatRange(-5, 5), tre::Utility::getRandomFloatRange(-5, 5));
+			newNorObj.objScale = XMFLOAT3(scaleVal, scaleVal, scaleVal);
+			newNorObj.objRotation = XMFLOAT3(tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360));
+			newNorObj.pObjTexture = &textures[3 + textureIdx];
+			newNorObj.isObjWithTexture = 1;
+			newNorObj.pObjNormalMap = &normals[textureIdx];
+			newNorObj.isObjWithNormalMap = 1;
+			newNorObj.objColor = XMFLOAT4();
+			newNorObj.distFromCam = tre::Utility::distBetweentObjToCam(newNorObj.objPos, cam.camPositionV);
 
-			transparentObjQ.push_back(cube);
+			transparentObjQ.push_back(newNorObj);
+
 		} else if (input.keyState[SDL_SCANCODE_P]) {
 			pauseLight ^= 1;
 		}
