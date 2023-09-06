@@ -97,10 +97,11 @@ int main()
 	};
 
 	// Create texture
-	tre::Texture textures[3] = { 
+	tre::Texture textures[4] = { 
 		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\UV_image.jpg"), 
 		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\UV_image2.jpg"),
-		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\UV_image_a.png")
+		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\UV_image_a.png"),
+		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\glTF.png")
 	};
 
 	// Create input layout
@@ -277,6 +278,22 @@ int main()
 			} else {
 				opaqueObjQ.push_back(newObj);
 			}
+		}
+		else if (input.keyState[SDL_SCANCODE_RSHIFT]) { // create only cube with normal mapping
+			
+			tre::Object cube;
+
+			float scaleVal = tre::Utility::getRandomFloat(3);
+			cube.pObjMesh = &meshes[0];
+			cube.objPos = XMFLOAT3(tre::Utility::getRandomFloatRange(-5, 5), tre::Utility::getRandomFloatRange(-5, 5), tre::Utility::getRandomFloatRange(-5, 5));
+			cube.objScale = XMFLOAT3(scaleVal, scaleVal, scaleVal);
+			cube.objRotation = XMFLOAT3(tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360));
+			cube.pObjTexture = &textures[3];
+			cube.isObjWithTexture = 1;
+			cube.objColor = XMFLOAT4();
+			cube.distFromCam = tre::Utility::distBetweentObjToCam(cube.objPos, cam.camPositionV);
+
+			transparentObjQ.push_back(cube);
 		}
 
 		// Alternating buffers
