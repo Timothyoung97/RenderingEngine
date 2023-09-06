@@ -20,40 +20,40 @@ void CubeMesh::create(ID3D11Device* device) {
 	//Cube Vertices
 	Vertex vertex[] = {
 		// Back
-		XMFLOAT3(unitLength, -unitLength, unitLength), XMFLOAT3(0, 0, 1), XMFLOAT2(0, 1), // 0
-		XMFLOAT3(-unitLength, -unitLength, unitLength), XMFLOAT3(0, 0, 1), XMFLOAT2(1, 1),
-		XMFLOAT3(unitLength, unitLength, unitLength), XMFLOAT3(0, 0, 1), XMFLOAT2(0, 0),
-		XMFLOAT3(-unitLength, unitLength, unitLength), XMFLOAT3(0, 0, 1), XMFLOAT2(1, 0),
+		XMFLOAT3(unitLength, -unitLength, unitLength), XMFLOAT3(0, 0, 1), XMFLOAT3(-1, 0, 0), XMFLOAT2(0, 1), // 0
+		XMFLOAT3(-unitLength, -unitLength, unitLength), XMFLOAT3(0, 0, 1), XMFLOAT3(-1, 0, 0), XMFLOAT2(1, 1),
+		XMFLOAT3(unitLength, unitLength, unitLength), XMFLOAT3(0, 0, 1), XMFLOAT3(-1, 0, 0), XMFLOAT2(0, 0),
+		XMFLOAT3(-unitLength, unitLength, unitLength), XMFLOAT3(0, 0, 1), XMFLOAT3(-1, 0, 0), XMFLOAT2(1, 0),
 
 		// Right
-		XMFLOAT3(unitLength, -unitLength, -unitLength), XMFLOAT3(1, 0, 0), XMFLOAT2(0, 1), // 4
-		XMFLOAT3(unitLength, -unitLength, unitLength), XMFLOAT3(1, 0, 0), XMFLOAT2(1, 1),
-		XMFLOAT3(unitLength, unitLength, -unitLength), XMFLOAT3(1, 0, 0), XMFLOAT2(0, 0),
-		XMFLOAT3(unitLength, unitLength, unitLength), XMFLOAT3(1, 0, 0), XMFLOAT2(1, 0),
+		XMFLOAT3(unitLength, -unitLength, -unitLength), XMFLOAT3(1, 0, 0), XMFLOAT3(0, 0, -1), XMFLOAT2(0, 1), // 4
+		XMFLOAT3(unitLength, -unitLength, unitLength), XMFLOAT3(1, 0, 0), XMFLOAT3(0, 0, -1), XMFLOAT2(1, 1),
+		XMFLOAT3(unitLength, unitLength, -unitLength), XMFLOAT3(1, 0, 0), XMFLOAT3(0, 0, -1), XMFLOAT2(0, 0),
+		XMFLOAT3(unitLength, unitLength, unitLength), XMFLOAT3(1, 0, 0), XMFLOAT3(0, 0, -1), XMFLOAT2(1, 0),
 
 		// top
-		XMFLOAT3(-unitLength, unitLength, -unitLength), XMFLOAT3(0, 1, 0), XMFLOAT2(0, 1), // 8
-		XMFLOAT3(unitLength, unitLength, -unitLength), XMFLOAT3(0, 1, 0), XMFLOAT2(1, 1),
-		XMFLOAT3(-unitLength, unitLength, unitLength), XMFLOAT3(0, 1, 0), XMFLOAT2(0, 0),
-		XMFLOAT3(unitLength, unitLength, unitLength), XMFLOAT3(0, 1, 0), XMFLOAT2(1, 0),
+		XMFLOAT3(-unitLength, unitLength, -unitLength), XMFLOAT3(0, 1, 0), XMFLOAT3(1, 0, 0), XMFLOAT2(0, 1), // 8
+		XMFLOAT3(unitLength, unitLength, -unitLength), XMFLOAT3(0, 1, 0), XMFLOAT3(1, 0, 0), XMFLOAT2(1, 1),
+		XMFLOAT3(-unitLength, unitLength, unitLength), XMFLOAT3(0, 1, 0), XMFLOAT3(1, 0, 0), XMFLOAT2(0, 0),
+		XMFLOAT3(unitLength, unitLength, unitLength), XMFLOAT3(0, 1, 0), XMFLOAT3(1, 0, 0), XMFLOAT2(1, 0),
 
 		// Front
-		XMFLOAT3(-unitLength, -unitLength, -unitLength), XMFLOAT3(0, 0, -1), XMFLOAT2(0, 1), // 12
-		XMFLOAT3(unitLength, -unitLength, -unitLength), XMFLOAT3(0, 0, -1), XMFLOAT2(1, 1),
-		XMFLOAT3(-unitLength, unitLength, -unitLength), XMFLOAT3(0, 0, -1), XMFLOAT2(0, 0),
-		XMFLOAT3(unitLength, unitLength, -unitLength), XMFLOAT3(0, 0, -1), XMFLOAT2(1, 0),
+		XMFLOAT3(-unitLength, -unitLength, -unitLength), XMFLOAT3(0, 0, -1), XMFLOAT3(1, 0, 0), XMFLOAT2(0, 1), // 12
+		XMFLOAT3(unitLength, -unitLength, -unitLength), XMFLOAT3(0, 0, -1), XMFLOAT3(1, 0, 0), XMFLOAT2(1, 1),
+		XMFLOAT3(-unitLength, unitLength, -unitLength), XMFLOAT3(0, 0, -1), XMFLOAT3(1, 0, 0), XMFLOAT2(0, 0),
+		XMFLOAT3(unitLength, unitLength, -unitLength), XMFLOAT3(0, 0, -1), XMFLOAT3(1, 0, 0), XMFLOAT2(1, 0),
 
 		// Left
-		XMFLOAT3(-unitLength, -unitLength, unitLength), XMFLOAT3(-1, 0, 0), XMFLOAT2(0, 1), // 16
-		XMFLOAT3(-unitLength, -unitLength, -unitLength), XMFLOAT3(-1, 0, 0), XMFLOAT2(1, 1),
-		XMFLOAT3(-unitLength, unitLength, unitLength), XMFLOAT3(-1, 0, 0), XMFLOAT2(0, 0),
-		XMFLOAT3(-unitLength, unitLength, -unitLength), XMFLOAT3(-1, 0, 0), XMFLOAT2(1, 0),
+		XMFLOAT3(-unitLength, -unitLength, unitLength), XMFLOAT3(-1, 0, 0), XMFLOAT3(0, 0, -1), XMFLOAT2(0, 1), // 16
+		XMFLOAT3(-unitLength, -unitLength, -unitLength), XMFLOAT3(-1, 0, 0), XMFLOAT3(0, 0, -1), XMFLOAT2(1, 1),
+		XMFLOAT3(-unitLength, unitLength, unitLength), XMFLOAT3(-1, 0, 0), XMFLOAT3(0, 0, -1), XMFLOAT2(0, 0),
+		XMFLOAT3(-unitLength, unitLength, -unitLength), XMFLOAT3(-1, 0, 0), XMFLOAT3(0, 0, -1), XMFLOAT2(1, 0),
 
 		// bottom
-		XMFLOAT3(-unitLength, -unitLength, unitLength), XMFLOAT3(0, -1, 0), XMFLOAT2(0, 1), // 20
-		XMFLOAT3(unitLength, -unitLength, unitLength), XMFLOAT3(0, -1, 0), XMFLOAT2(1, 1),
-		XMFLOAT3(-unitLength, -unitLength, -unitLength), XMFLOAT3(0, -1, 0), XMFLOAT2(0, 0),
-		XMFLOAT3(unitLength, -unitLength, -unitLength), XMFLOAT3(0, -1, 0), XMFLOAT2(1, 0) // 23
+		XMFLOAT3(-unitLength, -unitLength, unitLength), XMFLOAT3(0, -1, 0), XMFLOAT3(1, 0, 0), XMFLOAT2(0, 1), // 20
+		XMFLOAT3(unitLength, -unitLength, unitLength), XMFLOAT3(0, -1, 0), XMFLOAT3(1, 0, 0), XMFLOAT2(1, 1),
+		XMFLOAT3(-unitLength, -unitLength, -unitLength), XMFLOAT3(0, -1, 0), XMFLOAT3(1, 0, 0), XMFLOAT2(0, 0),
+		XMFLOAT3(unitLength, -unitLength, -unitLength), XMFLOAT3(0, -1, 0), XMFLOAT3(1, 0, 0), XMFLOAT2(1, 0) // 23
 	};
 
 	vertices.assign(std::begin(vertex), std::end(vertex));
@@ -104,13 +104,17 @@ void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC) {
 	sphereNormal.y = XMScalarSin(XMConvertToRadians(stackAngle));
 	sphereNormal.z = XMScalarSin(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
 
+	XMFLOAT3 sphereTangent(.0f, .0f, .0f); // stackAngle should always to 0
+
+	// TODO: Add sphere tangent
+
 	//build north pole
 	float v = 0;
 	float u = 0;
 
 	for (int i = 0; i < sectorCount; i++) {
 		u = XMConvertToRadians(i * sectorStep + sectorStep / 2) / XM_2PI;
-		vertices.push_back(Vertex(findCoordinate(sphereNormal, radius), sphereNormal, XMFLOAT2(u, v)));
+		vertices.push_back(Vertex(findCoordinate(sphereNormal, radius), sphereNormal, sphereTangent, XMFLOAT2(u, v)));
 	}
 
 	//build middle sec
@@ -122,7 +126,7 @@ void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC) {
 			sphereNormal.y = XMScalarSin(XMConvertToRadians(stackAngle));
 			sphereNormal.z = XMScalarSin(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
 			u = XMConvertToRadians(j * sectorStep) / XM_2PI;
-			vertices.push_back(Vertex(findCoordinate(sphereNormal, radius), sphereNormal, XMFLOAT2(u, v)));
+			vertices.push_back(Vertex(findCoordinate(sphereNormal, radius), sphereNormal, sphereTangent, XMFLOAT2(u, v)));
 			sectorAngle += sectorStep;
 		}
 
@@ -131,7 +135,7 @@ void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC) {
 		sphereNormal.x = XMScalarCos(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
 		sphereNormal.y = XMScalarSin(XMConvertToRadians(stackAngle));
 		sphereNormal.z = XMScalarSin(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
-		vertices.push_back(Vertex(findCoordinate(sphereNormal, radius), sphereNormal, XMFLOAT2(1, v)));
+		vertices.push_back(Vertex(findCoordinate(sphereNormal, radius), sphereNormal, sphereTangent, XMFLOAT2(1, v)));
 	}
 
 	//build south pole
@@ -141,7 +145,7 @@ void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC) {
 
 	for (int i = 0; i < sectorCount; i++) {
 		u = XMConvertToRadians(i * sectorStep + sectorStep / 2) / XM_2PI;
-		vertices.push_back(Vertex(findCoordinate(sphereNormal, radius), sphereNormal, XMFLOAT2(u, 1)));
+		vertices.push_back(Vertex(findCoordinate(sphereNormal, radius), sphereNormal, sphereTangent, XMFLOAT2(u, 1)));
 	}
 
 	//Build north pole indices
