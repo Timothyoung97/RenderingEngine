@@ -312,7 +312,20 @@ int main()
 			newNorObj.objColor = XMFLOAT4();
 			newNorObj.distFromCam = tre::Utility::distBetweentObjToCam(newNorObj.objPos, cam.camPositionV);
 
-			transparentObjQ.push_back(newNorObj);
+			// transparent queue -> object with texture with alpha channel or object with color.w below 1.0f
+			if ((newNorObj.isObjWithTexture && newNorObj.pObjTexture->hasAlphaChannel)
+				|| (!newNorObj.isObjWithTexture && newNorObj.objColor.w < 1.0f)) {
+
+				// find its distance from cam
+				newNorObj.distFromCam = tre::Utility::distBetweentObjToCam(newNorObj.objPos, cam.camPositionV);
+
+				transparentObjQ.push_back(newNorObj);
+
+				toSortTransparentQ = TRUE;
+			}
+			else {
+				opaqueObjQ.push_back(newNorObj);
+			}
 
 		} else if (input.keyState[SDL_SCANCODE_P]) {
 			pauseLight ^= 1;
