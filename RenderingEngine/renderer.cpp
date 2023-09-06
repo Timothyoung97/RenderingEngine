@@ -44,6 +44,11 @@ void Renderer::draw(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11Ra
 		cb.constBufferRescModel.hasNormalMap = currObj.isObjWithNormalMap;
 		cb.constBufferRescModel.color = currObj.objColor;
 
+		// set normal map
+		if (cb.constBufferRescModel.hasNormalMap) {
+			context->PSSetShaderResources(1, 1, currObj.pObjNormalMap->pShaderResView.GetAddressOf());
+		}
+
 		//map to data to subresouce
 		cb.csd.pSysMem = &cb.constBufferRescModel;
 
