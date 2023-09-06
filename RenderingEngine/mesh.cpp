@@ -2,7 +2,7 @@
 
 #include "mesh.h"
 #include "dxdebug.h"
-
+#include "utility.h"
 
 namespace tre {
 
@@ -98,11 +98,7 @@ void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC) {
 	float stackAngle = 90;
 	float sectorAngle = 0;
 
-	XMFLOAT3 sphereNormal;
-
-	sphereNormal.x = XMScalarCos(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
-	sphereNormal.y = XMScalarSin(XMConvertToRadians(stackAngle));
-	sphereNormal.z = XMScalarSin(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
+	XMFLOAT3 sphereNormal = tre::Utility::getRotatePosition(XMFLOAT3(.0f, .0f, .0f), stackAngle, sectorAngle, 1.0f);
 
 	XMFLOAT3 sphereTangent(.0f, .0f, .0f); // stackAngle should always to 0
 
@@ -122,26 +118,23 @@ void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC) {
 		stackAngle -= stackStep;
 		v = XMConvertToRadians(i * stackStep) / XM_PI;
 		for (int j = 0; j < sectorCount; j++) {
-			sphereNormal.x = XMScalarCos(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
-			sphereNormal.y = XMScalarSin(XMConvertToRadians(stackAngle));
-			sphereNormal.z = XMScalarSin(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
+			sphereNormal = tre::Utility::getRotatePosition(XMFLOAT3(.0f, .0f, .0f), stackAngle, sectorAngle, 1.0f);
+
 			u = XMConvertToRadians(j * sectorStep) / XM_2PI;
+
 			vertices.push_back(Vertex(findCoordinate(sphereNormal, radius), sphereNormal, sphereTangent, XMFLOAT2(u, v)));
+			
 			sectorAngle += sectorStep;
 		}
 
 		// one more vertice to map u to 1
 		sectorAngle = 0;
-		sphereNormal.x = XMScalarCos(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
-		sphereNormal.y = XMScalarSin(XMConvertToRadians(stackAngle));
-		sphereNormal.z = XMScalarSin(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
+		sphereNormal = tre::Utility::getRotatePosition(XMFLOAT3(.0f, .0f, .0f), stackAngle, sectorAngle, 1.0f);
 		vertices.push_back(Vertex(findCoordinate(sphereNormal, radius), sphereNormal, sphereTangent, XMFLOAT2(1, v)));
 	}
 
 	//build south pole
-	sphereNormal.x = XMScalarCos(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(-90));
-	sphereNormal.y = XMScalarSin(XMConvertToRadians(-90));
-	sphereNormal.z = XMScalarSin(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(-90));
+	sphereNormal = tre::Utility::getRotatePosition(XMFLOAT3(.0f, .0f, .0f), -90.0f, sectorAngle, 1.0f);
 
 	for (int i = 0; i < sectorCount; i++) {
 		u = XMConvertToRadians(i * sectorStep + sectorStep / 2) / XM_2PI;
