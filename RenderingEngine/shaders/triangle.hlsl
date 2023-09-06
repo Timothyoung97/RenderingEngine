@@ -26,7 +26,7 @@ cbuffer constBuffer2 : register(b1) {
     matrix normalMatrix;
     float4 color;
     uint isWithTexture;
-    bool hasNormMap;
+    uint hasNormMap;
 };
 
 Texture2D ObjTexture;
