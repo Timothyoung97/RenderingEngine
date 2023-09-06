@@ -214,7 +214,7 @@ int main()
 
 		newLightObj.pObjMesh = &meshes[1]; // sphere
 		newLightObj.objPos = originPtLight[i];
-		newLightObj.objScale = XMFLOAT3(1.0f, 1.0f, 1.0f);
+		newLightObj.objScale = XMFLOAT3(.1f, .1f, .1f);
 		newLightObj.objRotation = XMFLOAT3(.0f, .0f, .0f);
 		newLightObj.pObjTexture = &textures[0];
 		newLightObj.pObjNormalMap = nullptr;
