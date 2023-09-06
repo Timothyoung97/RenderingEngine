@@ -103,7 +103,13 @@ int main()
 		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\UV_image2.jpg"),
 		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\UV_image_a.png"),
 		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\glTF.png"),
-		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\glTF_normal.png")
+		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\wall.jpg")
+	};
+
+	tre::Texture normals[2] = {
+		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\glTF_normal.png"),
+		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\wall_normal.jpg")
+
 	};
 
 	// Create input layout
@@ -298,9 +304,9 @@ int main()
 			cube.objPos = XMFLOAT3(tre::Utility::getRandomFloatRange(-5, 5), tre::Utility::getRandomFloatRange(-5, 5), tre::Utility::getRandomFloatRange(-5, 5));
 			cube.objScale = XMFLOAT3(scaleVal, scaleVal, scaleVal);
 			cube.objRotation = XMFLOAT3(tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360));
-			cube.pObjTexture = &textures[3];
+			cube.pObjTexture = &textures[4];
 			cube.isObjWithTexture = 1;
-			cube.pObjNormalMap = &textures[4];
+			cube.pObjNormalMap = &normals[1];
 			cube.isObjWithNormalMap = 1;
 			cube.objColor = XMFLOAT4();
 			cube.distFromCam = tre::Utility::distBetweentObjToCam(cube.objPos, cam.camPositionV);
