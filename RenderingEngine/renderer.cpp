@@ -41,6 +41,7 @@ void Renderer::draw(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11Ra
 		cb.constBufferRescModel.normalMatrix = XMLoadFloat3x3(&normalFloat3x3);
 
 		cb.constBufferRescModel.isWithTexture = currObj.isObjWithTexture;
+		cb.constBufferRescModel.hasNormalMap = currObj.isObjWithNormalMap;
 		cb.constBufferRescModel.color = currObj.objColor;
 
 		//map to data to subresouce

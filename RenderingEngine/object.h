@@ -19,11 +19,13 @@ public:
 	XMFLOAT3 objRotation;
 
 	bool isObjWithTexture;
+	bool isObjWithNormalMap;
+
 	XMFLOAT4 objColor;
 
 	float distFromCam;
 
-	void createObj(Mesh* pMesh, Texture* pTexture, XMFLOAT3 position, XMFLOAT3 scale, XMFLOAT3 rotation, bool isWithTexture, XMFLOAT4 color);
+	void createObj(Mesh* pMesh, Texture* pTexture, XMFLOAT3 position, XMFLOAT3 scale, XMFLOAT3 rotation, bool isWithTexture, bool isWithNormal, XMFLOAT4 color);
 
 };
 
