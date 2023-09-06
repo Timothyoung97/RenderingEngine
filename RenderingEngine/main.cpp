@@ -219,6 +219,9 @@ int main()
 		lightObjQ.push_back(newLightObj);
 	}
 
+	// pause light
+	int pauseLight = 0;
+
 	// main loop
 	while (!input.shouldQuit())
 	{
@@ -303,6 +306,8 @@ int main()
 			cube.distFromCam = tre::Utility::distBetweentObjToCam(cube.objPos, cam.camPositionV);
 
 			transparentObjQ.push_back(cube);
+		} else if (input.keyState[SDL_SCANCODE_P]) {
+			pauseLight ^= 1;
 		}
 
 		// Alternating buffers
@@ -376,29 +381,31 @@ int main()
 		// Draw all transparent objects
 		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateFCCW.Get(), cb, transparentObjQ);
 
-		// rotate point light 1
-		sectorAnglePtLight[0] += 1.0f;
-		if (sectorAnglePtLight[0] == 360.0f) sectorAnglePtLight[0] = .0f;
-		pointLight[0].pos = tre::Utility::getRotatePosition(originPtLight[0], stackAnglePtLight[0], sectorAnglePtLight[0], 1.0f);
-		lightObjQ[0].objPos = pointLight[0].pos;
+		if (!pauseLight) {
+			// rotate point light 1
+			sectorAnglePtLight[0] += 1.0f;
+			if (sectorAnglePtLight[0] == 360.0f) sectorAnglePtLight[0] = .0f;
+			pointLight[0].pos = tre::Utility::getRotatePosition(originPtLight[0], stackAnglePtLight[0], sectorAnglePtLight[0], 1.0f);
+			lightObjQ[0].objPos = pointLight[0].pos;
 
-		// rotate point light 2
-		stackAnglePtLight[1] += 1.0f;
-		if (stackAnglePtLight[1] == 360.0f) stackAnglePtLight[1] = .0f;
-		pointLight[1].pos = tre::Utility::getRotatePosition(originPtLight[1], stackAnglePtLight[1], sectorAnglePtLight[1], 1.0f);
-		lightObjQ[1].objPos = pointLight[1].pos;
+			// rotate point light 2
+			stackAnglePtLight[1] += 1.0f;
+			if (stackAnglePtLight[1] == 360.0f) stackAnglePtLight[1] = .0f;
+			pointLight[1].pos = tre::Utility::getRotatePosition(originPtLight[1], stackAnglePtLight[1], sectorAnglePtLight[1], 1.0f);
+			lightObjQ[1].objPos = pointLight[1].pos;
 
-		// rotate point light 3
-		sectorAnglePtLight[2] += 5.0f;
-		if (sectorAnglePtLight[2] == 360.0f) sectorAnglePtLight[2] = .0f;
-		pointLight[2].pos = tre::Utility::getRotatePosition(originPtLight[2], stackAnglePtLight[2], sectorAnglePtLight[2], 5.0f);
-		lightObjQ[2].objPos = pointLight[2].pos;
+			// rotate point light 3
+			sectorAnglePtLight[2] += 5.0f;
+			if (sectorAnglePtLight[2] == 360.0f) sectorAnglePtLight[2] = .0f;
+			pointLight[2].pos = tre::Utility::getRotatePosition(originPtLight[2], stackAnglePtLight[2], sectorAnglePtLight[2], 5.0f);
+			lightObjQ[2].objPos = pointLight[2].pos;
 
-		// rotate point light 4
-		stackAnglePtLight[3] += 5.0f;
-		if (stackAnglePtLight[3] == 360.0f) stackAnglePtLight[3] = .0f;
-		pointLight[3].pos = tre::Utility::getRotatePosition(originPtLight[3], stackAnglePtLight[3], sectorAnglePtLight[3], 5.0f);
-		lightObjQ[3].objPos = pointLight[3].pos;
+			// rotate point light 4
+			stackAnglePtLight[3] += 5.0f;
+			if (stackAnglePtLight[3] == 360.0f) stackAnglePtLight[3] = .0f;
+			pointLight[3].pos = tre::Utility::getRotatePosition(originPtLight[3], stackAnglePtLight[3], sectorAnglePtLight[3], 5.0f);
+			lightObjQ[3].objPos = pointLight[3].pos;
+		}
 
 		// Set Pixel Shader for light
 		deviceAndContext.context->PSSetShader(light_pixel_shader.pShader.Get(), NULL, 0u);
