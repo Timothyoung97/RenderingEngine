@@ -9,10 +9,10 @@ using namespace DirectX;
 
 namespace tre {
 	
-class Object {
-public:
+struct Object {
 	Mesh* pObjMesh;
 	Texture* pObjTexture;
+	Texture* pObjNormalMap;
 
 	XMFLOAT3 objPos;
 	XMFLOAT3 objScale;
@@ -24,9 +24,6 @@ public:
 	XMFLOAT4 objColor;
 
 	float distFromCam;
-
-	void createObj(Mesh* pMesh, Texture* pTexture, XMFLOAT3 position, XMFLOAT3 scale, XMFLOAT3 rotation, bool isWithTexture, bool isWithNormal, XMFLOAT4 color);
-
 };
 
 }

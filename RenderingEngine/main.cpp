@@ -211,6 +211,7 @@ int main()
 		newLightObj.objScale = XMFLOAT3(1.0f, 1.0f, 1.0f);
 		newLightObj.objRotation = XMFLOAT3(.0f, .0f, .0f);
 		newLightObj.pObjTexture = &textures[0];
+		newLightObj.pObjNormalMap = nullptr;
 		newLightObj.isObjWithTexture = 0;
 		newLightObj.isObjWithNormalMap = 0;
 		newLightObj.objColor = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -258,6 +259,8 @@ int main()
 			newObj.objRotation = XMFLOAT3(tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360));
 			newObj.pObjTexture = &textures[tre::Utility::getRandomInt(2)];
 			newObj.isObjWithNormalMap = 0;
+			newObj.pObjNormalMap = nullptr;
+
 
 			// With/Without texture
 			if (tre::Utility::getRandomInt(1) == 1) {
@@ -294,6 +297,7 @@ int main()
 			cube.objRotation = XMFLOAT3(tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360));
 			cube.pObjTexture = &textures[3];
 			cube.isObjWithTexture = 1;
+			cube.pObjNormalMap = &textures[4];
 			cube.isObjWithNormalMap = 1;
 			cube.objColor = XMFLOAT4();
 			cube.distFromCam = tre::Utility::distBetweentObjToCam(cube.objPos, cam.camPositionV);
