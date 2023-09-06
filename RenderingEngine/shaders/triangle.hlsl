@@ -76,6 +76,8 @@ void ps_main (
     out float4 outTarget: SV_TARGET
 ) 
 {   
+    // TODO: Calculate vOutNormal from SV_POSITION
+
     // normal
     vOutNormal = normalize(vOutNormal);
 
