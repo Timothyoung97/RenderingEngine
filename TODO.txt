@@ -9,11 +9,14 @@ Graphics Tasks:
     • stress test (populate scene with >10,000 objects spread out)
 • Convert local light lists to StructuredBuffer
 • Mesh loading
-    • use library: https://github.com/tinyobjloader/tinyobjloader or https://github.com/assimp/assimp
+    • use choice of library
+        • tiny library: https://github.com/tinyobjloader/tinyobjloader
+        • full mesh import suite: https://github.com/assimp/assimp
     • Manage scene objects' meshes & materials
     • non-trivial general-purpose scene rendering
     • Example high quality obj scenes: https://casual-effects.com/data/index.html
-    • Start with the cube
+        • Start with the cube
+    • Goal: successfully import & render the "Crytek Sponza", "Rungholt", "Amazon Lumberyard Bistro" in succession
 • Shadow Maps
     • Start with simple single-cascade hard shadows
     • Render opaque geometry in Directional Light-Space w/ front-face culling to a high resolution shadow map
