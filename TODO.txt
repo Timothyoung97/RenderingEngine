@@ -16,6 +16,7 @@ Graphics Tasks:
     • non-trivial general-purpose scene rendering
     • Example high quality obj scenes: https://casual-effects.com/data/index.html
         • Start with the cube
+        • NOTE: obj files only contain bump maps, not normal maps. Convert each bump map manually using https://github.com/kmkolasinski/AwesomeBump
     • Goal: successfully import & render the "Crytek Sponza", "Rungholt", "Amazon Lumberyard Bistro" in succession
 • Shadow Maps
     • Start with simple single-cascade hard shadows
