@@ -58,6 +58,17 @@ void CubeMesh::create(ID3D11Device* device) {
 
 	vertices.assign(std::begin(vertex), std::end(vertex));
 
+	uniqueVertexPos = {
+		XMFLOAT3(unitLength, unitLength, unitLength),
+		XMFLOAT3(unitLength, unitLength, -unitLength),
+		XMFLOAT3(unitLength, -unitLength, unitLength),
+		XMFLOAT3(unitLength, -unitLength, -unitLength),
+		XMFLOAT3(-unitLength, unitLength, unitLength),
+		XMFLOAT3(-unitLength, unitLength, -unitLength),
+		XMFLOAT3(-unitLength, -unitLength, unitLength),
+		XMFLOAT3(-unitLength, -unitLength, -unitLength)
+	};
+
 	//Cube Indices
 	uint16_t index[] = {
 		0, 1, 2, // back
@@ -115,6 +126,8 @@ void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC, float r) 
 		vertices.push_back(Vertex(findCoordinate(sphereNormal, radius), sphereNormal, sphereTangent, XMFLOAT2(u, v)));
 	}
 
+	uniqueVertexPos.push_back(findCoordinate(sphereNormal, radius));
+
 	//build middle sec
 	for (int i = 1; i < stackCount; i++) {
 		stackAngle -= stackStep;
@@ -125,7 +138,8 @@ void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC, float r) 
 			u = XMConvertToRadians(j * sectorStep) / XM_2PI;
 
 			vertices.push_back(Vertex(findCoordinate(sphereNormal, radius), sphereNormal, sphereTangent, XMFLOAT2(u, v)));
-			
+			uniqueVertexPos.push_back(findCoordinate(sphereNormal, radius));
+
 			sectorAngle += sectorStep;
 		}
 
@@ -165,6 +179,8 @@ void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC, float r) 
 		u = XMConvertToRadians(i * sectorStep + sectorStep / 2) / XM_2PI;
 		vertices.push_back(Vertex(findCoordinate(sphereNormal, radius), sphereNormal, sphereTangent, XMFLOAT2(u, 1)));
 	}
+	uniqueVertexPos.push_back(findCoordinate(sphereNormal, radius));
+
 
 	//Build north pole indices
 	for (int i = 0; i < sectorCount; i++) {
