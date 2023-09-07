@@ -95,8 +95,8 @@ void ps_main (
 
         normalMap = (2.0f * normalMap) - 1.0f; // change from [0, 1] to [-1, 1]
         
-        // Bitangent
-        float3 biTangent = normalize(cross(vOutNormal.xyz, vOutTangent.xyz)); // create biTangent
+        // Bitangent TODO: Should be cross(N, T)
+        float3 biTangent = normalize(-1.0f * cross(vOutNormal.xyz, vOutTangent.xyz)); // create biTangent
 
         // TBN Matrix
         float4x4 texSpace = {
