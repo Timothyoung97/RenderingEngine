@@ -30,6 +30,7 @@
 #include "shader.h"
 #include "renderer.h"
 #include "light.h"
+#include "blendstate.h"
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 1920;
@@ -123,24 +124,7 @@ int main()
 	tre::DepthBuffer depthBuffer(deviceAndContext.device.Get(), SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	//Blend State
-	ID3D11BlendState* transparency;
-
-	D3D11_RENDER_TARGET_BLEND_DESC rtbd;
-	rtbd.BlendEnable = TRUE;
-	rtbd.SrcBlend = D3D11_BLEND_SRC_ALPHA;
-	rtbd.DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
-	rtbd.BlendOp = D3D11_BLEND_OP_ADD;
-	rtbd.SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
-	rtbd.DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
-	rtbd.BlendOpAlpha = D3D11_BLEND_OP_ADD;
-	rtbd.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-
-	D3D11_BLEND_DESC blendDesc;
-	blendDesc.AlphaToCoverageEnable = FALSE;
-	blendDesc.IndependentBlendEnable = FALSE;
-	blendDesc.RenderTarget[0] = rtbd;
-	
-	deviceAndContext.device->CreateBlendState(&blendDesc, &transparency);
+	tre::BlendState blendState(deviceAndContext.device.Get());
 
 	//Set input layout
 	deviceAndContext.context->IASetInputLayout( vertLayout.Get() );
@@ -383,7 +367,7 @@ int main()
 		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateFCCW.Get(), cb, opaqueObjQ);
 
 		// Set blend state for transparent obj
-		deviceAndContext.context->OMSetBlendState(transparency, NULL, 0xffffffff);
+		deviceAndContext.context->OMSetBlendState(blendState.transparency.Get(), NULL, 0xffffffff);
 
 		if (toRecalDistFromCam) {
 			for (int i = 0; i < transparentObjQ.size(); i++) {
