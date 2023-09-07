@@ -21,8 +21,8 @@ Camera::Camera(float width, float height) {
 	directionV = XMVector3Normalize(XMLoadFloat3(&directionF));
 	
 	//Speed setting
-	cameraMoveSpeed = .001f;
-	cameraRotateSpeed = .01f;
+	cameraMoveSpeed = .01f;
+	cameraRotateSpeed = .1f;
 
 	// Camera View Matrix
 	camView = XMMatrixLookAtLH(camPositionV, camPositionV + directionV, camUpV);

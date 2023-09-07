@@ -32,8 +32,8 @@
 #include "light.h"
 
 //Screen dimension constants
-const int SCREEN_WIDTH = 800;
-const int SCREEN_HEIGHT = 800;
+const int SCREEN_WIDTH = 1920;
+const int SCREEN_HEIGHT = 1020;
 
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;
@@ -42,6 +42,7 @@ using Microsoft::WRL::ComPtr;
 D3D11_INPUT_ELEMENT_DESC layout[] = {
 	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0 , D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0}
 };
 
@@ -97,10 +98,18 @@ int main()
 	};
 
 	// Create texture
-	tre::Texture textures[3] = { 
+	tre::Texture textures[5] = { 
 		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\UV_image.jpg"), 
 		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\UV_image2.jpg"),
-		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\UV_image_a.png")
+		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\UV_image_a.png"),
+		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\glTF.png"),
+		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\wall.jpg")
+	};
+
+	tre::Texture normals[2] = {
+		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\glTF_normal.png"),
+		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\wall_normal.jpg")
+
 	};
 
 	// Create input layout
@@ -183,8 +192,11 @@ int main()
 
 	// set light
 	Light dirlight{
-		XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT4(.5f, .5f, .5f, 1.0f), XMFLOAT4(.0f, .0f, .0f, .0f)
+		XMFLOAT3(-.5f, .5f, -.5f), .0f, XMFLOAT4(.5f, .5f, .5f, 1.0f), XMFLOAT4(.5f, .5f, .5f, .5f)
 	};
+
+	XMVECTOR lightDir = XMLoadFloat3(&dirlight.direction);
+	XMStoreFloat3(&dirlight.direction, XMVector3Normalize(lightDir));
 
 	PointLight pointLight[4] = {
 		{ XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT3(.0f, .0f, .0f), 100.0f, XMFLOAT3(.0f, .2f, .0f), .0f, XMFLOAT4(.1f, .1f, .1f, .1f), XMFLOAT4(.5f, .5f, .5f, .5f) },
@@ -205,14 +217,19 @@ int main()
 
 		newLightObj.pObjMesh = &meshes[1]; // sphere
 		newLightObj.objPos = originPtLight[i];
-		newLightObj.objScale = XMFLOAT3(1.0f, 1.0f, 1.0f);
+		newLightObj.objScale = XMFLOAT3(.1f, .1f, .1f);
 		newLightObj.objRotation = XMFLOAT3(.0f, .0f, .0f);
 		newLightObj.pObjTexture = &textures[0];
+		newLightObj.pObjNormalMap = nullptr;
 		newLightObj.isObjWithTexture = 0;
+		newLightObj.isObjWithNormalMap = 0;
 		newLightObj.objColor = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 
 		lightObjQ.push_back(newLightObj);
 	}
+
+	// pause light
+	int pauseLight = 0;
 
 	// main loop
 	while (!input.shouldQuit())
@@ -253,6 +270,9 @@ int main()
 			newObj.objScale = XMFLOAT3(scaleVal, scaleVal, scaleVal);
 			newObj.objRotation = XMFLOAT3(tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360));
 			newObj.pObjTexture = &textures[tre::Utility::getRandomInt(2)];
+			newObj.isObjWithNormalMap = 0;
+			newObj.pObjNormalMap = nullptr;
+
 
 			// With/Without texture
 			if (tre::Utility::getRandomInt(1) == 1) {
@@ -277,6 +297,41 @@ int main()
 			} else {
 				opaqueObjQ.push_back(newObj);
 			}
+		}
+		else if (input.keyState[SDL_SCANCODE_RSHIFT]) { // create obj with normal mapping
+			
+			tre::Object newNorObj;
+
+			float scaleVal = tre::Utility::getRandomFloat(3);
+			int textureIdx = tre::Utility::getRandomInt(1);
+			newNorObj.pObjMesh = &meshes[tre::Utility::getRandomInt(1)];
+			newNorObj.objPos = XMFLOAT3(tre::Utility::getRandomFloatRange(-5, 5), tre::Utility::getRandomFloatRange(-5, 5), tre::Utility::getRandomFloatRange(-5, 5));
+			newNorObj.objScale = XMFLOAT3(scaleVal, scaleVal, scaleVal);
+			newNorObj.objRotation = XMFLOAT3(tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360));
+			newNorObj.pObjTexture = &textures[3 + textureIdx];
+			newNorObj.isObjWithTexture = 1;
+			newNorObj.pObjNormalMap = &normals[textureIdx];
+			newNorObj.isObjWithNormalMap = 1;
+			newNorObj.objColor = XMFLOAT4();
+			newNorObj.distFromCam = tre::Utility::distBetweentObjToCam(newNorObj.objPos, cam.camPositionV);
+
+			// transparent queue -> object with texture with alpha channel or object with color.w below 1.0f
+			if ((newNorObj.isObjWithTexture && newNorObj.pObjTexture->hasAlphaChannel)
+				|| (!newNorObj.isObjWithTexture && newNorObj.objColor.w < 1.0f)) {
+
+				// find its distance from cam
+				newNorObj.distFromCam = tre::Utility::distBetweentObjToCam(newNorObj.objPos, cam.camPositionV);
+
+				transparentObjQ.push_back(newNorObj);
+
+				toSortTransparentQ = TRUE;
+			}
+			else {
+				opaqueObjQ.push_back(newNorObj);
+			}
+
+		} else if (input.keyState[SDL_SCANCODE_P]) {
+			pauseLight ^= 1;
 		}
 
 		// Alternating buffers
@@ -350,29 +405,31 @@ int main()
 		// Draw all transparent objects
 		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateFCCW.Get(), cb, transparentObjQ);
 
-		// rotate point light 1
-		sectorAnglePtLight[0] += 1.0f;
-		if (sectorAnglePtLight[0] == 360.0f) sectorAnglePtLight[0] = .0f;
-		pointLight[0].pos = tre::Utility::getRotatePosition(originPtLight[0], stackAnglePtLight[0], sectorAnglePtLight[0], 1.0f);
-		lightObjQ[0].objPos = pointLight[0].pos;
+		if (!pauseLight) {
+			// rotate point light 1
+			sectorAnglePtLight[0] += 1.0f;
+			if (sectorAnglePtLight[0] == 360.0f) sectorAnglePtLight[0] = .0f;
+			pointLight[0].pos = tre::Utility::getRotatePosition(originPtLight[0], stackAnglePtLight[0], sectorAnglePtLight[0], 1.0f);
+			lightObjQ[0].objPos = pointLight[0].pos;
 
-		// rotate point light 2
-		stackAnglePtLight[1] += 1.0f;
-		if (stackAnglePtLight[1] == 360.0f) stackAnglePtLight[1] = .0f;
-		pointLight[1].pos = tre::Utility::getRotatePosition(originPtLight[1], stackAnglePtLight[1], sectorAnglePtLight[1], 1.0f);
-		lightObjQ[1].objPos = pointLight[1].pos;
+			// rotate point light 2
+			stackAnglePtLight[1] += 1.0f;
+			if (stackAnglePtLight[1] == 360.0f) stackAnglePtLight[1] = .0f;
+			pointLight[1].pos = tre::Utility::getRotatePosition(originPtLight[1], stackAnglePtLight[1], sectorAnglePtLight[1], 1.0f);
+			lightObjQ[1].objPos = pointLight[1].pos;
 
-		// rotate point light 3
-		sectorAnglePtLight[2] += 5.0f;
-		if (sectorAnglePtLight[2] == 360.0f) sectorAnglePtLight[2] = .0f;
-		pointLight[2].pos = tre::Utility::getRotatePosition(originPtLight[2], stackAnglePtLight[2], sectorAnglePtLight[2], 5.0f);
-		lightObjQ[2].objPos = pointLight[2].pos;
+			// rotate point light 3
+			sectorAnglePtLight[2] += 5.0f;
+			if (sectorAnglePtLight[2] == 360.0f) sectorAnglePtLight[2] = .0f;
+			pointLight[2].pos = tre::Utility::getRotatePosition(originPtLight[2], stackAnglePtLight[2], sectorAnglePtLight[2], 5.0f);
+			lightObjQ[2].objPos = pointLight[2].pos;
 
-		// rotate point light 4
-		stackAnglePtLight[3] += 5.0f;
-		if (stackAnglePtLight[3] == 360.0f) stackAnglePtLight[3] = .0f;
-		pointLight[3].pos = tre::Utility::getRotatePosition(originPtLight[3], stackAnglePtLight[3], sectorAnglePtLight[3], 5.0f);
-		lightObjQ[3].objPos = pointLight[3].pos;
+			// rotate point light 4
+			stackAnglePtLight[3] += 5.0f;
+			if (stackAnglePtLight[3] == 360.0f) stackAnglePtLight[3] = .0f;
+			pointLight[3].pos = tre::Utility::getRotatePosition(originPtLight[3], stackAnglePtLight[3], sectorAnglePtLight[3], 5.0f);
+			lightObjQ[3].objPos = pointLight[3].pos;
+		}
 
 		// Set Pixel Shader for light
 		deviceAndContext.context->PSSetShader(light_pixel_shader.pShader.Get(), NULL, 0u);

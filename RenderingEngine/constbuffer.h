@@ -22,6 +22,7 @@ struct constBufferShaderRescModel {
 	XMMATRIX normalMatrix;
 	XMFLOAT4 color;
 	UINT isWithTexture;
+	UINT hasNormalMap;
 };
 
 namespace tre {
