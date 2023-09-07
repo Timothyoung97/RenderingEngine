@@ -26,10 +26,10 @@ void CubeMesh::create(ID3D11Device* device) {
 		XMFLOAT3(-unitLength, unitLength, unitLength), XMFLOAT3(0, 0, 1), XMFLOAT3(-1, 0, 0), XMFLOAT2(1, 0),
 
 		// Right
-		XMFLOAT3(unitLength, -unitLength, -unitLength), XMFLOAT3(1, 0, 0), XMFLOAT3(0, 0, -1), XMFLOAT2(0, 1), // 4
-		XMFLOAT3(unitLength, -unitLength, unitLength), XMFLOAT3(1, 0, 0), XMFLOAT3(0, 0, -1), XMFLOAT2(1, 1),
-		XMFLOAT3(unitLength, unitLength, -unitLength), XMFLOAT3(1, 0, 0), XMFLOAT3(0, 0, -1), XMFLOAT2(0, 0),
-		XMFLOAT3(unitLength, unitLength, unitLength), XMFLOAT3(1, 0, 0), XMFLOAT3(0, 0, -1), XMFLOAT2(1, 0),
+		XMFLOAT3(unitLength, -unitLength, -unitLength), XMFLOAT3(1, 0, 0), XMFLOAT3(0, 0, 1), XMFLOAT2(0, 1), // 4
+		XMFLOAT3(unitLength, -unitLength, unitLength), XMFLOAT3(1, 0, 0), XMFLOAT3(0, 0, 1), XMFLOAT2(1, 1),
+		XMFLOAT3(unitLength, unitLength, -unitLength), XMFLOAT3(1, 0, 0), XMFLOAT3(0, 0, 1), XMFLOAT2(0, 0),
+		XMFLOAT3(unitLength, unitLength, unitLength), XMFLOAT3(1, 0, 0), XMFLOAT3(0, 0, 1), XMFLOAT2(1, 0),
 
 		// top
 		XMFLOAT3(-unitLength, unitLength, -unitLength), XMFLOAT3(0, 1, 0), XMFLOAT3(1, 0, 0), XMFLOAT2(0, 1), // 8
