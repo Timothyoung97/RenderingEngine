@@ -62,6 +62,8 @@ void vs_main (
     float4 tempInTangent = float4(inTangent, 0);
     outTangent = mul(normalMatrix, tempInTangent); // using normal matrix to move tangent
 
+
+
     // Texture
     outTexCoord = inTexCoord;
 };
@@ -94,8 +96,6 @@ void ps_main (
         float4 normalMap = ObjNormMap.Sample(ObjSamplerState, vOutTexCoord);
 
         normalMap = (2.0f * normalMap) - 1.0f; // change from [0, 1] to [-1, 1]
-
-        vOutTangent = normalize(vOutTangent - dot(vOutTangent, vOutNormal) * vOutNormal); // ensure tangent is orthogonal to normal
 
         float3 biTangent = cross(vOutNormal.xyz, vOutTangent.xyz); // create biTangent
 
