@@ -31,6 +31,7 @@
 #include "renderer.h"
 #include "light.h"
 #include "blendstate.h"
+#include "colors.h"
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 1920;
@@ -48,19 +49,6 @@ D3D11_INPUT_ELEMENT_DESC layout[] = {
 };
 
 const UINT numOfInputElement = ARRAYSIZE(layout);
-
-XMFLOAT4 colors[10] = {
-{0, 0, 0, 0},
-{1, 0, 0, .1f},
-{1, 1, 0, .1f},
-{1, 1, 1, 1},
-{1, 0, 1, .1f},
-{0, 1, 0, 1},
-{0, 0, 1, .1f},
-{.5, 0, 0, .1f},
-{0, .5, 0, .1f},
-{0, 0, .5, 1}
-};
 
 int main()
 {
