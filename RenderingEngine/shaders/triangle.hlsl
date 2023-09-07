@@ -43,7 +43,8 @@ void vs_main (
     out float4 outLocalPosition : POSITION,
     out float4 outNormal : NORMAL,
     out float4 outTangent : TANGENT,
-    out float2 outTexCoord : TEXCOORD
+    out float4 outBitangent : TEXCOORD0,
+    out float2 outTexCoord : TEXCOORD1
 ) 
 {   
     // Position
@@ -58,11 +59,13 @@ void vs_main (
     float4 tempInNormal = float4(inNormal, 0);
     outNormal = mul(normalMatrix, tempInNormal);
 
-    // Tangernt
+    // Tangent
     float4 tempInTangent = float4(inTangent, 0);
     outTangent = mul(normalMatrix, tempInTangent); // using normal matrix to move tangent
 
-
+    // Bitangent
+    float3 biTangent = cross(outNormal.xyz, outTangent.xyz); // create biTangent
+    outBitangent = float4(biTangent, 0);
 
     // Texture
     outTexCoord = inTexCoord;
@@ -74,7 +77,8 @@ void ps_main (
     in float4 vOutLocalPosition : POSITION,
     in float4 vOutNormal : NORMAL,
     in float4 vOutTangent : TANGENT,
-    in float2 vOutTexCoord : TEXCOORD,
+    in float4 vOutBitangent : TEXCOORD0,
+    in float2 vOutTexCoord : TEXCOORD1,
     out float4 outTarget: SV_TARGET
 ) 
 {   
@@ -96,17 +100,14 @@ void ps_main (
         float4 normalMap = ObjNormMap.Sample(ObjSamplerState, vOutTexCoord);
 
         normalMap = (2.0f * normalMap) - 1.0f; // change from [0, 1] to [-1, 1]
-
-        float3 biTangent = cross(vOutNormal.xyz, vOutTangent.xyz); // create biTangent
-
-        // create texture space
-        float4x4 texSpace = float4x4(
-            vOutTangent, 
-            float4(biTangent, 0), 
-            vOutNormal, 
-            float4(.0f, .0f, .0f, 1.0f)
-        );
         
+        float4x4 texSpace = {
+            vOutTangent,
+            vOutBitangent,
+            vOutNormal,
+            float4(.0f, .0f, .0f, 1.0f)
+        };
+
         vOutNormal = normalize(mul(normalMap, texSpace)); // convert normal from normal map to texture space
     }
 
