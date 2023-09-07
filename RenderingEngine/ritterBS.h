@@ -7,8 +7,11 @@ namespace tre {
 
 class RitterBS {
 public:
+
+XMFLOAT3 sphereCenter{ .0f, .0f, .0f };
+float radius = .0f;
 	
-static Mesh createRitterBS(const std::vector<XMFLOAT3>& uniquePoint);
+RitterBS(const std::vector<XMFLOAT3>& uniquePoint);
 
 };
 }

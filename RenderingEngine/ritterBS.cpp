@@ -8,9 +8,7 @@ namespace tre {
 	Reference: Real-Time Collision Detection
 */
 
-Mesh RitterBS::createRitterBS(const std::vector<XMFLOAT3>& uniquePoint) {
-	XMFLOAT3 sphereCenter{.0f, .0f, .0f};
-	float radius = .0f;
+RitterBS::RitterBS(const std::vector<XMFLOAT3>& uniquePoint) {
 
 	// Get sphere encompassing two approximately most distant points
 	sphereFromDistantPoints(sphereCenter, radius, uniquePoint);
