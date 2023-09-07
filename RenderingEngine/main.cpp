@@ -159,9 +159,6 @@ int main()
 	bool toSortTransparentQ = FALSE;
 	bool toRecalDistFromCam = FALSE;
 
-	//set blend factor
-	float blendFactor[] = { 1, 1, 1, 1 };
-
 	// set light
 	Light dirlight{
 		XMFLOAT3(-.5f, .5f, -.5f), .0f, XMFLOAT4(.5f, .5f, .5f, 1.0f), XMFLOAT4(.5f, .5f, .5f, .5f)
@@ -343,7 +340,7 @@ int main()
 		deviceAndContext.context->PSSetConstantBuffers(0u, 1u, cb.pConstBuffer.GetAddressOf());
 
 		// Set blend state for opaque obj
-		deviceAndContext.context->OMSetBlendState(0, NULL, 0xffffffff);
+		deviceAndContext.context->OMSetBlendState(blendState.opaque.Get(), NULL, 0xffffffff);
 
 		// Set depth test for opaque obj
 		deviceAndContext.context->OMSetDepthStencilState(depthBuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
