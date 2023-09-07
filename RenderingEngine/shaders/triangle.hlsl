@@ -40,11 +40,10 @@ void vs_main (
     in float3 inTangent : TANGENT,
     in float2 inTexCoord : TEXCOORD,
     out float4 outPosition : SV_POSITION,
-    out float4 outLocalPosition : POSITION,
-    out float4 outNormal : NORMAL,
-    out float4 outTangent : TANGENT,
-    out float4 outBitangent : TEXCOORD0,
-    out float2 outTexCoord : TEXCOORD1
+    out float4 outLocalPosition : TEXCOORD0,
+    out float4 outNormal : TEXCOORD1,
+    out float4 outTangent : TEXCOORD2,
+    out float2 outTexCoord : TEXCOORD3
 ) 
 {   
     // Position
@@ -57,15 +56,11 @@ void vs_main (
 
     // Normal
     float4 tempInNormal = float4(inNormal, 0);
-    outNormal = mul(normalMatrix, tempInNormal);
+    outNormal = normalize(mul(normalMatrix, tempInNormal));
 
     // Tangent
     float4 tempInTangent = float4(inTangent, 0);
-    outTangent = mul(normalMatrix, tempInTangent); // using normal matrix to move tangent
-
-    // Bitangent
-    float3 biTangent = cross(outNormal.xyz, outTangent.xyz); // create biTangent
-    outBitangent = float4(biTangent, 0);
+    outTangent = normalize(mul(normalMatrix, tempInTangent)); // using normal matrix to move tangent
 
     // Texture
     outTexCoord = inTexCoord;
@@ -74,11 +69,10 @@ void vs_main (
 // Pixel Shader
 void ps_main (
     in float4 vOutPosition : SV_POSITION,
-    in float4 vOutLocalPosition : POSITION,
-    in float4 vOutNormal : NORMAL,
-    in float4 vOutTangent : TANGENT,
-    in float4 vOutBitangent : TEXCOORD0,
-    in float2 vOutTexCoord : TEXCOORD1,
+    in float4 vOutLocalPosition : TEXCOORD0,
+    in float4 vOutNormal : TEXCOORD1,
+    in float4 vOutTangent : TEXCOORD2,
+    in float2 vOutTexCoord : TEXCOORD3,
     out float4 outTarget: SV_TARGET
 ) 
 {   
@@ -101,9 +95,13 @@ void ps_main (
 
         normalMap = (2.0f * normalMap) - 1.0f; // change from [0, 1] to [-1, 1]
         
+        // Bitangent
+        float3 biTangent = normalize(cross(vOutNormal.xyz, vOutTangent.xyz)); // create biTangent
+
+        // TBN Matrix
         float4x4 texSpace = {
             vOutTangent,
-            vOutBitangent,
+            float4(biTangent, 0),
             vOutNormal,
             float4(.0f, .0f, .0f, 1.0f)
         };
