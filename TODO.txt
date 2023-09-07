@@ -1,7 +1,4 @@
 Graphics Tasks:
-• Normal Mapping
-    • detailed per-pixel lighting
-    • TBN matrix
 • Frustum Culling
     • Bounding Volume generation (Sphere & AABB)
     • shape-frustum intersection tests
@@ -62,6 +59,9 @@ Done:
     • Phong Lighting Equation
     • Hardcoded ambient lighting
 • Point Lights
+• Normal Mapping
+    • detailed per-pixel lighting
+    • TBN matrix
 
 //////////////////////////////////////////////////////////////////////////////
 
