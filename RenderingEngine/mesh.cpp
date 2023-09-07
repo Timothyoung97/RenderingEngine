@@ -84,12 +84,16 @@ SphereMesh::SphereMesh(ID3D11Device* device, int sectorC, int stackC) {
 }
 
 void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC) {
+	create(device, sectorC, stackC, .5f);
+};
+
+void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC, float r) {
 
 	std::vector<Vertex> vertices;
 	std::vector<uint16_t> indices;
 
 	//Sphere Properties
-	float radius = .5f;
+	float radius = r;
 	int sectorCount = sectorC;
 	int stackCount = stackC;
 	float sectorStep = 2 * 180.0f / sectorCount;

@@ -30,7 +30,6 @@ public:
 
 class CubeMesh : public Mesh {
 public:
-
 	CubeMesh(ID3D11Device* device);
 	void create(ID3D11Device* device);
 
@@ -42,6 +41,7 @@ public:
 	SphereMesh(ID3D11Device* device, int sectorC, int stackC);
 	
 	void create(ID3D11Device* device, int sectorC, int stackC);
+	void create(ID3D11Device* device, int sectorC, int stackC, float r);
 	XMFLOAT3 findCoordinate(XMFLOAT3 unitVector, float radius);
 };
 }
