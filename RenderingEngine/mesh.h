@@ -39,8 +39,8 @@ class SphereMesh : public Mesh {
 public:
 
 	SphereMesh(ID3D11Device* device, int sectorC, int stackC);
-	
-	void create(ID3D11Device* device, int sectorC, int stackC);
+	SphereMesh(ID3D11Device* device, int sectorC, int stackC, float r);
+
 	void create(ID3D11Device* device, int sectorC, int stackC, float r);
 	XMFLOAT3 findCoordinate(XMFLOAT3 unitVector, float radius);
 };

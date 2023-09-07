@@ -80,12 +80,12 @@ void CubeMesh::create(ID3D11Device* device) {
 }
 
 SphereMesh::SphereMesh(ID3D11Device* device, int sectorC, int stackC) {
-	create(device, sectorC, stackC);
+	create(device, sectorC, stackC, .5f);
 }
 
-void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC) {
-	create(device, sectorC, stackC, .5f);
-};
+SphereMesh::SphereMesh(ID3D11Device* device, int sectorC, int stackC, float r) {
+	create(device, sectorC, stackC, r);
+}
 
 void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC, float r) {
 
