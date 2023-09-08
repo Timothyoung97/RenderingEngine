@@ -1,4 +1,4 @@
-#include "ritterBS.h"
+#include "boundingvolume.h"
 
 #include "utility.h"
 
@@ -57,16 +57,22 @@ void sphereFromDistantPoints(XMFLOAT3& sphereCenter, float& radius, const std::v
 // Given Sphere s and Point p, update s (if needed) to just encompass p
 void sphereOfSphereAndPt(XMFLOAT3& sphereCenter, float& radius, const XMFLOAT3& point) {
 	// Compute squared distance between point and sphere center
-	XMFLOAT3 d = tre::Utility::XMFLOAT3Minus(point, sphereCenter);
+	XMVECTOR sphereCenterV = XMLoadFloat3(&sphereCenter), pointV = XMLoadFloat3(&point);
 
-	float dist2 = tre::Utility::XMFLOAT3DotProduct(d, d);
+	XMVECTOR dirV = pointV - sphereCenterV;
 
-	if (dist2 > radius * radius) {
-		float dist = sqrtf(dist2);
-		float newRadius = (radius + dist) * 0.5f;
+	XMFLOAT3 dirVLength;
+	XMStoreFloat3(&dirVLength, XMVector3Length(dirV));
+
+	float dist = dirVLength.x;
+
+	if (dist > radius) {
+		float newRadius = dist;
 		float k = (newRadius - radius) / dist;
 		radius = newRadius;
-		sphereCenter = tre::Utility::XMFLOAT3Addition(sphereCenter, tre::Utility::XMFLOAT3ScalarMultiply(d, k));
+
+		sphereCenterV += dirV * k;
+		XMStoreFloat3(&sphereCenter, sphereCenterV);
 	}
 };
 
@@ -75,10 +81,25 @@ RitterBS::RitterBS(const std::vector<XMFLOAT3>& uniquePoint) {
 	// Get sphere encompassing two approximately most distant points
 	sphereFromDistantPoints(sphereCenter, radius, uniquePoint);
 
-	for (int i = 0; i < uniquePoint.size(); i++)
+	for (int i = 0; i < uniquePoint.size(); i++) {
 		sphereOfSphereAndPt(sphereCenter, radius, uniquePoint[i]);
-
+	}
 };
 
+NaiveBS::NaiveBS(const std::vector<XMFLOAT3>& uniquePoint) {
+	XMVECTOR sphereCenterV = XMLoadFloat3(&sphereCenter);
+
+	for (int i = 0; i < uniquePoint.size(); i++) {
+		XMVECTOR pointV = XMLoadFloat3(&uniquePoint[0]);
+		XMVECTOR dirV = pointV - sphereCenterV;
+
+		XMFLOAT3 dirVLength;
+		XMStoreFloat3(&dirVLength, XMVector3Length(dirV));
+
+		float dist = dirVLength.x;
+		
+		if (dist > radius) radius = dist;
+	}
+}
 
 }
