@@ -84,24 +84,9 @@ int main()
 	// 3D objects
 	tre::Mesh meshes[3] = {
 		tre::CubeMesh(deviceAndContext.device.Get()), 
-		tre::SphereMesh(deviceAndContext.device.Get(), 10, 10),
-		tre::TeapotMesh(deviceAndContext.device.Get())
+		tre::SphereMesh(deviceAndContext.device.Get(), 10, 10)
+		//tre::TeapotMesh(deviceAndContext.device.Get())
 	};
-
-	// Ritter Sphere for Cube only
-	tre::RitterBS ritterBs(meshes[0].uniqueVertexPos);
-	float ritterBsScale = ritterBs.radius / .5f;
-
-	tre::NaiveBS naiveBS(meshes[0].uniqueVertexPos);
-	float naiveBsScale = naiveBS.radius / .5f;
-
-	// For tea pot
-	tre::RitterBS ritterBsTeapot(meshes[2].uniqueVertexPos);
-	float ritterBsScaleTeaPot = ritterBsTeapot.radius/ .5f;
-
-	tre::NaiveBS naiveBsTeapot(meshes[2].uniqueVertexPos);
-	float naiveBsScaleTeaPot = naiveBsTeapot.radius / .5f;
-
 
 	// Create texture
 	tre::Texture textures[5] = { 
@@ -289,7 +274,6 @@ int main()
 
 			int textureIdx = tre::Utility::getRandomInt(1);
 			newNorObj.pObjMesh = &meshes[0];
-			newNorObj.boundingSphere = &meshes[1]; // unit sphere
 			newNorObj.objPos = XMFLOAT3(.0f, .0f, .0f);
 			newNorObj.objScale = XMFLOAT3(1, 1, 1);
 			newNorObj.objRotation = XMFLOAT3(.0f, .0f, .0f);
@@ -299,6 +283,9 @@ int main()
 			newNorObj.isObjWithNormalMap = 0;
 			newNorObj.objColor = colors[5];
 			newNorObj.distFromCam = tre::Utility::distBetweentObjToCam(newNorObj.objPos, cam.camPositionV);
+
+			newNorObj.ritterBs = newNorObj.pObjMesh->ritterSphere;
+			newNorObj.naiveBs = newNorObj.pObjMesh->naiveSphere;
 
 			// transparent queue -> object with texture with alpha channel or object with color.w below 1.0f
 			if ((newNorObj.isObjWithTexture && newNorObj.pObjTexture->hasAlphaChannel)
@@ -367,16 +354,6 @@ int main()
 		// Draw all opaque objects
 		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateFCCW.Get(), cb, opaqueObjQ);
 
-		// Debug draw -> for bounding sphere
-		BOOLEAN isNaive = TRUE;
-
-		if (isNaive) {
-			renderer.debugDraw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, opaqueObjQ, naiveBsScale);
-		}
-		else {
-			renderer.debugDraw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, opaqueObjQ, ritterBsScale);
-		}
-
 		// Set blend state for transparent obj
 		deviceAndContext.context->OMSetBlendState(blendState.transparency.Get(), NULL, 0xffffffff);
 
@@ -434,6 +411,10 @@ int main()
 		
 		// Draw all light object wireframe
 		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, lightObjQ);
+
+		// Draw debug	
+		renderer.debugDraw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, opaqueObjQ, meshes[1]);
+
 
 		CHECK_DX_ERROR(swapchain.mainSwapchain->Present( 0, 0) );
 
