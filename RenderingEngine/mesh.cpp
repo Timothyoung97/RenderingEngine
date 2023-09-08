@@ -14,6 +14,7 @@ void CubeMesh::create(ID3D11Device* device) {
 
 	std::vector<Vertex> vertices;
 	std::vector<uint16_t> indices;
+	std::vector<XMFLOAT3> uniqueVertexPos;
 
 	float unitLength = .5f;
 
@@ -69,6 +70,9 @@ void CubeMesh::create(ID3D11Device* device) {
 		XMFLOAT3(-unitLength, -unitLength, -unitLength)
 	};
 
+	naiveBs = NaiveBS(uniqueVertexPos);
+	ritterBs = RitterBS(uniqueVertexPos);
+
 	//Cube Indices
 	uint16_t index[] = {
 		0, 1, 2, // back
@@ -102,6 +106,7 @@ void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC, float r) 
 
 	std::vector<Vertex> vertices;
 	std::vector<uint16_t> indices;
+	std::vector<XMFLOAT3> uniqueVertexPos;
 
 	//Sphere Properties
 	float radius = r;
@@ -181,6 +186,8 @@ void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC, float r) 
 	}
 	uniqueVertexPos.push_back(findCoordinate(sphereNormal, radius));
 
+	naiveBs = NaiveBS(uniqueVertexPos);
+	ritterBs = RitterBS(uniqueVertexPos);
 
 	//Build north pole indices
 	for (int i = 0; i < sectorCount; i++) {
@@ -281,6 +288,7 @@ TeapotMesh::TeapotMesh(ID3D11Device* device) {
 
 	std::vector<Vertex> vertices;
 	std::vector<uint16_t> indices;
+	std::vector<XMFLOAT3> uniqueVertexPos;
 
 	Vertex TeapotMesh[] = {
 		Vertex(XMFLOAT3(40.6266, 28.3457, -1.10804), XMFLOAT3(-0.966742, -0.255752, 9.97231e-09), XMFLOAT3(.0f, .0f, .0f), XMFLOAT2(0, 0)),
@@ -825,6 +833,10 @@ TeapotMesh::TeapotMesh(ID3D11Device* device) {
 		vertices[i].pos.z *= .1f;
 		uniqueVertexPos.push_back(vertices[i].pos);
 	}
+
+	naiveBs = NaiveBS(uniqueVertexPos);
+	ritterBs = RitterBS(uniqueVertexPos);
+
 	
 	indices = {
 		7, 6, 1,
