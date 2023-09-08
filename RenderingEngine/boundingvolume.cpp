@@ -57,22 +57,16 @@ void sphereFromDistantPoints(XMFLOAT3& sphereCenter, float& radius, const std::v
 // Given Sphere s and Point p, update s (if needed) to just encompass p
 void sphereOfSphereAndPt(XMFLOAT3& sphereCenter, float& radius, const XMFLOAT3& point) {
 	// Compute squared distance between point and sphere center
-	XMVECTOR sphereCenterV = XMLoadFloat3(&sphereCenter), pointV = XMLoadFloat3(&point);
+	XMFLOAT3 d = tre::Utility::XMFLOAT3Minus(point, sphereCenter);
 
-	XMVECTOR dirV = pointV - sphereCenterV;
+	float dist2 = tre::Utility::XMFLOAT3DotProduct(d, d);
 
-	XMFLOAT3 dirVLength;
-	XMStoreFloat3(&dirVLength, XMVector3Length(dirV));
-
-	float dist = dirVLength.x;
-
-	if (dist > radius) {
-		float newRadius = dist;
+	if (dist2 > radius * radius) {
+		float dist = sqrtf(dist2);
+		float newRadius = (radius + dist) * 0.5f;
 		float k = (newRadius - radius) / dist;
 		radius = newRadius;
-
-		sphereCenterV += dirV * k;
-		XMStoreFloat3(&sphereCenter, sphereCenterV);
+		sphereCenter = tre::Utility::XMFLOAT3Addition(sphereCenter, tre::Utility::XMFLOAT3ScalarMultiply(d, k));
 	}
 };
 
