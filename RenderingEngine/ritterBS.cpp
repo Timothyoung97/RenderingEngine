@@ -8,16 +8,6 @@ namespace tre {
 	Reference: Real-Time Collision Detection
 */
 
-RitterBS::RitterBS(const std::vector<XMFLOAT3>& uniquePoint) {
-
-	// Get sphere encompassing two approximately most distant points
-	sphereFromDistantPoints(sphereCenter, radius, uniquePoint);
-
-	for (int i = 0; i < uniquePoint.size(); i++)
-		sphereOfSphereAndPt(sphereCenter, radius, uniquePoint[i]);
-
-};
-
 // Compute indices to the two most separated points of the (up to) six points
 // defining the AABB encompassing the point set. Return these as min and max.
 void mostSeparatedPointsOnAABB(int& min, int& max, const std::vector<XMFLOAT3>& uniquePoint) {
@@ -80,6 +70,15 @@ void sphereOfSphereAndPt(XMFLOAT3& sphereCenter, float& radius, const XMFLOAT3& 
 	}
 };
 
+RitterBS::RitterBS(const std::vector<XMFLOAT3>& uniquePoint) {
+
+	// Get sphere encompassing two approximately most distant points
+	sphereFromDistantPoints(sphereCenter, radius, uniquePoint);
+
+	for (int i = 0; i < uniquePoint.size(); i++)
+		sphereOfSphereAndPt(sphereCenter, radius, uniquePoint[i]);
+
+};
 
 
 }
