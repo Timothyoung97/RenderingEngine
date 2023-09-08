@@ -815,9 +815,14 @@ TeapotMesh::TeapotMesh(ID3D11Device* device) {
 		Vertex(XMFLOAT3(34.9202, 28.3457, -15.6121), XMFLOAT3(0.48559, 0.850653, -0.201474), XMFLOAT3(.0f, .0f, .0f), XMFLOAT2(0, 0))
 	};
 
+
+
 	vertices.assign(std::begin(TeapotMesh), std::end(TeapotMesh));
 
 	for (int i = 0; i < vertices.size(); i++) {
+		vertices[i].pos.x *= .1f;
+		vertices[i].pos.y *= .1f;
+		vertices[i].pos.z *= .1f;
 		uniqueVertexPos.push_back(vertices[i].pos);
 	}
 	
