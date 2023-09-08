@@ -6,14 +6,11 @@ Graphics Tasks:
     • stress test (populate scene with >10,000 objects spread out)
 • Convert local light lists to StructuredBuffer
 • Mesh loading
-    • use choice of library
-        • tiny library: https://github.com/tinyobjloader/tinyobjloader
-        • full mesh import suite: https://github.com/assimp/assimp
+    • use library: https://github.com/assimp/assimp
     • Manage scene objects' meshes & materials
     • non-trivial general-purpose scene rendering
-    • Example high quality obj scenes: https://casual-effects.com/data/index.html
-        • Start with the cube
-        • NOTE: obj files only contain bump maps, not normal maps. Convert each bump map manually using https://github.com/kmkolasinski/AwesomeBump
+    • Example scenes: https://casual-effects.com/data/ & https://github.com/KhronosGroup/glTF-Sample-Models
+        • NOTE: .obj files only support bump maps, not normal maps. convert them to normal maps manually offline or in Pixel Shader
     • Goal: successfully import & render the "Crytek Sponza", "Rungholt", "Amazon Lumberyard Bistro" in succession
 • Shadow Maps
     • Start with simple single-cascade hard shadows
