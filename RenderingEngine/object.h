@@ -4,7 +4,6 @@
 
 #include "mesh.h"
 #include "texture.h"
-#include "ritterBS.h"
 
 using namespace DirectX;
 
