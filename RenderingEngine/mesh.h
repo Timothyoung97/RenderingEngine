@@ -26,8 +26,8 @@ public:
 	ComPtr<ID3D11Buffer> pIndexBuffer;
 	ComPtr<ID3D11Buffer> pVertexBuffer;
 
-	BoundingSphere ritterBs;
-	BoundingSphere naiveBs;
+	BoundingSphere ritterSphere;
+	BoundingSphere naiveSphere;
 
 	int indexSize;
 	void createVertexAndIndexBuffer(ID3D11Device* device, const std::vector<Vertex> &vertices, const std::vector<uint16_t> &indices);
@@ -51,9 +51,9 @@ public:
 	XMFLOAT3 findCoordinate(XMFLOAT3 unitVector, float radius);
 };
 
-class TeapotMesh : public Mesh {
-public:
-
-	TeapotMesh(ID3D11Device* device);
-};
+//class TeapotMesh : public Mesh {
+//public:
+//
+//	TeapotMesh(ID3D11Device* device);
+//};
 }
