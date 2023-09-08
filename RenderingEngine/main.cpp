@@ -32,6 +32,7 @@
 #include "light.h"
 #include "blendstate.h"
 #include "colors.h"
+#include "boundingvolume.h"
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 1920;
@@ -81,10 +82,26 @@ int main()
 	deviceAndContext.context->VSSetShader(vertex_shader.pShader.Get(), NULL, 0u);
 
 	// 3D objects
-	tre::Mesh meshes[2] = {
+	tre::Mesh meshes[3] = {
 		tre::CubeMesh(deviceAndContext.device.Get()), 
-		tre::SphereMesh(deviceAndContext.device.Get(), 10, 10) 
+		tre::SphereMesh(deviceAndContext.device.Get(), 10, 10),
+		tre::TeapotMesh(deviceAndContext.device.Get())
 	};
+
+	// Ritter Sphere for Cube only
+	tre::RitterBS ritterBs(meshes[0].uniqueVertexPos);
+	float ritterBsScale = ritterBs.radius / .5f;
+
+	tre::NaiveBS naiveBS(meshes[0].uniqueVertexPos);
+	float naiveBsScale = naiveBS.radius / .5f;
+
+	// For tea pot
+	tre::RitterBS ritterBsTeapot(meshes[2].uniqueVertexPos);
+	float ritterBsScaleTeaPot = ritterBsTeapot.radius/ .5f;
+
+	tre::NaiveBS naiveBsTeapot(meshes[2].uniqueVertexPos);
+	float naiveBsScaleTeaPot = naiveBsTeapot.radius / .5f;
+
 
 	// Create texture
 	tre::Texture textures[5] = { 
@@ -98,7 +115,6 @@ int main()
 	tre::Texture normals[2] = {
 		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\glTF_normal.png"),
 		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\wall_normal.jpg")
-
 	};
 
 	// Create input layout
@@ -268,20 +284,20 @@ int main()
 			}
 		}
 		else if (input.keyState[SDL_SCANCODE_RSHIFT]) { // create obj with normal mapping
-			
+
 			tre::Object newNorObj;
 
 			int textureIdx = tre::Utility::getRandomInt(1);
-			newNorObj.pObjMesh = &meshes[2];
+			newNorObj.pObjMesh = &meshes[0];
 			newNorObj.boundingSphere = &meshes[1]; // unit sphere
-			newNorObj.objPos = XMFLOAT3(tre::Utility::getRandomFloatRange(-5, 5), tre::Utility::getRandomFloatRange(-5, 5), tre::Utility::getRandomFloatRange(-5, 5));
-			newNorObj.objScale = XMFLOAT3(.1f, .1f, .1f);
+			newNorObj.objPos = XMFLOAT3(.0f, .0f, .0f);
+			newNorObj.objScale = XMFLOAT3(1, 1, 1);
 			newNorObj.objRotation = XMFLOAT3(.0f, .0f, .0f);
 			newNorObj.pObjTexture = &textures[3 + textureIdx];
-			newNorObj.isObjWithTexture = 1;
+			newNorObj.isObjWithTexture = 0;
 			newNorObj.pObjNormalMap = &normals[textureIdx];
-			newNorObj.isObjWithNormalMap = 1;
-			newNorObj.objColor = XMFLOAT4();
+			newNorObj.isObjWithNormalMap = 0;
+			newNorObj.objColor = colors[5];
 			newNorObj.distFromCam = tre::Utility::distBetweentObjToCam(newNorObj.objPos, cam.camPositionV);
 
 			// transparent queue -> object with texture with alpha channel or object with color.w below 1.0f
@@ -296,7 +312,7 @@ int main()
 				toSortTransparentQ = TRUE;
 			}
 			else {
-				opaqueObjQ.push_back(newNorObj);
+				if (opaqueObjQ.size() == 0) opaqueObjQ.push_back(newNorObj);
 			}
 
 		} else if (input.keyState[SDL_SCANCODE_P]) {
@@ -350,6 +366,16 @@ int main()
 
 		// Draw all opaque objects
 		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateFCCW.Get(), cb, opaqueObjQ);
+
+		// Debug draw -> for bounding sphere
+		BOOLEAN isNaive = TRUE;
+
+		if (isNaive) {
+			renderer.debugDraw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, opaqueObjQ, naiveBsScale);
+		}
+		else {
+			renderer.debugDraw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, opaqueObjQ, ritterBsScale);
+		}
 
 		// Set blend state for transparent obj
 		deviceAndContext.context->OMSetBlendState(blendState.transparency.Get(), NULL, 0xffffffff);

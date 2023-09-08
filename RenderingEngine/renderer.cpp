@@ -64,7 +64,7 @@ void Renderer::draw(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11Ra
 	}
 }
 
-void Renderer::debugDraw(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11RasterizerState* rasterizerState, tre::ConstantBuffer& cb, const std::vector<Object>& objQ, float ritterBsScale) {
+void Renderer::debugDraw(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11RasterizerState* rasterizerState, tre::ConstantBuffer& cb, const std::vector<Object>& objQ, float bsScale) {
 
 	context->RSSetState(rasterizerState);
 
@@ -85,7 +85,7 @@ void Renderer::debugDraw(ID3D11Device* device, ID3D11DeviceContext* context, ID3
 
 		//Config const buffer
 		cb.constBufferRescModel.transformationLocal = XMMatrixMultiply(
-			XMMatrixScaling(currObj.objScale.x * ritterBsScale, currObj.objScale.y * ritterBsScale, currObj.objScale.z * ritterBsScale),
+			XMMatrixScaling(currObj.objScale.x * bsScale, currObj.objScale.y * bsScale, currObj.objScale.z * bsScale),
 			XMMatrixMultiply(
 				XMMatrixRotationRollPitchYaw(XMConvertToRadians(currObj.objRotation.x), XMConvertToRadians(currObj.objRotation.x), XMConvertToRadians(currObj.objRotation.x)),
 				XMMatrixTranslation(currObj.objPos.x, currObj.objPos.y, currObj.objPos.z)
