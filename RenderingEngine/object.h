@@ -4,6 +4,7 @@
 
 #include "mesh.h"
 #include "texture.h"
+#include "ritterBS.h"
 
 using namespace DirectX;
 
@@ -11,6 +12,8 @@ namespace tre {
 	
 struct Object {
 	Mesh* pObjMesh;
+	Mesh* boundingSphere;
+	
 	Texture* pObjTexture;
 	Texture* pObjNormalMap;
 
