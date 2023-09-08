@@ -271,12 +271,12 @@ int main()
 			
 			tre::Object newNorObj;
 
-			float scaleVal = tre::Utility::getRandomFloat(3);
 			int textureIdx = tre::Utility::getRandomInt(1);
-			newNorObj.pObjMesh = &meshes[tre::Utility::getRandomInt(1)];
+			newNorObj.pObjMesh = &meshes[2];
+			newNorObj.boundingSphere = &meshes[1]; // unit sphere
 			newNorObj.objPos = XMFLOAT3(tre::Utility::getRandomFloatRange(-5, 5), tre::Utility::getRandomFloatRange(-5, 5), tre::Utility::getRandomFloatRange(-5, 5));
-			newNorObj.objScale = XMFLOAT3(scaleVal, scaleVal, scaleVal);
-			newNorObj.objRotation = XMFLOAT3(tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360));
+			newNorObj.objScale = XMFLOAT3(.1f, .1f, .1f);
+			newNorObj.objRotation = XMFLOAT3(.0f, .0f, .0f);
 			newNorObj.pObjTexture = &textures[3 + textureIdx];
 			newNorObj.isObjWithTexture = 1;
 			newNorObj.pObjNormalMap = &normals[textureIdx];
