@@ -1,7 +1,10 @@
 #pragma once
 
+#include <DirectXMath.h>
 
-#include "mesh.h"
+#include <vector>
+
+using namespace DirectX;
 
 namespace tre {
 
@@ -14,7 +17,6 @@ public:
 class RitterBS : public BoundingSphere {
 public:
 	RitterBS(const std::vector<XMFLOAT3>& uniquePoint);
-
 };
 
 class NaiveBS : public BoundingSphere {
