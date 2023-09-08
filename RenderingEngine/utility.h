@@ -2,6 +2,8 @@
 
 #include <DirectXMath.h>
 
+#include <string>
+
 using namespace DirectX;
 
 namespace tre {
