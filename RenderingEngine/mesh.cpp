@@ -70,7 +70,7 @@ void CubeMesh::create(ID3D11Device* device) {
 		XMFLOAT3(-unitLength, -unitLength, -unitLength)
 	};
 
-	ritterSphere = RitterBS(uniqueVertexPos);
+	ritterSphere = RitterBS(uniqueVertexPos, TRUE);
 	naiveSphere = NaiveBS(uniqueVertexPos);
 
 	//Cube Indices
