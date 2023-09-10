@@ -75,17 +75,17 @@ void Renderer::debugDraw(ID3D11Device* device, ID3D11DeviceContext* context, ID3
 		//Set vertex buffer
 		UINT vertexStride = sizeof(Vertex);
 		UINT offset = 0;
-		context->IASetVertexBuffers(0, 1, currObj.boundingSphere->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
+		context->IASetVertexBuffers(0, 1, sphere.pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
 
 		//Set index buffer
-		context->IASetIndexBuffer(currObj.boundingSphere->pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
+		context->IASetIndexBuffer(sphere.pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
 
 		//set shader resc view and sampler
 		context->PSSetShaderResources(0, 1, currObj.pObjTexture->pShaderResView.GetAddressOf());
 
 		//Config const buffer
 		cb.constBufferRescModel.transformationLocal = XMMatrixMultiply(
-			XMMatrixScaling(currObj.objScale.x * bsScale, currObj.objScale.y * bsScale, currObj.objScale.z * bsScale),
+			XMMatrixScaling(currObj.objScale.x * currObj.naiveBs.radius / .5f, currObj.objScale.y * currObj.naiveBs.radius / .5f, currObj.objScale.z * currObj.naiveBs.radius / .5f),
 			XMMatrixMultiply(
 				XMMatrixRotationRollPitchYaw(XMConvertToRadians(currObj.objRotation.x), XMConvertToRadians(currObj.objRotation.x), XMConvertToRadians(currObj.objRotation.x)),
 				XMMatrixTranslation(currObj.objPos.x, currObj.objPos.y, currObj.objPos.z)
@@ -119,7 +119,7 @@ void Renderer::debugDraw(ID3D11Device* device, ID3D11DeviceContext* context, ID3
 		context->VSSetConstantBuffers(1u, 1u, cb.pConstBuffer.GetAddressOf());
 		context->PSSetConstantBuffers(1u, 1u, cb.pConstBuffer.GetAddressOf());
 
-		context->DrawIndexed(currObj.boundingSphere->indexSize, 0, 0);
+		context->DrawIndexed(sphere.indexSize, 0, 0);
 	}
 }
 
