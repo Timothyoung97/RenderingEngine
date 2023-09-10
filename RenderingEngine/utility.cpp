@@ -63,4 +63,25 @@ XMFLOAT3 Utility::getRotatePosition(XMFLOAT3 objOrigin, float stackAngle, float 
 	return rotatedPosition;
 }
 
+XMFLOAT3 Utility::XMFLOAT3Addition(XMFLOAT3 a, XMFLOAT3 b) {
+	return XMFLOAT3(a.x + b.x, a.y + b.y, a.z + b.z);
+}
+
+XMFLOAT3 Utility::XMFLOAT3Minus(XMFLOAT3 a, XMFLOAT3 b) {
+	return XMFLOAT3(a.x - b.x, a.y - b.y, a.z - b.z);
+}
+
+XMFLOAT3 Utility::XMFLOAT3ScalarMultiply(XMFLOAT3 a, float x) {
+	return XMFLOAT3(a.x * x, a.y * x, a.z * x);
+}
+
+float Utility::XMFLOAT3DotProduct(XMFLOAT3 pt1, XMFLOAT3 pt2) {
+	XMVECTOR pV1 = XMLoadFloat3(&pt1), pV2 = XMLoadFloat3(&pt2);
+
+	XMFLOAT3 ans;
+	XMStoreFloat3(&ans, XMVector3Dot(pV1, pV2));
+	return ans.x;
+}
+
+
 }

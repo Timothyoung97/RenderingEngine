@@ -6,6 +6,8 @@
 
 #include <vector>
 
+#include "boundingvolume.h"
+
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;
 
@@ -23,6 +25,10 @@ public:
 
 	ComPtr<ID3D11Buffer> pIndexBuffer;
 	ComPtr<ID3D11Buffer> pVertexBuffer;
+
+	BoundingSphere ritterSphere;
+	BoundingSphere naiveSphere;
+
 	int indexSize;
 	void createVertexAndIndexBuffer(ID3D11Device* device, const std::vector<Vertex> &vertices, const std::vector<uint16_t> &indices);
 
@@ -30,7 +36,6 @@ public:
 
 class CubeMesh : public Mesh {
 public:
-
 	CubeMesh(ID3D11Device* device);
 	void create(ID3D11Device* device);
 
@@ -40,8 +45,15 @@ class SphereMesh : public Mesh {
 public:
 
 	SphereMesh(ID3D11Device* device, int sectorC, int stackC);
-	
-	void create(ID3D11Device* device, int sectorC, int stackC);
+	SphereMesh(ID3D11Device* device, int sectorC, int stackC, float r);
+
+	void create(ID3D11Device* device, int sectorC, int stackC, float r);
 	XMFLOAT3 findCoordinate(XMFLOAT3 unitVector, float radius);
 };
+
+//class TeapotMesh : public Mesh {
+//public:
+//
+//	TeapotMesh(ID3D11Device* device);
+//};
 }

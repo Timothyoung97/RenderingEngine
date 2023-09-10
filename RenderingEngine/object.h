@@ -4,6 +4,7 @@
 
 #include "mesh.h"
 #include "texture.h"
+#include "boundingvolume.h"
 
 using namespace DirectX;
 
@@ -11,6 +12,10 @@ namespace tre {
 	
 struct Object {
 	Mesh* pObjMesh;
+	
+	BoundingSphere ritterBs;
+	BoundingSphere naiveBs;
+	
 	Texture* pObjTexture;
 	Texture* pObjNormalMap;
 

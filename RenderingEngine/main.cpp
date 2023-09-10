@@ -30,6 +30,9 @@
 #include "shader.h"
 #include "renderer.h"
 #include "light.h"
+#include "blendstate.h"
+#include "colors.h"
+#include "boundingvolume.h"
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 1920;
@@ -47,19 +50,6 @@ D3D11_INPUT_ELEMENT_DESC layout[] = {
 };
 
 const UINT numOfInputElement = ARRAYSIZE(layout);
-
-XMFLOAT4 colors[10] = {
-{0, 0, 0, 0},
-{1, 0, 0, .1f},
-{1, 1, 0, .1f},
-{1, 1, 1, 1},
-{1, 0, 1, .1f},
-{0, 1, 0, 1},
-{0, 0, 1, .1f},
-{.5, 0, 0, .1f},
-{0, .5, 0, .1f},
-{0, 0, .5, 1}
-};
 
 int main()
 {
@@ -92,9 +82,10 @@ int main()
 	deviceAndContext.context->VSSetShader(vertex_shader.pShader.Get(), NULL, 0u);
 
 	// 3D objects
-	tre::Mesh meshes[2] = {
+	tre::Mesh meshes[3] = {
 		tre::CubeMesh(deviceAndContext.device.Get()), 
-		tre::SphereMesh(deviceAndContext.device.Get(), 10, 10) 
+		tre::SphereMesh(deviceAndContext.device.Get(), 10, 10)
+		//tre::TeapotMesh(deviceAndContext.device.Get())
 	};
 
 	// Create texture
@@ -109,7 +100,6 @@ int main()
 	tre::Texture normals[2] = {
 		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\glTF_normal.png"),
 		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\wall_normal.jpg")
-
 	};
 
 	// Create input layout
@@ -123,24 +113,7 @@ int main()
 	tre::DepthBuffer depthBuffer(deviceAndContext.device.Get(), SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	//Blend State
-	ID3D11BlendState* transparency;
-
-	D3D11_RENDER_TARGET_BLEND_DESC rtbd;
-	rtbd.BlendEnable = TRUE;
-	rtbd.SrcBlend = D3D11_BLEND_SRC_ALPHA;
-	rtbd.DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
-	rtbd.BlendOp = D3D11_BLEND_OP_ADD;
-	rtbd.SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
-	rtbd.DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
-	rtbd.BlendOpAlpha = D3D11_BLEND_OP_ADD;
-	rtbd.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-
-	D3D11_BLEND_DESC blendDesc;
-	blendDesc.AlphaToCoverageEnable = FALSE;
-	blendDesc.IndependentBlendEnable = FALSE;
-	blendDesc.RenderTarget[0] = rtbd;
-	
-	deviceAndContext.device->CreateBlendState(&blendDesc, &transparency);
+	tre::BlendState blendState(deviceAndContext.device.Get());
 
 	//Set input layout
 	deviceAndContext.context->IASetInputLayout( vertLayout.Get() );
@@ -186,9 +159,6 @@ int main()
 
 	bool toSortTransparentQ = FALSE;
 	bool toRecalDistFromCam = FALSE;
-
-	//set blend factor
-	float blendFactor[] = { 1, 1, 1, 1 };
 
 	// set light
 	Light dirlight{
@@ -299,21 +269,23 @@ int main()
 			}
 		}
 		else if (input.keyState[SDL_SCANCODE_RSHIFT]) { // create obj with normal mapping
-			
+
 			tre::Object newNorObj;
 
-			float scaleVal = tre::Utility::getRandomFloat(3);
 			int textureIdx = tre::Utility::getRandomInt(1);
-			newNorObj.pObjMesh = &meshes[tre::Utility::getRandomInt(1)];
-			newNorObj.objPos = XMFLOAT3(tre::Utility::getRandomFloatRange(-5, 5), tre::Utility::getRandomFloatRange(-5, 5), tre::Utility::getRandomFloatRange(-5, 5));
-			newNorObj.objScale = XMFLOAT3(scaleVal, scaleVal, scaleVal);
-			newNorObj.objRotation = XMFLOAT3(tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360));
+			newNorObj.pObjMesh = &meshes[0];
+			newNorObj.objPos = XMFLOAT3(.0f, .0f, .0f);
+			newNorObj.objScale = XMFLOAT3(1, 1, 1);
+			newNorObj.objRotation = XMFLOAT3(.0f, .0f, .0f);
 			newNorObj.pObjTexture = &textures[3 + textureIdx];
-			newNorObj.isObjWithTexture = 1;
+			newNorObj.isObjWithTexture = 0;
 			newNorObj.pObjNormalMap = &normals[textureIdx];
-			newNorObj.isObjWithNormalMap = 1;
-			newNorObj.objColor = XMFLOAT4();
+			newNorObj.isObjWithNormalMap = 0;
+			newNorObj.objColor = colors[5];
 			newNorObj.distFromCam = tre::Utility::distBetweentObjToCam(newNorObj.objPos, cam.camPositionV);
+
+			newNorObj.ritterBs = newNorObj.pObjMesh->ritterSphere;
+			newNorObj.naiveBs = newNorObj.pObjMesh->naiveSphere;
 
 			// transparent queue -> object with texture with alpha channel or object with color.w below 1.0f
 			if ((newNorObj.isObjWithTexture && newNorObj.pObjTexture->hasAlphaChannel)
@@ -327,7 +299,7 @@ int main()
 				toSortTransparentQ = TRUE;
 			}
 			else {
-				opaqueObjQ.push_back(newNorObj);
+				if (opaqueObjQ.size() == 0) opaqueObjQ.push_back(newNorObj);
 			}
 
 		} else if (input.keyState[SDL_SCANCODE_P]) {
@@ -371,7 +343,7 @@ int main()
 		deviceAndContext.context->PSSetConstantBuffers(0u, 1u, cb.pConstBuffer.GetAddressOf());
 
 		// Set blend state for opaque obj
-		deviceAndContext.context->OMSetBlendState(0, NULL, 0xffffffff);
+		deviceAndContext.context->OMSetBlendState(blendState.opaque.Get(), NULL, 0xffffffff);
 
 		// Set depth test for opaque obj
 		deviceAndContext.context->OMSetDepthStencilState(depthBuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
@@ -383,7 +355,7 @@ int main()
 		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateFCCW.Get(), cb, opaqueObjQ);
 
 		// Set blend state for transparent obj
-		deviceAndContext.context->OMSetBlendState(transparency, NULL, 0xffffffff);
+		deviceAndContext.context->OMSetBlendState(blendState.transparency.Get(), NULL, 0xffffffff);
 
 		if (toRecalDistFromCam) {
 			for (int i = 0; i < transparentObjQ.size(); i++) {
@@ -439,6 +411,10 @@ int main()
 		
 		// Draw all light object wireframe
 		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, lightObjQ);
+
+		// Draw debug	
+		renderer.debugDraw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, opaqueObjQ, meshes[1]);
+
 
 		CHECK_DX_ERROR(swapchain.mainSwapchain->Present( 0, 0) );
 
