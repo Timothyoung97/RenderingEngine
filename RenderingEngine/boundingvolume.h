@@ -17,7 +17,6 @@ public:
 class RitterBS : public BoundingSphere {
 public:
 	RitterBS(const std::vector<XMFLOAT3>& uniquePoint);
-	RitterBS(const std::vector<XMFLOAT3>& uniquePoint, bool isNew);
 };
 
 class NaiveBS : public BoundingSphere {
