@@ -29,12 +29,12 @@ DepthBuffer::DepthBuffer(ID3D11Device* device, int screenW, int screenH) {
 	D3D11_DEPTH_STENCIL_DESC ddsd;
 	
 	// Depth test
-	ddsd.DepthEnable = FALSE;
+	ddsd.DepthEnable = false;
 	ddsd.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
 	ddsd.DepthFunc = D3D11_COMPARISON_ALWAYS;
 	
 	// stencil test parameters
-	ddsd.StencilEnable = FALSE;
+	ddsd.StencilEnable = false;
 	ddsd.StencilReadMask = 0xFF;
 	ddsd.StencilWriteMask = 0xFF;
 
@@ -55,7 +55,7 @@ DepthBuffer::DepthBuffer(ID3D11Device* device, int screenW, int screenH) {
 	));
 
 	// Depth test Enable without write mask
-	ddsd.DepthEnable = TRUE;
+	ddsd.DepthEnable = true;
 	ddsd.DepthFunc = D3D11_COMPARISON_LESS;
 
 	CHECK_DX_ERROR(device->CreateDepthStencilState(

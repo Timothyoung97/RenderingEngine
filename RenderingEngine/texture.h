@@ -12,7 +12,7 @@ namespace tre {
 class Texture {
 
 public:
-	bool hasAlphaChannel = FALSE;
+	bool hasAlphaChannel = false;
 
 	ComPtr<ID3D11ShaderResourceView> pShaderResView;
 

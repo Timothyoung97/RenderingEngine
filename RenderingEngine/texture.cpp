@@ -24,7 +24,7 @@ void Texture::createTexture(ID3D11Device* device, std::string filepath) {
 	spdlog::info("Img width: {}, Img height: {}, Img channels: {}\n", imgWidth, imgHeight, imgChannels);
 
 	// set alpha channel boolean
-	if (imgChannels == 4) hasAlphaChannel = TRUE;
+	if (imgChannels == 4) hasAlphaChannel = true;
 
 	// Create texture
 	D3D11_TEXTURE2D_DESC texture2dDesc;
