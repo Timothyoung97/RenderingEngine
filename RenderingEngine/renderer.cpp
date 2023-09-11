@@ -101,38 +101,91 @@ void Renderer::debugDraw(ID3D11Device* device, ID3D11DeviceContext* context, ID3
 			break;
 		}
 
-		XMMATRIX transformation = XMMatrixMultiply(
-			XMMatrixScaling(currObj.objScale.x, currObj.objScale.y, currObj.objScale.z),
-			XMMatrixMultiply(
-				XMMatrixRotationRollPitchYaw(XMConvertToRadians(currObj.objRotation.x), XMConvertToRadians(currObj.objRotation.y), XMConvertToRadians(currObj.objRotation.z)),
-				XMMatrixTranslation(
-					currObj.objPos.x,
-					currObj.objPos.y,
-					currObj.objPos.z)
-			)
-		);
+		if (typeOfBound == AABBBoundingBox) {
 
-		XMVECTOR localCenterV = { currBV.center.x, currBV.center.y, currBV.center.z, 1 };
-
-		localCenterV = XMVector4Transform(localCenterV, transformation);
-
-		XMFLOAT4 newCenter;
-		XMStoreFloat4(&newCenter, localCenterV);
-
-		XMMATRIX transformM = XMMatrixMultiply(
-			XMMatrixScaling(currObj.objScale.x * boundingVolScale.x / unitLength, currObj.objScale.y * boundingVolScale.y / unitLength, currObj.objScale.z * boundingVolScale.z / unitLength),
-			XMMatrixMultiply(
-				XMMatrixRotationRollPitchYaw(.0f, .0f, .0f),
-				XMMatrixTranslation(
-					newCenter.x,
-					newCenter.y,
-					newCenter.z
+			// model transformation
+			XMMATRIX transformation = XMMatrixMultiply(
+				XMMatrixScaling(currObj.objScale.x, currObj.objScale.y, currObj.objScale.z),
+				XMMatrixMultiply(
+					XMMatrixRotationRollPitchYaw(XMConvertToRadians(currObj.objRotation.x), XMConvertToRadians(currObj.objRotation.y), XMConvertToRadians(currObj.objRotation.z)),
+					XMMatrixTranslation(
+						currObj.objPos.x,
+						currObj.objPos.y,
+						currObj.objPos.z)
 				)
-			)
-		);
+			);
 
-		//Config const buffer
-		cb.constBufferRescModel.transformationLocal = transformM;
+			XMFLOAT3X3 transformM;
+			XMStoreFloat3x3(&transformM, transformation);
+
+			float matrix[3][3] = {
+				{transformM._11, transformM._12, transformM._13},
+				{transformM._21, transformM._22, transformM._23},
+				{transformM._31, transformM._32, transformM._33}
+			};
+
+			float aMin[3] = { currBV.center.x - currBV.halfExtent.x, currBV.center.y - currBV.halfExtent.y, currBV.center.z - currBV.halfExtent.z };
+			float aMax[3] = { currBV.center.x + currBV.halfExtent.x, currBV.center.y + currBV.halfExtent.y, currBV.center.z + currBV.halfExtent.z };
+
+
+			float bMin[3] = {currObj.objPos.x, currObj.objPos.y, currObj.objPos.z};
+			float bMax[3] = { currObj.objPos.x, currObj.objPos.y, currObj.objPos.z };
+			
+			for (int i = 0; i < 3; i++) {
+				for (int j = 0; j < 3; j++) {
+					float a = matrix[i][j] * aMin[j];
+					float b = matrix[i][j] * aMax[j];
+
+					if (a < b) {
+						bMin[i] += a;
+						bMax[i] += b;
+					} else {
+						bMin[i] += b;
+						bMax[i] += b;
+					}
+				}
+			}
+
+			currBV.center = XMFLOAT3((bMin[0] + bMax[0]) / 2, (bMin[1] + bMax[1]) / 2, (bMin[2] + bMax[2]) / 2);
+			currBV.halfExtent = XMFLOAT3((bMax[0] - bMin[0]) / 2, (bMax[1] - bMin[0]) / 2, (bMax[2] - bMin[2]) / 2);
+
+		} else {
+			// model transformation
+			XMMATRIX transformation = XMMatrixMultiply(
+				XMMatrixScaling(currObj.objScale.x, currObj.objScale.y, currObj.objScale.z),
+				XMMatrixMultiply(
+					XMMatrixRotationRollPitchYaw(XMConvertToRadians(currObj.objRotation.x), XMConvertToRadians(currObj.objRotation.y), XMConvertToRadians(currObj.objRotation.z)),
+					XMMatrixTranslation(
+						currObj.objPos.x,
+						currObj.objPos.y,
+						currObj.objPos.z)
+				)
+			);
+
+			// update center
+			XMVECTOR localCenterV = { currBV.center.x, currBV.center.y, currBV.center.z, 1 };
+
+			localCenterV = XMVector4Transform(localCenterV, transformation);
+
+			XMFLOAT4 newCenter;
+			XMStoreFloat4(&newCenter, localCenterV);
+
+			XMMATRIX transformM = XMMatrixMultiply(
+				XMMatrixScaling(currObj.objScale.x * boundingVolScale.x / unitLength, currObj.objScale.y * boundingVolScale.y / unitLength, currObj.objScale.z * boundingVolScale.z / unitLength),
+				XMMatrixMultiply(
+					XMMatrixRotationRollPitchYaw(.0f, .0f, .0f),
+					XMMatrixTranslation(
+						newCenter.x,
+						newCenter.y,
+						newCenter.z
+					)
+				)
+			);
+
+
+			cb.constBufferRescModel.transformationLocal = transformM;
+		}
+
 
 		XMMATRIX normalMatrix = XMMatrixTranspose(XMMatrixInverse(nullptr, cb.constBufferRescModel.transformationLocal));
 
