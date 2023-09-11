@@ -70,6 +70,7 @@ void CubeMesh::create(ID3D11Device* device) {
 
 	ritterSphere = RitterBS(uniqueVertexPos);
 	naiveSphere = NaiveBS(uniqueVertexPos);
+	aabb = AABB(uniqueVertexPos);
 
 	//Cube Indices
 	uint16_t index[] = {
@@ -186,6 +187,7 @@ void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC, float r) 
 
 	ritterSphere = RitterBS(uniqueVertexPos);
 	naiveSphere = NaiveBS(uniqueVertexPos);
+	aabb = AABB(uniqueVertexPos);
 
 	//Build north pole indices
 	for (int i = 0; i < sectorCount; i++) {
@@ -834,6 +836,7 @@ TeapotMesh::TeapotMesh(ID3D11Device* device) {
 
 	ritterSphere = RitterBS(uniqueVertexPos);
 	naiveSphere = NaiveBS(uniqueVertexPos);
+	aabb = AABB(uniqueVertexPos);
 
 	indices = {
 		7, 6, 1,
