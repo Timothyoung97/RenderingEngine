@@ -93,17 +93,38 @@ void Renderer::debugDraw(ID3D11Device* device, ID3D11DeviceContext* context, ID3
 			break;
 		}
 
-		//Config const buffer
-		cb.constBufferRescModel.transformationLocal = XMMatrixMultiply(
-			XMMatrixScaling(currObj.objScale.x * currBV.radius / .5f, currObj.objScale.y * currBV.radius / .5f, currObj.objScale.z * currBV.radius / .5f),
+		XMMATRIX transformation = XMMatrixMultiply(
+			XMMatrixScaling(currObj.objScale.x, currObj.objScale.y, currObj.objScale.z),
+			XMMatrixMultiply(
+				XMMatrixRotationRollPitchYaw(XMConvertToRadians(currObj.objRotation.x), XMConvertToRadians(currObj.objRotation.y), XMConvertToRadians(currObj.objRotation.z)),
+				XMMatrixTranslation(
+					currObj.objPos.x,
+					currObj.objPos.y,
+					currObj.objPos.z)
+			)
+		);
+
+		XMVECTOR localSphereV = { currBV.sphereCenter.x, currBV.sphereCenter.y, currBV.sphereCenter.z, 1 };
+
+		localSphereV = XMVector4Transform(localSphereV, transformation);
+
+		XMFLOAT4 newSphereCenter;
+		XMStoreFloat4(&newSphereCenter, localSphereV);
+
+		XMMATRIX sphereTransformM = XMMatrixMultiply(
+			XMMatrixScaling(currObj.objScale.x * currBV.radius / unitLength, currObj.objScale.y * currBV.radius / unitLength, currObj.objScale.z * currBV.radius / unitLength),
 			XMMatrixMultiply(
 				XMMatrixRotationRollPitchYaw(.0f, .0f, .0f),
 				XMMatrixTranslation(
-					currBV.sphereCenter.x * currObj.objScale.x + currObj.objPos.x, 
-					currBV.sphereCenter.y * currObj.objScale.y + currObj.objPos.y, 
-					currBV.sphereCenter.z * currObj.objScale.z + currObj.objPos.z)
+					newSphereCenter.x,
+					newSphereCenter.y,
+					newSphereCenter.z
+				)
 			)
 		);
+
+		//Config const buffer
+		cb.constBufferRescModel.transformationLocal = sphereTransformM;
 
 		XMMATRIX normalMatrix = XMMatrixTranspose(XMMatrixInverse(nullptr, cb.constBufferRescModel.transformationLocal));
 
