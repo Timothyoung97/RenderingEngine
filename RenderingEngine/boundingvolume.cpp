@@ -59,22 +59,22 @@ RitterBS::RitterBS(const std::vector<XMFLOAT3>& uniquePoint) {
 	}
 
 	// dia1, dia2 is a diameter of initial sphere
-	sphereCenter.x = (dia1.x + dia2.x) / 2;
-	sphereCenter.y = (dia1.y + dia2.y) / 2;
-	sphereCenter.z = (dia1.z + dia2.z) / 2;
+	center.x = (dia1.x + dia2.x) / 2;
+	center.y = (dia1.y + dia2.y) / 2;
+	center.z = (dia1.z + dia2.z) / 2;
 
 	// cal initial radius
-	dx = dia2.x - sphereCenter.x;
-	dy = dia2.y - sphereCenter.y;
-	dz = dia2.z - sphereCenter.z;
+	dx = dia2.x - center.x;
+	dy = dia2.y - center.y;
+	dz = dia2.z - center.z;
 	rad2 = dx * dx + dy * dy + dz * dz;
 	radius = sqrtf(rad2);
 
 	// 2nd pass: increment curr sphere
 	for (int i = 0; i < uniquePoint.size(); i++) {
-		dx = uniquePoint[i].x - sphereCenter.x;
-		dy = uniquePoint[i].y - sphereCenter.y;
-		dz = uniquePoint[i].z - sphereCenter.z;
+		dx = uniquePoint[i].x - center.x;
+		dy = uniquePoint[i].y - center.y;
+		dz = uniquePoint[i].z - center.z;
 
 		oldToP2 = dx * dx + dy * dy + dz * dz;
 
@@ -84,9 +84,9 @@ RitterBS::RitterBS(const std::vector<XMFLOAT3>& uniquePoint) {
 			rad2 = radius * radius;
 			oldToNew = oldToP - radius;
 
-			sphereCenter.x = (radius * sphereCenter.x + oldToNew * uniquePoint[i].x) / oldToP;
-			sphereCenter.y = (radius * sphereCenter.y + oldToNew * uniquePoint[i].y) / oldToP;
-			sphereCenter.z = (radius * sphereCenter.z + oldToNew * uniquePoint[i].z) / oldToP;
+			center.x = (radius * center.x + oldToNew * uniquePoint[i].x) / oldToP;
+			center.y = (radius * center.y + oldToNew * uniquePoint[i].y) / oldToP;
+			center.z = (radius * center.z + oldToNew * uniquePoint[i].z) / oldToP;
 		}
 	}
 }
@@ -95,9 +95,9 @@ NaiveBS::NaiveBS(const std::vector<XMFLOAT3>& uniquePoint) {
 
 	for (int i = 0; i < uniquePoint.size(); i++) {
 		XMFLOAT3 diff;
-		diff.x = uniquePoint[i].x - sphereCenter.x;
-		diff.y = uniquePoint[i].y - sphereCenter.y;
-		diff.z = uniquePoint[i].z - sphereCenter.z;
+		diff.x = uniquePoint[i].x - center.x;
+		diff.y = uniquePoint[i].y - center.y;
+		diff.z = uniquePoint[i].z - center.z;
 
 		float dist = sqrtf(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
 		

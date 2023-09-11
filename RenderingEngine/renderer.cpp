@@ -64,7 +64,7 @@ void Renderer::draw(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11Ra
 	}
 }
 
-void Renderer::debugDraw(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11RasterizerState* rasterizerState, tre::ConstantBuffer& cb, const std::vector<Object>& objQ, const Mesh& sphere, int typeOfBound) {
+void Renderer::debugDraw(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11RasterizerState* rasterizerState, tre::ConstantBuffer& cb, const std::vector<Object>& objQ, const Mesh& sphere, BoundVolumeEnum typeOfBound) {
 
 	context->RSSetState(rasterizerState);
 
@@ -85,10 +85,10 @@ void Renderer::debugDraw(ID3D11Device* device, ID3D11DeviceContext* context, ID3
 
 		tre::BoundingSphere currBV;
 		switch (typeOfBound) {
-		case 0:
+		case RitterBoundingSphere:
 			currBV = currObj.ritterBs;
 			break;
-		default:
+		case NaiveBoundingSphere:
 			currBV = currObj.naiveBs;
 			break;
 		}
@@ -104,7 +104,7 @@ void Renderer::debugDraw(ID3D11Device* device, ID3D11DeviceContext* context, ID3
 			)
 		);
 
-		XMVECTOR localSphereV = { currBV.sphereCenter.x, currBV.sphereCenter.y, currBV.sphereCenter.z, 1 };
+		XMVECTOR localSphereV = { currBV.center.x, currBV.center.y, currBV.center.z, 1 };
 
 		localSphereV = XMVector4Transform(localSphereV, transformation);
 

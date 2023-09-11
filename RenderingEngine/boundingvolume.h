@@ -8,15 +8,24 @@ using namespace DirectX;
 
 namespace tre {
 
-class BoundingSphere {
+enum BoundVolumeEnum { 
+	RitterBoundingSphere,
+	NaiveBoundingSphere,
+	AABBBoundingBox
+};
+
+class BoundingVolume {
 public:
-	XMFLOAT3 sphereCenter{ .0f, .0f, .0f };
+	XMFLOAT3 center{ .0f, .0f, .0f };
+};
+
+class BoundingSphere : public BoundingVolume {
+public:
 	float radius = .0f;
 };
 
-class BoundingCuboid {
+class BoundingCuboid : public BoundingVolume {
 public:
-	XMFLOAT3 center{ .0f, .0f, .0f };
 	XMFLOAT3 scale{ .0f, .0f, .0f };
 };
 
