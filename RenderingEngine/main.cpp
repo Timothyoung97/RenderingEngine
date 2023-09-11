@@ -418,6 +418,17 @@ int main()
 		// Draw debug	
 		renderer.debugDraw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, opaqueObjQ, meshes[1], typeOfBound);
 
+		if (opaqueObjQ.size() > 0) {
+
+			opaqueObjQ[0].objRotation.x++;
+			opaqueObjQ[0].objRotation.y++;
+			opaqueObjQ[0].objRotation.z++;
+			if (opaqueObjQ[0].objRotation.x == 360) {
+				opaqueObjQ[0].objRotation.x = 0;
+				opaqueObjQ[0].objRotation.y = 0;
+				opaqueObjQ[0].objRotation.z = 0;
+			}
+		}
 
 		CHECK_DX_ERROR(swapchain.mainSwapchain->Present( 0, 0) );
 
