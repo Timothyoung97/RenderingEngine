@@ -179,6 +179,8 @@ int main()
 	float sectorAnglePtLight[] = { .0f, .0f, .0f, -90.0f };
 	XMFLOAT3 originPtLight[] = { XMFLOAT3(3.0f, 3.0f, 3.0f),  XMFLOAT3(-3.0f, -3.0f, -3.0f), XMFLOAT3(.0f, .0f, .0f), XMFLOAT3(-1.0f, .0f, -1.0f) };
 
+	float stackAngleForTeapot = .0f, sectorAngleForTeapot = .0f;
+
 	// light wireframe obj
 	std::vector<tre::Object> lightObjQ;
 
@@ -418,16 +420,41 @@ int main()
 		// Draw debug	
 		renderer.debugDraw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, opaqueObjQ, meshes[1], typeOfBound);
 
+		// move teapot around
 		if (opaqueObjQ.size() > 0) {
 
+			// rotation
 			opaqueObjQ[0].objRotation.x++;
 			opaqueObjQ[0].objRotation.y++;
 			opaqueObjQ[0].objRotation.z++;
+
 			if (opaqueObjQ[0].objRotation.x == 360) {
 				opaqueObjQ[0].objRotation.x = 0;
 				opaqueObjQ[0].objRotation.y = 0;
 				opaqueObjQ[0].objRotation.z = 0;
 			}
+
+			// scale
+			float scaleVal = abs(XMScalarSin(XMConvertToRadians(scaleIncre)));
+			
+			if (scaleVal == 0.0f) scaleVal = .01f;
+
+			opaqueObjQ[0].objScale.x = scaleVal;
+			opaqueObjQ[0].objScale.y = scaleVal;
+			opaqueObjQ[0].objScale.z = scaleVal;
+
+			scaleIncre++;
+
+			// translation
+			stackAngleForTeapot++;
+			sectorAngleForTeapot++;
+
+			if (stackAngleForTeapot == 360.0f)  stackAngleForTeapot = 0;
+			if (sectorAngleForTeapot == 360.0f)  sectorAngleForTeapot = 0;
+
+			opaqueObjQ[0].objPos = tre::Utility::getRotatePosition(XMFLOAT3(.0f, .0f, .0f), stackAngleForTeapot, sectorAngleForTeapot, 5.0f);
+			
+
 		}
 
 		CHECK_DX_ERROR(swapchain.mainSwapchain->Present( 0, 0) );
