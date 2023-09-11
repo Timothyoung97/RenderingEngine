@@ -291,6 +291,7 @@ int main()
 
 			newNorObj.ritterBs = newNorObj.pObjMesh->ritterSphere;
 			newNorObj.naiveBs = newNorObj.pObjMesh->naiveSphere;
+			newNorObj.aabb = newNorObj.pObjMesh->aabb;
 
 			// transparent queue -> object with texture with alpha channel or object with color.w below 1.0f
 			if ((newNorObj.isObjWithTexture && newNorObj.pObjTexture->hasAlphaChannel)
@@ -418,43 +419,41 @@ int main()
 		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, lightObjQ);
 
 		// Draw debug	
-		renderer.debugDraw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, opaqueObjQ, meshes[1], tre::RitterBoundingSphere);
+		renderer.debugDraw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, opaqueObjQ, meshes[0], tre::AABBBoundingBox);
 
 		// move teapot around
 		if (opaqueObjQ.size() > 0) {
 
-			// rotation
-			opaqueObjQ[0].objRotation.x++;
-			opaqueObjQ[0].objRotation.y++;
-			opaqueObjQ[0].objRotation.z++;
+			//// rotation
+			//opaqueObjQ[0].objRotation.x++;
+			//opaqueObjQ[0].objRotation.y++;
+			//opaqueObjQ[0].objRotation.z++;
 
-			if (opaqueObjQ[0].objRotation.x == 360) {
-				opaqueObjQ[0].objRotation.x = 0;
-				opaqueObjQ[0].objRotation.y = 0;
-				opaqueObjQ[0].objRotation.z = 0;
-			}
+			//if (opaqueObjQ[0].objRotation.x == 360) {
+			//	opaqueObjQ[0].objRotation.x = 0;
+			//	opaqueObjQ[0].objRotation.y = 0;
+			//	opaqueObjQ[0].objRotation.z = 0;
+			//}
 
-			// scale
-			float scaleVal = abs(XMScalarSin(XMConvertToRadians(scaleIncre)));
-			
-			if (scaleVal == 0.0f) scaleVal = .01f;
+			//// scale
+			//float scaleVal = abs(XMScalarSin(XMConvertToRadians(scaleIncre)));
+			//
+			//if (scaleVal == 0.0f) scaleVal = .01f;
 
-			opaqueObjQ[0].objScale.x = scaleVal;
-			opaqueObjQ[0].objScale.y = scaleVal;
-			opaqueObjQ[0].objScale.z = scaleVal;
+			//opaqueObjQ[0].objScale.x = scaleVal;
+			//opaqueObjQ[0].objScale.y = scaleVal;
+			//opaqueObjQ[0].objScale.z = scaleVal;
 
-			scaleIncre++;
+			//scaleIncre++;
 
-			// translation
-			stackAngleForTeapot++;
-			sectorAngleForTeapot++;
+			//// translation
+			//stackAngleForTeapot++;
+			//sectorAngleForTeapot++;
 
-			if (stackAngleForTeapot == 360.0f)  stackAngleForTeapot = 0;
-			if (sectorAngleForTeapot == 360.0f)  sectorAngleForTeapot = 0;
+			//if (stackAngleForTeapot == 360.0f)  stackAngleForTeapot = 0;
+			//if (sectorAngleForTeapot == 360.0f)  sectorAngleForTeapot = 0;
 
-			opaqueObjQ[0].objPos = tre::Utility::getRotatePosition(XMFLOAT3(.0f, .0f, .0f), stackAngleForTeapot, sectorAngleForTeapot, 5.0f);
-			
-
+			//opaqueObjQ[0].objPos = tre::Utility::getRotatePosition(XMFLOAT3(.0f, .0f, .0f), stackAngleForTeapot, sectorAngleForTeapot, 5.0f);
 		}
 
 		CHECK_DX_ERROR(swapchain.mainSwapchain->Present( 0, 0) );

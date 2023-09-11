@@ -83,13 +83,20 @@ void Renderer::debugDraw(ID3D11Device* device, ID3D11DeviceContext* context, ID3
 		//set shader resc view and sampler
 		context->PSSetShaderResources(0, 1, currObj.pObjTexture->pShaderResView.GetAddressOf());
 
-		tre::BoundingSphere currBV;
+		tre::BoundingVolume currBV;
+		XMFLOAT3 boundingVolScale;
 		switch (typeOfBound) {
 		case RitterBoundingSphere:
 			currBV = currObj.ritterBs;
+			boundingVolScale = XMFLOAT3(currObj.ritterBs.radius, currObj.ritterBs.radius, currObj.ritterBs.radius);
 			break;
 		case NaiveBoundingSphere:
 			currBV = currObj.naiveBs;
+			boundingVolScale = XMFLOAT3(currObj.ritterBs.radius, currObj.ritterBs.radius, currObj.ritterBs.radius);
+			break;
+		case AABBBoundingBox:
+			currBV = currObj.aabb;
+			boundingVolScale = currObj.aabb.halfExtent;
 			break;
 		}
 
@@ -112,7 +119,7 @@ void Renderer::debugDraw(ID3D11Device* device, ID3D11DeviceContext* context, ID3
 		XMStoreFloat4(&newSphereCenter, localSphereV);
 
 		XMMATRIX sphereTransformM = XMMatrixMultiply(
-			XMMatrixScaling(currObj.objScale.x * currBV.radius / unitLength, currObj.objScale.y * currBV.radius / unitLength, currObj.objScale.z * currBV.radius / unitLength),
+			XMMatrixScaling(currObj.objScale.x * boundingVolScale.x / unitLength, currObj.objScale.y * boundingVolScale.y / unitLength, currObj.objScale.z * boundingVolScale.z / unitLength),
 			XMMatrixMultiply(
 				XMMatrixRotationRollPitchYaw(.0f, .0f, .0f),
 				XMMatrixTranslation(

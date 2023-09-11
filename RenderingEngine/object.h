@@ -13,8 +13,9 @@ namespace tre {
 struct Object {
 	Mesh* pObjMesh;
 	
-	BoundingSphere ritterBs;
-	BoundingSphere naiveBs;
+	BoundingVolume ritterBs;
+	BoundingVolume naiveBs;
+	BoundingVolume aabb;
 	
 	Texture* pObjTexture;
 	Texture* pObjNormalMap;
