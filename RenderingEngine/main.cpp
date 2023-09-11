@@ -84,7 +84,7 @@ int main()
 	// 3D objects
 	tre::Mesh meshes[3] = {
 		tre::CubeMesh(deviceAndContext.device.Get()), 
-		tre::SphereMesh(deviceAndContext.device.Get(), 10, 10),
+		tre::SphereMesh(deviceAndContext.device.Get(), 20, 20),
 		tre::TeapotMesh(deviceAndContext.device.Get())
 	};
 
@@ -274,10 +274,11 @@ int main()
 
 			tre::Object newNorObj;
 
+			float scaleVal = tre::Utility::getRandomFloat(5);
 			int textureIdx = tre::Utility::getRandomInt(1);
 			newNorObj.pObjMesh = &meshes[2];
-			newNorObj.objPos = XMFLOAT3(.0f, .0f, .0f);
-			newNorObj.objScale = XMFLOAT3(1, 1, 1);
+			newNorObj.objPos = XMFLOAT3(tre::Utility::getRandomFloatRange(-5, 5), tre::Utility::getRandomFloatRange(-5, 5), tre::Utility::getRandomFloatRange(-5, 5));
+			newNorObj.objScale = XMFLOAT3(scaleVal, scaleVal, scaleVal);
 			newNorObj.objRotation = XMFLOAT3(.0f, .0f, .0f);
 			newNorObj.pObjTexture = &textures[3 + textureIdx];
 			newNorObj.isObjWithTexture = 0;
@@ -420,7 +421,7 @@ int main()
 
 		CHECK_DX_ERROR(swapchain.mainSwapchain->Present( 0, 0) );
 
-		while (timer.getDeltaTime() < 1000.0 / 30) {
+		while (timer.getDeltaTime() < 1000.0 / 60) {
 		}
 
 		deltaTime = timer.getDeltaTime();

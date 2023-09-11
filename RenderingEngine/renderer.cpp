@@ -97,8 +97,11 @@ void Renderer::debugDraw(ID3D11Device* device, ID3D11DeviceContext* context, ID3
 		cb.constBufferRescModel.transformationLocal = XMMatrixMultiply(
 			XMMatrixScaling(currObj.objScale.x * currBV.radius / .5f, currObj.objScale.y * currBV.radius / .5f, currObj.objScale.z * currBV.radius / .5f),
 			XMMatrixMultiply(
-				XMMatrixRotationRollPitchYaw(XMConvertToRadians(currObj.objRotation.x), XMConvertToRadians(currObj.objRotation.x), XMConvertToRadians(currObj.objRotation.x)),
-				XMMatrixTranslation(currBV.sphereCenter.x + currObj.objPos.x, currBV.sphereCenter.y + currObj.objPos.y, currBV.sphereCenter.z + currObj.objPos.z)
+				XMMatrixRotationRollPitchYaw(.0f, .0f, .0f),
+				XMMatrixTranslation(
+					currBV.sphereCenter.x * currObj.objScale.x + currObj.objPos.x, 
+					currBV.sphereCenter.y * currObj.objScale.y + currObj.objPos.y, 
+					currBV.sphereCenter.z * currObj.objScale.z + currObj.objPos.z)
 			)
 		);
 
