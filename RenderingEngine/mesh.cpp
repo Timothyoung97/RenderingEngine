@@ -16,8 +16,6 @@ void CubeMesh::create(ID3D11Device* device) {
 	std::vector<uint16_t> indices;
 	std::vector<XMFLOAT3> uniqueVertexPos;
 
-	float unitLength = .5f;
-
 	//Cube Vertices
 	Vertex vertex[] = {
 		// Back
@@ -95,7 +93,7 @@ void CubeMesh::create(ID3D11Device* device) {
 }
 
 SphereMesh::SphereMesh(ID3D11Device* device, int sectorC, int stackC) {
-	create(device, sectorC, stackC, .5f);
+	create(device, sectorC, stackC, unitLength);
 }
 
 SphereMesh::SphereMesh(ID3D11Device* device, int sectorC, int stackC, float r) {

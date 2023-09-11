@@ -11,6 +11,8 @@
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;
 
+static const float unitLength = .5f;
+
 struct Vertex {
 	XMFLOAT3 pos;
 	XMFLOAT3 normal;
