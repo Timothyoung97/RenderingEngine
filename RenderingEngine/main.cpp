@@ -157,8 +157,8 @@ int main()
 	std::vector<tre::Object> opaqueObjQ;
 	std::vector<tre::Object> transparentObjQ;
 
-	bool toSortTransparentQ = FALSE;
-	bool toRecalDistFromCam = FALSE;
+	bool toSortTransparentQ = false;
+	bool toRecalDistFromCam = false;
 
 	// set light
 	Light dirlight{
@@ -202,6 +202,7 @@ int main()
 	int pauseLight = 0;
 
 	static int typeOfBound = 0;
+	float scaleIncre = 90.0f;
 
 	// main loop
 	while (!input.shouldQuit())
@@ -214,22 +215,22 @@ int main()
 		// Control
 		if (input.keyState[SDL_SCANCODE_W]) { // control camera movement
 			cam.moveCamera(cam.directionV * deltaTime);
-			toRecalDistFromCam = TRUE;
+			toRecalDistFromCam = true;
 		} else if (input.keyState[SDL_SCANCODE_S]) {
 			cam.moveCamera(-cam.directionV * deltaTime);
-			toRecalDistFromCam = TRUE;
+			toRecalDistFromCam = true;
 		} else if (input.keyState[SDL_SCANCODE_D]) {
 			cam.moveCamera(-cam.camRightV * deltaTime);
-			toRecalDistFromCam = TRUE;
+			toRecalDistFromCam = true;
 		} else if (input.keyState[SDL_SCANCODE_A]) {
 			cam.moveCamera(cam.camRightV * deltaTime);
-			toRecalDistFromCam = TRUE;
+			toRecalDistFromCam = true;
 		} else if (input.keyState[SDL_SCANCODE_Q]) {
 			cam.moveCamera(cam.defaultUpV * deltaTime);
-			toRecalDistFromCam = TRUE;
+			toRecalDistFromCam = true;
 		} else if (input.keyState[SDL_SCANCODE_E]) {
 			cam.moveCamera(-cam.defaultUpV * deltaTime);
-			toRecalDistFromCam = TRUE;
+			toRecalDistFromCam = true;
 		} else if (input.mouseButtonState[MOUSE_BUTTON_IDX(SDL_BUTTON_RIGHT)]) { // control camera angle
 			cam.turnCamera(input.deltaDisplacement.x, input.deltaDisplacement.y);
 		} else if (input.keyState[SDL_SCANCODE_SPACE]) {
@@ -264,7 +265,7 @@ int main()
 
 				transparentObjQ.push_back(newObj);
 
-				toSortTransparentQ = TRUE;
+				toSortTransparentQ = true;
 
 			} else {
 				opaqueObjQ.push_back(newObj);
@@ -274,11 +275,10 @@ int main()
 
 			tre::Object newNorObj;
 
-			float scaleVal = tre::Utility::getRandomFloat(5);
 			int textureIdx = tre::Utility::getRandomInt(1);
 			newNorObj.pObjMesh = &meshes[2];
 			newNorObj.objPos = XMFLOAT3(tre::Utility::getRandomFloatRange(-5, 5), tre::Utility::getRandomFloatRange(-5, 5), tre::Utility::getRandomFloatRange(-5, 5));
-			newNorObj.objScale = XMFLOAT3(scaleVal, scaleVal, scaleVal);
+			newNorObj.objScale = XMFLOAT3(1.0f, 1.0f, 1.0f);
 			newNorObj.objRotation = XMFLOAT3(.0f, .0f, .0f);
 			newNorObj.pObjTexture = &textures[3 + textureIdx];
 			newNorObj.isObjWithTexture = 0;
@@ -299,7 +299,7 @@ int main()
 
 				transparentObjQ.push_back(newNorObj);
 
-				toSortTransparentQ = TRUE;
+				toSortTransparentQ = true;
 			}
 			else {
 				if (opaqueObjQ.size() == 0) opaqueObjQ.push_back(newNorObj);
@@ -364,14 +364,14 @@ int main()
 			for (int i = 0; i < transparentObjQ.size(); i++) {
 				transparentObjQ[i].distFromCam = tre::Utility::distBetweentObjToCam(transparentObjQ[i].objPos, cam.camPositionV);
 			}
-			toSortTransparentQ = TRUE;
-			toRecalDistFromCam = FALSE;
+			toSortTransparentQ = true;
+			toRecalDistFromCam = false;
 		}
 
 		// sort the vector -> object with greater dist from cam is at the front of the Q
 		if (toSortTransparentQ) {
 			std::sort(transparentObjQ.begin(), transparentObjQ.end(), [](const tre::Object& obj1, const tre::Object& obj2) { return obj1.distFromCam > obj2.distFromCam; });
-			toSortTransparentQ = FALSE;
+			toSortTransparentQ = false;
 		}
 
 		// Set depth test for transparent obj
