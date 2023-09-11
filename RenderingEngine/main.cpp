@@ -201,6 +201,8 @@ int main()
 	// pause light
 	int pauseLight = 0;
 
+	static int typeOfBound = 0;
+
 	// main loop
 	while (!input.shouldQuit())
 	{
@@ -413,7 +415,7 @@ int main()
 		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, lightObjQ);
 
 		// Draw debug	
-		renderer.debugDraw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, opaqueObjQ, meshes[1], 0);
+		renderer.debugDraw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, opaqueObjQ, meshes[1], typeOfBound);
 
 
 		CHECK_DX_ERROR(swapchain.mainSwapchain->Present( 0, 0) );

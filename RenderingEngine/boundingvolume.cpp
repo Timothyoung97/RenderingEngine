@@ -92,16 +92,14 @@ RitterBS::RitterBS(const std::vector<XMFLOAT3>& uniquePoint) {
 }
 
 NaiveBS::NaiveBS(const std::vector<XMFLOAT3>& uniquePoint) {
-	XMVECTOR sphereCenterV = XMLoadFloat3(&sphereCenter);
 
 	for (int i = 0; i < uniquePoint.size(); i++) {
-		XMVECTOR pointV = XMLoadFloat3(&uniquePoint[0]);
-		XMVECTOR dirV = pointV - sphereCenterV;
+		XMFLOAT3 diff;
+		diff.x = uniquePoint[i].x - sphereCenter.x;
+		diff.y = uniquePoint[i].y - sphereCenter.y;
+		diff.z = uniquePoint[i].z - sphereCenter.z;
 
-		XMFLOAT3 dirVLength;
-		XMStoreFloat3(&dirVLength, XMVector3Length(dirV));
-
-		float dist = dirVLength.x;
+		float dist = sqrtf(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
 		
 		if (dist > radius) radius = dist;
 	}
