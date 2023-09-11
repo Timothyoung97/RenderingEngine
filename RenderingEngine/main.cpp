@@ -84,8 +84,8 @@ int main()
 	// 3D objects
 	tre::Mesh meshes[3] = {
 		tre::CubeMesh(deviceAndContext.device.Get()), 
-		tre::SphereMesh(deviceAndContext.device.Get(), 10, 10)
-		//tre::TeapotMesh(deviceAndContext.device.Get())
+		tre::SphereMesh(deviceAndContext.device.Get(), 10, 10),
+		tre::TeapotMesh(deviceAndContext.device.Get())
 	};
 
 	// Create texture
@@ -273,7 +273,7 @@ int main()
 			tre::Object newNorObj;
 
 			int textureIdx = tre::Utility::getRandomInt(1);
-			newNorObj.pObjMesh = &meshes[0];
+			newNorObj.pObjMesh = &meshes[2];
 			newNorObj.objPos = XMFLOAT3(.0f, .0f, .0f);
 			newNorObj.objScale = XMFLOAT3(1, 1, 1);
 			newNorObj.objRotation = XMFLOAT3(.0f, .0f, .0f);

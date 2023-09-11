@@ -51,9 +51,9 @@ public:
 	XMFLOAT3 findCoordinate(XMFLOAT3 unitVector, float radius);
 };
 
-//class TeapotMesh : public Mesh {
-//public:
-//
-//	TeapotMesh(ID3D11Device* device);
-//};
+class TeapotMesh : public Mesh {
+public:
+
+	TeapotMesh(ID3D11Device* device);
+};
 }
