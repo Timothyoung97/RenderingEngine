@@ -84,7 +84,7 @@ void Renderer::debugDraw(ID3D11Device* device, ID3D11DeviceContext* context, ID3
 		context->PSSetShaderResources(0, 1, currObj.pObjTexture->pShaderResView.GetAddressOf());
 
 		tre::BoundingVolume currBV;
-		XMFLOAT3 boundingVolScale;
+		XMFLOAT3 boundingVolScale(.0f, .0f, .0f);
 		switch (typeOfBound) {
 		case RitterBoundingSphere:
 			currBV = currObj.ritterBs;
@@ -111,21 +111,41 @@ void Renderer::debugDraw(ID3D11Device* device, ID3D11DeviceContext* context, ID3
 			)
 		);
 
-		XMVECTOR localSphereV = { currBV.center.x, currBV.center.y, currBV.center.z, 1 };
+		XMVECTOR localCenterV = { currBV.center.x, currBV.center.y, currBV.center.z, 1 };
 
-		localSphereV = XMVector4Transform(localSphereV, transformation);
+		localCenterV = XMVector4Transform(localCenterV, transformation);
 
-		XMFLOAT4 newSphereCenter;
-		XMStoreFloat4(&newSphereCenter, localSphereV);
+		XMFLOAT4 newCenter;
+		XMStoreFloat4(&newCenter, localCenterV);
+
+		if (typeOfBound == AABBBoundingBox) {
+			XMVECTOR right = { 1.0f * boundingVolScale.x, .0f, .0f };
+			XMVECTOR up = { .0f, 1.0f * boundingVolScale.y, .0f };
+			XMVECTOR forward = { .0f, .0f, 1.0f * boundingVolScale.z };
+
+			XMVECTOR newX = XMVectorAbs(XMVector3Dot(XMVECTOR{ 1.0f, .0f, .0f }, right)) + XMVectorAbs(XMVector3Dot(XMVECTOR{ 1.0f, .0f, .0f }, up)) + XMVectorAbs(XMVector3Dot(XMVECTOR{ 1.0f, .0f, .0f }, forward));
+			XMVECTOR newY = XMVectorAbs(XMVector3Dot(XMVECTOR{ .0f, 1.0f, .0f }, right)) + XMVectorAbs(XMVector3Dot(XMVECTOR{ .0f, 1.0f, .0f }, up)) + XMVectorAbs(XMVector3Dot(XMVECTOR{ .0f, 1.0f, .0f }, forward));
+			XMVECTOR newZ = XMVectorAbs(XMVector3Dot(XMVECTOR{ .0f, .0f, 1.0f }, right)) + XMVectorAbs(XMVector3Dot(XMVECTOR{ .0f, .0f, 1.0f }, up)) + XMVectorAbs(XMVector3Dot(XMVECTOR{ .0f, .0f, 1.0f }, forward));
+
+			XMFLOAT3 newXF;
+			XMStoreFloat3(&newXF, newX);
+			XMFLOAT3 newYF;
+			XMStoreFloat3(&newYF, newY);
+			XMFLOAT3 newZF;
+			XMStoreFloat3(&newZF, newZ);
+
+			boundingVolScale = XMFLOAT3(newXF.x, newYF.y, newZF.z);
+			currBV.halfExtent = boundingVolScale;
+		}
 
 		XMMATRIX sphereTransformM = XMMatrixMultiply(
 			XMMatrixScaling(currObj.objScale.x * boundingVolScale.x / unitLength, currObj.objScale.y * boundingVolScale.y / unitLength, currObj.objScale.z * boundingVolScale.z / unitLength),
 			XMMatrixMultiply(
 				XMMatrixRotationRollPitchYaw(.0f, .0f, .0f),
 				XMMatrixTranslation(
-					newSphereCenter.x,
-					newSphereCenter.y,
-					newSphereCenter.z
+					newCenter.x,
+					newCenter.y,
+					newCenter.z
 				)
 			)
 		);

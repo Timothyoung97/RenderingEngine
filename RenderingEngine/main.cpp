@@ -82,7 +82,7 @@ int main()
 	deviceAndContext.context->VSSetShader(vertex_shader.pShader.Get(), NULL, 0u);
 
 	// 3D objects
-	tre::Mesh meshes[3] = {
+	static tre::Mesh meshes[3] = {
 		tre::CubeMesh(deviceAndContext.device.Get()), 
 		tre::SphereMesh(deviceAndContext.device.Get(), 20, 20),
 		tre::TeapotMesh(deviceAndContext.device.Get())
@@ -424,16 +424,16 @@ int main()
 		// move teapot around
 		if (opaqueObjQ.size() > 0) {
 
-			//// rotation
-			//opaqueObjQ[0].objRotation.x++;
-			//opaqueObjQ[0].objRotation.y++;
-			//opaqueObjQ[0].objRotation.z++;
+			// rotation
+			opaqueObjQ[0].objRotation.x += .1f;
+			opaqueObjQ[0].objRotation.y += .1f;
+			opaqueObjQ[0].objRotation.z += .1f;
 
-			//if (opaqueObjQ[0].objRotation.x == 360) {
-			//	opaqueObjQ[0].objRotation.x = 0;
-			//	opaqueObjQ[0].objRotation.y = 0;
-			//	opaqueObjQ[0].objRotation.z = 0;
-			//}
+			if (opaqueObjQ[0].objRotation.x == 360) {
+				opaqueObjQ[0].objRotation.x = 0;
+				opaqueObjQ[0].objRotation.y = 0;
+				opaqueObjQ[0].objRotation.z = 0;
+			}
 
 			//// scale
 			//float scaleVal = abs(XMScalarSin(XMConvertToRadians(scaleIncre)));

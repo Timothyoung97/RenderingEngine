@@ -34,6 +34,7 @@ public:
 class AABB : public BoundingVolume {
 public:
 	AABB(const std::vector<XMFLOAT3>& uniquePoint);
+	void update(const XMMATRIX& transformation, const XMVECTOR& translation);
 };
 
 }

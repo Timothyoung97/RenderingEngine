@@ -133,7 +133,29 @@ AABB::AABB(const std::vector<XMFLOAT3>& uniquePoint) {
 
 	center.z = (zMin.z + zMax.z) / 2;
 	halfExtent.z = (zMax.z - zMin.z) / 2.0f;
-
 }
+
+void AABB::update(const XMMATRIX& transformation, const XMVECTOR& translation) {
+	
+	// centers remains the same, can reuse the matrix multiplication
+
+	XMVECTOR right = { 1.0f * halfExtent.x, .0f, .0f };
+	XMVECTOR up = { .0f, 1.0f * halfExtent.y, .0f };
+	XMVECTOR forward = { .0f, .0f, 1.0f * halfExtent.z};
+
+	XMVECTOR newX = XMVectorAbs(XMVector3Dot(XMVECTOR{ 1.0f, .0f, .0f }, right)) + XMVectorAbs(XMVector3Dot(XMVECTOR{ 1.0f, .0f, .0f }, up)) + XMVectorAbs(XMVector3Dot(XMVECTOR{ 1.0f, .0f, .0f }, forward));
+	XMVECTOR newY = XMVectorAbs(XMVector3Dot(XMVECTOR{ .0f, 1.0f, .0f }, right)) + XMVectorAbs(XMVector3Dot(XMVECTOR{ .0f, 1.0f, .0f }, up)) + XMVectorAbs(XMVector3Dot(XMVECTOR{ .0f, 1.0f, .0f }, forward));
+	XMVECTOR newZ = XMVectorAbs(XMVector3Dot(XMVECTOR{ .0f, .0f, 1.0f }, right)) + XMVectorAbs(XMVector3Dot(XMVECTOR{ .0f, .0f, 1.0f }, up)) + XMVectorAbs(XMVector3Dot(XMVECTOR{ .0f, .0f, 1.0f }, forward));
+
+	XMFLOAT3 newXF;
+	XMStoreFloat3(&newXF, newX);
+	XMFLOAT3 newYF;
+	XMStoreFloat3(&newYF, newY);
+	XMFLOAT3 newZF;
+	XMStoreFloat3(&newZF, newZ);
+	
+
+};
+	
 
 }
