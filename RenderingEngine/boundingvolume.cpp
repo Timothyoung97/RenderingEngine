@@ -105,4 +105,35 @@ NaiveBS::NaiveBS(const std::vector<XMFLOAT3>& uniquePoint) {
 	}
 }
 
+AABB::AABB(const std::vector<XMFLOAT3>& uniquePoint) {
+	double dx, dy, dz;
+	double oldToP, oldToP2, oldToNew;
+
+	XMFLOAT3 xMax, xMin, yMax, yMin, zMax, zMin;
+
+	xMin.x = yMin.y = zMin.z = INT_MAX;
+	xMax.x = yMax.y = zMax.z = INT_MIN;
+
+	// FIRST PASS: Find 6 minima/maxima points
+	for (int i = 0; i < uniquePoint.size(); i++) {
+		if (uniquePoint[i].x < xMin.x) xMin = uniquePoint[i];
+		if (uniquePoint[i].x > xMax.x) xMax = uniquePoint[i];
+		if (uniquePoint[i].y < yMin.y) yMin = uniquePoint[i];
+		if (uniquePoint[i].y > yMax.y) yMax = uniquePoint[i];
+		if (uniquePoint[i].z < zMax.z) zMin = uniquePoint[i];
+		if (uniquePoint[i].z > zMax.z) zMax = uniquePoint[i];
+	}
+
+	// set points dia1 & dia2 to the maximally separated pair
+	center.x = (xMin.x + xMax.x) / 2;
+	scale.x = xMax.x - xMin.x;
+
+	center.y = (yMin.y + yMax.y) / 2;
+	scale.y = yMax.y - yMin.y;
+
+	center.z = (zMin.z + zMax.z) / 2;
+	scale.z = zMax.z - zMin.z;
+
+}
+
 }
