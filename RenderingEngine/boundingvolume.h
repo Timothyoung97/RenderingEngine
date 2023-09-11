@@ -17,29 +17,22 @@ enum BoundVolumeEnum {
 class BoundingVolume {
 public:
 	XMFLOAT3 center{ .0f, .0f, .0f };
-};
-
-class BoundingSphere : public BoundingVolume {
-public:
+	XMFLOAT3 halfExtent{ .0f, .0f, .0f };
 	float radius = .0f;
 };
 
-class BoundingCuboid : public BoundingVolume {
-public:
-	XMFLOAT3 scale{ .0f, .0f, .0f };
-};
-
-class RitterBS : public BoundingSphere {
+class RitterBS : public BoundingVolume {
 public:
 	RitterBS(const std::vector<XMFLOAT3>& uniquePoint);
 };
 
-class NaiveBS : public BoundingSphere {
+class NaiveBS : public BoundingVolume {
 public:
 	NaiveBS(const std::vector<XMFLOAT3>& uniquePoint);
 };
 
-class AABB : public BoundingCuboid {
+class AABB : public BoundingVolume {
+public:
 	AABB(const std::vector<XMFLOAT3>& uniquePoint);
 };
 

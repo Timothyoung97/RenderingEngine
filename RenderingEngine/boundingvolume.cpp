@@ -126,13 +126,13 @@ AABB::AABB(const std::vector<XMFLOAT3>& uniquePoint) {
 
 	// set points dia1 & dia2 to the maximally separated pair
 	center.x = (xMin.x + xMax.x) / 2;
-	scale.x = xMax.x - xMin.x;
+	halfExtent.x = (xMax.x - xMin.x) / 2.0f;
 
 	center.y = (yMin.y + yMax.y) / 2;
-	scale.y = yMax.y - yMin.y;
+	halfExtent.y = (yMax.y - yMin.y) / 2.0f;
 
 	center.z = (zMin.z + zMax.z) / 2;
-	scale.z = zMax.z - zMin.z;
+	halfExtent.z = (zMax.z - zMin.z) / 2.0f;
 
 }
 
