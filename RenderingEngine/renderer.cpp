@@ -28,7 +28,7 @@ void Renderer::draw(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11Ra
 		cb.constBufferRescModel.transformationLocal = XMMatrixMultiply(
 			XMMatrixScaling(currObj.objScale.x, currObj.objScale.y, currObj.objScale.z),
 			XMMatrixMultiply(
-				XMMatrixRotationRollPitchYaw(XMConvertToRadians(currObj.objRotation.x), XMConvertToRadians(currObj.objRotation.x), XMConvertToRadians(currObj.objRotation.x)),
+				XMMatrixRotationRollPitchYaw(XMConvertToRadians(currObj.objRotation.x), XMConvertToRadians(currObj.objRotation.y), XMConvertToRadians(currObj.objRotation.z)),
 				XMMatrixTranslation(currObj.objPos.x, currObj.objPos.y, currObj.objPos.z)
 			)
 		);
