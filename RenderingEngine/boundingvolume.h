@@ -11,7 +11,7 @@ struct BoundingSphere {
 	float radius = .0f;
 };
 
-struct BoundingVolume {
+struct AABB {
 	XMFLOAT3 center{ .0f, .0f, .0f };
 	XMFLOAT3 halfExtent{ .0f, .0f, .0f };
 };
@@ -24,20 +24,12 @@ enum BoundVolumeEnum {
 	AABBBoundingBox
 };
 
-class RitterBS {
+class BoundingVolume {
 public:
 	static BoundingSphere createRitterBS(const std::vector<XMFLOAT3>& uniquePoint);
-};
-
-class NaiveBS {
-public:
 	static BoundingSphere createNaiveBS(const std::vector<XMFLOAT3>& uniquePoint);
-};
-
-class AABB{
-public:
-	static BoundingVolume createAABB(const std::vector<XMFLOAT3>& uniquePoint);
-	void update(const XMMATRIX& transformation, const XMVECTOR& translation);
+	static AABB createAABB(const std::vector<XMFLOAT3>& uniquePoint);
+	void update(const XMMATRIX& transformation, BoundingVolume& aabb);
 };
 
 }

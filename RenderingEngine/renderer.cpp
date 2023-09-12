@@ -115,22 +115,31 @@ void Renderer::debugDraw(ID3D11Device* device, ID3D11DeviceContext* context, ID3
 
 		localCenterV = XMVector4Transform(localCenterV, transformation);
 
+		// store new center
 		XMFLOAT4 newCenter;
 		XMStoreFloat4(&newCenter, localCenterV);
 
-		XMMATRIX transformM = XMMatrixMultiply(
-			XMMatrixScaling(currObj.objScale.x * boundingVolScale.x / unitLength, currObj.objScale.y * boundingVolScale.y / unitLength, currObj.objScale.z * boundingVolScale.z / unitLength),
-			XMMatrixMultiply(
-				XMMatrixRotationRollPitchYaw(.0f, .0f, .0f),
-				XMMatrixTranslation(
-					newCenter.x,
-					newCenter.y,
-					newCenter.z
+		XMMATRIX transformM;
+		if (typeOfBound == AABBBoundingBox) {
+			
+			// insert code 
+
+		} else {
+			XMMATRIX transformM = XMMatrixMultiply(
+				XMMatrixScaling(currObj.objScale.x * boundingVolScale.x / unitLength, currObj.objScale.y * boundingVolScale.y / unitLength, currObj.objScale.z * boundingVolScale.z / unitLength),
+				XMMatrixMultiply(
+					XMMatrixRotationRollPitchYaw(.0f, .0f, .0f),
+					XMMatrixTranslation(
+						newCenter.x,
+						newCenter.y,
+						newCenter.z
+					)
 				)
-			)
-		);
+			);
+		}
 
 
+		//Set const buffer
 		cb.constBufferRescModel.transformationLocal = transformM;
 
 		XMMATRIX normalMatrix = XMMatrixTranspose(XMMatrixInverse(nullptr, cb.constBufferRescModel.transformationLocal));

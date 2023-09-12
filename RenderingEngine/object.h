@@ -15,7 +15,7 @@ struct Object {
 	
 	BoundingSphere ritterBs;
 	BoundingSphere naiveBs;
-	BoundingVolume aabb;
+	AABB aabb;
 	
 	Texture* pObjTexture;
 	Texture* pObjNormalMap;

@@ -30,7 +30,7 @@ public:
 
 	BoundingSphere ritterSphere;
 	BoundingSphere naiveSphere;
-	BoundingVolume aabb;
+	AABB aabb;
 
 	int indexSize;
 	void createVertexAndIndexBuffer(ID3D11Device* device, const std::vector<Vertex> &vertices, const std::vector<uint16_t> &indices);

@@ -4,7 +4,7 @@
 
 namespace tre {
 
-BoundingSphere RitterBS::createRitterBS(const std::vector<XMFLOAT3>& uniquePoint) {
+BoundingSphere BoundingVolume::createRitterBS(const std::vector<XMFLOAT3>& uniquePoint) {
 	
 	BoundingSphere bs;
 
@@ -94,7 +94,7 @@ BoundingSphere RitterBS::createRitterBS(const std::vector<XMFLOAT3>& uniquePoint
 	return bs;
 }
 
-BoundingSphere NaiveBS::createNaiveBS(const std::vector<XMFLOAT3>& uniquePoint) {
+BoundingSphere BoundingVolume::createNaiveBS(const std::vector<XMFLOAT3>& uniquePoint) {
 
 	BoundingSphere bs;
 
@@ -111,9 +111,9 @@ BoundingSphere NaiveBS::createNaiveBS(const std::vector<XMFLOAT3>& uniquePoint) 
 	return bs;
 }
 
-BoundingVolume AABB::createAABB(const std::vector<XMFLOAT3>& uniquePoint) {
+AABB BoundingVolume::createAABB(const std::vector<XMFLOAT3>& uniquePoint) {
 
-	BoundingVolume bv;
+	AABB bv;
 	double dx, dy, dz;
 	double oldToP, oldToP2, oldToNew;
 
@@ -144,5 +144,11 @@ BoundingVolume AABB::createAABB(const std::vector<XMFLOAT3>& uniquePoint) {
 
 	return bv;
 }	
+
+void BoundingVolume::update(const XMMATRIX& transformation, BoundingVolume& aabb) {
+
+	
+
+}
 
 }
