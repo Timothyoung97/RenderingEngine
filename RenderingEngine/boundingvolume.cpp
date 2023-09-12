@@ -1,6 +1,8 @@
 #include "boundingvolume.h"
 
 #include "utility.h"
+#include "matrix.h"
+#include "mesh.h"
 
 namespace tre {
 
@@ -145,10 +147,66 @@ AABB BoundingVolume::createAABB(const std::vector<XMFLOAT3>& uniquePoint) {
 	return bv;
 }	
 
-void BoundingVolume::updateAABB(const XMMATRIX& transformation, BoundingVolume& aabb) {
+XMFLOAT3 updateCenter(XMFLOAT3 center, XMMATRIX transformation) {
+	// update center
+	XMVECTOR localCenterV = { center.x, center.y, center.z, 1 };
 
-	
+	localCenterV = XMVector4Transform(localCenterV, transformation);
 
+	// store new center
+	XMFLOAT3 newCenter;
+	XMStoreFloat3(&newCenter, localCenterV);
+
+	return newCenter;
+}
+
+XMMATRIX BoundingVolume::updateBoundingSphere(BoundingSphere& sphere, XMFLOAT3 scale, XMFLOAT3 rotation, XMFLOAT3 position) {
+	// model transformation
+	XMMATRIX transformation = tre::Matrix::createTransformationMatrix(scale, rotation, position);
+
+	// update center
+	XMFLOAT3 newCenter = updateCenter(sphere.center, transformation);
+
+	return tre::Matrix::createTransformationMatrix(
+		XMFLOAT3(scale.x * sphere.radius / unitLength, scale.y * sphere.radius / unitLength, scale.z * sphere.radius / unitLength),
+		XMFLOAT3(.0f, .0f, .0f),
+		newCenter
+	);
+}
+
+XMMATRIX BoundingVolume::updateAABB(AABB& aabb, XMFLOAT3 scale, XMFLOAT3 rotation, XMFLOAT3 position) {
+	// model transformation
+	XMMATRIX transformation = tre::Matrix::createTransformationMatrix(scale, rotation, position);
+
+	// update center
+	XMFLOAT3 newCenter = updateCenter(aabb.center, transformation);
+
+	// obtain original up, right and forward
+	XMVECTOR transformRight = tre::Matrix::getMatrixNormRight(transformation);
+	XMVECTOR transformUp = tre::Matrix::getMatrixNormUp(transformation);
+	XMVECTOR transformForward = tre::Matrix::getMatrixNormForward(transformation);
+
+	// insert code
+	XMVECTOR right = transformRight * aabb.halfExtent.x;
+	XMVECTOR up = transformUp * aabb.halfExtent.y;
+	XMVECTOR forward = transformForward * aabb.halfExtent.z;
+
+	XMVECTOR x = XMVECTOR{ 1.f, .0f, .0f, 0 }, y = XMVECTOR{ .0f, 1.f, .0f, 0 }, z = XMVECTOR{ .0f, .0f, 1.f, 0 };
+
+	XMVECTOR Ii = XMVectorAbs(XMVector3Dot(x, right)) + XMVectorAbs(XMVector3Dot(x, up)) + XMVectorAbs(XMVector3Dot(x, forward));
+	XMVECTOR Ij = XMVectorAbs(XMVector3Dot(y, right)) + XMVectorAbs(XMVector3Dot(y, up)) + XMVectorAbs(XMVector3Dot(y, forward));
+	XMVECTOR Ik = XMVectorAbs(XMVector3Dot(z, right)) + XMVectorAbs(XMVector3Dot(z, up)) + XMVectorAbs(XMVector3Dot(z, forward));
+
+	XMFLOAT3 newIi, newIj, newIk;
+	XMStoreFloat3(&newIi, Ii);
+	XMStoreFloat3(&newIj, Ij);
+	XMStoreFloat3(&newIk, Ik);
+
+	return tre::Matrix::createTransformationMatrix(
+		XMFLOAT3(scale.x * newIi.x / unitLength, scale.y * newIj.y / unitLength, scale.z * newIk.z / unitLength),
+		XMFLOAT3(.0f, .0f, .0f),
+		newCenter
+	);
 }
 
 }
