@@ -3,6 +3,7 @@
 #include "mesh.h"
 #include "dxdebug.h"
 #include "utility.h"
+#include "matrix.h"
 
 namespace tre {
 
@@ -15,8 +16,6 @@ void CubeMesh::create(ID3D11Device* device) {
 	std::vector<Vertex> vertices;
 	std::vector<uint16_t> indices;
 	std::vector<XMFLOAT3> uniqueVertexPos;
-
-	float unitLength = .5f;
 
 	//Cube Vertices
 	Vertex vertex[] = {
@@ -70,8 +69,10 @@ void CubeMesh::create(ID3D11Device* device) {
 		XMFLOAT3(-unitLength, -unitLength, -unitLength)
 	};
 
-	ritterSphere = RitterBS(uniqueVertexPos);
-	naiveSphere = NaiveBS(uniqueVertexPos);
+	ritterSphere = tre::BoundingVolume::createRitterBS(uniqueVertexPos);
+	naiveSphere = tre::BoundingVolume::createNaiveBS(uniqueVertexPos);
+	aabb = tre::BoundingVolume::createAABB(uniqueVertexPos);
+
 
 	//Cube Indices
 	uint16_t index[] = {
@@ -95,7 +96,7 @@ void CubeMesh::create(ID3D11Device* device) {
 }
 
 SphereMesh::SphereMesh(ID3D11Device* device, int sectorC, int stackC) {
-	create(device, sectorC, stackC, .5f);
+	create(device, sectorC, stackC, unitLength);
 }
 
 SphereMesh::SphereMesh(ID3D11Device* device, int sectorC, int stackC, float r) {
@@ -118,7 +119,7 @@ void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC, float r) 
 	float stackAngle = 90;
 	float sectorAngle = 0;
 
-	XMFLOAT3 sphereNormal = tre::Utility::getRotatePosition(XMFLOAT3(.0f, .0f, .0f), stackAngle, sectorAngle, 1.0f);
+	XMFLOAT3 sphereNormal = tre::Matrix::getRotatePosition(XMFLOAT3(.0f, .0f, .0f), stackAngle, sectorAngle, 1.0f);
 	XMFLOAT3 sphereTangent(1.0f, .0f, .0f);
 
 	//build north pole
@@ -138,7 +139,7 @@ void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC, float r) 
 		stackAngle -= stackStep;
 		v = XMConvertToRadians(i * stackStep) / XM_PI;
 		for (int j = 0; j < sectorCount; j++) {
-			sphereNormal = tre::Utility::getRotatePosition(XMFLOAT3(.0f, .0f, .0f), stackAngle, sectorAngle, 1.0f);
+			sphereNormal = tre::Matrix::getRotatePosition(XMFLOAT3(.0f, .0f, .0f), stackAngle, sectorAngle, 1.0f);
 
 			u = XMConvertToRadians(j * sectorStep) / XM_2PI;
 
@@ -150,7 +151,7 @@ void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC, float r) 
 
 		// one more vertice to map u to 1
 		sectorAngle = 0;
-		sphereNormal = tre::Utility::getRotatePosition(XMFLOAT3(.0f, .0f, .0f), stackAngle, sectorAngle, 1.0f);
+		sphereNormal = tre::Matrix::getRotatePosition(XMFLOAT3(.0f, .0f, .0f), stackAngle, sectorAngle, 1.0f);
 		vertices.push_back(Vertex(findCoordinate(sphereNormal, radius), sphereNormal, sphereTangent, XMFLOAT2(1, v)));
 	}
 
@@ -177,7 +178,7 @@ void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC, float r) 
 
 	//build south pole
 	//south pole tangent hardcoded to vector(1, 0, 0)
-	sphereNormal = tre::Utility::getRotatePosition(XMFLOAT3(.0f, .0f, .0f), -90.0f, sectorAngle, 1.0f);
+	sphereNormal = tre::Matrix::getRotatePosition(XMFLOAT3(.0f, .0f, .0f), -90.0f, sectorAngle, 1.0f);
 	sphereTangent = XMFLOAT3(1.0f, .0f, .0f);
 
 	for (int i = 0; i < sectorCount; i++) {
@@ -186,8 +187,9 @@ void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC, float r) 
 	}
 	uniqueVertexPos.push_back(findCoordinate(sphereNormal, radius));
 
-	ritterSphere = RitterBS(uniqueVertexPos);
-	naiveSphere = NaiveBS(uniqueVertexPos);
+	ritterSphere = tre::BoundingVolume::createRitterBS(uniqueVertexPos);
+	naiveSphere = tre::BoundingVolume::createNaiveBS(uniqueVertexPos);
+	aabb.halfExtent = XMFLOAT3(radius, radius, radius);
 
 	//Build north pole indices
 	for (int i = 0; i < sectorCount; i++) {
@@ -823,8 +825,6 @@ TeapotMesh::TeapotMesh(ID3D11Device* device) {
 		Vertex(XMFLOAT3(34.9202, 28.3457, -15.6121), XMFLOAT3(0.48559, 0.850653, -0.201474), XMFLOAT3(.0f, .0f, .0f), XMFLOAT2(0, 0))
 	};
 
-
-
 	vertices.assign(std::begin(TeapotMesh), std::end(TeapotMesh));
 
 	for (int i = 0; i < vertices.size(); i++) {
@@ -834,8 +834,9 @@ TeapotMesh::TeapotMesh(ID3D11Device* device) {
 		uniqueVertexPos.push_back(vertices[i].pos);
 	}
 
-	ritterSphere = RitterBS(uniqueVertexPos);
-	naiveSphere = NaiveBS(uniqueVertexPos);
+	ritterSphere = tre::BoundingVolume::createRitterBS(uniqueVertexPos);
+	naiveSphere = tre::BoundingVolume::createNaiveBS(uniqueVertexPos);
+	aabb = tre::BoundingVolume::createAABB(uniqueVertexPos);
 
 	indices = {
 		7, 6, 1,

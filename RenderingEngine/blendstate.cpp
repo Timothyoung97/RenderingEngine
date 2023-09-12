@@ -12,7 +12,7 @@ BlendState::BlendState(ID3D11Device* device) {
 	
 	device->CreateBlendState(&blendDesc, opaque.GetAddressOf());
 
-	rtbd.BlendEnable = TRUE;
+	rtbd.BlendEnable = true;
 	rtbd.SrcBlend = D3D11_BLEND_SRC_ALPHA;
 	rtbd.DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
 	rtbd.BlendOp = D3D11_BLEND_OP_ADD;

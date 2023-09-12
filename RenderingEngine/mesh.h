@@ -11,6 +11,8 @@
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;
 
+static const float unitLength = .5f;
+
 struct Vertex {
 	XMFLOAT3 pos;
 	XMFLOAT3 normal;
@@ -28,6 +30,7 @@ public:
 
 	BoundingSphere ritterSphere;
 	BoundingSphere naiveSphere;
+	AABB aabb;
 
 	int indexSize;
 	void createVertexAndIndexBuffer(ID3D11Device* device, const std::vector<Vertex> &vertices, const std::vector<uint16_t> &indices);

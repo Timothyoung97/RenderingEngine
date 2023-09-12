@@ -33,6 +33,7 @@
 #include "blendstate.h"
 #include "colors.h"
 #include "boundingvolume.h"
+#include "matrix.h"
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 1920;
@@ -82,9 +83,9 @@ int main()
 	deviceAndContext.context->VSSetShader(vertex_shader.pShader.Get(), NULL, 0u);
 
 	// 3D objects
-	tre::Mesh meshes[3] = {
+	static tre::Mesh meshes[3] = {
 		tre::CubeMesh(deviceAndContext.device.Get()), 
-		tre::SphereMesh(deviceAndContext.device.Get(), 10, 10),
+		tre::SphereMesh(deviceAndContext.device.Get(), 20, 20),
 		tre::TeapotMesh(deviceAndContext.device.Get())
 	};
 
@@ -157,8 +158,8 @@ int main()
 	std::vector<tre::Object> opaqueObjQ;
 	std::vector<tre::Object> transparentObjQ;
 
-	bool toSortTransparentQ = FALSE;
-	bool toRecalDistFromCam = FALSE;
+	bool toSortTransparentQ = false;
+	bool toRecalDistFromCam = false;
 
 	// set light
 	Light dirlight{
@@ -178,6 +179,8 @@ int main()
 	float stackAnglePtLight[] = { .0f, .0f, .0f, .0f };
 	float sectorAnglePtLight[] = { .0f, .0f, .0f, -90.0f };
 	XMFLOAT3 originPtLight[] = { XMFLOAT3(3.0f, 3.0f, 3.0f),  XMFLOAT3(-3.0f, -3.0f, -3.0f), XMFLOAT3(.0f, .0f, .0f), XMFLOAT3(-1.0f, .0f, -1.0f) };
+
+	float stackAngleForTeapot = .0f, sectorAngleForTeapot = .0f;
 
 	// light wireframe obj
 	std::vector<tre::Object> lightObjQ;
@@ -201,6 +204,9 @@ int main()
 	// pause light
 	int pauseLight = 0;
 
+	static int typeOfBound = 0;
+	float scaleIncre = 90.0f;
+
 	// main loop
 	while (!input.shouldQuit())
 	{
@@ -212,22 +218,22 @@ int main()
 		// Control
 		if (input.keyState[SDL_SCANCODE_W]) { // control camera movement
 			cam.moveCamera(cam.directionV * deltaTime);
-			toRecalDistFromCam = TRUE;
+			toRecalDistFromCam = true;
 		} else if (input.keyState[SDL_SCANCODE_S]) {
 			cam.moveCamera(-cam.directionV * deltaTime);
-			toRecalDistFromCam = TRUE;
+			toRecalDistFromCam = true;
 		} else if (input.keyState[SDL_SCANCODE_D]) {
 			cam.moveCamera(-cam.camRightV * deltaTime);
-			toRecalDistFromCam = TRUE;
+			toRecalDistFromCam = true;
 		} else if (input.keyState[SDL_SCANCODE_A]) {
 			cam.moveCamera(cam.camRightV * deltaTime);
-			toRecalDistFromCam = TRUE;
+			toRecalDistFromCam = true;
 		} else if (input.keyState[SDL_SCANCODE_Q]) {
 			cam.moveCamera(cam.defaultUpV * deltaTime);
-			toRecalDistFromCam = TRUE;
+			toRecalDistFromCam = true;
 		} else if (input.keyState[SDL_SCANCODE_E]) {
 			cam.moveCamera(-cam.defaultUpV * deltaTime);
-			toRecalDistFromCam = TRUE;
+			toRecalDistFromCam = true;
 		} else if (input.mouseButtonState[MOUSE_BUTTON_IDX(SDL_BUTTON_RIGHT)]) { // control camera angle
 			cam.turnCamera(input.deltaDisplacement.x, input.deltaDisplacement.y);
 		} else if (input.keyState[SDL_SCANCODE_SPACE]) {
@@ -258,11 +264,11 @@ int main()
 				|| (!newObj.isObjWithTexture && newObj.objColor.w < 1.0f)) {
 
 				// find its distance from cam
-				newObj.distFromCam = tre::Utility::distBetweentObjToCam(newObj.objPos, cam.camPositionV);
+				newObj.distFromCam = tre::Matrix::distBetweentObjToCam(newObj.objPos, cam.camPositionV);
 
 				transparentObjQ.push_back(newObj);
 
-				toSortTransparentQ = TRUE;
+				toSortTransparentQ = true;
 
 			} else {
 				opaqueObjQ.push_back(newObj);
@@ -273,30 +279,31 @@ int main()
 			tre::Object newNorObj;
 
 			int textureIdx = tre::Utility::getRandomInt(1);
-			newNorObj.pObjMesh = &meshes[2];
-			newNorObj.objPos = XMFLOAT3(.0f, .0f, .0f);
-			newNorObj.objScale = XMFLOAT3(1, 1, 1);
+			newNorObj.pObjMesh = &meshes[0];
+			newNorObj.objPos = XMFLOAT3(tre::Utility::getRandomFloatRange(-5, 5), tre::Utility::getRandomFloatRange(-5, 5), tre::Utility::getRandomFloatRange(-5, 5));
+			newNorObj.objScale = XMFLOAT3(1.0f, 1.0f, 1.0f);
 			newNorObj.objRotation = XMFLOAT3(.0f, .0f, .0f);
 			newNorObj.pObjTexture = &textures[3 + textureIdx];
 			newNorObj.isObjWithTexture = 0;
 			newNorObj.pObjNormalMap = &normals[textureIdx];
 			newNorObj.isObjWithNormalMap = 0;
 			newNorObj.objColor = colors[5];
-			newNorObj.distFromCam = tre::Utility::distBetweentObjToCam(newNorObj.objPos, cam.camPositionV);
+			newNorObj.distFromCam = tre::Matrix::distBetweentObjToCam(newNorObj.objPos, cam.camPositionV);
 
 			newNorObj.ritterBs = newNorObj.pObjMesh->ritterSphere;
 			newNorObj.naiveBs = newNorObj.pObjMesh->naiveSphere;
+			newNorObj.aabb = newNorObj.pObjMesh->aabb;
 
 			// transparent queue -> object with texture with alpha channel or object with color.w below 1.0f
 			if ((newNorObj.isObjWithTexture && newNorObj.pObjTexture->hasAlphaChannel)
 				|| (!newNorObj.isObjWithTexture && newNorObj.objColor.w < 1.0f)) {
 
 				// find its distance from cam
-				newNorObj.distFromCam = tre::Utility::distBetweentObjToCam(newNorObj.objPos, cam.camPositionV);
+				newNorObj.distFromCam = tre::Matrix::distBetweentObjToCam(newNorObj.objPos, cam.camPositionV);
 
 				transparentObjQ.push_back(newNorObj);
 
-				toSortTransparentQ = TRUE;
+				toSortTransparentQ = true;
 			}
 			else {
 				if (opaqueObjQ.size() == 0) opaqueObjQ.push_back(newNorObj);
@@ -359,16 +366,16 @@ int main()
 
 		if (toRecalDistFromCam) {
 			for (int i = 0; i < transparentObjQ.size(); i++) {
-				transparentObjQ[i].distFromCam = tre::Utility::distBetweentObjToCam(transparentObjQ[i].objPos, cam.camPositionV);
+				transparentObjQ[i].distFromCam = tre::Matrix::distBetweentObjToCam(transparentObjQ[i].objPos, cam.camPositionV);
 			}
-			toSortTransparentQ = TRUE;
-			toRecalDistFromCam = FALSE;
+			toSortTransparentQ = true;
+			toRecalDistFromCam = false;
 		}
 
 		// sort the vector -> object with greater dist from cam is at the front of the Q
 		if (toSortTransparentQ) {
 			std::sort(transparentObjQ.begin(), transparentObjQ.end(), [](const tre::Object& obj1, const tre::Object& obj2) { return obj1.distFromCam > obj2.distFromCam; });
-			toSortTransparentQ = FALSE;
+			toSortTransparentQ = false;
 		}
 
 		// Set depth test for transparent obj
@@ -381,25 +388,25 @@ int main()
 			// rotate point light 1
 			sectorAnglePtLight[0] += 1.0f;
 			if (sectorAnglePtLight[0] == 360.0f) sectorAnglePtLight[0] = .0f;
-			pointLight[0].pos = tre::Utility::getRotatePosition(originPtLight[0], stackAnglePtLight[0], sectorAnglePtLight[0], 1.0f);
+			pointLight[0].pos = tre::Matrix::getRotatePosition(originPtLight[0], stackAnglePtLight[0], sectorAnglePtLight[0], 1.0f);
 			lightObjQ[0].objPos = pointLight[0].pos;
 
 			// rotate point light 2
 			stackAnglePtLight[1] += 1.0f;
 			if (stackAnglePtLight[1] == 360.0f) stackAnglePtLight[1] = .0f;
-			pointLight[1].pos = tre::Utility::getRotatePosition(originPtLight[1], stackAnglePtLight[1], sectorAnglePtLight[1], 1.0f);
+			pointLight[1].pos = tre::Matrix::getRotatePosition(originPtLight[1], stackAnglePtLight[1], sectorAnglePtLight[1], 1.0f);
 			lightObjQ[1].objPos = pointLight[1].pos;
 
 			// rotate point light 3
 			sectorAnglePtLight[2] += 5.0f;
 			if (sectorAnglePtLight[2] == 360.0f) sectorAnglePtLight[2] = .0f;
-			pointLight[2].pos = tre::Utility::getRotatePosition(originPtLight[2], stackAnglePtLight[2], sectorAnglePtLight[2], 5.0f);
+			pointLight[2].pos = tre::Matrix::getRotatePosition(originPtLight[2], stackAnglePtLight[2], sectorAnglePtLight[2], 5.0f);
 			lightObjQ[2].objPos = pointLight[2].pos;
 
 			// rotate point light 4
 			stackAnglePtLight[3] += 5.0f;
 			if (stackAnglePtLight[3] == 360.0f) stackAnglePtLight[3] = .0f;
-			pointLight[3].pos = tre::Utility::getRotatePosition(originPtLight[3], stackAnglePtLight[3], sectorAnglePtLight[3], 5.0f);
+			pointLight[3].pos = tre::Matrix::getRotatePosition(originPtLight[3], stackAnglePtLight[3], sectorAnglePtLight[3], 5.0f);
 			lightObjQ[3].objPos = pointLight[3].pos;
 		}
 
@@ -412,13 +419,47 @@ int main()
 		// Draw all light object wireframe
 		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, lightObjQ);
 
-		// Draw debug	
-		renderer.debugDraw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, opaqueObjQ, meshes[1]);
+		// Draw debug
+		renderer.debugDraw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, opaqueObjQ, meshes[0], tre::AABBBoundingBox);
 
+		// move teapot around
+		if (opaqueObjQ.size() > 0) {
+
+			// rotation
+			opaqueObjQ[0].objRotation.x += .5f;
+			opaqueObjQ[0].objRotation.y += .5f;
+			opaqueObjQ[0].objRotation.z += .5f;
+
+			if (opaqueObjQ[0].objRotation.x == 360) {
+				opaqueObjQ[0].objRotation.x = 0;
+				opaqueObjQ[0].objRotation.y = 0;
+				opaqueObjQ[0].objRotation.z = 0;
+			}
+
+			// scale
+			float scaleVal = abs(XMScalarSin(XMConvertToRadians(scaleIncre)));
+			
+			if (scaleVal == 0.0f) scaleVal = .01f;
+
+			opaqueObjQ[0].objScale.x = scaleVal;
+			opaqueObjQ[0].objScale.y = scaleVal;
+			opaqueObjQ[0].objScale.z = scaleVal;
+
+			scaleIncre++;
+
+			// translation
+			stackAngleForTeapot++;
+			sectorAngleForTeapot++;
+
+			if (stackAngleForTeapot == 360.0f)  stackAngleForTeapot = 0;
+			if (sectorAngleForTeapot == 360.0f)  sectorAngleForTeapot = 0;
+
+			opaqueObjQ[0].objPos = tre::Matrix::getRotatePosition(XMFLOAT3(.0f, .0f, .0f), stackAngleForTeapot, sectorAngleForTeapot, 5.0f);
+		}
 
 		CHECK_DX_ERROR(swapchain.mainSwapchain->Present( 0, 0) );
 
-		while (timer.getDeltaTime() < 1000.0 / 30) {
+		while (timer.getDeltaTime() < 1000.0 / 60) {
 		}
 
 		deltaTime = timer.getDeltaTime();

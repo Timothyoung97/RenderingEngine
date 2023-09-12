@@ -1,11 +1,15 @@
 #include "boundingvolume.h"
 
 #include "utility.h"
+#include "matrix.h"
+#include "mesh.h"
 
 namespace tre {
 
-RitterBS::RitterBS(const std::vector<XMFLOAT3>& uniquePoint) {
+BoundingSphere BoundingVolume::createRitterBS(const std::vector<XMFLOAT3>& uniquePoint) {
 	
+	BoundingSphere bs;
+
 	double dx, dy, dz;
 	double rad2, xSpan, ySpan, zSpan, maxSpan;
 	double oldToP, oldToP2, oldToNew;
@@ -59,52 +63,150 @@ RitterBS::RitterBS(const std::vector<XMFLOAT3>& uniquePoint) {
 	}
 
 	// dia1, dia2 is a diameter of initial sphere
-	sphereCenter.x = (dia1.x + dia2.x) / 2;
-	sphereCenter.y = (dia1.y + dia2.y) / 2;
-	sphereCenter.z = (dia1.z + dia2.z) / 2;
+	bs.center.x = (dia1.x + dia2.x) / 2;
+	bs.center.y = (dia1.y + dia2.y) / 2;
+	bs.center.z = (dia1.z + dia2.z) / 2;
 
 	// cal initial radius
-	dx = dia2.x - sphereCenter.x;
-	dy = dia2.y - sphereCenter.y;
-	dz = dia2.z - sphereCenter.z;
+	dx = dia2.x - bs.center.x;
+	dy = dia2.y - bs.center.y;
+	dz = dia2.z - bs.center.z;
 	rad2 = dx * dx + dy * dy + dz * dz;
-	radius = sqrtf(rad2);
+	bs.radius = sqrtf(rad2);
 
 	// 2nd pass: increment curr sphere
 	for (int i = 0; i < uniquePoint.size(); i++) {
-		dx = uniquePoint[i].x - sphereCenter.x;
-		dy = uniquePoint[i].y - sphereCenter.y;
-		dz = uniquePoint[i].z - sphereCenter.z;
+		dx = uniquePoint[i].x - bs.center.x;
+		dy = uniquePoint[i].y - bs.center.y;
+		dz = uniquePoint[i].z - bs.center.z;
 
 		oldToP2 = dx * dx + dy * dy + dz * dz;
 
 		if (oldToP2 > rad2) {
 			oldToP = sqrtf(oldToP2);
-			radius = (radius + oldToP) / 2;
-			rad2 = radius * radius;
-			oldToNew = oldToP - radius;
+			bs.radius = (bs.radius + oldToP) / 2;
+			rad2 = bs.radius * bs.radius;
+			oldToNew = oldToP - bs.radius;
 
-			sphereCenter.x = (radius * sphereCenter.x + oldToNew * uniquePoint[i].x) / oldToP;
-			sphereCenter.y = (radius * sphereCenter.y + oldToNew * uniquePoint[i].y) / oldToP;
-			sphereCenter.z = (radius * sphereCenter.z + oldToNew * uniquePoint[i].z) / oldToP;
+			bs.center.x = (bs.radius * bs.center.x + oldToNew * uniquePoint[i].x) / oldToP;
+			bs.center.y = (bs.radius * bs.center.y + oldToNew * uniquePoint[i].y) / oldToP;
+			bs.center.z = (bs.radius * bs.center.z + oldToNew * uniquePoint[i].z) / oldToP;
 		}
 	}
+	return bs;
 }
 
-NaiveBS::NaiveBS(const std::vector<XMFLOAT3>& uniquePoint) {
-	XMVECTOR sphereCenterV = XMLoadFloat3(&sphereCenter);
+BoundingSphere BoundingVolume::createNaiveBS(const std::vector<XMFLOAT3>& uniquePoint) {
+
+	BoundingSphere bs;
 
 	for (int i = 0; i < uniquePoint.size(); i++) {
-		XMVECTOR pointV = XMLoadFloat3(&uniquePoint[0]);
-		XMVECTOR dirV = pointV - sphereCenterV;
+		XMFLOAT3 diff;
+		diff.x = uniquePoint[i].x - bs.center.x;
+		diff.y = uniquePoint[i].y - bs.center.y;
+		diff.z = uniquePoint[i].z - bs.center.z;
 
-		XMFLOAT3 dirVLength;
-		XMStoreFloat3(&dirVLength, XMVector3Length(dirV));
-
-		float dist = dirVLength.x;
+		float dist = sqrtf(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
 		
-		if (dist > radius) radius = dist;
+		if (dist > bs.radius) bs.radius = dist;
 	}
+	return bs;
+}
+
+AABB BoundingVolume::createAABB(const std::vector<XMFLOAT3>& uniquePoint) {
+
+	AABB bv;
+	double dx, dy, dz;
+	double oldToP, oldToP2, oldToNew;
+
+	XMFLOAT3 xMax, xMin, yMax, yMin, zMax, zMin;
+
+	xMin.x = yMin.y = zMin.z = INT_MAX;
+	xMax.x = yMax.y = zMax.z = INT_MIN;
+
+	// FIRST PASS: Find 6 minima/maxima points
+	for (int i = 0; i < uniquePoint.size(); i++) {
+		if (uniquePoint[i].x < xMin.x) xMin = uniquePoint[i];
+		if (uniquePoint[i].x > xMax.x) xMax = uniquePoint[i];
+		if (uniquePoint[i].y < yMin.y) yMin = uniquePoint[i];
+		if (uniquePoint[i].y > yMax.y) yMax = uniquePoint[i];
+		if (uniquePoint[i].z < zMax.z) zMin = uniquePoint[i];
+		if (uniquePoint[i].z > zMax.z) zMax = uniquePoint[i];
+	}
+
+	// set points dia1 & dia2 to the maximally separated pair
+	bv.center.x = (xMin.x + xMax.x) / 2;
+	bv.halfExtent.x = (xMax.x - xMin.x) / 2.0f;
+
+	bv.center.y = (yMin.y + yMax.y) / 2;
+	bv.halfExtent.y = (yMax.y - yMin.y) / 2.0f;
+
+	bv.center.z = (zMin.z + zMax.z) / 2;
+	bv.halfExtent.z = (zMax.z - zMin.z) / 2.0f;
+
+	return bv;
+}	
+
+XMFLOAT3 updateCenter(XMFLOAT3 center, XMMATRIX transformation) {
+	// update center
+	XMVECTOR localCenterV = { center.x, center.y, center.z, 1 };
+
+	localCenterV = XMVector4Transform(localCenterV, transformation);
+
+	// store new center
+	XMFLOAT3 newCenter;
+	XMStoreFloat3(&newCenter, localCenterV);
+
+	return newCenter;
+}
+
+XMMATRIX BoundingVolume::updateBoundingSphere(BoundingSphere sphere, XMFLOAT3 scale, XMFLOAT3 rotation, XMFLOAT3 position) {
+	// model transformation
+	XMMATRIX transformation = tre::Matrix::createTransformationMatrix(scale, rotation, position);
+
+	// update center
+	XMFLOAT3 newCenter = updateCenter(sphere.center, transformation);
+
+	return tre::Matrix::createTransformationMatrix(
+		XMFLOAT3(scale.x * sphere.radius / unitLength, scale.y * sphere.radius / unitLength, scale.z * sphere.radius / unitLength),
+		XMFLOAT3(.0f, .0f, .0f),
+		newCenter
+	);
+}
+
+XMMATRIX BoundingVolume::updateAABB(AABB aabb, XMFLOAT3 scale, XMFLOAT3 rotation, XMFLOAT3 position) {
+	// model transformation
+	XMMATRIX transformation = tre::Matrix::createTransformationMatrix(scale, rotation, position);
+
+	// update center
+	XMFLOAT3 newCenter = updateCenter(aabb.center, transformation);
+
+	// obtain original up, right and forward
+	XMVECTOR transformRight = tre::Matrix::getMatrixNormRight(transformation);
+	XMVECTOR transformUp = tre::Matrix::getMatrixNormUp(transformation);
+	XMVECTOR transformForward = tre::Matrix::getMatrixNormForward(transformation);
+
+	// insert code
+	XMVECTOR right = transformRight * aabb.halfExtent.x;
+	XMVECTOR up = transformUp * aabb.halfExtent.y;
+	XMVECTOR forward = transformForward * aabb.halfExtent.z;
+
+	XMVECTOR x = XMVECTOR{ 1.f, .0f, .0f, 0 }, y = XMVECTOR{ .0f, 1.f, .0f, 0 }, z = XMVECTOR{ .0f, .0f, 1.f, 0 };
+
+	XMVECTOR Ii = XMVectorAbs(XMVector3Dot(x, right)) + XMVectorAbs(XMVector3Dot(x, up)) + XMVectorAbs(XMVector3Dot(x, forward));
+	XMVECTOR Ij = XMVectorAbs(XMVector3Dot(y, right)) + XMVectorAbs(XMVector3Dot(y, up)) + XMVectorAbs(XMVector3Dot(y, forward));
+	XMVECTOR Ik = XMVectorAbs(XMVector3Dot(z, right)) + XMVectorAbs(XMVector3Dot(z, up)) + XMVectorAbs(XMVector3Dot(z, forward));
+
+	XMFLOAT3 newIi, newIj, newIk;
+	XMStoreFloat3(&newIi, Ii);
+	XMStoreFloat3(&newIj, Ij);
+	XMStoreFloat3(&newIk, Ik);
+
+	return tre::Matrix::createTransformationMatrix(
+		XMFLOAT3(scale.x * newIi.x / unitLength, scale.y * newIj.y / unitLength, scale.z * newIk.z / unitLength),
+		XMFLOAT3(.0f, .0f, .0f),
+		newCenter
+	);
 }
 
 }

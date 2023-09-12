@@ -42,46 +42,4 @@ float Utility::getRandomFloatRange(float minValue, float maxValue) {
 	assert(maxValue > minValue);
 	return minValue + static_cast<float>(rand()) * static_cast<float>(maxValue - minValue) / RAND_MAX;;
 }
-
-float Utility::distBetweentObjToCam(XMFLOAT3 objPosF, XMVECTOR camPosV) {
-
-	XMVECTOR objPosV{ objPosF.x, objPosF.y, objPosF.z };
-
-	XMVECTOR distFromCamV = XMVector3Length(objPosV - camPosV); // length of vector is replicated in all components 
-
-	XMFLOAT4 distFromCamF;
-	XMStoreFloat4(&distFromCamF, distFromCamV);
-
-	return distFromCamF.x;
-}
-
-XMFLOAT3 Utility::getRotatePosition(XMFLOAT3 objOrigin, float stackAngle, float sectorAngle, float radius) {
-	XMFLOAT3 rotatedPosition;
-	rotatedPosition.x = objOrigin.x + radius * XMScalarCos(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
-	rotatedPosition.y = objOrigin.y + radius * XMScalarSin(XMConvertToRadians(stackAngle));
-	rotatedPosition.z = objOrigin.z + radius * XMScalarSin(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
-	return rotatedPosition;
-}
-
-XMFLOAT3 Utility::XMFLOAT3Addition(XMFLOAT3 a, XMFLOAT3 b) {
-	return XMFLOAT3(a.x + b.x, a.y + b.y, a.z + b.z);
-}
-
-XMFLOAT3 Utility::XMFLOAT3Minus(XMFLOAT3 a, XMFLOAT3 b) {
-	return XMFLOAT3(a.x - b.x, a.y - b.y, a.z - b.z);
-}
-
-XMFLOAT3 Utility::XMFLOAT3ScalarMultiply(XMFLOAT3 a, float x) {
-	return XMFLOAT3(a.x * x, a.y * x, a.z * x);
-}
-
-float Utility::XMFLOAT3DotProduct(XMFLOAT3 pt1, XMFLOAT3 pt2) {
-	XMVECTOR pV1 = XMLoadFloat3(&pt1), pV2 = XMLoadFloat3(&pt2);
-
-	XMFLOAT3 ans;
-	XMStoreFloat3(&ans, XMVector3Dot(pV1, pV2));
-	return ans.x;
-}
-
-
 }

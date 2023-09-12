@@ -2,6 +2,7 @@
 #include "mesh.h"
 #include "device.h"
 #include "dxdebug.h"
+#include "matrix.h"
 
 namespace tre {
 
@@ -25,13 +26,7 @@ void Renderer::draw(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11Ra
 		context->PSSetShaderResources(0, 1, currObj.pObjTexture->pShaderResView.GetAddressOf());
 
 		//Config const buffer
-		cb.constBufferRescModel.transformationLocal = XMMatrixMultiply(
-			XMMatrixScaling(currObj.objScale.x, currObj.objScale.y, currObj.objScale.z),
-			XMMatrixMultiply(
-				XMMatrixRotationRollPitchYaw(XMConvertToRadians(currObj.objRotation.x), XMConvertToRadians(currObj.objRotation.x), XMConvertToRadians(currObj.objRotation.x)),
-				XMMatrixTranslation(currObj.objPos.x, currObj.objPos.y, currObj.objPos.z)
-			)
-		);
+		cb.constBufferRescModel.transformationLocal = tre::Matrix::createTransformationMatrix(currObj.objScale, currObj.objRotation, currObj.objPos);
 		
 		XMMATRIX normalMatrix = XMMatrixTranspose(XMMatrixInverse(nullptr, cb.constBufferRescModel.transformationLocal));
 
@@ -64,7 +59,7 @@ void Renderer::draw(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11Ra
 	}
 }
 
-void Renderer::debugDraw(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11RasterizerState* rasterizerState, tre::ConstantBuffer& cb, const std::vector<Object>& objQ, const Mesh& sphere) {
+void Renderer::debugDraw(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11RasterizerState* rasterizerState, tre::ConstantBuffer& cb, const std::vector<Object>& objQ, const Mesh& sphere, BoundVolumeEnum typeOfBound) {
 
 	context->RSSetState(rasterizerState);
 
@@ -83,14 +78,24 @@ void Renderer::debugDraw(ID3D11Device* device, ID3D11DeviceContext* context, ID3
 		//set shader resc view and sampler
 		context->PSSetShaderResources(0, 1, currObj.pObjTexture->pShaderResView.GetAddressOf());
 
-		//Config const buffer
-		cb.constBufferRescModel.transformationLocal = XMMatrixMultiply(
-			XMMatrixScaling(currObj.objScale.x * currObj.ritterBs.radius / .5f, currObj.objScale.y * currObj.ritterBs.radius / .5f, currObj.objScale.z * currObj.ritterBs.radius / .5f),
-			XMMatrixMultiply(
-				XMMatrixRotationRollPitchYaw(XMConvertToRadians(currObj.objRotation.x), XMConvertToRadians(currObj.objRotation.x), XMConvertToRadians(currObj.objRotation.x)),
-				XMMatrixTranslation(currObj.objPos.x, currObj.objPos.y, currObj.objPos.z)
-			)
-		);
+		//Update bounding volume
+		XMMATRIX transformM;
+		switch (typeOfBound) {
+		case RitterBoundingSphere:
+			transformM = tre::BoundingVolume::updateBoundingSphere(currObj.ritterBs, currObj.objScale, currObj.objRotation, currObj.objPos);
+			break;
+
+		case NaiveBoundingSphere:
+			transformM = tre::BoundingVolume::updateBoundingSphere(currObj.naiveBs, currObj.objScale, currObj.objRotation, currObj.objPos);
+			break;
+
+		case AABBBoundingBox:
+			transformM = tre::BoundingVolume::updateAABB(currObj.aabb, currObj.objScale, currObj.objRotation, currObj.objPos);
+			break;
+		}
+
+		//Set const buffer
+		cb.constBufferRescModel.transformationLocal = transformM;
 
 		XMMATRIX normalMatrix = XMMatrixTranspose(XMMatrixInverse(nullptr, cb.constBufferRescModel.transformationLocal));
 

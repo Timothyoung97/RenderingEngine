@@ -6,22 +6,32 @@
 
 using namespace DirectX;
 
-namespace tre {
-
-class BoundingSphere {
-public:
-	XMFLOAT3 sphereCenter{ .0f, .0f, .0f };
+struct BoundingSphere {
+	XMFLOAT3 center{ .0f, .0f, .0f };
 	float radius = .0f;
 };
 
-class RitterBS : public BoundingSphere {
-public:
-	RitterBS(const std::vector<XMFLOAT3>& uniquePoint);
+struct AABB {
+	XMFLOAT3 center{ .0f, .0f, .0f };
+	XMFLOAT3 halfExtent{ .0f, .0f, .0f };
 };
 
-class NaiveBS : public BoundingSphere {
+namespace tre {
+
+enum BoundVolumeEnum { 
+	RitterBoundingSphere,
+	NaiveBoundingSphere,
+	AABBBoundingBox
+};
+
+class BoundingVolume {
 public:
-	NaiveBS(const std::vector<XMFLOAT3>& uniquePoint);
+	static BoundingSphere createRitterBS(const std::vector<XMFLOAT3>& uniquePoint);
+	static BoundingSphere createNaiveBS(const std::vector<XMFLOAT3>& uniquePoint);
+	static AABB createAABB(const std::vector<XMFLOAT3>& uniquePoint);
+
+	static XMMATRIX updateBoundingSphere(BoundingSphere sphere, XMFLOAT3 scale, XMFLOAT3 rotation, XMFLOAT3 position);
+	static XMMATRIX updateAABB(AABB sphere, XMFLOAT3 scale, XMFLOAT3 rotation, XMFLOAT3 position);
 };
 
 }
