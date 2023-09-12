@@ -78,30 +78,20 @@ void Renderer::debugDraw(ID3D11Device* device, ID3D11DeviceContext* context, ID3
 		//set shader resc view and sampler
 		context->PSSetShaderResources(0, 1, currObj.pObjTexture->pShaderResView.GetAddressOf());
 
-		//check for type of bounding sphere
-		BoundingSphere currBS;
-		AABB aabb;
-		XMFLOAT3 boundingVolScale(.0f, .0f, .0f);
+		//Update bounding volume
+		XMMATRIX transformM;
 		switch (typeOfBound) {
 		case RitterBoundingSphere:
-			currBS = currObj.ritterBs;
-			boundingVolScale = XMFLOAT3(currObj.ritterBs.radius, currObj.ritterBs.radius, currObj.ritterBs.radius);
+			transformM = tre::BoundingVolume::updateBoundingSphere(currObj.ritterBs, currObj.objScale, currObj.objRotation, currObj.objPos);
 			break;
+
 		case NaiveBoundingSphere:
-			currBS = currObj.naiveBs;
-			boundingVolScale = XMFLOAT3(currObj.naiveBs.radius, currObj.naiveBs.radius, currObj.naiveBs.radius);
+			transformM = tre::BoundingVolume::updateBoundingSphere(currObj.naiveBs, currObj.objScale, currObj.objRotation, currObj.objPos);
 			break;
+
 		case AABBBoundingBox:
-			aabb = currObj.aabb;
-			boundingVolScale = aabb.halfExtent;
-		}
-
-		XMMATRIX transformM;
-
-		if (typeOfBound == AABBBoundingBox) {
-			transformM = tre::BoundingVolume::updateAABB(aabb, currObj.objScale, currObj.objRotation, currObj.objPos);
-		} else {
-			transformM = tre::BoundingVolume::updateBoundingSphere(currBS, currObj.objScale, currObj.objRotation, currObj.objPos);
+			transformM = tre::BoundingVolume::updateAABB(currObj.aabb, currObj.objScale, currObj.objRotation, currObj.objPos);
+			break;
 		}
 
 		//Set const buffer

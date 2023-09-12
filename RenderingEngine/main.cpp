@@ -278,7 +278,7 @@ int main()
 			tre::Object newNorObj;
 
 			int textureIdx = tre::Utility::getRandomInt(1);
-			newNorObj.pObjMesh = &meshes[2];
+			newNorObj.pObjMesh = &meshes[0];
 			newNorObj.objPos = XMFLOAT3(tre::Utility::getRandomFloatRange(-5, 5), tre::Utility::getRandomFloatRange(-5, 5), tre::Utility::getRandomFloatRange(-5, 5));
 			newNorObj.objScale = XMFLOAT3(1.0f, 1.0f, 1.0f);
 			newNorObj.objRotation = XMFLOAT3(.0f, .0f, .0f);
@@ -419,7 +419,7 @@ int main()
 		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, lightObjQ);
 
 		// Draw debug
-		renderer.debugDraw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, opaqueObjQ, meshes[1], tre::RitterBoundingSphere);
+		renderer.debugDraw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, opaqueObjQ, meshes[0], tre::AABBBoundingBox);
 
 		// move teapot around
 		if (opaqueObjQ.size() > 0) {

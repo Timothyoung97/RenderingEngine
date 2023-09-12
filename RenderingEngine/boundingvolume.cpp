@@ -160,7 +160,7 @@ XMFLOAT3 updateCenter(XMFLOAT3 center, XMMATRIX transformation) {
 	return newCenter;
 }
 
-XMMATRIX BoundingVolume::updateBoundingSphere(BoundingSphere& sphere, XMFLOAT3 scale, XMFLOAT3 rotation, XMFLOAT3 position) {
+XMMATRIX BoundingVolume::updateBoundingSphere(BoundingSphere sphere, XMFLOAT3 scale, XMFLOAT3 rotation, XMFLOAT3 position) {
 	// model transformation
 	XMMATRIX transformation = tre::Matrix::createTransformationMatrix(scale, rotation, position);
 
@@ -174,7 +174,7 @@ XMMATRIX BoundingVolume::updateBoundingSphere(BoundingSphere& sphere, XMFLOAT3 s
 	);
 }
 
-XMMATRIX BoundingVolume::updateAABB(AABB& aabb, XMFLOAT3 scale, XMFLOAT3 rotation, XMFLOAT3 position) {
+XMMATRIX BoundingVolume::updateAABB(AABB aabb, XMFLOAT3 scale, XMFLOAT3 rotation, XMFLOAT3 position) {
 	// model transformation
 	XMMATRIX transformation = tre::Matrix::createTransformationMatrix(scale, rotation, position);
 
