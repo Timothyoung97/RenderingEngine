@@ -13,8 +13,8 @@ namespace tre {
 struct Object {
 	Mesh* pObjMesh;
 	
-	BoundingVolume ritterBs;
-	BoundingVolume naiveBs;
+	BoundingSphere ritterBs;
+	BoundingSphere naiveBs;
 	BoundingVolume aabb;
 	
 	Texture* pObjTexture;

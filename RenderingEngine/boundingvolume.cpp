@@ -4,8 +4,10 @@
 
 namespace tre {
 
-RitterBS::RitterBS(const std::vector<XMFLOAT3>& uniquePoint) {
+BoundingSphere RitterBS::createRitterBS(const std::vector<XMFLOAT3>& uniquePoint) {
 	
+	BoundingSphere bs;
+
 	double dx, dy, dz;
 	double rad2, xSpan, ySpan, zSpan, maxSpan;
 	double oldToP, oldToP2, oldToNew;
@@ -59,53 +61,59 @@ RitterBS::RitterBS(const std::vector<XMFLOAT3>& uniquePoint) {
 	}
 
 	// dia1, dia2 is a diameter of initial sphere
-	center.x = (dia1.x + dia2.x) / 2;
-	center.y = (dia1.y + dia2.y) / 2;
-	center.z = (dia1.z + dia2.z) / 2;
+	bs.center.x = (dia1.x + dia2.x) / 2;
+	bs.center.y = (dia1.y + dia2.y) / 2;
+	bs.center.z = (dia1.z + dia2.z) / 2;
 
 	// cal initial radius
-	dx = dia2.x - center.x;
-	dy = dia2.y - center.y;
-	dz = dia2.z - center.z;
+	dx = dia2.x - bs.center.x;
+	dy = dia2.y - bs.center.y;
+	dz = dia2.z - bs.center.z;
 	rad2 = dx * dx + dy * dy + dz * dz;
-	radius = sqrtf(rad2);
+	bs.radius = sqrtf(rad2);
 
 	// 2nd pass: increment curr sphere
 	for (int i = 0; i < uniquePoint.size(); i++) {
-		dx = uniquePoint[i].x - center.x;
-		dy = uniquePoint[i].y - center.y;
-		dz = uniquePoint[i].z - center.z;
+		dx = uniquePoint[i].x - bs.center.x;
+		dy = uniquePoint[i].y - bs.center.y;
+		dz = uniquePoint[i].z - bs.center.z;
 
 		oldToP2 = dx * dx + dy * dy + dz * dz;
 
 		if (oldToP2 > rad2) {
 			oldToP = sqrtf(oldToP2);
-			radius = (radius + oldToP) / 2;
-			rad2 = radius * radius;
-			oldToNew = oldToP - radius;
+			bs.radius = (bs.radius + oldToP) / 2;
+			rad2 = bs.radius * bs.radius;
+			oldToNew = oldToP - bs.radius;
 
-			center.x = (radius * center.x + oldToNew * uniquePoint[i].x) / oldToP;
-			center.y = (radius * center.y + oldToNew * uniquePoint[i].y) / oldToP;
-			center.z = (radius * center.z + oldToNew * uniquePoint[i].z) / oldToP;
+			bs.center.x = (bs.radius * bs.center.x + oldToNew * uniquePoint[i].x) / oldToP;
+			bs.center.y = (bs.radius * bs.center.y + oldToNew * uniquePoint[i].y) / oldToP;
+			bs.center.z = (bs.radius * bs.center.z + oldToNew * uniquePoint[i].z) / oldToP;
 		}
 	}
+	return bs;
 }
 
-NaiveBS::NaiveBS(const std::vector<XMFLOAT3>& uniquePoint) {
+BoundingSphere NaiveBS::createNaiveBS(const std::vector<XMFLOAT3>& uniquePoint) {
+
+	BoundingSphere bs;
 
 	for (int i = 0; i < uniquePoint.size(); i++) {
 		XMFLOAT3 diff;
-		diff.x = uniquePoint[i].x - center.x;
-		diff.y = uniquePoint[i].y - center.y;
-		diff.z = uniquePoint[i].z - center.z;
+		diff.x = uniquePoint[i].x - bs.center.x;
+		diff.y = uniquePoint[i].y - bs.center.y;
+		diff.z = uniquePoint[i].z - bs.center.z;
 
 		float dist = sqrtf(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
 		
-		if (dist > radius) radius = dist;
+		if (dist > bs.radius) bs.radius = dist;
 	}
+	return bs;
 }
 
-AABB::AABB(const std::vector<XMFLOAT3>& uniquePoint) {
+BoundingVolume AABB::createAABB(const std::vector<XMFLOAT3>& uniquePoint) {
+
+	BoundingVolume bv;
 	double dx, dy, dz;
 	double oldToP, oldToP2, oldToNew;
 
@@ -125,19 +133,16 @@ AABB::AABB(const std::vector<XMFLOAT3>& uniquePoint) {
 	}
 
 	// set points dia1 & dia2 to the maximally separated pair
-	center.x = (xMin.x + xMax.x) / 2;
-	halfExtent.x = (xMax.x - xMin.x) / 2.0f;
+	bv.center.x = (xMin.x + xMax.x) / 2;
+	bv.halfExtent.x = (xMax.x - xMin.x) / 2.0f;
 
-	center.y = (yMin.y + yMax.y) / 2;
-	halfExtent.y = (yMax.y - yMin.y) / 2.0f;
+	bv.center.y = (yMin.y + yMax.y) / 2;
+	bv.halfExtent.y = (yMax.y - yMin.y) / 2.0f;
 
-	center.z = (zMin.z + zMax.z) / 2;
-	halfExtent.z = (zMax.z - zMin.z) / 2.0f;
-}
+	bv.center.z = (zMin.z + zMax.z) / 2;
+	bv.halfExtent.z = (zMax.z - zMin.z) / 2.0f;
 
-void AABB::update(const XMMATRIX& transformation, const XMVECTOR& translation) {
-
-};
-	
+	return bv;
+}	
 
 }

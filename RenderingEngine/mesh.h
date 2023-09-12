@@ -28,8 +28,8 @@ public:
 	ComPtr<ID3D11Buffer> pIndexBuffer;
 	ComPtr<ID3D11Buffer> pVertexBuffer;
 
-	BoundingVolume ritterSphere;
-	BoundingVolume naiveSphere;
+	BoundingSphere ritterSphere;
+	BoundingSphere naiveSphere;
 	BoundingVolume aabb;
 
 	int indexSize;

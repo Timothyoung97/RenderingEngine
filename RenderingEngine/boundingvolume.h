@@ -6,6 +6,16 @@
 
 using namespace DirectX;
 
+struct BoundingSphere {
+	XMFLOAT3 center{ .0f, .0f, .0f };
+	float radius = .0f;
+};
+
+struct BoundingVolume {
+	XMFLOAT3 center{ .0f, .0f, .0f };
+	XMFLOAT3 halfExtent{ .0f, .0f, .0f };
+};
+
 namespace tre {
 
 enum BoundVolumeEnum { 
@@ -14,26 +24,19 @@ enum BoundVolumeEnum {
 	AABBBoundingBox
 };
 
-class BoundingVolume {
+class RitterBS {
 public:
-	XMFLOAT3 center{ .0f, .0f, .0f };
-	XMFLOAT3 halfExtent{ .0f, .0f, .0f };
-	float radius = .0f;
+	static BoundingSphere createRitterBS(const std::vector<XMFLOAT3>& uniquePoint);
 };
 
-class RitterBS : public BoundingVolume {
+class NaiveBS {
 public:
-	RitterBS(const std::vector<XMFLOAT3>& uniquePoint);
+	static BoundingSphere createNaiveBS(const std::vector<XMFLOAT3>& uniquePoint);
 };
 
-class NaiveBS : public BoundingVolume {
+class AABB{
 public:
-	NaiveBS(const std::vector<XMFLOAT3>& uniquePoint);
-};
-
-class AABB : public BoundingVolume {
-public:
-	AABB(const std::vector<XMFLOAT3>& uniquePoint);
+	static BoundingVolume createAABB(const std::vector<XMFLOAT3>& uniquePoint);
 	void update(const XMMATRIX& transformation, const XMVECTOR& translation);
 };
 
