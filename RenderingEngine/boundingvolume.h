@@ -29,7 +29,8 @@ public:
 	static BoundingSphere createRitterBS(const std::vector<XMFLOAT3>& uniquePoint);
 	static BoundingSphere createNaiveBS(const std::vector<XMFLOAT3>& uniquePoint);
 	static AABB createAABB(const std::vector<XMFLOAT3>& uniquePoint);
-	void update(const XMMATRIX& transformation, BoundingVolume& aabb);
+
+	void updateAABB(const XMMATRIX& transformation, BoundingVolume& aabb);
 };
 
 }

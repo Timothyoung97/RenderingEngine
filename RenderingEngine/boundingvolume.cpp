@@ -145,7 +145,7 @@ AABB BoundingVolume::createAABB(const std::vector<XMFLOAT3>& uniquePoint) {
 	return bv;
 }	
 
-void BoundingVolume::update(const XMMATRIX& transformation, BoundingVolume& aabb) {
+void BoundingVolume::updateAABB(const XMMATRIX& transformation, BoundingVolume& aabb) {
 
 	
 

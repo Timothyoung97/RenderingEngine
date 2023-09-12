@@ -2,6 +2,7 @@
 #include "mesh.h"
 #include "device.h"
 #include "dxdebug.h"
+#include "matrix.h"
 
 namespace tre {
 
@@ -25,13 +26,7 @@ void Renderer::draw(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11Ra
 		context->PSSetShaderResources(0, 1, currObj.pObjTexture->pShaderResView.GetAddressOf());
 
 		//Config const buffer
-		cb.constBufferRescModel.transformationLocal = XMMatrixMultiply(
-			XMMatrixScaling(currObj.objScale.x, currObj.objScale.y, currObj.objScale.z),
-			XMMatrixMultiply(
-				XMMatrixRotationRollPitchYaw(XMConvertToRadians(currObj.objRotation.x), XMConvertToRadians(currObj.objRotation.y), XMConvertToRadians(currObj.objRotation.z)),
-				XMMatrixTranslation(currObj.objPos.x, currObj.objPos.y, currObj.objPos.z)
-			)
-		);
+		cb.constBufferRescModel.transformationLocal = tre::Matrix::createTransformationMatrix(currObj.objScale, currObj.objRotation, currObj.objPos);
 		
 		XMMATRIX normalMatrix = XMMatrixTranspose(XMMatrixInverse(nullptr, cb.constBufferRescModel.transformationLocal));
 
@@ -106,16 +101,7 @@ void Renderer::debugDraw(ID3D11Device* device, ID3D11DeviceContext* context, ID3
 		if (typeOfBound == AABBBoundingBox) {
 			
 			// model transformation
-			XMMATRIX transformation = XMMatrixMultiply(
-				XMMatrixScaling(currObj.objScale.x, currObj.objScale.y, currObj.objScale.z),
-				XMMatrixMultiply(
-					XMMatrixRotationRollPitchYaw(XMConvertToRadians(currObj.objRotation.x), XMConvertToRadians(currObj.objRotation.y), XMConvertToRadians(currObj.objRotation.z)),
-					XMMatrixTranslation(
-						currObj.objPos.x,
-						currObj.objPos.y,
-						currObj.objPos.z)
-				)
-			);
+			XMMATRIX transformation = tre::Matrix::createTransformationMatrix(currObj.objScale, currObj.objRotation, currObj.objPos);
 
 			// update center
 			XMVECTOR localCenterV = { aabb.center.x, aabb.center.y, aabb.center.z, 1 };
@@ -126,14 +112,11 @@ void Renderer::debugDraw(ID3D11Device* device, ID3D11DeviceContext* context, ID3
 			XMFLOAT4 newCenter;
 			XMStoreFloat4(&newCenter, localCenterV);
 
-			XMFLOAT4X4 transformationF;
-			XMStoreFloat4x4(&transformationF, transformation);
+			// obtain original up, right and forward
+			XMVECTOR transformRight = tre::Matrix::getMatrixNormRight(transformation);
+			XMVECTOR transformUp = tre::Matrix::getMatrixNormUp(transformation);
+			XMVECTOR transformForward = tre::Matrix::getMatrixNormForward(transformation);
 			
-			XMVECTOR transformRight, transformUp, transformForward;
-			transformRight = XMVector3Normalize(XMVECTOR{ transformationF._11, transformationF._12, transformationF._13 });
-			transformUp = XMVector3Normalize(XMVECTOR{ transformationF._21, transformationF._22, transformationF._23 });
-			transformForward = XMVector3Normalize(XMVECTOR{ transformationF._31, transformationF._32, transformationF._33 });
-
 			// insert code
 			XMVECTOR right = transformRight * aabb.halfExtent.x;
 			XMVECTOR up = transformUp * aabb.halfExtent.y;
@@ -150,30 +133,15 @@ void Renderer::debugDraw(ID3D11Device* device, ID3D11DeviceContext* context, ID3
 			XMStoreFloat3(&newIj, Ij);
 			XMStoreFloat3(&newIk, Ik);
 
-			transformM = XMMatrixMultiply(
-				XMMatrixScaling(currObj.objScale.x * newIi.x / unitLength, currObj.objScale.y * newIj.y / unitLength, currObj.objScale.z * newIk.z / unitLength),
-				XMMatrixMultiply(
-					XMMatrixRotationRollPitchYaw(.0f, .0f, .0f),
-					XMMatrixTranslation(
-						newCenter.x,
-						newCenter.y,
-						newCenter.z
-					)
-				)
+			transformM = tre::Matrix::createTransformationMatrix(
+				XMFLOAT3(currObj.objScale.x * newIi.x / unitLength, currObj.objScale.y * newIj.y / unitLength, currObj.objScale.z * newIk.z / unitLength),
+				XMFLOAT3(.0f, .0f, .0f),
+				XMFLOAT3(newCenter.x, newCenter.y, newCenter.z)
 			);
 
 		} else {
 			// model transformation
-			XMMATRIX transformation = XMMatrixMultiply(
-				XMMatrixScaling(currObj.objScale.x, currObj.objScale.y, currObj.objScale.z),
-				XMMatrixMultiply(
-					XMMatrixRotationRollPitchYaw(XMConvertToRadians(currObj.objRotation.x), XMConvertToRadians(currObj.objRotation.y), XMConvertToRadians(currObj.objRotation.z)),
-					XMMatrixTranslation(
-						currObj.objPos.x,
-						currObj.objPos.y,
-						currObj.objPos.z)
-				)
-			);
+			XMMATRIX transformation = tre::Matrix::createTransformationMatrix(currObj.objScale, currObj.objRotation, currObj.objPos);
 
 			// update center
 			XMVECTOR localCenterV = { currBS.center.x, currBS.center.y, currBS.center.z, 1 };
@@ -184,16 +152,10 @@ void Renderer::debugDraw(ID3D11Device* device, ID3D11DeviceContext* context, ID3
 			XMFLOAT4 newCenter;
 			XMStoreFloat4(&newCenter, localCenterV);
 
-			transformM = XMMatrixMultiply(
-				XMMatrixScaling(currObj.objScale.x * boundingVolScale.x / unitLength, currObj.objScale.y * boundingVolScale.y / unitLength, currObj.objScale.z * boundingVolScale.z / unitLength),
-				XMMatrixMultiply(
-					XMMatrixRotationRollPitchYaw(.0f, .0f, .0f),
-					XMMatrixTranslation(
-						newCenter.x,
-						newCenter.y,
-						newCenter.z
-					)
-				)
+			transformM = tre::Matrix::createTransformationMatrix(
+				XMFLOAT3(currObj.objScale.x * boundingVolScale.x / unitLength, currObj.objScale.y * boundingVolScale.y / unitLength, currObj.objScale.z * boundingVolScale.z / unitLength),
+				XMFLOAT3(.0f, .0f, .0f),
+				XMFLOAT3(newCenter.x, newCenter.y, newCenter.z)
 			);
 		}
 
