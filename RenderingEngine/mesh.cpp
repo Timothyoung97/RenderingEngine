@@ -68,9 +68,9 @@ void CubeMesh::create(ID3D11Device* device) {
 		XMFLOAT3(-unitLength, -unitLength, -unitLength)
 	};
 
-	ritterSphere = tre::RitterBS::createRitterBS(uniqueVertexPos);
-	naiveSphere = tre::NaiveBS::createNaiveBS(uniqueVertexPos);
-	aabb = tre::AABB::createAABB(uniqueVertexPos);
+	ritterSphere = tre::BoundingVolume::createRitterBS(uniqueVertexPos);
+	naiveSphere = tre::BoundingVolume::createNaiveBS(uniqueVertexPos);
+	aabb = tre::BoundingVolume::createAABB(uniqueVertexPos);
 
 
 	//Cube Indices
@@ -186,9 +186,9 @@ void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC, float r) 
 	}
 	uniqueVertexPos.push_back(findCoordinate(sphereNormal, radius));
 
-	ritterSphere = tre::RitterBS::createRitterBS(uniqueVertexPos);
-	naiveSphere = tre::NaiveBS::createNaiveBS(uniqueVertexPos);
-	aabb = tre::AABB::createAABB(uniqueVertexPos);
+	ritterSphere = tre::BoundingVolume::createRitterBS(uniqueVertexPos);
+	naiveSphere = tre::BoundingVolume::createNaiveBS(uniqueVertexPos);
+	aabb.halfExtent = XMFLOAT3(radius, radius, radius);
 
 	//Build north pole indices
 	for (int i = 0; i < sectorCount; i++) {
@@ -824,8 +824,6 @@ TeapotMesh::TeapotMesh(ID3D11Device* device) {
 		Vertex(XMFLOAT3(34.9202, 28.3457, -15.6121), XMFLOAT3(0.48559, 0.850653, -0.201474), XMFLOAT3(.0f, .0f, .0f), XMFLOAT2(0, 0))
 	};
 
-
-
 	vertices.assign(std::begin(TeapotMesh), std::end(TeapotMesh));
 
 	for (int i = 0; i < vertices.size(); i++) {
@@ -835,9 +833,9 @@ TeapotMesh::TeapotMesh(ID3D11Device* device) {
 		uniqueVertexPos.push_back(vertices[i].pos);
 	}
 
-	ritterSphere = tre::RitterBS::createRitterBS(uniqueVertexPos);
-	naiveSphere = tre::NaiveBS::createNaiveBS(uniqueVertexPos);
-	aabb = tre::AABB::createAABB(uniqueVertexPos);
+	ritterSphere = tre::BoundingVolume::createRitterBS(uniqueVertexPos);
+	naiveSphere = tre::BoundingVolume::createNaiveBS(uniqueVertexPos);
+	aabb = tre::BoundingVolume::createAABB(uniqueVertexPos);
 
 	indices = {
 		7, 6, 1,
