@@ -33,6 +33,7 @@
 #include "blendstate.h"
 #include "colors.h"
 #include "boundingvolume.h"
+#include "matrix.h"
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 1920;
@@ -263,7 +264,7 @@ int main()
 				|| (!newObj.isObjWithTexture && newObj.objColor.w < 1.0f)) {
 
 				// find its distance from cam
-				newObj.distFromCam = tre::Utility::distBetweentObjToCam(newObj.objPos, cam.camPositionV);
+				newObj.distFromCam = tre::Matrix::distBetweentObjToCam(newObj.objPos, cam.camPositionV);
 
 				transparentObjQ.push_back(newObj);
 
@@ -287,7 +288,7 @@ int main()
 			newNorObj.pObjNormalMap = &normals[textureIdx];
 			newNorObj.isObjWithNormalMap = 0;
 			newNorObj.objColor = colors[5];
-			newNorObj.distFromCam = tre::Utility::distBetweentObjToCam(newNorObj.objPos, cam.camPositionV);
+			newNorObj.distFromCam = tre::Matrix::distBetweentObjToCam(newNorObj.objPos, cam.camPositionV);
 
 			newNorObj.ritterBs = newNorObj.pObjMesh->ritterSphere;
 			newNorObj.naiveBs = newNorObj.pObjMesh->naiveSphere;
@@ -298,7 +299,7 @@ int main()
 				|| (!newNorObj.isObjWithTexture && newNorObj.objColor.w < 1.0f)) {
 
 				// find its distance from cam
-				newNorObj.distFromCam = tre::Utility::distBetweentObjToCam(newNorObj.objPos, cam.camPositionV);
+				newNorObj.distFromCam = tre::Matrix::distBetweentObjToCam(newNorObj.objPos, cam.camPositionV);
 
 				transparentObjQ.push_back(newNorObj);
 
@@ -365,7 +366,7 @@ int main()
 
 		if (toRecalDistFromCam) {
 			for (int i = 0; i < transparentObjQ.size(); i++) {
-				transparentObjQ[i].distFromCam = tre::Utility::distBetweentObjToCam(transparentObjQ[i].objPos, cam.camPositionV);
+				transparentObjQ[i].distFromCam = tre::Matrix::distBetweentObjToCam(transparentObjQ[i].objPos, cam.camPositionV);
 			}
 			toSortTransparentQ = true;
 			toRecalDistFromCam = false;
@@ -387,25 +388,25 @@ int main()
 			// rotate point light 1
 			sectorAnglePtLight[0] += 1.0f;
 			if (sectorAnglePtLight[0] == 360.0f) sectorAnglePtLight[0] = .0f;
-			pointLight[0].pos = tre::Utility::getRotatePosition(originPtLight[0], stackAnglePtLight[0], sectorAnglePtLight[0], 1.0f);
+			pointLight[0].pos = tre::Matrix::getRotatePosition(originPtLight[0], stackAnglePtLight[0], sectorAnglePtLight[0], 1.0f);
 			lightObjQ[0].objPos = pointLight[0].pos;
 
 			// rotate point light 2
 			stackAnglePtLight[1] += 1.0f;
 			if (stackAnglePtLight[1] == 360.0f) stackAnglePtLight[1] = .0f;
-			pointLight[1].pos = tre::Utility::getRotatePosition(originPtLight[1], stackAnglePtLight[1], sectorAnglePtLight[1], 1.0f);
+			pointLight[1].pos = tre::Matrix::getRotatePosition(originPtLight[1], stackAnglePtLight[1], sectorAnglePtLight[1], 1.0f);
 			lightObjQ[1].objPos = pointLight[1].pos;
 
 			// rotate point light 3
 			sectorAnglePtLight[2] += 5.0f;
 			if (sectorAnglePtLight[2] == 360.0f) sectorAnglePtLight[2] = .0f;
-			pointLight[2].pos = tre::Utility::getRotatePosition(originPtLight[2], stackAnglePtLight[2], sectorAnglePtLight[2], 5.0f);
+			pointLight[2].pos = tre::Matrix::getRotatePosition(originPtLight[2], stackAnglePtLight[2], sectorAnglePtLight[2], 5.0f);
 			lightObjQ[2].objPos = pointLight[2].pos;
 
 			// rotate point light 4
 			stackAnglePtLight[3] += 5.0f;
 			if (stackAnglePtLight[3] == 360.0f) stackAnglePtLight[3] = .0f;
-			pointLight[3].pos = tre::Utility::getRotatePosition(originPtLight[3], stackAnglePtLight[3], sectorAnglePtLight[3], 5.0f);
+			pointLight[3].pos = tre::Matrix::getRotatePosition(originPtLight[3], stackAnglePtLight[3], sectorAnglePtLight[3], 5.0f);
 			lightObjQ[3].objPos = pointLight[3].pos;
 		}
 
@@ -453,7 +454,7 @@ int main()
 			if (stackAngleForTeapot == 360.0f)  stackAngleForTeapot = 0;
 			if (sectorAngleForTeapot == 360.0f)  sectorAngleForTeapot = 0;
 
-			opaqueObjQ[0].objPos = tre::Utility::getRotatePosition(XMFLOAT3(.0f, .0f, .0f), stackAngleForTeapot, sectorAngleForTeapot, 5.0f);
+			opaqueObjQ[0].objPos = tre::Matrix::getRotatePosition(XMFLOAT3(.0f, .0f, .0f), stackAngleForTeapot, sectorAngleForTeapot, 5.0f);
 		}
 
 		CHECK_DX_ERROR(swapchain.mainSwapchain->Present( 0, 0) );
