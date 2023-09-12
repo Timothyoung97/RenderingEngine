@@ -418,16 +418,16 @@ int main()
 		// Draw all light object wireframe
 		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, lightObjQ);
 
-		// Draw debug	
-		renderer.debugDraw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, opaqueObjQ, meshes[1], tre::RitterBoundingSphere);
+		// Draw debug
+		renderer.debugDraw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, opaqueObjQ, meshes[0], tre::AABBBoundingBox);
 
 		// move teapot around
 		if (opaqueObjQ.size() > 0) {
 
 			// rotation
-			opaqueObjQ[0].objRotation.x++;
-			opaqueObjQ[0].objRotation.y++;
-			opaqueObjQ[0].objRotation.z++;
+			opaqueObjQ[0].objRotation.x += .5f;
+			opaqueObjQ[0].objRotation.y += .5f;
+			opaqueObjQ[0].objRotation.z += .5f;
 
 			if (opaqueObjQ[0].objRotation.x == 360) {
 				opaqueObjQ[0].objRotation.x = 0;
