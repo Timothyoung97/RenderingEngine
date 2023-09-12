@@ -6,6 +6,10 @@
 #include <wrl/client.h>
 #include "spdlog/spdlog.h"
 
+#include "imgui.h"
+#include "imgui_impl_sdl2.h"
+#include "imgui_impl_dx11.h"
+
 #include <algorithm>
 #include <functional>
 #include <array>
@@ -207,6 +211,23 @@ int main()
 	static int typeOfBound = 0;
 	float scaleIncre = 90.0f;
 
+	// Setup Dear ImGui context
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+
+	// Setup Dear ImGui style
+	ImGui::StyleColorsDark();
+
+	// Setup Platform/Renderer backends
+	ImGui_ImplSDL2_InitForD3D(window.window);
+	ImGui_ImplDX11_Init(deviceAndContext.device.Get(), deviceAndContext.context.Get());
+
+	bool show_demo_window = true;
+	bool show_another_window = true;
+
 	// main loop
 	while (!input.shouldQuit())
 	{
@@ -312,6 +333,25 @@ int main()
 		} else if (input.keyState[SDL_SCANCODE_P]) {
 			pauseLight ^= 1;
 		}
+
+		// Start the Dear ImGui frame
+		ImGui_ImplDX11_NewFrame();
+		ImGui_ImplSDL2_NewFrame();
+		ImGui::NewFrame();
+
+		if (show_demo_window)
+			ImGui::ShowDemoWindow(&show_demo_window);
+
+		if (show_another_window)
+		{
+			ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+			ImGui::Text("Hello from another window!");
+			if (ImGui::Button("Close Me"))
+				show_another_window = false;
+			ImGui::End();
+		}
+
+		ImGui::Render();
 
 		// Alternating buffers
 		int currBackBuffer = static_cast<int>(swapchain.mainSwapchain->GetCurrentBackBufferIndex());
@@ -456,6 +496,9 @@ int main()
 
 			opaqueObjQ[0].objPos = tre::Matrix::getRotatePosition(XMFLOAT3(.0f, .0f, .0f), stackAngleForTeapot, sectorAngleForTeapot, 5.0f);
 		}
+		
+		ImGui::Render();
+		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
 		CHECK_DX_ERROR(swapchain.mainSwapchain->Present( 0, 0) );
 
@@ -466,6 +509,9 @@ int main()
 	}
 
 	//Cleanup
+	ImGui_ImplDX11_Shutdown();
+	ImGui_ImplSDL2_Shutdown();
+	ImGui::DestroyContext();
 
 	return 0;
 }

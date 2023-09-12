@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "input.h"
+#include "imgui_impl_sdl2.h"
 
 namespace tre {
 
@@ -12,6 +13,8 @@ void Input::updateInputEvent() {
 	SDL_PumpEvents();
 
 	SDL_PeepEvents(&e, 1, SDL_GETEVENT, SDL_FIRSTEVENT, SDL_LASTEVENT);
+
+	ImGui_ImplSDL2_ProcessEvent(&e);
 
 	switch (e.type) {
 	case SDL_KEYDOWN:
