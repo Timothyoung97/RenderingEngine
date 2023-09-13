@@ -169,10 +169,10 @@ XMMATRIX BoundingVolume::updateBoundingSphere(BoundingSphere& meshSphere, Boundi
 
 	// store in ObjSphere
 	objSphere.center = newCenter;
-	objSphere.radius = scale.x * meshSphere.radius / unitLength;
+	objSphere.radius = scale.x * meshSphere.radius;
 
 	return tre::Matrix::createTransformationMatrix(
-		XMFLOAT3(objSphere.radius, objSphere.radius, objSphere.radius),
+		XMFLOAT3(objSphere.radius / unitLength, objSphere.radius / unitLength, objSphere.radius / unitLength),
 		XMFLOAT3(.0f, .0f, .0f),
 		newCenter
 	);

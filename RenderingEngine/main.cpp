@@ -355,7 +355,7 @@ int main()
 
 		bool isIntersect = false;
 		if (opaqueObjQ.size() == 2) {
-			isIntersect = opaqueObjQ[0].aabb.testAABB(opaqueObjQ[1].aabb);
+			isIntersect = opaqueObjQ[0].ritterBs.testBoundingSphere(opaqueObjQ[1].ritterBs);
 		}
 
 		// Start the Dear ImGui frame
@@ -513,7 +513,7 @@ int main()
 		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, lightObjQ);
 
 		// Draw debug
-		renderer.debugDraw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, opaqueObjQ, meshes[0], tre::AABBBoundingBox);
+		renderer.debugDraw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, opaqueObjQ, meshes[1], tre::RitterBoundingSphere);
 		
 		ImGui::Render();
 		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
