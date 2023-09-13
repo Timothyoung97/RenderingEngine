@@ -12,6 +12,17 @@ struct Plane {
 	XMVECTOR pos; // distance from origin to nearest point in the plane
 };
 
+struct Frustum {
+	Plane topF;
+	Plane bottomF;
+
+	Plane rightF;
+	Plane leftF;
+
+	Plane farF;
+	Plane nearF;
+};
+
 class Maths {
 public:
 	static XMMATRIX createTransformationMatrix(XMFLOAT3 scale, XMFLOAT3 rotation, XMFLOAT3 position);

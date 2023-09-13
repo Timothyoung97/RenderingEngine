@@ -73,5 +73,4 @@ void Camera::updateCameraFrustum() {
 	cameraFrustum.topF = { XMVector3Cross(frontMultFar - camUpV * halfVSide, camRightV), camPositionV };
 	cameraFrustum.bottomF = { XMVector3Cross(camRightV, frontMultFar + camUpV * halfVSide), camPositionV };
 }
-
 }

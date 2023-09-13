@@ -4,17 +4,6 @@
 
 namespace tre {
 
-struct Frustum {
-	Plane topF;
-	Plane bottomF;
-
-	Plane rightF;
-	Plane leftF;
-
-	Plane farF;
-	Plane nearF;
-};
-
 class Camera {
 public:
 
