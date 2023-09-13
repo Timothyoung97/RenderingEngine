@@ -317,7 +317,7 @@ int main()
 			newNorObj.objScale = XMFLOAT3(1.0f, 1.0f, 1.0f);
 			newNorObj.objRotation = XMFLOAT3(.0f, .0f, .0f);
 			newNorObj.pObjTexture = &textures[3 + textureIdx];
-			newNorObj.isObjWithTexture = 0;
+			newNorObj.isObjWithTexture = 1;
 			newNorObj.pObjNormalMap = &normals[textureIdx];
 			newNorObj.isObjWithNormalMap = 0;
 			newNorObj.objColor = colors[5];
@@ -336,7 +336,7 @@ int main()
 			newNorObj2.objScale = XMFLOAT3(1.0f, 1.0f, 1.0f);
 			newNorObj2.objRotation = XMFLOAT3(.0f, .0f, .0f);
 			newNorObj2.pObjTexture = &textures[3 + textureIdx];
-			newNorObj2.isObjWithTexture = 0;
+			newNorObj2.isObjWithTexture = 1;
 			newNorObj2.pObjNormalMap = &normals[textureIdx];
 			newNorObj2.isObjWithNormalMap = 0;
 			newNorObj2.objColor = colors[5];
@@ -511,6 +511,17 @@ int main()
 		
 		// Draw all light object wireframe
 		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, lightObjQ);
+
+		if (opaqueObjQ.size() == 2) {
+			if (isIntersect) {
+				opaqueObjQ[0].objColor = colors[10];
+				opaqueObjQ[1].objColor = colors[10];
+			}
+			else {
+				opaqueObjQ[0].objColor = colors[3];
+				opaqueObjQ[1].objColor = colors[3];
+			}
+		}
 
 		// Draw debug
 		renderer.debugDraw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, opaqueObjQ, meshes[1], tre::RitterBoundingSphere);
