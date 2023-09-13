@@ -59,21 +59,21 @@ void Renderer::draw(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11Ra
 	}
 }
 
-void Renderer::debugDraw(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11RasterizerState* rasterizerState, tre::ConstantBuffer& cb, const std::vector<Object>& objQ, const Mesh& sphere, BoundVolumeEnum typeOfBound) {
+void Renderer::debugDraw(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11RasterizerState* rasterizerState, tre::ConstantBuffer& cb, std::vector<Object>& objQ, Mesh& mesh, BoundVolumeEnum typeOfBound) {
 
 	context->RSSetState(rasterizerState);
 
 	for (int i = 0; i < objQ.size(); i++) {
 
-		const tre::Object& currObj = objQ[i];
+		tre::Object& currObj = objQ[i];
 
 		//Set vertex buffer
 		UINT vertexStride = sizeof(Vertex);
 		UINT offset = 0;
-		context->IASetVertexBuffers(0, 1, sphere.pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
+		context->IASetVertexBuffers(0, 1, mesh.pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
 
 		//Set index buffer
-		context->IASetIndexBuffer(sphere.pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
+		context->IASetIndexBuffer(mesh.pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
 
 		//set shader resc view and sampler
 		context->PSSetShaderResources(0, 1, currObj.pObjTexture->pShaderResView.GetAddressOf());
@@ -82,15 +82,15 @@ void Renderer::debugDraw(ID3D11Device* device, ID3D11DeviceContext* context, ID3
 		XMMATRIX transformM;
 		switch (typeOfBound) {
 		case RitterBoundingSphere:
-			transformM = tre::BoundingVolume::updateBoundingSphere(currObj.ritterBs, currObj.objScale, currObj.objRotation, currObj.objPos);
+			transformM = tre::BoundingVolume::updateBoundingSphere(currObj.pObjMesh->ritterSphere, currObj.ritterBs, currObj.objScale, currObj.objRotation, currObj.objPos);
 			break;
 
 		case NaiveBoundingSphere:
-			transformM = tre::BoundingVolume::updateBoundingSphere(currObj.naiveBs, currObj.objScale, currObj.objRotation, currObj.objPos);
+			transformM = tre::BoundingVolume::updateBoundingSphere(currObj.pObjMesh->naiveSphere, currObj.naiveBs, currObj.objScale, currObj.objRotation, currObj.objPos);
 			break;
 
 		case AABBBoundingBox:
-			transformM = tre::BoundingVolume::updateAABB(currObj.aabb, currObj.objScale, currObj.objRotation, currObj.objPos);
+			transformM = tre::BoundingVolume::updateAABB(currObj.pObjMesh->aabb, currObj.aabb, currObj.objScale, currObj.objRotation, currObj.objPos);
 			break;
 		}
 
@@ -124,7 +124,7 @@ void Renderer::debugDraw(ID3D11Device* device, ID3D11DeviceContext* context, ID3
 		context->VSSetConstantBuffers(1u, 1u, cb.pConstBuffer.GetAddressOf());
 		context->PSSetConstantBuffers(1u, 1u, cb.pConstBuffer.GetAddressOf());
 
-		context->DrawIndexed(sphere.indexSize, 0, 0);
+		context->DrawIndexed(mesh.indexSize, 0, 0);
 	}
 }
 

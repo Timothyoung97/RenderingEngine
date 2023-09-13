@@ -160,26 +160,30 @@ XMFLOAT3 updateCenter(XMFLOAT3 center, XMMATRIX transformation) {
 	return newCenter;
 }
 
-XMMATRIX BoundingVolume::updateBoundingSphere(BoundingSphere sphere, XMFLOAT3 scale, XMFLOAT3 rotation, XMFLOAT3 position) {
+XMMATRIX BoundingVolume::updateBoundingSphere(BoundingSphere& meshSphere, BoundingSphere& objSphere, XMFLOAT3 scale, XMFLOAT3 rotation, XMFLOAT3 position) {
 	// model transformation
 	XMMATRIX transformation = tre::Matrix::createTransformationMatrix(scale, rotation, position);
 
 	// update center
-	XMFLOAT3 newCenter = updateCenter(sphere.center, transformation);
+	XMFLOAT3 newCenter = updateCenter(meshSphere.center, transformation);
+
+	// store in ObjSphere
+	objSphere.center = newCenter;
+	objSphere.radius = scale.x * meshSphere.radius / unitLength;
 
 	return tre::Matrix::createTransformationMatrix(
-		XMFLOAT3(scale.x * sphere.radius / unitLength, scale.y * sphere.radius / unitLength, scale.z * sphere.radius / unitLength),
+		XMFLOAT3(objSphere.radius, objSphere.radius, objSphere.radius),
 		XMFLOAT3(.0f, .0f, .0f),
 		newCenter
 	);
 }
 
-XMMATRIX BoundingVolume::updateAABB(AABB aabb, XMFLOAT3 scale, XMFLOAT3 rotation, XMFLOAT3 position) {
+XMMATRIX BoundingVolume::updateAABB(AABB& meshAABB, AABB& objAABB, XMFLOAT3 scale, XMFLOAT3 rotation, XMFLOAT3 position) {
 	// model transformation
 	XMMATRIX transformation = tre::Matrix::createTransformationMatrix(scale, rotation, position);
 
 	// update center
-	XMFLOAT3 newCenter = updateCenter(aabb.center, transformation);
+	XMFLOAT3 newCenter = updateCenter(meshAABB.center, transformation);
 
 	// obtain original up, right and forward
 	XMVECTOR transformRight = tre::Matrix::getMatrixNormRight(transformation);
@@ -187,9 +191,9 @@ XMMATRIX BoundingVolume::updateAABB(AABB aabb, XMFLOAT3 scale, XMFLOAT3 rotation
 	XMVECTOR transformForward = tre::Matrix::getMatrixNormForward(transformation);
 
 	// insert code
-	XMVECTOR right = transformRight * aabb.halfExtent.x;
-	XMVECTOR up = transformUp * aabb.halfExtent.y;
-	XMVECTOR forward = transformForward * aabb.halfExtent.z;
+	XMVECTOR right = transformRight * meshAABB.halfExtent.x;
+	XMVECTOR up = transformUp * meshAABB.halfExtent.y;
+	XMVECTOR forward = transformForward * meshAABB.halfExtent.z;
 
 	XMVECTOR x = XMVECTOR{ 1.f, .0f, .0f, 0 }, y = XMVECTOR{ .0f, 1.f, .0f, 0 }, z = XMVECTOR{ .0f, .0f, 1.f, 0 };
 
@@ -202,11 +206,36 @@ XMMATRIX BoundingVolume::updateAABB(AABB aabb, XMFLOAT3 scale, XMFLOAT3 rotation
 	XMStoreFloat3(&newIj, Ij);
 	XMStoreFloat3(&newIk, Ik);
 
+	// store in objAABB
+	objAABB.center = newCenter;
+	objAABB.halfExtent = XMFLOAT3((scale.x * newIi.x / unitLength) / 2, (scale.y * newIj.y / unitLength) / 2, (scale.z * newIk.z / unitLength) / 2);
+
 	return tre::Matrix::createTransformationMatrix(
 		XMFLOAT3(scale.x * newIi.x / unitLength, scale.y * newIj.y / unitLength, scale.z * newIk.z / unitLength),
 		XMFLOAT3(.0f, .0f, .0f),
 		newCenter
 	);
+}
+
+bool AABB::testAABB(AABB& other) {
+	bool intersectX1 = this->center.x + this->halfExtent.x >= other.center.x - other.halfExtent.x;
+	bool intersectX2 = other.center.x + other.halfExtent.x >= this->center.x - this->halfExtent.x;
+	bool intersectY1 = this->center.y + this->halfExtent.y >= other.center.y - other.halfExtent.y;
+	bool intersectY2 = other.center.y + other.halfExtent.y >= this->center.y - this->halfExtent.y;
+	bool intersectZ1 = this->center.z + this->halfExtent.z >= other.center.z - other.halfExtent.z;
+	bool intersectZ2 = other.center.z + other.halfExtent.z >= this->center.z - this->halfExtent.z;
+
+	return intersectX1 && intersectX2 && intersectY1 && intersectY2 && intersectZ1 && intersectZ2;
+}
+
+bool BoundingSphere::testBoundingSphere(BoundingSphere& other) {
+	XMVECTOR thisToOther = XMVECTOR{ this->center.x, this->center.y, this->center.z } - XMVECTOR{ other.center.x, other.center.y, other.center.z };
+	XMVECTOR dist = XMVector3Length(thisToOther);
+	
+	XMFLOAT3 distF;
+	XMStoreFloat3(&distF, dist);
+	
+	return distF.x <= this->radius + other.radius;
 }
 
 }

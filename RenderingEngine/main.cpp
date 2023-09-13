@@ -225,8 +225,7 @@ int main()
 	ImGui_ImplSDL2_InitForD3D(window.window);
 	ImGui_ImplDX11_Init(deviceAndContext.device.Get(), deviceAndContext.context.Get());
 
-	bool show_demo_window = true;
-	bool show_another_window = true;
+	bool show_demo_window = false;
 
 	// main loop
 	while (!input.shouldQuit())
@@ -240,24 +239,31 @@ int main()
 		if (input.keyState[SDL_SCANCODE_W]) { // control camera movement
 			cam.moveCamera(cam.directionV * deltaTime);
 			toRecalDistFromCam = true;
-		} else if (input.keyState[SDL_SCANCODE_S]) {
+		}
+		else if (input.keyState[SDL_SCANCODE_S]) {
 			cam.moveCamera(-cam.directionV * deltaTime);
 			toRecalDistFromCam = true;
-		} else if (input.keyState[SDL_SCANCODE_D]) {
+		}
+		else if (input.keyState[SDL_SCANCODE_D]) {
 			cam.moveCamera(-cam.camRightV * deltaTime);
 			toRecalDistFromCam = true;
-		} else if (input.keyState[SDL_SCANCODE_A]) {
+		}
+		else if (input.keyState[SDL_SCANCODE_A]) {
 			cam.moveCamera(cam.camRightV * deltaTime);
 			toRecalDistFromCam = true;
-		} else if (input.keyState[SDL_SCANCODE_Q]) {
+		}
+		else if (input.keyState[SDL_SCANCODE_Q]) {
 			cam.moveCamera(cam.defaultUpV * deltaTime);
 			toRecalDistFromCam = true;
-		} else if (input.keyState[SDL_SCANCODE_E]) {
+		}
+		else if (input.keyState[SDL_SCANCODE_E]) {
 			cam.moveCamera(-cam.defaultUpV * deltaTime);
 			toRecalDistFromCam = true;
-		} else if (input.mouseButtonState[MOUSE_BUTTON_IDX(SDL_BUTTON_RIGHT)]) { // control camera angle
+		}
+		else if (input.mouseButtonState[MOUSE_BUTTON_IDX(SDL_BUTTON_RIGHT)]) { // control camera angle
 			cam.turnCamera(input.deltaDisplacement.x, input.deltaDisplacement.y);
-		} else if (input.keyState[SDL_SCANCODE_SPACE]) {
+		}
+		else if (input.keyState[SDL_SCANCODE_SPACE]) {
 			// Create new obj
 			tre::Object newObj;
 
@@ -275,13 +281,14 @@ int main()
 			if (tre::Utility::getRandomInt(1) == 1) {
 				newObj.isObjWithTexture = 1;
 				newObj.objColor = XMFLOAT4();
-			} else {
+			}
+			else {
 				newObj.isObjWithTexture = 0;
 				newObj.objColor = colors[tre::Utility::getRandomInt(9)];
 			}
-			
+
 			// transparent queue -> object with texture with alpha channel or object with color.w below 1.0f
-			if ((newObj.isObjWithTexture && newObj.pObjTexture->hasAlphaChannel) 
+			if ((newObj.isObjWithTexture && newObj.pObjTexture->hasAlphaChannel)
 				|| (!newObj.isObjWithTexture && newObj.objColor.w < 1.0f)) {
 
 				// find its distance from cam
@@ -291,17 +298,22 @@ int main()
 
 				toSortTransparentQ = true;
 
-			} else {
+			}
+			else {
 				opaqueObjQ.push_back(newObj);
 			}
 		}
 		else if (input.keyState[SDL_SCANCODE_RSHIFT]) { // create obj with normal mapping
 
+			if (opaqueObjQ.size() > 0) {
+				continue;
+			}
+
 			tre::Object newNorObj;
 
 			int textureIdx = tre::Utility::getRandomInt(1);
 			newNorObj.pObjMesh = &meshes[0];
-			newNorObj.objPos = XMFLOAT3(tre::Utility::getRandomFloatRange(-5, 5), tre::Utility::getRandomFloatRange(-5, 5), tre::Utility::getRandomFloatRange(-5, 5));
+			newNorObj.objPos = XMFLOAT3(.0f, .0f, .0f);
 			newNorObj.objScale = XMFLOAT3(1.0f, 1.0f, 1.0f);
 			newNorObj.objRotation = XMFLOAT3(.0f, .0f, .0f);
 			newNorObj.pObjTexture = &textures[3 + textureIdx];
@@ -315,23 +327,35 @@ int main()
 			newNorObj.naiveBs = newNorObj.pObjMesh->naiveSphere;
 			newNorObj.aabb = newNorObj.pObjMesh->aabb;
 
-			// transparent queue -> object with texture with alpha channel or object with color.w below 1.0f
-			if ((newNorObj.isObjWithTexture && newNorObj.pObjTexture->hasAlphaChannel)
-				|| (!newNorObj.isObjWithTexture && newNorObj.objColor.w < 1.0f)) {
+			opaqueObjQ.push_back(newNorObj);
 
-				// find its distance from cam
-				newNorObj.distFromCam = tre::Matrix::distBetweentObjToCam(newNorObj.objPos, cam.camPositionV);
+			tre::Object newNorObj2;
 
-				transparentObjQ.push_back(newNorObj);
+			newNorObj2.pObjMesh = &meshes[0];
+			newNorObj2.objPos = XMFLOAT3(2.0f, 2.0f, 2.0f);
+			newNorObj2.objScale = XMFLOAT3(1.0f, 1.0f, 1.0f);
+			newNorObj2.objRotation = XMFLOAT3(.0f, .0f, .0f);
+			newNorObj2.pObjTexture = &textures[3 + textureIdx];
+			newNorObj2.isObjWithTexture = 0;
+			newNorObj2.pObjNormalMap = &normals[textureIdx];
+			newNorObj2.isObjWithNormalMap = 0;
+			newNorObj2.objColor = colors[5];
+			newNorObj2.distFromCam = tre::Matrix::distBetweentObjToCam(newNorObj2.objPos, cam.camPositionV);
 
-				toSortTransparentQ = true;
-			}
-			else {
-				if (opaqueObjQ.size() == 0) opaqueObjQ.push_back(newNorObj);
-			}
+			newNorObj2.ritterBs = newNorObj2.pObjMesh->ritterSphere;
+			newNorObj2.naiveBs = newNorObj2.pObjMesh->naiveSphere;
+			newNorObj2.aabb = newNorObj2.pObjMesh->aabb;
 
-		} else if (input.keyState[SDL_SCANCODE_P]) {
+			opaqueObjQ.push_back(newNorObj2);
+
+		}
+		else if (input.keyState[SDL_SCANCODE_P]) {
 			pauseLight ^= 1;
+		}
+
+		bool isIntersect = false;
+		if (opaqueObjQ.size() == 2) {
+			isIntersect = opaqueObjQ[0].aabb.testAABB(opaqueObjQ[1].aabb);
 		}
 
 		// Start the Dear ImGui frame
@@ -342,32 +366,39 @@ int main()
 		if (show_demo_window)
 			ImGui::ShowDemoWindow(&show_demo_window);
 
-		if (show_another_window)
-		{
-			ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-			ImGui::Text("Hello from another window!");
-			if (ImGui::Button("Close Me"))
-				show_another_window = false;
-			ImGui::End();
-		}
-
+		if (opaqueObjQ.size())
 		{
 			static float f = 0.0f;
 			static int counter = 0;
 
-			ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+			ImGui::Begin("Debug");                         
 
-			ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-			ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-			ImGui::Checkbox("Another Window", &show_another_window);
+			ImGui::Checkbox("Demo Window", &show_demo_window);
 
-			ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-			ImGui::ColorEdit3("clear color", (float*)&colors[1]); // Edit 3 floats representing a color
+			ImGui::Checkbox("Is Intersecting", &isIntersect);
 
-			if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-				counter++;
-			ImGui::SameLine();
-			ImGui::Text("counter = %d", counter);
+			ImGui::Text("Object 1");               // Display some text (you can use a format strings too)
+
+			ImGui::SliderFloat("Obj1 XPos", &opaqueObjQ[0].objPos.x, -10.0f, 10.0f);
+			ImGui::SliderFloat("Obj1 YPos", &opaqueObjQ[0].objPos.y, -10.0f, 10.0f);
+			ImGui::SliderFloat("Obj1 ZPos", &opaqueObjQ[0].objPos.z, -10.0f, 10.0f);
+			ImGui::SliderFloat("Obj1 Scale", &opaqueObjQ[0].objScale.x, .1f, 3.0f);
+			ImGui::SliderFloat("Obj1 Scale", &opaqueObjQ[0].objScale.y, .1f, 3.0f);
+			ImGui::SliderFloat("Obj1 Scale", &opaqueObjQ[0].objScale.z, .1f, 3.0f);
+			ImGui::SliderFloat("Obj1 XRot", &opaqueObjQ[0].objRotation.x, .0f, 360.0f);
+			ImGui::SliderFloat("Obj1 YRot", &opaqueObjQ[0].objRotation.y, .0f, 360.0f);
+			ImGui::SliderFloat("Obj1 ZRot", &opaqueObjQ[0].objRotation.z, .0f, 360.0f);
+		
+			ImGui::Text("Object 2");               // Display some text (you can use a format strings too)
+			ImGui::SliderFloat("Obj2 XPos", &opaqueObjQ[1].objPos.x, -10.0f, 10.0f);
+			ImGui::SliderFloat("Obj2 YPos", &opaqueObjQ[1].objPos.y, -10.0f, 10.0f);
+			ImGui::SliderFloat("Obj2 ZPos", &opaqueObjQ[1].objPos.z, -10.0f, 10.0f);
+			ImGui::SliderFloat("Obj2 Scale", &opaqueObjQ[1].objScale.x, .1f, 3.0f);
+			ImGui::SliderFloat("Obj2 Scale", &opaqueObjQ[1].objScale.y, .1f, 3.0f);
+			ImGui::SliderFloat("Obj2 Scale", &opaqueObjQ[1].objScale.z, .1f, 3.0f);
+			ImGui::SliderFloat("Obj2 XRot", &opaqueObjQ[1].objRotation.x, .0f, 360.0f);
+			ImGui::SliderFloat("Obj2 YRot", &opaqueObjQ[1].objRotation.y, .0f, 360.0f);
+			ImGui::SliderFloat("Obj2 ZRot", &opaqueObjQ[1].objRotation.z, .0f, 360.0f);
 
 			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 			ImGui::End();
@@ -483,41 +514,6 @@ int main()
 
 		// Draw debug
 		renderer.debugDraw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, opaqueObjQ, meshes[0], tre::AABBBoundingBox);
-
-		// move teapot around
-		if (opaqueObjQ.size() > 0) {
-
-			// rotation
-			opaqueObjQ[0].objRotation.x += .5f;
-			opaqueObjQ[0].objRotation.y += .5f;
-			opaqueObjQ[0].objRotation.z += .5f;
-
-			if (opaqueObjQ[0].objRotation.x == 360) {
-				opaqueObjQ[0].objRotation.x = 0;
-				opaqueObjQ[0].objRotation.y = 0;
-				opaqueObjQ[0].objRotation.z = 0;
-			}
-
-			// scale
-			float scaleVal = abs(XMScalarSin(XMConvertToRadians(scaleIncre)));
-			
-			if (scaleVal == 0.0f) scaleVal = .01f;
-
-			opaqueObjQ[0].objScale.x = scaleVal;
-			opaqueObjQ[0].objScale.y = scaleVal;
-			opaqueObjQ[0].objScale.z = scaleVal;
-
-			scaleIncre++;
-
-			// translation
-			stackAngleForTeapot++;
-			sectorAngleForTeapot++;
-
-			if (stackAngleForTeapot == 360.0f)  stackAngleForTeapot = 0;
-			if (sectorAngleForTeapot == 360.0f)  sectorAngleForTeapot = 0;
-
-			opaqueObjQ[0].objPos = tre::Matrix::getRotatePosition(XMFLOAT3(.0f, .0f, .0f), stackAngleForTeapot, sectorAngleForTeapot, 5.0f);
-		}
 		
 		ImGui::Render();
 		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
