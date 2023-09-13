@@ -7,22 +7,24 @@
 
 namespace tre {
 
-Utility::Utility() {
-
-	srand((uint32_t) time(NULL));
-
-	std::string filepath = __FILE__;
-	size_t lastSlash = filepath.find_last_of("\\/");
-	basePathStr = filepath.substr(0, lastSlash + 1);
-	basePathWstr = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(filepath.substr(0, lastSlash + 1));
-}
-
 std::wstring Utility::convertToWstr(std::string str) {
 	return std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(str);
 }
 
 std::string Utility::convertToStr(std::wstring wstr) {
 	return std::wstring_convert<std::codecvt_utf8<wchar_t>>().to_bytes(wstr);
+}
+
+std::string Utility::getBasePathStr() {
+	std::string filepath = __FILE__;
+	size_t lastSlash = filepath.find_last_of("\\/");
+	return filepath.substr(0, lastSlash + 1);
+}
+
+std::wstring Utility::getBasePathWstr() {
+	std::string filepath = __FILE__;
+	size_t lastSlash = filepath.find_last_of("\\/");
+	return std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(filepath.substr(0, lastSlash + 1));
 }
 
 int Utility::getRandomInt(int maxValue) {

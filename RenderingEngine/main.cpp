@@ -58,9 +58,9 @@ const UINT numOfInputElement = ARRAYSIZE(layout);
 
 int main()
 {
-	//Create util
-	tre::Utility util;
-	
+	// set random seed
+	srand((uint32_t)time(NULL));
+
 	//Create Window
 	tre::Window window("RenderingEngine", SCREEN_WIDTH, SCREEN_HEIGHT);
 
@@ -79,10 +79,12 @@ int main()
 	tre::Sampler sampler(deviceAndContext.device.Get());
 	deviceAndContext.context->PSSetSamplers(0, 1, sampler.pSamplerState.GetAddressOf());
 
+
 	//Load pre-compiled shaders
-	tre::VertexShader vertex_shader(util.basePathWstr + L"shaders\\vertex_shader.bin", deviceAndContext.device.Get());
-	tre::PixelShader pixel_shader(util.basePathWstr + L"shaders\\pixel_shader.bin", deviceAndContext.device.Get());
-	tre::PixelShader light_pixel_shader(util.basePathWstr + L"shaders\\light_pixel.bin", deviceAndContext.device.Get());
+	std::wstring basePathWstr = tre::Utility::getBasePathWstr();
+	tre::VertexShader vertex_shader(basePathWstr + L"shaders\\vertex_shader.bin", deviceAndContext.device.Get());
+	tre::PixelShader pixel_shader(basePathWstr + L"shaders\\pixel_shader.bin", deviceAndContext.device.Get());
+	tre::PixelShader light_pixel_shader(basePathWstr + L"shaders\\light_pixel.bin", deviceAndContext.device.Get());
 
 	deviceAndContext.context->VSSetShader(vertex_shader.pShader.Get(), NULL, 0u);
 
@@ -94,17 +96,18 @@ int main()
 	};
 
 	// Create texture
+	std::string basePathStr = tre::Utility::getBasePathStr();
 	tre::Texture textures[5] = { 
-		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\UV_image.jpg"), 
-		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\UV_image2.jpg"),
-		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\UV_image_a.png"),
-		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\glTF.png"),
-		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\wall.jpg")
+		tre::Texture(deviceAndContext.device.Get(), basePathStr + "textures\\UV_image.jpg"), 
+		tre::Texture(deviceAndContext.device.Get(), basePathStr + "textures\\UV_image2.jpg"),
+		tre::Texture(deviceAndContext.device.Get(), basePathStr + "textures\\UV_image_a.png"),
+		tre::Texture(deviceAndContext.device.Get(), basePathStr + "textures\\glTF.png"),
+		tre::Texture(deviceAndContext.device.Get(), basePathStr + "textures\\wall.jpg")
 	};
 
 	tre::Texture normals[2] = {
-		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\glTF_normal.png"),
-		tre::Texture(deviceAndContext.device.Get(), util.basePathStr + "textures\\wall_normal.jpg")
+		tre::Texture(deviceAndContext.device.Get(), basePathStr + "textures\\glTF_normal.png"),
+		tre::Texture(deviceAndContext.device.Get(), basePathStr + "textures\\wall_normal.jpg")
 	};
 
 	// Create input layout
@@ -319,7 +322,7 @@ int main()
 			newNorObj.pObjTexture = &textures[3 + textureIdx];
 			newNorObj.isObjWithTexture = 1;
 			newNorObj.pObjNormalMap = &normals[textureIdx];
-			newNorObj.isObjWithNormalMap = 0;
+			newNorObj.isObjWithNormalMap = 1;
 			newNorObj.objColor = colors[5];
 			newNorObj.distFromCam = tre::Matrix::distBetweentObjToCam(newNorObj.objPos, cam.camPositionV);
 
@@ -338,7 +341,7 @@ int main()
 			newNorObj2.pObjTexture = &textures[3 + textureIdx];
 			newNorObj2.isObjWithTexture = 1;
 			newNorObj2.pObjNormalMap = &normals[textureIdx];
-			newNorObj2.isObjWithNormalMap = 0;
+			newNorObj2.isObjWithNormalMap = 1;
 			newNorObj2.objColor = colors[5];
 			newNorObj2.distFromCam = tre::Matrix::distBetweentObjToCam(newNorObj2.objPos, cam.camPositionV);
 
