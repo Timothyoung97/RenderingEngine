@@ -2,7 +2,7 @@
 #include "mesh.h"
 #include "device.h"
 #include "dxdebug.h"
-#include "matrix.h"
+#include "maths.h"
 
 namespace tre {
 
@@ -26,7 +26,7 @@ void Renderer::draw(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11Ra
 		context->PSSetShaderResources(0, 1, currObj.pObjTexture->pShaderResView.GetAddressOf());
 
 		//Config const buffer
-		cb.constBufferRescModel.transformationLocal = tre::Matrix::createTransformationMatrix(currObj.objScale, currObj.objRotation, currObj.objPos);
+		cb.constBufferRescModel.transformationLocal = tre::Maths::createTransformationMatrix(currObj.objScale, currObj.objRotation, currObj.objPos);
 		
 		XMMATRIX normalMatrix = XMMatrixTranspose(XMMatrixInverse(nullptr, cb.constBufferRescModel.transformationLocal));
 

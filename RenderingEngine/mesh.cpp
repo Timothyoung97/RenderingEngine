@@ -3,7 +3,7 @@
 #include "mesh.h"
 #include "dxdebug.h"
 #include "utility.h"
-#include "matrix.h"
+#include "maths.h"
 
 namespace tre {
 
@@ -119,7 +119,7 @@ void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC, float r) 
 	float stackAngle = 90;
 	float sectorAngle = 0;
 
-	XMFLOAT3 sphereNormal = tre::Matrix::getRotatePosition(XMFLOAT3(.0f, .0f, .0f), stackAngle, sectorAngle, 1.0f);
+	XMFLOAT3 sphereNormal = tre::Maths::getRotatePosition(XMFLOAT3(.0f, .0f, .0f), stackAngle, sectorAngle, 1.0f);
 	XMFLOAT3 sphereTangent(1.0f, .0f, .0f);
 
 	//build north pole
@@ -139,7 +139,7 @@ void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC, float r) 
 		stackAngle -= stackStep;
 		v = XMConvertToRadians(i * stackStep) / XM_PI;
 		for (int j = 0; j < sectorCount; j++) {
-			sphereNormal = tre::Matrix::getRotatePosition(XMFLOAT3(.0f, .0f, .0f), stackAngle, sectorAngle, 1.0f);
+			sphereNormal = tre::Maths::getRotatePosition(XMFLOAT3(.0f, .0f, .0f), stackAngle, sectorAngle, 1.0f);
 
 			u = XMConvertToRadians(j * sectorStep) / XM_2PI;
 
@@ -151,7 +151,7 @@ void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC, float r) 
 
 		// one more vertice to map u to 1
 		sectorAngle = 0;
-		sphereNormal = tre::Matrix::getRotatePosition(XMFLOAT3(.0f, .0f, .0f), stackAngle, sectorAngle, 1.0f);
+		sphereNormal = tre::Maths::getRotatePosition(XMFLOAT3(.0f, .0f, .0f), stackAngle, sectorAngle, 1.0f);
 		vertices.push_back(Vertex(findCoordinate(sphereNormal, radius), sphereNormal, sphereTangent, XMFLOAT2(1, v)));
 	}
 
@@ -178,7 +178,7 @@ void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC, float r) 
 
 	//build south pole
 	//south pole tangent hardcoded to vector(1, 0, 0)
-	sphereNormal = tre::Matrix::getRotatePosition(XMFLOAT3(.0f, .0f, .0f), -90.0f, sectorAngle, 1.0f);
+	sphereNormal = tre::Maths::getRotatePosition(XMFLOAT3(.0f, .0f, .0f), -90.0f, sectorAngle, 1.0f);
 	sphereTangent = XMFLOAT3(1.0f, .0f, .0f);
 
 	for (int i = 0; i < sectorCount; i++) {

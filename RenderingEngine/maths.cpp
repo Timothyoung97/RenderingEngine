@@ -1,8 +1,8 @@
-#include "matrix.h"
+#include "maths.h"
 
 namespace tre {
 
-XMMATRIX Matrix::createTransformationMatrix(XMFLOAT3 scale, XMFLOAT3 rotation, XMFLOAT3 position) {
+XMMATRIX Maths::createTransformationMatrix(XMFLOAT3 scale, XMFLOAT3 rotation, XMFLOAT3 position) {
 	return XMMatrixMultiply(
 		XMMatrixScaling(scale.x, scale.y, scale.z),
 		XMMatrixMultiply(
@@ -15,28 +15,28 @@ XMMATRIX Matrix::createTransformationMatrix(XMFLOAT3 scale, XMFLOAT3 rotation, X
 	);
 }
 
-XMVECTOR Matrix::getMatrixNormUp(XMMATRIX matrix) {
+XMVECTOR Maths::getMatrixNormUp(XMMATRIX matrix) {
 	XMFLOAT4X4 transformationF;
 	XMStoreFloat4x4(&transformationF, matrix);
 
 	return XMVector3Normalize(XMVECTOR{ transformationF._21, transformationF._22, transformationF._23 });
 };
 
-XMVECTOR Matrix::getMatrixNormRight(XMMATRIX matrix) {
+XMVECTOR Maths::getMatrixNormRight(XMMATRIX matrix) {
 	XMFLOAT4X4 transformationF;
 	XMStoreFloat4x4(&transformationF, matrix);
 
 	return XMVector3Normalize(XMVECTOR{ transformationF._11, transformationF._12, transformationF._13 });
 };
 
-XMVECTOR Matrix::getMatrixNormForward(XMMATRIX matrix) {
+XMVECTOR Maths::getMatrixNormForward(XMMATRIX matrix) {
 	XMFLOAT4X4 transformationF;
 	XMStoreFloat4x4(&transformationF, matrix);
 
 	return XMVector3Normalize(XMVECTOR{ transformationF._31, transformationF._32, transformationF._33 });
 };
 
-float Matrix::distBetweentObjToCam(XMFLOAT3 objPosF, XMVECTOR camPosV) {
+float Maths::distBetweentObjToCam(XMFLOAT3 objPosF, XMVECTOR camPosV) {
 
 	XMVECTOR objPosV{ objPosF.x, objPosF.y, objPosF.z };
 
@@ -48,7 +48,7 @@ float Matrix::distBetweentObjToCam(XMFLOAT3 objPosF, XMVECTOR camPosV) {
 	return distFromCamF.x;
 }
 
-XMFLOAT3 Matrix::getRotatePosition(XMFLOAT3 objOrigin, float stackAngle, float sectorAngle, float radius) {
+XMFLOAT3 Maths::getRotatePosition(XMFLOAT3 objOrigin, float stackAngle, float sectorAngle, float radius) {
 	XMFLOAT3 rotatedPosition;
 	rotatedPosition.x = objOrigin.x + radius * XMScalarCos(XMConvertToRadians(sectorAngle)) * XMScalarCos(XMConvertToRadians(stackAngle));
 	rotatedPosition.y = objOrigin.y + radius * XMScalarSin(XMConvertToRadians(stackAngle));
@@ -56,19 +56,19 @@ XMFLOAT3 Matrix::getRotatePosition(XMFLOAT3 objOrigin, float stackAngle, float s
 	return rotatedPosition;
 }
 
-XMFLOAT3 Matrix::XMFLOAT3Addition(XMFLOAT3 a, XMFLOAT3 b) {
+XMFLOAT3 Maths::XMFLOAT3Addition(XMFLOAT3 a, XMFLOAT3 b) {
 	return XMFLOAT3(a.x + b.x, a.y + b.y, a.z + b.z);
 }
 
-XMFLOAT3 Matrix::XMFLOAT3Minus(XMFLOAT3 a, XMFLOAT3 b) {
+XMFLOAT3 Maths::XMFLOAT3Minus(XMFLOAT3 a, XMFLOAT3 b) {
 	return XMFLOAT3(a.x - b.x, a.y - b.y, a.z - b.z);
 }
 
-XMFLOAT3 Matrix::XMFLOAT3ScalarMultiply(XMFLOAT3 a, float x) {
+XMFLOAT3 Maths::XMFLOAT3ScalarMultiply(XMFLOAT3 a, float x) {
 	return XMFLOAT3(a.x * x, a.y * x, a.z * x);
 }
 
-float Matrix::XMFLOAT3DotProduct(XMFLOAT3 pt1, XMFLOAT3 pt2) {
+float Maths::XMFLOAT3DotProduct(XMFLOAT3 pt1, XMFLOAT3 pt2) {
 	XMVECTOR pV1 = XMLoadFloat3(&pt1), pV2 = XMLoadFloat3(&pt2);
 
 	XMFLOAT3 ans;

@@ -5,7 +5,13 @@
 using namespace DirectX;
 
 namespace tre {
-class Matrix {
+class Maths {
+
+struct Plane {
+
+	XMVECTOR normal; // unit vector
+	float distance = .0f; // distance from origin to nearest point in the plane
+};
 
 public:
 	static XMMATRIX createTransformationMatrix(XMFLOAT3 scale, XMFLOAT3 rotation, XMFLOAT3 position);

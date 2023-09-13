@@ -1,7 +1,7 @@
 #include "boundingvolume.h"
 
 #include "utility.h"
-#include "matrix.h"
+#include "maths.h"
 #include "mesh.h"
 
 namespace tre {
@@ -162,7 +162,7 @@ XMFLOAT3 updateCenter(XMFLOAT3 center, XMMATRIX transformation) {
 
 XMMATRIX BoundingVolume::updateBoundingSphere(BoundingSphere& meshSphere, BoundingSphere& objSphere, XMFLOAT3 scale, XMFLOAT3 rotation, XMFLOAT3 position) {
 	// model transformation
-	XMMATRIX transformation = tre::Matrix::createTransformationMatrix(scale, rotation, position);
+	XMMATRIX transformation = tre::Maths::createTransformationMatrix(scale, rotation, position);
 
 	// update center
 	XMFLOAT3 newCenter = updateCenter(meshSphere.center, transformation);
@@ -171,7 +171,7 @@ XMMATRIX BoundingVolume::updateBoundingSphere(BoundingSphere& meshSphere, Boundi
 	objSphere.center = newCenter;
 	objSphere.radius = scale.x * meshSphere.radius;
 
-	return tre::Matrix::createTransformationMatrix(
+	return tre::Maths::createTransformationMatrix(
 		XMFLOAT3(objSphere.radius / unitLength, objSphere.radius / unitLength, objSphere.radius / unitLength),
 		XMFLOAT3(.0f, .0f, .0f),
 		newCenter
@@ -180,15 +180,15 @@ XMMATRIX BoundingVolume::updateBoundingSphere(BoundingSphere& meshSphere, Boundi
 
 XMMATRIX BoundingVolume::updateAABB(AABB& meshAABB, AABB& objAABB, XMFLOAT3 scale, XMFLOAT3 rotation, XMFLOAT3 position) {
 	// model transformation
-	XMMATRIX transformation = tre::Matrix::createTransformationMatrix(scale, rotation, position);
+	XMMATRIX transformation = tre::Maths::createTransformationMatrix(scale, rotation, position);
 
 	// update center
 	XMFLOAT3 newCenter = updateCenter(meshAABB.center, transformation);
 
 	// obtain original up, right and forward
-	XMVECTOR transformRight = tre::Matrix::getMatrixNormRight(transformation);
-	XMVECTOR transformUp = tre::Matrix::getMatrixNormUp(transformation);
-	XMVECTOR transformForward = tre::Matrix::getMatrixNormForward(transformation);
+	XMVECTOR transformRight = tre::Maths::getMatrixNormRight(transformation);
+	XMVECTOR transformUp = tre::Maths::getMatrixNormUp(transformation);
+	XMVECTOR transformForward = tre::Maths::getMatrixNormForward(transformation);
 
 	// insert code
 	XMVECTOR right = transformRight * meshAABB.halfExtent.x;
@@ -210,7 +210,7 @@ XMMATRIX BoundingVolume::updateAABB(AABB& meshAABB, AABB& objAABB, XMFLOAT3 scal
 	objAABB.center = newCenter;
 	objAABB.halfExtent = XMFLOAT3((scale.x * newIi.x / unitLength) / 2, (scale.y * newIj.y / unitLength) / 2, (scale.z * newIk.z / unitLength) / 2);
 
-	return tre::Matrix::createTransformationMatrix(
+	return tre::Maths::createTransformationMatrix(
 		XMFLOAT3(scale.x * newIi.x / unitLength, scale.y * newIj.y / unitLength, scale.z * newIk.z / unitLength),
 		XMFLOAT3(.0f, .0f, .0f),
 		newCenter
