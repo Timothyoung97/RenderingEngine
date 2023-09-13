@@ -5,14 +5,14 @@
 using namespace DirectX;
 
 namespace tre {
-class Maths {
 
 struct Plane {
 
 	XMVECTOR normal; // unit vector
-	float distance = .0f; // distance from origin to nearest point in the plane
+	XMVECTOR pos; // distance from origin to nearest point in the plane
 };
 
+class Maths {
 public:
 	static XMMATRIX createTransformationMatrix(XMFLOAT3 scale, XMFLOAT3 rotation, XMFLOAT3 position);
 	static XMVECTOR getMatrixNormUp(XMMATRIX matrix);

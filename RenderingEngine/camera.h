@@ -1,10 +1,20 @@
 #pragma once
 
-#include <DirectXMath.h>
-
-using namespace DirectX;
+#include "maths.h"
 
 namespace tre {
+
+struct Frustum {
+	Plane topF;
+	Plane bottomF;
+
+	Plane rightF;
+	Plane leftF;
+
+	Plane farF;
+	Plane nearF;
+};
+
 class Camera {
 public:
 
@@ -26,10 +36,18 @@ public:
 	XMMATRIX camView;
 	XMMATRIX camProjection;
 
-	Camera(float width, float height);
+	Frustum cameraFrustum;
+
+	float aspect;
+	float fovY;
+	float zNear;
+	float zFar;
+
+	Camera(float width, float height, float fovY, float zNear, float zFar);
 
 	void updateCamera();
 	void moveCamera(XMVECTOR offset);
 	void turnCamera(float yawOffset, float pitchOffset);
+	void updateCameraFrustum();
 };
 }

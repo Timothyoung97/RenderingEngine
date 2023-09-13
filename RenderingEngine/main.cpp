@@ -154,7 +154,7 @@ int main()
 	float deltaTime = 0;
 
 	//Create Camera
-	tre::Camera cam(SCREEN_WIDTH, SCREEN_HEIGHT);
+	tre::Camera cam(SCREEN_WIDTH, SCREEN_HEIGHT, 45.0f, 3.0f, 10.0f);
 	
 	//Create Renderer
 	tre::Renderer renderer;
@@ -384,7 +384,7 @@ int main()
 			ImGui::Checkbox("Is Intersecting", &isIntersect);
 			ImGui::Checkbox("Is Overlaping", &isOverlap);
 
-			ImGui::Text("Object 1");               // Display some text (you can use a format strings too)
+			ImGui::Text("Object 1");              
 
 			ImGui::SliderFloat("Obj1 XPos", &opaqueObjQ[0].objPos.x, -10.0f, 10.0f);
 			ImGui::SliderFloat("Obj1 YPos", &opaqueObjQ[0].objPos.y, -10.0f, 10.0f);
@@ -396,7 +396,7 @@ int main()
 			ImGui::SliderFloat("Obj1 YRot", &opaqueObjQ[0].objRotation.y, .0f, 360.0f);
 			ImGui::SliderFloat("Obj1 ZRot", &opaqueObjQ[0].objRotation.z, .0f, 360.0f);
 		
-			ImGui::Text("Object 2");               // Display some text (you can use a format strings too)
+			ImGui::Text("Object 2");
 			ImGui::SliderFloat("Obj2 XPos", &opaqueObjQ[1].objPos.x, -10.0f, 10.0f);
 			ImGui::SliderFloat("Obj2 YPos", &opaqueObjQ[1].objPos.y, -10.0f, 10.0f);
 			ImGui::SliderFloat("Obj2 ZPos", &opaqueObjQ[1].objPos.z, -10.0f, 10.0f);
