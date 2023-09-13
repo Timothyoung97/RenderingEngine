@@ -228,6 +228,32 @@ bool AABB::testAABB(AABB& other) {
 	return intersectX1 && intersectX2 && intersectY1 && intersectY2 && intersectZ1 && intersectZ2;
 }
 
+bool AABB::overlapAABB(AABB& other) {
+	float thisXmax = this->center.x + this->halfExtent.x, 
+		thisXmin = this->center.x - this->halfExtent.x,
+		thisYmax = this->center.y + this->halfExtent.y, 
+		thisYmin = this->center.y - this->halfExtent.y, 
+		thisZmax = this->center.z + this->halfExtent.z, 
+		thisZmin = this->center.z - this->halfExtent.z;
+	float otherXmax = other.center.x + other.halfExtent.x,
+		otherXmin = other.center.x - other.halfExtent.x,
+		otherYmax = other.center.y + other.halfExtent.y,
+		otherYmin = other.center.y - other.halfExtent.y,
+		otherZmax = other.center.z + other.halfExtent.z,
+		otherZmin = other.center.z - other.halfExtent.z;
+
+	bool thisOverlapOtherX = thisXmax >= otherXmax && thisXmin <= otherXmin;
+	bool thisOverlapOtherY = thisYmax >= otherYmax && thisYmin <= otherYmin;
+	bool thisOverlapOtherZ = thisZmax >= otherZmax && thisZmin <= otherZmin;	
+	
+	bool otherOverlapThisY = otherYmax >= thisYmax && otherYmin <= thisYmin;
+	bool otherOverlapThisZ = otherZmax >= thisZmax && otherZmin <= thisZmin;
+	bool otherOverlapThisX = otherXmax >= thisXmax && otherXmin <= thisXmin;
+
+	return thisOverlapOtherX && thisOverlapOtherY && thisOverlapOtherZ
+		|| otherOverlapThisX && otherOverlapThisY && otherOverlapThisZ;
+}
+
 bool BoundingSphere::testBoundingSphere(BoundingSphere& other) {
 	XMVECTOR thisToOther = XMVECTOR{ this->center.x, this->center.y, this->center.z } - XMVECTOR{ other.center.x, other.center.y, other.center.z };
 	XMVECTOR dist = XMVector3Length(thisToOther);
@@ -236,6 +262,19 @@ bool BoundingSphere::testBoundingSphere(BoundingSphere& other) {
 	XMStoreFloat3(&distF, dist);
 	
 	return distF.x <= this->radius + other.radius;
+}
+
+bool BoundingSphere::overlapBoundingSphere(BoundingSphere& other) {
+	float larger = this->radius >= other.radius ? this->radius : other.radius;
+	float smaller = this->radius >= other.radius ? other.radius : this->radius;
+
+	XMVECTOR thisToOther = XMVECTOR{ this->center.x, this->center.y, this->center.z } - XMVECTOR{ other.center.x, other.center.y, other.center.z };
+	XMVECTOR dist = XMVector3Length(thisToOther);
+
+	XMFLOAT3 distF;
+	XMStoreFloat3(&distF, dist);
+
+	return larger >= distF.x + smaller;
 }
 
 }

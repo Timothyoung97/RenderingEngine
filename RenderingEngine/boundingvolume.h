@@ -19,12 +19,14 @@ struct BoundingSphere {
 	XMFLOAT3 center{ .0f, .0f, .0f };
 	float radius = .0f;
 	bool testBoundingSphere(BoundingSphere& other);
+	bool overlapBoundingSphere(BoundingSphere& other);
 };
 
 struct AABB {
 	XMFLOAT3 center{ .0f, .0f, .0f };
 	XMFLOAT3 halfExtent{ .0f, .0f, .0f };
 	bool testAABB(AABB& other);
+	bool overlapAABB(AABB& other);
 };
 
 class BoundingVolume {

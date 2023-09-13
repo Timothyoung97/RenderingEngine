@@ -354,9 +354,12 @@ int main()
 		}
 
 		bool isIntersect = false;
+		bool isOverlap = false;
 		if (opaqueObjQ.size() == 2) {
-			isIntersect = opaqueObjQ[0].ritterBs.testBoundingSphere(opaqueObjQ[1].ritterBs);
+			isIntersect = opaqueObjQ[0].aabb.testAABB(opaqueObjQ[1].aabb);
+			isOverlap = opaqueObjQ[0].aabb.overlapAABB(opaqueObjQ[1].aabb);
 		}
+
 
 		// Start the Dear ImGui frame
 		ImGui_ImplDX11_NewFrame();
@@ -376,6 +379,7 @@ int main()
 			ImGui::Checkbox("Demo Window", &show_demo_window);
 
 			ImGui::Checkbox("Is Intersecting", &isIntersect);
+			ImGui::Checkbox("Is Overlaping", &isOverlap);
 
 			ImGui::Text("Object 1");               // Display some text (you can use a format strings too)
 
@@ -513,18 +517,20 @@ int main()
 		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, lightObjQ);
 
 		if (opaqueObjQ.size() == 2) {
-			if (isIntersect) {
-				opaqueObjQ[0].objColor = colors[10];
-				opaqueObjQ[1].objColor = colors[10];
-			}
-			else {
-				opaqueObjQ[0].objColor = colors[3];
-				opaqueObjQ[1].objColor = colors[3];
+			if (isOverlap) {
+				opaqueObjQ[0].objColor = colors[0];
+				opaqueObjQ[1].objColor = colors[0];
+			} else if (isIntersect) {
+				opaqueObjQ[0].objColor = colors[1];
+				opaqueObjQ[1].objColor = colors[1];
+			} else {
+				opaqueObjQ[0].objColor = colors[2];
+				opaqueObjQ[1].objColor = colors[2];
 			}
 		}
 
 		// Draw debug
-		renderer.debugDraw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, opaqueObjQ, meshes[1], tre::RitterBoundingSphere);
+		renderer.debugDraw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, opaqueObjQ, meshes[0], tre::AABBBoundingBox);
 		
 		ImGui::Render();
 		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
