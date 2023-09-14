@@ -6,10 +6,10 @@ using namespace DirectX;
 
 namespace tre {
 
-struct Plane {
-
-	XMVECTOR normal; // unit vector
-	XMVECTOR pos; // distance from origin to nearest point in the plane
+struct Plane { // represented using plane equation
+	XMFLOAT4 eqn;
+	void normalizePlane();
+	float getSignedDistanceToPlane(const XMFLOAT3& point);
 };
 
 struct Frustum {
