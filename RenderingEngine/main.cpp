@@ -349,8 +349,6 @@ int main()
 			ImGui::End();
 		}
 
-		ImGui::Render();
-
 		// Alternating buffers
 		int currBackBuffer = static_cast<int>(swapchain.mainSwapchain->GetCurrentBackBufferIndex());
 
@@ -387,17 +385,20 @@ int main()
 		deviceAndContext.context->VSSetConstantBuffers(0u, 1u, cb.pConstBuffer.GetAddressOf());
 		deviceAndContext.context->PSSetConstantBuffers(0u, 1u, cb.pConstBuffer.GetAddressOf());
 
-		// Set Pixel Shader for light
-		deviceAndContext.context->PSSetShader(light_pixel_shader.pShader.Get(), NULL, 0u);
-
-		// Set depth test for light
-		deviceAndContext.context->OMSetDepthStencilState(depthBuffer.pDSStateWithoutDepthT.Get(), 0);
-
-		// Draw debug
-		renderer.debugDraw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, opaqueObjQ, meshes[meshIdx], typeOfBound);
-
 		culledOpaqueObjQ.clear();
 		for (int i = 0; i < opaqueObjQ.size(); i++) {
+			switch (typeOfBound) {
+			case tre::AABBBoundingBox:
+				tre::BoundingVolume::updateAABB(opaqueObjQ[i].pObjMesh->aabb, opaqueObjQ[i].aabb, opaqueObjQ[i].objScale, opaqueObjQ[i].objRotation, opaqueObjQ[i].objPos);
+				break;
+			case tre::RitterBoundingSphere:
+				tre::BoundingVolume::updateBoundingSphere(opaqueObjQ[i].pObjMesh->ritterSphere, opaqueObjQ[i].ritterBs, opaqueObjQ[i].objScale, opaqueObjQ[i].objRotation, opaqueObjQ[i].objPos);
+				break;			
+			case tre::NaiveBoundingSphere:
+				tre::BoundingVolume::updateBoundingSphere(opaqueObjQ[i].pObjMesh->naiveSphere, opaqueObjQ[i].naiveBs, opaqueObjQ[i].objScale, opaqueObjQ[i].objRotation, opaqueObjQ[i].objPos);
+				break;
+			}
+
 			if (opaqueObjQ[i].aabb.isOverlapFrustum(cam.cameraFrustum)) {
 				opaqueObjQ[i].objColor = colors[1];
 				culledOpaqueObjQ.push_back(opaqueObjQ[i]);
@@ -493,6 +494,9 @@ int main()
 		
 		// Draw all light object wireframe
 		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, lightObjQ);
+
+		// Draw debug
+		renderer.debugDraw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, culledOpaqueObjQ, meshes[meshIdx], typeOfBound);
 
 		ImGui::Render();
 		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
