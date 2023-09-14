@@ -28,7 +28,7 @@ Camera::Camera(float width, float height) {
 	camView = XMMatrixLookAtLH(camPositionV, camPositionV + directionV, camUpV);
 
 	// Projection Matrix
-	camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0f), static_cast<float>(width / height), 1.0f, 1000.0f);
+	camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0f), static_cast<float>(width / height), 1.0f, 10.0f);
 
 	camViewProjection = XMMatrixMultiply(camView, camProjection);
 
@@ -112,12 +112,12 @@ void Camera::updateCameraFrustum() {
 	cameraFrustum.nearF.normalizePlane();
 
 	// minus 3rd col from 4th col
-	cameraFrustum.topF.eqn = XMFLOAT4(
+	cameraFrustum.farF.eqn = XMFLOAT4(
 		viewProjectionF._14 - viewProjectionF._13,
 		viewProjectionF._24 - viewProjectionF._23,
 		viewProjectionF._34 - viewProjectionF._33,
 		viewProjectionF._44 - viewProjectionF._43
 	);
-	cameraFrustum.topF.normalizePlane();
+	cameraFrustum.farF.normalizePlane();
 }
 }
