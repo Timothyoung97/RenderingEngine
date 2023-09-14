@@ -154,7 +154,7 @@ int main()
 	float deltaTime = 0;
 
 	//Create Camera
-	tre::Camera cam(SCREEN_WIDTH, SCREEN_HEIGHT, 45.0f, 3.0f, 10.0f);
+	tre::Camera cam(SCREEN_WIDTH, SCREEN_HEIGHT);
 	
 	//Create Renderer
 	tre::Renderer renderer;
