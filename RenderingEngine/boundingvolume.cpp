@@ -336,7 +336,7 @@ bool AABB::isForwardPlane(Plane& plane) {
 		minDist = std::min(minDist, plane.getSignedDistanceToPlane(points[i]));
 	}
 
-	return minDist > 0;
+	return minDist > .0f;
 }
 
 bool AABB::isInFrustum(Frustum& frustum) {

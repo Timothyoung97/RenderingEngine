@@ -95,7 +95,7 @@ void Renderer::debugDraw(ID3D11Device* device, ID3D11DeviceContext* context, ID3
 		}
 
 		//Set const buffer
-		cb.constBufferRescModel.transformationLocal = transformM;
+     	cb.constBufferRescModel.transformationLocal = transformM;
 
 		XMMATRIX normalMatrix = XMMatrixTranspose(XMMatrixInverse(nullptr, cb.constBufferRescModel.transformationLocal));
 

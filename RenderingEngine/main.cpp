@@ -149,7 +149,9 @@ int main()
 	tre::ConstantBuffer cb;
 
 	std::vector<tre::Object> opaqueObjQ;
-	std::vector<tre::Object> transparentObjQ;
+	std::vector<tre::Object> transparentObjQ;	
+	std::vector<tre::Object> culledOpaqueObjQ;
+	std::vector<tre::Object> culledTransparentObjQ;
 
 	bool toSortTransparentQ = false;
 	bool toRecalDistFromCam = false;
@@ -197,9 +199,6 @@ int main()
 	// pause light
 	int pauseLight = 0;
 
-	static int typeOfBound = 0;
-	float scaleIncre = 90.0f;
-
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -215,6 +214,8 @@ int main()
 	ImGui_ImplDX11_Init(deviceAndContext.device.Get(), deviceAndContext.context.Get());
 
 	bool show_demo_window = false;
+	tre::BoundVolumeEnum typeOfBound = tre::AABBBoundingBox;
+	int meshIdx = 0;
 
 	// main loop
 	while (!input.shouldQuit())
@@ -257,24 +258,21 @@ int main()
 			tre::Object newObj;
 
 			float scaleVal = tre::Utility::getRandomFloat(3);
+			int textureIdx = tre::Utility::getRandomInt(1);
+
 			newObj.pObjMesh = &meshes[tre::Utility::getRandomInt(1)];
-			newObj.objPos = XMFLOAT3(tre::Utility::getRandomFloatRange(-5, 5), tre::Utility::getRandomFloatRange(-5, 5), tre::Utility::getRandomFloatRange(-5, 5));
+			newObj.objPos = XMFLOAT3(tre::Utility::getRandomFloatRange(-20, 20), tre::Utility::getRandomFloatRange(-20, 20), tre::Utility::getRandomFloatRange(-20, 20));
 			newObj.objScale = XMFLOAT3(scaleVal, scaleVal, scaleVal);
 			newObj.objRotation = XMFLOAT3(tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360));
-			newObj.pObjTexture = &textures[tre::Utility::getRandomInt(2)];
-			newObj.isObjWithNormalMap = 0;
-			newObj.pObjNormalMap = nullptr;
+			newObj.pObjTexture = &textures[3 + textureIdx];
+			newObj.isObjWithTexture = 1;
+			newObj.pObjNormalMap = &normals[textureIdx];
+			newObj.isObjWithNormalMap = 1;
+			newObj.objColor = colors[2];
 
-
-			// With/Without texture
-			if (tre::Utility::getRandomInt(1) == 1) {
-				newObj.isObjWithTexture = 1;
-				newObj.objColor = XMFLOAT4();
-			}
-			else {
-				newObj.isObjWithTexture = 0;
-				newObj.objColor = colors[tre::Utility::getRandomInt(9)];
-			}
+			newObj.ritterBs = newObj.pObjMesh->ritterSphere;
+			newObj.naiveBs = newObj.pObjMesh->naiveSphere;
+			newObj.aabb = newObj.pObjMesh->aabb;
 
 			// transparent queue -> object with texture with alpha channel or object with color.w below 1.0f
 			if ((newObj.isObjWithTexture && newObj.pObjTexture->hasAlphaChannel)
@@ -291,54 +289,7 @@ int main()
 			else {
 				opaqueObjQ.push_back(newObj);
 			}
-		}
-		else if (input.keyState[SDL_SCANCODE_RSHIFT]) { // create obj with normal mapping
-
-			if (opaqueObjQ.size() > 0) {
-				continue;
-			}
-
-			tre::Object newNorObj;
-
-			int textureIdx = tre::Utility::getRandomInt(1);
-			newNorObj.pObjMesh = &meshes[0];
-			newNorObj.objPos = XMFLOAT3(.0f, .0f, .0f);
-			newNorObj.objScale = XMFLOAT3(1.0f, 1.0f, 1.0f);
-			newNorObj.objRotation = XMFLOAT3(.0f, .0f, .0f);
-			newNorObj.pObjTexture = &textures[3 + textureIdx];
-			newNorObj.isObjWithTexture = 1;
-			newNorObj.pObjNormalMap = &normals[textureIdx];
-			newNorObj.isObjWithNormalMap = 1;
-			newNorObj.objColor = colors[5];
-			newNorObj.distFromCam = tre::Maths::distBetweentObjToCam(newNorObj.objPos, cam.camPositionV);
-
-			newNorObj.ritterBs = newNorObj.pObjMesh->ritterSphere;
-			newNorObj.naiveBs = newNorObj.pObjMesh->naiveSphere;
-			newNorObj.aabb = newNorObj.pObjMesh->aabb;
-
-			opaqueObjQ.push_back(newNorObj);
-
-			tre::Object newNorObj2;
-
-			newNorObj2.pObjMesh = &meshes[0];
-			newNorObj2.objPos = XMFLOAT3(2.0f, 2.0f, 2.0f);
-			newNorObj2.objScale = XMFLOAT3(1.0f, 1.0f, 1.0f);
-			newNorObj2.objRotation = XMFLOAT3(.0f, .0f, .0f);
-			newNorObj2.pObjTexture = &textures[3 + textureIdx];
-			newNorObj2.isObjWithTexture = 1;
-			newNorObj2.pObjNormalMap = &normals[textureIdx];
-			newNorObj2.isObjWithNormalMap = 1;
-			newNorObj2.objColor = colors[5];
-			newNorObj2.distFromCam = tre::Maths::distBetweentObjToCam(newNorObj2.objPos, cam.camPositionV);
-
-			newNorObj2.ritterBs = newNorObj2.pObjMesh->ritterSphere;
-			newNorObj2.naiveBs = newNorObj2.pObjMesh->naiveSphere;
-			newNorObj2.aabb = newNorObj2.pObjMesh->aabb;
-
-			opaqueObjQ.push_back(newNorObj2);
-
-		}
-		else if (input.keyState[SDL_SCANCODE_P]) {
+		} else if (input.keyState[SDL_SCANCODE_P]) {
 			pauseLight ^= 1;
 		}
 
@@ -350,7 +301,7 @@ int main()
 		if (show_demo_window)
 			ImGui::ShowDemoWindow(&show_demo_window);
 
-		if (opaqueObjQ.size() == 2)
+		if (opaqueObjQ.size())
 		{
 			static float f = 0.0f;
 			static int counter = 0;
@@ -358,29 +309,41 @@ int main()
 			ImGui::Begin("Debug");                         
 
 			ImGui::Checkbox("Demo Window", &show_demo_window);
+			
+			// Bounding Type Selection
+			{
+				static int selectedIdx = 0;
+				const char* names[] = { "AABB", "Ritter Sphere", "Naive Sphere" };
 
-			ImGui::Text("Object 1");              
-
-			ImGui::SliderFloat("Obj1 XPos", &opaqueObjQ[0].objPos.x, -10.0f, 10.0f);
-			ImGui::SliderFloat("Obj1 YPos", &opaqueObjQ[0].objPos.y, -10.0f, 10.0f);
-			ImGui::SliderFloat("Obj1 ZPos", &opaqueObjQ[0].objPos.z, -10.0f, 10.0f);
-			ImGui::SliderFloat("Obj1 Scale", &opaqueObjQ[0].objScale.x, .1f, 3.0f);
-			ImGui::SliderFloat("Obj1 Scale", &opaqueObjQ[0].objScale.y, .1f, 3.0f);
-			ImGui::SliderFloat("Obj1 Scale", &opaqueObjQ[0].objScale.z, .1f, 3.0f);
-			ImGui::SliderFloat("Obj1 XRot", &opaqueObjQ[0].objRotation.x, .0f, 360.0f);
-			ImGui::SliderFloat("Obj1 YRot", &opaqueObjQ[0].objRotation.y, .0f, 360.0f);
-			ImGui::SliderFloat("Obj1 ZRot", &opaqueObjQ[0].objRotation.z, .0f, 360.0f);
-		
-			ImGui::Text("Object 2");
-			ImGui::SliderFloat("Obj2 XPos", &opaqueObjQ[1].objPos.x, -10.0f, 10.0f);
-			ImGui::SliderFloat("Obj2 YPos", &opaqueObjQ[1].objPos.y, -10.0f, 10.0f);
-			ImGui::SliderFloat("Obj2 ZPos", &opaqueObjQ[1].objPos.z, -10.0f, 10.0f);
-			ImGui::SliderFloat("Obj2 Scale", &opaqueObjQ[1].objScale.x, .1f, 3.0f);
-			ImGui::SliderFloat("Obj2 Scale", &opaqueObjQ[1].objScale.y, .1f, 3.0f);
-			ImGui::SliderFloat("Obj2 Scale", &opaqueObjQ[1].objScale.z, .1f, 3.0f);
-			ImGui::SliderFloat("Obj2 XRot", &opaqueObjQ[1].objRotation.x, .0f, 360.0f);
-			ImGui::SliderFloat("Obj2 YRot", &opaqueObjQ[1].objRotation.y, .0f, 360.0f);
-			ImGui::SliderFloat("Obj2 ZRot", &opaqueObjQ[1].objRotation.z, .0f, 360.0f);
+				if (ImGui::Button("Bounding Volume Type"))
+					ImGui::OpenPopup("boundVType");
+				ImGui::SameLine();
+				ImGui::TextUnformatted(names[selectedIdx]);
+				if (ImGui::BeginPopup("boundVType"))
+				{
+					ImGui::SeparatorText("Bounding Type");
+					for (int i = 0; i < IM_ARRAYSIZE(names); i++)
+						if (ImGui::Selectable(names[i])) {
+							selectedIdx = i;
+							switch (selectedIdx) {
+							case 0:
+								typeOfBound = tre::AABBBoundingBox;
+								meshIdx = 0;
+								break;
+							case 1:
+								typeOfBound = tre::RitterBoundingSphere;
+								meshIdx = 1;
+								break;
+							case 2:
+								typeOfBound = tre::NaiveBoundingSphere;
+								meshIdx = 1;
+								break;
+							}
+						}
+					ImGui::EndPopup();
+				}
+			}
+			ImGui::Text("Within Frustcum/Total: %d / %d", culledOpaqueObjQ.size(), opaqueObjQ.size());
 
 			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 			ImGui::End();
@@ -424,6 +387,43 @@ int main()
 		deviceAndContext.context->VSSetConstantBuffers(0u, 1u, cb.pConstBuffer.GetAddressOf());
 		deviceAndContext.context->PSSetConstantBuffers(0u, 1u, cb.pConstBuffer.GetAddressOf());
 
+		// Set Pixel Shader for light
+		deviceAndContext.context->PSSetShader(light_pixel_shader.pShader.Get(), NULL, 0u);
+
+		// Set depth test for light
+		deviceAndContext.context->OMSetDepthStencilState(depthBuffer.pDSStateWithoutDepthT.Get(), 0);
+
+		// Draw debug
+		renderer.debugDraw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, opaqueObjQ, meshes[meshIdx], typeOfBound);
+
+		culledOpaqueObjQ.clear();
+		for (int i = 0; i < opaqueObjQ.size(); i++) {
+			if (opaqueObjQ[i].aabb.isOverlapFrustum(cam.cameraFrustum)) {
+				opaqueObjQ[i].objColor = colors[1];
+				culledOpaqueObjQ.push_back(opaqueObjQ[i]);
+			}
+			else if (opaqueObjQ[i].aabb.isInFrustum(cam.cameraFrustum)) {
+				opaqueObjQ[i].objColor = colors[2];
+				culledOpaqueObjQ.push_back(opaqueObjQ[i]);
+			} else {
+				opaqueObjQ[i].objColor = colors[0];
+			}
+		}
+
+		culledTransparentObjQ.clear();
+		for (int i = 0; i < transparentObjQ.size(); i++) {
+			if (transparentObjQ[i].aabb.isOverlapFrustum(cam.cameraFrustum)) {
+				transparentObjQ[i].objColor = colors[1];
+				culledTransparentObjQ.push_back(transparentObjQ[i]);
+			}
+			else if (transparentObjQ[i].aabb.isInFrustum(cam.cameraFrustum)) {
+				transparentObjQ[i].objColor = colors[2];
+				culledTransparentObjQ.push_back(transparentObjQ[i]);
+			} else {
+				opaqueObjQ[i].objColor = colors[0];
+			}
+		}
+
 		// Set blend state for opaque obj
 		deviceAndContext.context->OMSetBlendState(blendState.opaque.Get(), NULL, 0xffffffff);
 
@@ -434,7 +434,7 @@ int main()
 		deviceAndContext.context->PSSetShader(pixel_shader.pShader.Get(), NULL, 0u);
 
 		// Draw all opaque objects
-		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateFCCW.Get(), cb, opaqueObjQ);
+		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateFCCW.Get(), cb, culledOpaqueObjQ);
 
 		if (toRecalDistFromCam) {
 			for (int i = 0; i < transparentObjQ.size(); i++) {
@@ -457,7 +457,7 @@ int main()
 		deviceAndContext.context->OMSetDepthStencilState(depthBuffer.pDSStateWithDepthTWriteDisabled.Get(), 0);
 
 		// Draw all transparent objects
-		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateFCCW.Get(), cb, transparentObjQ);
+		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateFCCW.Get(), cb, culledTransparentObjQ);
 
 		if (!pauseLight) {
 			// rotate point light 1
@@ -494,18 +494,6 @@ int main()
 		// Draw all light object wireframe
 		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, lightObjQ);
 
-		if (opaqueObjQ.size() == 2) {
-			if (opaqueObjQ[0].aabb.isOverlapFrustum(cam.cameraFrustum)) {
-				opaqueObjQ[0].objColor = colors[2];
-			}
-			else {
-				opaqueObjQ[0].objColor = colors[0];
-			}
-		}
-
-		// Draw debug
-		renderer.debugDraw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, opaqueObjQ, meshes[0], tre::AABBBoundingBox);
-		
 		ImGui::Render();
 		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
@@ -515,6 +503,7 @@ int main()
 		}
 
 		deltaTime = timer.getDeltaTime();
+
 	}
 
 	//Cleanup
