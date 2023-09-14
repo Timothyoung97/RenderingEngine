@@ -38,6 +38,7 @@
 #include "colors.h"
 #include "boundingvolume.h"
 #include "maths.h"
+#include "inputlayout.h"
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 1920;
@@ -45,16 +46,6 @@ const int SCREEN_HEIGHT = 1020;
 
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;
-
-//Input Layout
-D3D11_INPUT_ELEMENT_DESC layout[] = {
-	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0 , D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0}
-};
-
-const UINT numOfInputElement = ARRAYSIZE(layout);
 
 int main()
 {
@@ -78,7 +69,6 @@ int main()
 	//Create Sampler
 	tre::Sampler sampler(deviceAndContext.device.Get());
 	deviceAndContext.context->PSSetSamplers(0, 1, sampler.pSamplerState.GetAddressOf());
-
 
 	//Load pre-compiled shaders
 	std::wstring basePathWstr = tre::Utility::getBasePathWstr();
@@ -111,11 +101,7 @@ int main()
 	};
 
 	// Create input layout
-	ComPtr<ID3D11InputLayout> vertLayout;
-
-	CHECK_DX_ERROR(deviceAndContext.device->CreateInputLayout(
-		layout, numOfInputElement, vertex_shader.pBlob.Get()->GetBufferPointer(), vertex_shader.pBlob.Get()->GetBufferSize(), vertLayout.GetAddressOf()
-	));
+	tre::InputLayout inputLayout(deviceAndContext.device.Get(), &vertex_shader);
 
 	//Create Depth/Stencil 
 	tre::DepthBuffer depthBuffer(deviceAndContext.device.Get(), SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -124,7 +110,7 @@ int main()
 	tre::BlendState blendState(deviceAndContext.device.Get());
 
 	//Set input layout
-	deviceAndContext.context->IASetInputLayout( vertLayout.Get() );
+	deviceAndContext.context->IASetInputLayout( inputLayout.vertLayout.Get() );
 
 	//Set topology
 	deviceAndContext.context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -520,7 +506,7 @@ int main()
 		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, lightObjQ);
 
 		if (opaqueObjQ.size() == 2) {
-			if (opaqueObjQ[0].aabb.isInFrustum(cam.cameraFrustum)) {
+			if (opaqueObjQ[0].aabb.isOverlapFrustum(cam.cameraFrustum)) {
 				opaqueObjQ[0].objColor = colors[2];
 			}
 			else {
