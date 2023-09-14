@@ -19,8 +19,11 @@ struct BoundingSphere {
 	float radius = .0f;
 	bool testBoundingSphere(BoundingSphere& other);
 	bool overlapBoundingSphere(BoundingSphere& other);
-	bool isOnOrForwardPlane(Plane& plane);
+	bool isForwardPlane(Plane& plane);
 	bool isInFrustum(Frustum& camFrustum);
+	bool isOnPlane(Plane& plane);
+	bool isOverlapFrustum(Frustum& camFrustum);
+
 };
 
 struct AABB {
