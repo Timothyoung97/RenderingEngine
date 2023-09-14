@@ -342,14 +342,6 @@ int main()
 			pauseLight ^= 1;
 		}
 
-		bool isIntersect = false;
-		bool isOverlap = false;
-		if (opaqueObjQ.size() == 2) {
-			isIntersect = opaqueObjQ[0].aabb.testAABB(opaqueObjQ[1].aabb);
-			isOverlap = opaqueObjQ[0].aabb.overlapAABB(opaqueObjQ[1].aabb);
-		}
-
-
 		// Start the Dear ImGui frame
 		ImGui_ImplDX11_NewFrame();
 		ImGui_ImplSDL2_NewFrame();
@@ -358,7 +350,7 @@ int main()
 		if (show_demo_window)
 			ImGui::ShowDemoWindow(&show_demo_window);
 
-		if (opaqueObjQ.size())
+		if (opaqueObjQ.size() == 2)
 		{
 			static float f = 0.0f;
 			static int counter = 0;
@@ -366,9 +358,6 @@ int main()
 			ImGui::Begin("Debug");                         
 
 			ImGui::Checkbox("Demo Window", &show_demo_window);
-
-			ImGui::Checkbox("Is Intersecting", &isIntersect);
-			ImGui::Checkbox("Is Overlaping", &isOverlap);
 
 			ImGui::Text("Object 1");              
 
@@ -447,9 +436,6 @@ int main()
 		// Draw all opaque objects
 		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateFCCW.Get(), cb, opaqueObjQ);
 
-		// Set blend state for transparent obj
-		deviceAndContext.context->OMSetBlendState(blendState.transparency.Get(), NULL, 0xffffffff);
-
 		if (toRecalDistFromCam) {
 			for (int i = 0; i < transparentObjQ.size(); i++) {
 				transparentObjQ[i].distFromCam = tre::Maths::distBetweentObjToCam(transparentObjQ[i].objPos, cam.camPositionV);
@@ -463,6 +449,9 @@ int main()
 			std::sort(transparentObjQ.begin(), transparentObjQ.end(), [](const tre::Object& obj1, const tre::Object& obj2) { return obj1.distFromCam > obj2.distFromCam; });
 			toSortTransparentQ = false;
 		}
+
+		// Set blend state for transparent obj
+		deviceAndContext.context->OMSetBlendState(blendState.transparency.Get(), NULL, 0xffffffff);
 
 		// Set depth test for transparent obj
 		deviceAndContext.context->OMSetDepthStencilState(depthBuffer.pDSStateWithDepthTWriteDisabled.Get(), 0);
