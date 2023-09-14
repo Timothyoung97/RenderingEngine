@@ -1,11 +1,10 @@
 #pragma once
 
-#include <DirectXMath.h>
-
 #include <vector>
 
-using namespace DirectX;
+#include "maths.h"
 
+using namespace DirectX;
 
 namespace tre {
 
@@ -20,6 +19,8 @@ struct BoundingSphere {
 	float radius = .0f;
 	bool testBoundingSphere(BoundingSphere& other);
 	bool overlapBoundingSphere(BoundingSphere& other);
+	bool isOnForwardPlane(Plane& plane);
+	bool isOnFrustum(Frustum& camFrustum);
 };
 
 struct AABB {

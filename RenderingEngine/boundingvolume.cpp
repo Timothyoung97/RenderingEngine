@@ -1,7 +1,6 @@
 #include "boundingvolume.h"
 
 #include "utility.h"
-#include "maths.h"
 #include "mesh.h"
 
 namespace tre {
@@ -276,5 +275,19 @@ bool BoundingSphere::overlapBoundingSphere(BoundingSphere& other) {
 
 	return larger >= distF.x + smaller;
 }
+
+bool BoundingSphere::isOnForwardPlane(Plane& plane) {
+	return plane.getSignedDistanceToPlane(this->center) > -this->radius;
+}
+
+bool BoundingSphere::isOnFrustum(Frustum& frustum) {
+	return isOnForwardPlane(frustum.bottomF)
+		&& isOnForwardPlane(frustum.topF)
+		&& isOnForwardPlane(frustum.leftF)
+		&& isOnForwardPlane(frustum.rightF)
+		&& isOnForwardPlane(frustum.nearF)
+		&& isOnForwardPlane(frustum.farF);
+}
+
 
 }
