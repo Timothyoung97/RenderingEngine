@@ -19,8 +19,8 @@ struct BoundingSphere {
 	float radius = .0f;
 	bool testBoundingSphere(BoundingSphere& other);
 	bool overlapBoundingSphere(BoundingSphere& other);
-	bool isOnForwardPlane(Plane& plane);
-	bool isOnFrustum(Frustum& camFrustum);
+	bool isOnOrForwardPlane(Plane& plane);
+	bool isInFrustum(Frustum& camFrustum);
 };
 
 struct AABB {
@@ -28,6 +28,8 @@ struct AABB {
 	XMFLOAT3 halfExtent{ .0f, .0f, .0f };
 	bool testAABB(AABB& other);
 	bool overlapAABB(AABB& other);
+	bool isOnOrForwardPlane(Plane& plane);
+	bool isInFrustum(Frustum& camFrustum);
 };
 
 class BoundingVolume {

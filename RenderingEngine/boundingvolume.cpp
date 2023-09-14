@@ -276,17 +276,34 @@ bool BoundingSphere::overlapBoundingSphere(BoundingSphere& other) {
 	return larger >= distF.x + smaller;
 }
 
-bool BoundingSphere::isOnForwardPlane(Plane& plane) {
-	return plane.getSignedDistanceToPlane(this->center) > -this->radius;
+bool BoundingSphere::isOnOrForwardPlane(Plane& plane) {
+	float dist = plane.getSignedDistanceToPlane(this->center); 
+	return dist > this->radius;
 }
 
-bool BoundingSphere::isOnFrustum(Frustum& frustum) {
-	return isOnForwardPlane(frustum.bottomF)
-		&& isOnForwardPlane(frustum.topF)
-		&& isOnForwardPlane(frustum.leftF)
-		&& isOnForwardPlane(frustum.rightF)
-		&& isOnForwardPlane(frustum.nearF)
-		&& isOnForwardPlane(frustum.farF);
+bool BoundingSphere::isInFrustum(Frustum& frustum) {
+	bool b = isOnOrForwardPlane(frustum.bottomF);
+	bool t = isOnOrForwardPlane(frustum.topF);
+	bool l = isOnOrForwardPlane(frustum.leftF);
+	bool r = isOnOrForwardPlane(frustum.rightF);
+	bool n = isOnOrForwardPlane(frustum.nearF);
+	return !b && !t && !l && !r && !n;
+
+}
+
+bool AABB::isOnOrForwardPlane(Plane& plane) {
+	float r = halfExtent.x * fabs(plane.eqn.x) + halfExtent.y * fabs(plane.eqn.y) + halfExtent.z * fabs(plane.eqn.z);
+
+	return -r <= plane.getSignedDistanceToPlane(this->center);
+}
+
+bool AABB::isInFrustum(Frustum& frustum) {
+	bool b = isOnOrForwardPlane(frustum.bottomF);
+	bool t = isOnOrForwardPlane(frustum.topF);
+	bool l = isOnOrForwardPlane(frustum.leftF);
+	bool r = isOnOrForwardPlane(frustum.rightF);
+	bool n = isOnOrForwardPlane(frustum.nearF);
+	return !b && !t && !l && !r && !n;
 }
 
 

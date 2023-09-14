@@ -86,15 +86,9 @@ void Plane::normalizePlane() {
 }
 
 float Plane::getSignedDistanceToPlane(const XMFLOAT3& point) {
-	XMVECTOR planeNormal{ this->eqn.x, this->eqn.y, this->eqn.z };
-	XMVECTOR sphereCenter{ point.x, point.y, point.z };
-
-	XMVECTOR dotProduct = XMVector3Dot(planeNormal, sphereCenter);
-
-	XMFLOAT3 dotProductF;
-	XMStoreFloat3(&dotProductF, dotProduct);
-
-	return dotProductF.x - this->eqn.w;
+	float d = (this->eqn.x * point.x + this->eqn.y * point.y + this->eqn.z * point.z - this->eqn.w) 
+		/ sqrtf(this->eqn.x * this->eqn.x + this->eqn.y * this->eqn.y + this->eqn.z * this->eqn.z);
+	return d;
 };
 
 

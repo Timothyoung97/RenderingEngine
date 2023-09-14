@@ -520,20 +520,16 @@ int main()
 		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, lightObjQ);
 
 		if (opaqueObjQ.size() == 2) {
-			if (isOverlap) {
-				opaqueObjQ[0].objColor = colors[0];
-				opaqueObjQ[1].objColor = colors[0];
-			} else if (isIntersect) {
-				opaqueObjQ[0].objColor = colors[1];
-				opaqueObjQ[1].objColor = colors[1];
-			} else {
+			if (opaqueObjQ[0].ritterBs.isInFrustum(cam.cameraFrustum)) {
 				opaqueObjQ[0].objColor = colors[2];
-				opaqueObjQ[1].objColor = colors[2];
+			}
+			else {
+				opaqueObjQ[0].objColor = colors[0];
 			}
 		}
 
 		// Draw debug
-		renderer.debugDraw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, opaqueObjQ, meshes[0], tre::AABBBoundingBox);
+		renderer.debugDraw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, opaqueObjQ, meshes[1], tre::RitterBoundingSphere);
 		
 		ImGui::Render();
 		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
