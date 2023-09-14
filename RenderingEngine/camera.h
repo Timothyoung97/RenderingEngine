@@ -25,14 +25,11 @@ public:
 	XMMATRIX camView;
 	XMMATRIX camProjection;
 
+	XMMATRIX camViewProjection;
+
 	Frustum cameraFrustum;
 
-	float aspect;
-	float fovY;
-	float zNear;
-	float zFar;
-
-	Camera(float width, float height, float fovY, float zNear, float zFar);
+	Camera(float width, float height);
 
 	void updateCamera();
 	void moveCamera(XMVECTOR offset);

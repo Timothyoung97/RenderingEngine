@@ -2,7 +2,7 @@
 
 namespace tre {
 
-Camera::Camera(float width, float height, float fovY, float zNear, float zFar) : aspect(width/height), fovY(fovY), zNear(zNear), zFar(zFar) {
+Camera::Camera(float width, float height) {
 	defaultUpV = XMVectorSet(.0f, 1.0f, .0f, .0f); // always point up in the positive y axis
 
 	// Init Values for Camera
@@ -30,6 +30,8 @@ Camera::Camera(float width, float height, float fovY, float zNear, float zFar) :
 	// Projection Matrix
 	camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0f), static_cast<float>(width / height), 1.0f, 1000.0f);
 
+	camViewProjection = XMMatrixMultiply(camView, camProjection);
+
 	// create frustum
 	updateCameraFrustum();
 }
@@ -55,22 +57,67 @@ void Camera::updateCamera() {
 	camRightV = XMVector3Normalize(XMVector3Cross(directionV, defaultUpV));
 	camUpV = XMVector3Normalize(XMVector3Cross(camRightV, directionV));
 	camView = XMMatrixLookAtLH(camPositionV, camPositionV + directionV, camUpV);
+	camViewProjection = XMMatrixMultiply(camView, camProjection);
 	updateCameraFrustum();
 }
 
 void Camera::updateCameraFrustum() {
-	float halfVSide = zFar * (XMScalarSin(fovY * .5f) / XMScalarCos(fovY * .5f));
-	float halfHSide = halfVSide * aspect;
 
-	XMVECTOR frontMultFar = zFar * directionV;
+	XMFLOAT4X4 viewProjectionF;
+	XMStoreFloat4x4(&viewProjectionF, camViewProjection);
 
-	cameraFrustum.nearF = { directionV, camPositionV + zNear * directionV };
-	cameraFrustum.farF = { -directionV, camPositionV + frontMultFar };
+	// add 1st col to 4th col of viewProj
+	cameraFrustum.leftF.eqn = XMFLOAT4(
+		viewProjectionF._14 + viewProjectionF._11,
+		viewProjectionF._24 + viewProjectionF._21,
+		viewProjectionF._34 + viewProjectionF._31,
+		viewProjectionF._44 + viewProjectionF._41
+	);
+	cameraFrustum.leftF.normalizePlane();
 
-	cameraFrustum.rightF = { XMVector3Cross(camUpV, frontMultFar - camRightV * halfHSide), camPositionV };
-	cameraFrustum.leftF = { XMVector3Cross(frontMultFar + camRightV * halfHSide, camUpV), camPositionV };
+	// minus 1st col from 4th col of viewPr0j
+	cameraFrustum.rightF.eqn = XMFLOAT4(
+		viewProjectionF._14 - viewProjectionF._11,
+		viewProjectionF._24 - viewProjectionF._21,
+		viewProjectionF._34 - viewProjectionF._31,
+		viewProjectionF._44 - viewProjectionF._41
+	);
+	cameraFrustum.rightF.normalizePlane();
 
-	cameraFrustum.topF = { XMVector3Cross(frontMultFar - camUpV * halfVSide, camRightV), camPositionV };
-	cameraFrustum.bottomF = { XMVector3Cross(camRightV, frontMultFar + camUpV * halfVSide), camPositionV };
+	// minus 2nd col from 4th col 
+	cameraFrustum.topF.eqn = XMFLOAT4(
+		viewProjectionF._14 - viewProjectionF._12,
+		viewProjectionF._24 - viewProjectionF._22,
+		viewProjectionF._34 - viewProjectionF._32,
+		viewProjectionF._44 - viewProjectionF._42
+	);
+	cameraFrustum.topF.normalizePlane();
+
+	// add 2nd col to 4th col
+	cameraFrustum.bottomF.eqn = XMFLOAT4(
+		viewProjectionF._14 + viewProjectionF._12,
+		viewProjectionF._24 + viewProjectionF._22,
+		viewProjectionF._34 + viewProjectionF._32,
+		viewProjectionF._44 + viewProjectionF._42
+	);
+	cameraFrustum.bottomF.normalizePlane();
+
+	// 3rd col itself
+	cameraFrustum.nearF.eqn = XMFLOAT4(
+		viewProjectionF._13,
+		viewProjectionF._23,
+		viewProjectionF._33,
+		viewProjectionF._43
+	);
+	cameraFrustum.nearF.normalizePlane();
+
+	// minus 3rd col from 4th col
+	cameraFrustum.topF.eqn = XMFLOAT4(
+		viewProjectionF._14 - viewProjectionF._13,
+		viewProjectionF._24 - viewProjectionF._23,
+		viewProjectionF._34 - viewProjectionF._33,
+		viewProjectionF._44 - viewProjectionF._43
+	);
+	cameraFrustum.topF.normalizePlane();
 }
 }
