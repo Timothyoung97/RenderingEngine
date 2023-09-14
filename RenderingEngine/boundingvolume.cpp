@@ -304,20 +304,48 @@ bool BoundingSphere::isOverlapFrustum(Frustum& frustum) {
 	return !b && !t && !l && !r && !n;
 }
 
-bool AABB::isOnOrForwardPlane(Plane& plane) {
+bool AABB::isOnPlane(Plane& plane) {
 	float r = halfExtent.x * fabs(plane.eqn.x) + halfExtent.y * fabs(plane.eqn.y) + halfExtent.z * fabs(plane.eqn.z);
 
 	return -r <= plane.getSignedDistanceToPlane(this->center);
 }
 
-bool AABB::isInFrustum(Frustum& frustum) {
-	bool b = isOnOrForwardPlane(frustum.bottomF);
-	bool t = isOnOrForwardPlane(frustum.topF);
-	bool l = isOnOrForwardPlane(frustum.leftF);
-	bool r = isOnOrForwardPlane(frustum.rightF);
-	bool n = isOnOrForwardPlane(frustum.nearF);
+bool AABB::isOverlapFrustum(Frustum& frustum) {
+	bool b = isOnPlane(frustum.bottomF);
+	bool t = isOnPlane(frustum.topF);
+	bool l = isOnPlane(frustum.leftF);
+	bool r = isOnPlane(frustum.rightF);
+	bool n = isOnPlane(frustum.nearF);
 	return !b && !t && !l && !r && !n;
 }
 
+bool AABB::isForwardPlane(Plane& plane) {
+	XMFLOAT3 points[8] = {
+		XMFLOAT3(this->center.x + halfExtent.x, this->center.y + halfExtent.y, this->center.z + halfExtent.z),
+		XMFLOAT3(this->center.x + halfExtent.x, this->center.y + halfExtent.y, this->center.z - halfExtent.z),
+		XMFLOAT3(this->center.x + halfExtent.x, this->center.y - halfExtent.y, this->center.z + halfExtent.z),
+		XMFLOAT3(this->center.x + halfExtent.x, this->center.y - halfExtent.y, this->center.z - halfExtent.z),
+		XMFLOAT3(this->center.x - halfExtent.x, this->center.y + halfExtent.y, this->center.z + halfExtent.z),
+		XMFLOAT3(this->center.x - halfExtent.x, this->center.y + halfExtent.y, this->center.z - halfExtent.z),
+		XMFLOAT3(this->center.x - halfExtent.x, this->center.y - halfExtent.y, this->center.z + halfExtent.z),
+		XMFLOAT3(this->center.x - halfExtent.x, this->center.y - halfExtent.y, this->center.z - halfExtent.z),
+	};
+	
+	float minDist = plane.getSignedDistanceToPlane(points[0]);
+	for (int i = 1; i < 8; i++) {
+		minDist = std::min(minDist, plane.getSignedDistanceToPlane(points[i]));
+	}
+
+	return minDist > 0;
+}
+
+bool AABB::isInFrustum(Frustum& frustum) {
+	bool b = isForwardPlane(frustum.bottomF);
+	bool t = isForwardPlane(frustum.topF);
+	bool l = isForwardPlane(frustum.leftF);
+	bool r = isForwardPlane(frustum.rightF);
+	bool n = isForwardPlane(frustum.nearF);
+	return !b && !t && !l && !r && !n;
+}
 
 }
