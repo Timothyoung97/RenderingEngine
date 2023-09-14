@@ -436,7 +436,7 @@ int main()
 		deviceAndContext.context->ClearDepthStencilView(depthBuffer.depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 		// Set camera view const buffer
-		cb.constBufferRescCam.viewProjection = XMMatrixMultiply(cam.camView, cam.camProjection);
+		cb.constBufferRescCam.viewProjection = cam.camViewProjection;
 		cb.constBufferRescCam.light = dirlight;
 		std::copy(std::begin(pointLight), std::end(pointLight), std::begin(cb.constBufferRescCam.pointLight));
 
