@@ -6,9 +6,11 @@ struct Light {
 
 struct PointLight {
     float3 dir;
+    float pad;
     float3 pos;
     float range;
     float3 att;
+    float pad2;
     float4 ambient;
     float4 diffuse;
 };
