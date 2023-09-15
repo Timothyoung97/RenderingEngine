@@ -43,7 +43,6 @@ void LightResource::updateBuffer(ID3D11Device* device, ID3D11DeviceContext* cont
 
 	// Copy subresource from CPU to GPU
 	context->CopyResource( pLightBufferGPU.Get(), pLightBufferCPU );
-	//context->CopySubresourceRegion(pLightBufferGPU.Get(), (UINT) pointLights.size() - 1, 0, 0, 0, pLightBufferCPU, pointLights.size() - 1, nullptr);
 
 	// update GPU on buffer
 	D3D11_BUFFER_SRV lightBufferSRV;
