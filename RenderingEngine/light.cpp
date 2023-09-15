@@ -23,11 +23,11 @@ void LightResource::updateBuffer(ID3D11Device* device, ID3D11DeviceContext* cont
 	
 	// Create buffer on CPU side to update new light resource
 	D3D11_BUFFER_DESC lightBufferDescCPU;
-	lightBufferDescCPU.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	lightBufferDescCPU.BindFlags = 0;
 	lightBufferDescCPU.Usage = D3D11_USAGE_STAGING;
 	lightBufferDescCPU.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE | D3D11_CPU_ACCESS_READ;
 	lightBufferDescCPU.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-	lightBufferDescCPU.ByteWidth = static_cast<UINT>(sizeof(tre::PointLight) * pointLights.size());
+	lightBufferDescCPU.ByteWidth = static_cast<UINT>(sizeof(tre::PointLight) * maxPointLightNum);
 	lightBufferDescCPU.StructureByteStride = static_cast<UINT>(sizeof(tre::PointLight));
 	
 	D3D11_SUBRESOURCE_DATA lightData = {};
@@ -45,12 +45,10 @@ void LightResource::updateBuffer(ID3D11Device* device, ID3D11DeviceContext* cont
 	// update GPU on buffer
 	D3D11_BUFFER_SRV lightBufferSRV;
 	lightBufferSRV.NumElements = pointLights.size();
-	lightBufferSRV.ElementOffset = 0u;
-	lightBufferSRV.FirstElement = 0u;
-	lightBufferSRV.ElementWidth = static_cast<UINT>(sizeof(tre::PointLight));
+	lightBufferSRV.FirstElement = 0;
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC lightShaderResc;
-	lightShaderResc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	lightShaderResc.Format = DXGI_FORMAT_UNKNOWN;
 	lightShaderResc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
 	lightShaderResc.Buffer = lightBufferSRV;
 
