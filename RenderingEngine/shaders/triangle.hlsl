@@ -17,7 +17,7 @@ struct PointLight {
 cbuffer constBuffer : register(b0) {
     matrix viewProjection;
     Light dirLight;
-    PointLight pointLight[4];
+    int numPtLights;
 };
 
 // Per Object
@@ -29,9 +29,10 @@ cbuffer constBuffer2 : register(b1) {
     uint hasNormMap;
 };
 
-// 
 Texture2D ObjTexture : register(t0);
 Texture2D ObjNormMap : register(t1);
+StructuredBuffer<PointLight> pointLights : register(t2);
+
 SamplerState ObjSamplerState;
 
 // Vertex Shader
@@ -116,22 +117,23 @@ void ps_main (
 
     float3 pixelLightColor = float3(.0f, .0f, .0f);
 
+    // read in point light one by one
     // local lighting
-    for (int i = 0; i < 4; i++) {
-
+    for (int i = 0; i < numPtLights; i++) {
+        
         // vector between light pos and pixel pos
-        float3 pixelToLightV = pointLight[i].pos - vOutLocalPosition.xyz;
+        float3 pixelToLightV = pointLights[i].pos - vOutLocalPosition.xyz;
         float d = length(pixelToLightV);   
 
         float3 localLight = float3(.0f, .0f, .0f);
     
-        if (d <= pointLight[i].range) {
+        if (d <= pointLights[i].range) {
             pixelToLightV = pixelToLightV / d; // convert pixelToLightV to an unit vector
             float cosAngle = dot(pixelToLightV, vOutNormal.xyz); // find the cos(angle) between light and normal
 
             if (cosAngle > 0.0f) {
-                localLight = cosAngle * sampleTexture.xyz * pointLight[i].diffuse.xyz; // add light to finalColor of pixel
-                localLight = localLight / (pointLight[i].att[0] + (pointLight[i].att[1] * d) + (pointLight[i].att[2] * (d*d))); // Light's falloff factor
+                localLight = cosAngle * sampleTexture.xyz * pointLights[i].diffuse.xyz; // add light to finalColor of pixel
+                localLight = localLight / (pointLights[i].att[0] + (pointLights[i].att[1] * d) + (pointLights[i].att[2] * (d*d))); // Light's falloff factor
             }
         }
 
