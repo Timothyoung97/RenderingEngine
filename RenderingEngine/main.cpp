@@ -193,8 +193,11 @@ int main()
 		lightObjQ.push_back(newLightObj);
 	}
 
-	// pause light
-	int pauseLight = 0;
+	tre::LightResource lightResc(deviceAndContext.device.Get());
+
+	lightResc.pointLights.assign(std::begin(pointLight), std::end(pointLight));
+	lightResc.updateBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get());
+	deviceAndContext.context.Get()->PSSetShaderResources(2, 1, lightResc.pLightShaderRescView.GetAddressOf());
 
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
@@ -380,7 +383,7 @@ int main()
 		cam.updateCamera();
 
 		// set const buffer for camera
-		tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camViewProjection, dirlight, 0);
+		tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camViewProjection, dirlight, lightResc.pointLights.size());
 
 		// cull objects
 		culledOpaqueObjQ.clear();
@@ -483,6 +486,9 @@ int main()
 			pointLight[3].pos = tre::Maths::getRotatePosition(originPtLight[3], stackAnglePtLight[3], sectorAnglePtLight[3], 5.0f);
 			lightObjQ[3].objPos = pointLight[3].pos;
 		}
+		lightResc.pointLights.assign(std::begin(pointLight), std::end(pointLight));
+		lightResc.updateBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get());
+		deviceAndContext.context.Get()->PSSetShaderResources(2, 1, lightResc.pLightShaderRescView.GetAddressOf());
 
 		// Set Pixel Shader for light
 		deviceAndContext.context->PSSetShader(light_pixel_shader.pShader.Get(), NULL, 0u);
@@ -494,7 +500,6 @@ int main()
 		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), lightObjQ);
 
 		// Draw debug
-		renderer.debugDraw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), culledOpaqueObjQ, meshes[meshIdx], typeOfBound);
 		if (showBoundingVolume) {
 			renderer.debugDraw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), culledOpaqueObjQ, meshes[meshIdx], typeOfBound);
 		}
