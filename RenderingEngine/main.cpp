@@ -210,7 +210,10 @@ int main()
 	ImGui_ImplSDL2_InitForD3D(window.window);
 	ImGui_ImplDX11_Init(deviceAndContext.device.Get(), deviceAndContext.context.Get());
 
+	// imgui setting
 	bool show_demo_window = false;
+	bool showBoundingVolume = true;
+	bool pauseLight = false;
 	tre::BoundVolumeEnum typeOfBound = tre::AABBBoundingBox;
 	int meshIdx = 0;
 	float fovY = 45.0f;
@@ -287,8 +290,6 @@ int main()
 			else {
 				opaqueObjQ.push_back(newObj);
 			}
-		} else if (input.keyState[SDL_SCANCODE_P]) {
-			pauseLight ^= 1;
 		}
 
 		// Start the Dear ImGui frame
@@ -307,7 +308,9 @@ int main()
 			ImGui::Begin("Debug");                         
 
 			ImGui::Checkbox("Demo Window", &show_demo_window);
-			
+			ImGui::Checkbox("Show Bounding Volume", &showBoundingVolume);
+			ImGui::Checkbox("Pause Light", &pauseLight);
+
 			// Bounding Type Selection
 			{
 				static int selectedIdx = 0;
@@ -492,6 +495,9 @@ int main()
 
 		// Draw debug
 		renderer.debugDraw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), culledOpaqueObjQ, meshes[meshIdx], typeOfBound);
+		if (showBoundingVolume) {
+			renderer.debugDraw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), culledOpaqueObjQ, meshes[meshIdx], typeOfBound);
+		}
 
 		ImGui::Render();
 		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
