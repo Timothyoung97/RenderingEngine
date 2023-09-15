@@ -161,6 +161,7 @@ int main()
 	XMVECTOR lightDir = XMLoadFloat3(&dirlight.direction);
 	XMStoreFloat3(&dirlight.direction, XMVector3Normalize(lightDir));
 
+	// create point light
 	tre::PointLight pointLight[4] = {
 		{ XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT3(.0f, .0f, .0f), 100.0f, XMFLOAT3(.0f, .2f, .0f), .0f, XMFLOAT4(.1f, .1f, .1f, .1f), XMFLOAT4(.5f, .5f, .5f, .5f) },
 		{ XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT3(.0f, .0f, .0f), 100.0f, XMFLOAT3(.0f, .2f, .0f), .0f, XMFLOAT4(.1f, .1f, .1f, .1f), XMFLOAT4(.5f, .5f, .5f, .5f) },
@@ -308,23 +309,26 @@ int main()
 			static float f = 0.0f;
 			static int counter = 0;
 
-			ImGui::Begin("Debug");                         
+			ImGui::Begin("Debug");
 
 			ImGui::Checkbox("Demo Window", &show_demo_window);
-			ImGui::Checkbox("Show Bounding Volume", &showBoundingVolume);
-			ImGui::Checkbox("Pause Light", &pauseLight);
+
+			ImGui::SeparatorText("Camera");
+			ImGui::SliderFloat("Camera FOV Y", &fovY, 1.0f, 179.0f);
 
 			// Bounding Type Selection
+			ImGui::SeparatorText("Bounding Volume");
+			ImGui::Checkbox("Show Bounding Volume", &showBoundingVolume);
 			{
 				static int selectedIdx = 0;
 				const char* names[] = { "AABB", "Ritter Sphere", "Naive Sphere" };
 
-				if (ImGui::Button("Bounding Volume Type"))
+				if (ImGui::Button("Bounding Volume Type")) {
 					ImGui::OpenPopup("boundVType");
+				}
 				ImGui::SameLine();
 				ImGui::TextUnformatted(names[selectedIdx]);
-				if (ImGui::BeginPopup("boundVType"))
-				{
+				if (ImGui::BeginPopup("boundVType")) {
 					ImGui::SeparatorText("Bounding Type");
 					for (int i = 0; i < IM_ARRAYSIZE(names); i++)
 						if (ImGui::Selectable(names[i])) {
@@ -346,12 +350,39 @@ int main()
 						}
 					ImGui::EndPopup();
 				}
-
-				ImGui::SliderFloat("Camera FOV Y", &fovY, 1.0f, 179.0f);
-
 			}
-			ImGui::Text("Within Frustcum/Total: %d / %d", culledOpaqueObjQ.size(), opaqueObjQ.size());
 
+			// Add random light 
+			{
+				ImGui::SeparatorText("Lights");
+				ImGui::Checkbox("Pause Light", &pauseLight);
+				if (lightResc.pointLights.size() < lightResc.maxPointLightNum) {
+					if (ImGui::Button("Add Pt Light")) {
+						lightResc.addPointLight();
+
+						tre::Object newLightObj;
+
+						newLightObj.pObjMesh = &meshes[1]; // sphere
+						newLightObj.objPos = lightResc.pointLights.back().pos;
+						newLightObj.objScale = XMFLOAT3(.1f, .1f, .1f);
+						newLightObj.objRotation = XMFLOAT3(.0f, .0f, .0f);
+						newLightObj.pObjTexture = &textures[0];
+						newLightObj.pObjNormalMap = nullptr;
+						newLightObj.isObjWithTexture = 0;
+						newLightObj.isObjWithNormalMap = 0;
+						newLightObj.objColor = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+
+						lightObjQ.push_back(newLightObj);
+					}
+					ImGui::SameLine();
+					ImGui::Text("Current Light Count: %d/%d", lightResc.pointLights.size(), lightResc.maxPointLightNum);
+				} else {
+					ImGui::Text("Max Light Count: %d/%d", lightResc.pointLights.size(), lightResc.maxPointLightNum);
+				}
+			}
+
+			ImGui::SeparatorText("Debug Info");
+			ImGui::Text("Within Frustcum/Total: %d / %d", culledOpaqueObjQ.size(), opaqueObjQ.size());
 			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 			ImGui::End();
 		}
@@ -486,7 +517,6 @@ int main()
 			pointLight[3].pos = tre::Maths::getRotatePosition(originPtLight[3], stackAnglePtLight[3], sectorAnglePtLight[3], 5.0f);
 			lightObjQ[3].objPos = pointLight[3].pos;
 		}
-		lightResc.pointLights.assign(std::begin(pointLight), std::end(pointLight));
 		lightResc.updateBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get());
 		deviceAndContext.context.Get()->PSSetShaderResources(2, 1, lightResc.pLightShaderRescView.GetAddressOf());
 

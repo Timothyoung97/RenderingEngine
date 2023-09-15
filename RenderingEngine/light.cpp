@@ -1,5 +1,7 @@
 #include "light.h"
 #include "dxdebug.h"
+#include "utility.h"
+#include "object.h"
 
 namespace tre {
 
@@ -41,6 +43,7 @@ void LightResource::updateBuffer(ID3D11Device* device, ID3D11DeviceContext* cont
 
 	// Copy subresource from CPU to GPU
 	context->CopyResource( pLightBufferGPU.Get(), pLightBufferCPU );
+	//context->CopySubresourceRegion(pLightBufferGPU.Get(), (UINT) pointLights.size() - 1, 0, 0, 0, pLightBufferCPU, pointLights.size() - 1, nullptr);
 
 	// update GPU on buffer
 	D3D11_BUFFER_SRV lightBufferSRV;
@@ -55,5 +58,23 @@ void LightResource::updateBuffer(ID3D11Device* device, ID3D11DeviceContext* cont
 	CHECK_DX_ERROR(device->CreateShaderResourceView(
 		pLightBufferGPU.Get(), &lightShaderResc, pLightShaderRescView.GetAddressOf()
 	));
+}
+
+void LightResource::addPointLight() {
+
+	if (pointLights.size() < maxPointLightNum) {
+		PointLight newPl = {
+			XMFLOAT3(.0f, .0f, .0f), 
+			.0f, // pad
+			XMFLOAT3(tre::Utility::getRandomFloatRange(-20, 20), tre::Utility::getRandomFloatRange(-20, 20), tre::Utility::getRandomFloatRange(-20, 20)),
+			tre::Utility::getRandomFloat(120.0f),
+			XMFLOAT3(.0f, .2f, .0f), 
+			.0f, // pad2
+			XMFLOAT4(tre::Utility::getRandomFloat(1.0f), tre::Utility::getRandomFloat(1.0f), tre::Utility::getRandomFloat(1.0f), tre::Utility::getRandomFloat(1.0f)),
+			XMFLOAT4(tre::Utility::getRandomFloat(1.0f), tre::Utility::getRandomFloat(1.0f), tre::Utility::getRandomFloat(1.0f), tre::Utility::getRandomFloat(1.0f))
+		};
+
+		pointLights.push_back(newPl);
+	}
 }
 }

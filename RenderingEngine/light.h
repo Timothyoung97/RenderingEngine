@@ -40,6 +40,6 @@ public:
 	LightResource(ID3D11Device* device);
 
 	void updateBuffer(ID3D11Device* device, ID3D11DeviceContext* context);
-
+	void addPointLight();
 };
 }
