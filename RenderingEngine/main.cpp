@@ -145,9 +145,6 @@ int main()
 	//Create Renderer
 	tre::Renderer renderer;
 
-	//Create const buffer manager
-	tre::ConstantBuffer cb;
-
 	std::vector<tre::Object> opaqueObjQ;
 	std::vector<tre::Object> transparentObjQ;	
 	std::vector<tre::Object> culledOpaqueObjQ;
@@ -378,19 +375,11 @@ int main()
 		// Set camera view const buffer
 		cam.camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovY), static_cast<float>(SCREEN_WIDTH) / SCREEN_HEIGHT, 1.0f, 1000.0f);
 		cam.updateCamera();
-		cb.constBufferRescCam.viewProjection = cam.camViewProjection;
-		cb.constBufferRescCam.light = dirlight;
-		std::copy(std::begin(pointLight), std::end(pointLight), std::begin(cb.constBufferRescCam.pointLight));
 
-		cb.csd.pSysMem = &cb.constBufferRescCam;
+		// set const buffer for camera
+		tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camViewProjection, dirlight, 0);
 
-		CHECK_DX_ERROR(deviceAndContext.device->CreateBuffer(
-			&cb.constantBufferDescCam, &cb.csd, cb.pConstBuffer.GetAddressOf()
-		));
-
-		deviceAndContext.context->VSSetConstantBuffers(0u, 1u, cb.pConstBuffer.GetAddressOf());
-		deviceAndContext.context->PSSetConstantBuffers(0u, 1u, cb.pConstBuffer.GetAddressOf());
-
+		// cull objects
 		culledOpaqueObjQ.clear();
 		for (int i = 0; i < opaqueObjQ.size(); i++) {
 			switch (typeOfBound) {
@@ -441,7 +430,7 @@ int main()
 		deviceAndContext.context->PSSetShader(pixel_shader.pShader.Get(), NULL, 0u);
 
 		// Draw all opaque objects
-		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateFCCW.Get(), cb, culledOpaqueObjQ);
+		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateFCCW.Get(), culledOpaqueObjQ);
 
 		if (toRecalDistFromCam) {
 			for (int i = 0; i < transparentObjQ.size(); i++) {
@@ -464,7 +453,7 @@ int main()
 		deviceAndContext.context->OMSetDepthStencilState(depthBuffer.pDSStateWithDepthTWriteDisabled.Get(), 0);
 
 		// Draw all transparent objects
-		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateFCCW.Get(), cb, culledTransparentObjQ);
+		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateFCCW.Get(), culledTransparentObjQ);
 
 		if (!pauseLight) {
 			// rotate point light 1
@@ -499,10 +488,10 @@ int main()
 		deviceAndContext.context->OMSetDepthStencilState(depthBuffer.pDSStateWithoutDepthT.Get(), 0);
 		
 		// Draw all light object wireframe
-		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, lightObjQ);
+		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), lightObjQ);
 
 		// Draw debug
-		renderer.debugDraw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), cb, culledOpaqueObjQ, meshes[meshIdx], typeOfBound);
+		renderer.debugDraw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), culledOpaqueObjQ, meshes[meshIdx], typeOfBound);
 
 		ImGui::Render();
 		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());

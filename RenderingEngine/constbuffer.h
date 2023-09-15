@@ -11,10 +11,12 @@
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;
 
+namespace tre {
+
 struct constBufferShaderRescCam {
 	XMMATRIX viewProjection;
 	tre::Light light;
-	tre::PointLight pointLight[4];
+	int numOfPointLight;
 };
 
 struct constBufferShaderRescModel {
@@ -25,20 +27,10 @@ struct constBufferShaderRescModel {
 	UINT hasNormalMap;
 };
 
-namespace tre {
-
 class ConstantBuffer {
 public:
-	D3D11_BUFFER_DESC constantBufferDescCam;
-	D3D11_BUFFER_DESC constantBufferDescModel;
-
-	D3D11_SUBRESOURCE_DATA csd = {};
-	ComPtr<ID3D11Buffer> pConstBuffer;
-
-	constBufferShaderRescCam constBufferRescCam;
-	constBufferShaderRescModel constBufferRescModel;
-
-	ConstantBuffer();
+	static void setCamConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, XMMATRIX viewProjection, tre::Light dirLight, int numOfPointLight);
+	static void setObjConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, XMMATRIX transformationLocal, XMFLOAT4 color, UINT isWithTexture, UINT hasNormalMap);
 };
 
 }

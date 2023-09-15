@@ -6,7 +6,7 @@
 
 namespace tre {
 
-void Renderer::draw(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11RasterizerState* rasterizerState, tre::ConstantBuffer& cb, const std::vector<Object>& objQ) {
+void Renderer::draw(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11RasterizerState* rasterizerState, const std::vector<Object>& objQ) {
 
 	context->RSSetState(rasterizerState);
 	
@@ -25,41 +25,25 @@ void Renderer::draw(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11Ra
 		//set shader resc view and sampler
 		context->PSSetShaderResources(0, 1, currObj.pObjTexture->pShaderResView.GetAddressOf());
 
-		//Config const buffer
-		cb.constBufferRescModel.transformationLocal = tre::Maths::createTransformationMatrix(currObj.objScale, currObj.objRotation, currObj.objPos);
-		
-		XMMATRIX normalMatrix = XMMatrixTranspose(XMMatrixInverse(nullptr, cb.constBufferRescModel.transformationLocal));
-
-		XMFLOAT3X3 normalFloat3x3;
-		XMStoreFloat3x3(&normalFloat3x3, normalMatrix);
-
-		cb.constBufferRescModel.normalMatrix = XMLoadFloat3x3(&normalFloat3x3);
-
-		cb.constBufferRescModel.isWithTexture = currObj.isObjWithTexture;
-		cb.constBufferRescModel.hasNormalMap = currObj.isObjWithNormalMap;
-		cb.constBufferRescModel.color = currObj.objColor;
+		//Config and set const buffer
+		tre::ConstantBuffer::setObjConstBuffer(
+			device, context,
+			tre::Maths::createTransformationMatrix(currObj.objScale, currObj.objRotation, currObj.objPos),
+			currObj.objColor,
+			currObj.isObjWithTexture,
+			currObj.isObjWithNormalMap
+		);
 
 		// set normal map
-		if (cb.constBufferRescModel.hasNormalMap) {
+		if (currObj.isObjWithNormalMap) {
 			context->PSSetShaderResources(1, 1, currObj.pObjNormalMap->pShaderResView.GetAddressOf());
 		}
-
-		//map to data to subresouce
-		cb.csd.pSysMem = &cb.constBufferRescModel;
-
-		CHECK_DX_ERROR(device->CreateBuffer(
-			&cb.constantBufferDescModel, &cb.csd, cb.pConstBuffer.GetAddressOf()
-		));
-
-		//Set const buffer for pixel and vertex shader
-		context->VSSetConstantBuffers(1u, 1u, cb.pConstBuffer.GetAddressOf());
-		context->PSSetConstantBuffers(1u, 1u, cb.pConstBuffer.GetAddressOf());
 
 		context->DrawIndexed(currObj.pObjMesh->indexSize, 0, 0);
 	}
 }
 
-void Renderer::debugDraw(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11RasterizerState* rasterizerState, tre::ConstantBuffer& cb, std::vector<Object>& objQ, Mesh& mesh, BoundVolumeEnum typeOfBound) {
+void Renderer::debugDraw(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11RasterizerState* rasterizerState, std::vector<Object>& objQ, Mesh& mesh, BoundVolumeEnum typeOfBound) {
 
 	context->RSSetState(rasterizerState);
 
@@ -94,35 +78,19 @@ void Renderer::debugDraw(ID3D11Device* device, ID3D11DeviceContext* context, ID3
 			break;
 		}
 
-		//Set const buffer
-     	cb.constBufferRescModel.transformationLocal = transformM;
-
-		XMMATRIX normalMatrix = XMMatrixTranspose(XMMatrixInverse(nullptr, cb.constBufferRescModel.transformationLocal));
-
-		XMFLOAT3X3 normalFloat3x3;
-		XMStoreFloat3x3(&normalFloat3x3, normalMatrix);
-
-		cb.constBufferRescModel.normalMatrix = XMLoadFloat3x3(&normalFloat3x3);
-
-		cb.constBufferRescModel.isWithTexture = currObj.isObjWithTexture;
-		cb.constBufferRescModel.hasNormalMap = currObj.isObjWithNormalMap;
-		cb.constBufferRescModel.color = currObj.objColor;
+		//Config and set const buffer
+		tre::ConstantBuffer::setObjConstBuffer(
+			device, context,
+			transformM,
+			currObj.objColor,
+			currObj.isObjWithTexture,
+			currObj.isObjWithNormalMap
+		);
 
 		// set normal map
-		if (cb.constBufferRescModel.hasNormalMap) {
+		if (currObj.isObjWithNormalMap) {
 			context->PSSetShaderResources(1, 1, currObj.pObjNormalMap->pShaderResView.GetAddressOf());
 		}
-
-		//map to data to subresouce
-		cb.csd.pSysMem = &cb.constBufferRescModel;
-
-		CHECK_DX_ERROR(device->CreateBuffer(
-			&cb.constantBufferDescModel, &cb.csd, cb.pConstBuffer.GetAddressOf()
-		));
-
-		//Set const buffer for pixel and vertex shader
-		context->VSSetConstantBuffers(1u, 1u, cb.pConstBuffer.GetAddressOf());
-		context->PSSetConstantBuffers(1u, 1u, cb.pConstBuffer.GetAddressOf());
 
 		context->DrawIndexed(mesh.indexSize, 0, 0);
 	}
