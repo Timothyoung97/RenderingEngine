@@ -216,6 +216,7 @@ int main()
 	bool show_demo_window = false;
 	tre::BoundVolumeEnum typeOfBound = tre::AABBBoundingBox;
 	int meshIdx = 0;
+	float fovY = 45.0f;
 
 	// main loop
 	while (!input.shouldQuit())
@@ -342,6 +343,9 @@ int main()
 						}
 					ImGui::EndPopup();
 				}
+
+				ImGui::SliderFloat("Camera FOV Y", &fovY, 1.0f, 179.0f);
+
 			}
 			ImGui::Text("Within Frustcum/Total: %d / %d", culledOpaqueObjQ.size(), opaqueObjQ.size());
 
@@ -372,6 +376,8 @@ int main()
 		deviceAndContext.context->ClearDepthStencilView(depthBuffer.depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 		// Set camera view const buffer
+		cam.camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovY), static_cast<float>(SCREEN_WIDTH) / SCREEN_HEIGHT, 1.0f, 1000.0f);
+		cam.updateCamera();
 		cb.constBufferRescCam.viewProjection = cam.camViewProjection;
 		cb.constBufferRescCam.light = dirlight;
 		std::copy(std::begin(pointLight), std::end(pointLight), std::begin(cb.constBufferRescCam.pointLight));

@@ -29,6 +29,7 @@ cbuffer constBuffer2 : register(b1) {
     uint hasNormMap;
 };
 
+// 
 Texture2D ObjTexture : register(t0);
 Texture2D ObjNormMap : register(t1);
 SamplerState ObjSamplerState;
