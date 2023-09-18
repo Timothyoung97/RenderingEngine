@@ -16,8 +16,8 @@ public:
 
 	// Directional light
 	tre::Light dirlight;
-
-
+	
+	// Resources
 	std::vector<Mesh> meshes;
 	std::vector<Texture> textures;
 	std::vector<Texture> normalTextures;

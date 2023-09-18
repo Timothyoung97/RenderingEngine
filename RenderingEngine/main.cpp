@@ -213,11 +213,104 @@ int main()
 	int meshIdx = 0;
 	float fovY = 45.0f;
 
-
 	// Scene
 	tre::Scene scene(deviceAndContext.device.Get());
 	scene.createFloor();
 	scene.createDirLight();
+
+	// Testing Obj
+	tre::Object testCube;
+
+	testCube.pObjMesh = &meshes[0];
+	testCube.objPos = XMFLOAT3(-5.f, .5f, .0f);
+	testCube.objScale = XMFLOAT3(1.f, 1.f, 1.f);
+	testCube.objRotation = XMFLOAT3(.0f, .0f, .0f);
+	testCube.pObjTexture = &textures[4];
+	testCube.isObjWithTexture = 1;
+	testCube.pObjNormalMap = &normals[1];
+	testCube.isObjWithNormalMap = 1;
+	testCube.objColor = colors[2];
+	testCube.ritterBs = testCube.pObjMesh->ritterSphere;
+	testCube.naiveBs = testCube.pObjMesh->naiveSphere;
+	testCube.aabb = testCube.pObjMesh->aabb;
+
+	// transparent queue -> object with texture with alpha channel or object with color.w below 1.0f
+	if ((testCube.isObjWithTexture && testCube.pObjTexture->hasAlphaChannel)
+		|| (!testCube.isObjWithTexture && testCube.objColor.w < 1.0f)) {
+
+		// find its distance from cam
+		testCube.distFromCam = tre::Maths::distBetweentObjToCam(testCube.objPos, cam.camPositionV);
+
+		transparentObjQ.push_back(testCube);
+
+		toSortTransparentQ = true;
+
+	}
+	else {
+		opaqueObjQ.push_back(testCube);
+	}
+
+	tre::Object testSphere;
+
+	testSphere.pObjMesh = &meshes[1];
+	testSphere.objPos = XMFLOAT3(.0f, .5f, .0f);
+	testSphere.objScale = XMFLOAT3(1.f, 1.f, 1.f);
+	testSphere.objRotation = XMFLOAT3(.0f, .0f, .0f);
+	testSphere.pObjTexture = &textures[3];
+	testSphere.isObjWithTexture = 1;
+	testSphere.pObjNormalMap = &normals[0];
+	testSphere.isObjWithNormalMap = 1;
+	testSphere.objColor = colors[2];
+	testSphere.ritterBs = testSphere.pObjMesh->ritterSphere;
+	testSphere.naiveBs = testSphere.pObjMesh->naiveSphere;
+	testSphere.aabb = testSphere.pObjMesh->aabb;
+
+	// transparent queue -> object with texture with alpha channel or object with color.w below 1.0f
+	if ((testSphere.isObjWithTexture && testSphere.pObjTexture->hasAlphaChannel)
+		|| (!testSphere.isObjWithTexture && testSphere.objColor.w < 1.0f)) {
+
+		// find its distance from cam
+		testSphere.distFromCam = tre::Maths::distBetweentObjToCam(testSphere.objPos, cam.camPositionV);
+
+		transparentObjQ.push_back(testSphere);
+
+		toSortTransparentQ = true;
+
+	}
+	else {
+		opaqueObjQ.push_back(testSphere);
+	}
+
+	tre::Object testTeapot;
+
+	testTeapot.pObjMesh = &meshes[2];
+	testTeapot.objPos = XMFLOAT3(5.f, .5f, .0f);
+	testTeapot.objScale = XMFLOAT3(.1f, .1f, .1f);
+	testTeapot.objRotation = XMFLOAT3(.0f, .0f, .0f);
+	testTeapot.pObjTexture = &textures[0];
+	testTeapot.isObjWithTexture = 1;
+	testTeapot.pObjNormalMap = nullptr;
+	testTeapot.isObjWithNormalMap = 0;
+	testTeapot.objColor = colors[2];
+	testTeapot.ritterBs = testTeapot.pObjMesh->ritterSphere;
+	testTeapot.naiveBs = testTeapot.pObjMesh->naiveSphere;
+	testTeapot.aabb = testTeapot.pObjMesh->aabb;
+
+	// transparent queue -> object with texture with alpha channel or object with color.w below 1.0f
+	if ((testTeapot.isObjWithTexture && testTeapot.pObjTexture->hasAlphaChannel)
+		|| (!testTeapot.isObjWithTexture && testTeapot.objColor.w < 1.0f)) {
+
+		// find its distance from cam
+		testTeapot.distFromCam = tre::Maths::distBetweentObjToCam(testTeapot.objPos, cam.camPositionV);
+
+		transparentObjQ.push_back(testTeapot);
+
+		toSortTransparentQ = true;
+
+	}
+	else {
+		opaqueObjQ.push_back(testTeapot);
+	}
 
 	// main loop
 	while (!input.shouldQuit())
@@ -497,24 +590,28 @@ int main()
 			if (sectorAnglePtLight[0] == 360.0f) sectorAnglePtLight[0] = .0f;
 			pointLight[0].pos = tre::Maths::getRotatePosition(originPtLight[0], stackAnglePtLight[0], sectorAnglePtLight[0], 1.0f);
 			lightObjQ[0].objPos = pointLight[0].pos;
+			lightResc.pointLights[0].pos = lightObjQ[0].objPos;
 
 			// rotate point light 2
 			stackAnglePtLight[1] += 1.0f;
 			if (stackAnglePtLight[1] == 360.0f) stackAnglePtLight[1] = .0f;
 			pointLight[1].pos = tre::Maths::getRotatePosition(originPtLight[1], stackAnglePtLight[1], sectorAnglePtLight[1], 1.0f);
 			lightObjQ[1].objPos = pointLight[1].pos;
+			lightResc.pointLights[1].pos = lightObjQ[1].objPos;
 
 			// rotate point light 3
 			sectorAnglePtLight[2] += 5.0f;
 			if (sectorAnglePtLight[2] == 360.0f) sectorAnglePtLight[2] = .0f;
 			pointLight[2].pos = tre::Maths::getRotatePosition(originPtLight[2], stackAnglePtLight[2], sectorAnglePtLight[2], 5.0f);
 			lightObjQ[2].objPos = pointLight[2].pos;
+			lightResc.pointLights[2].pos = lightObjQ[2].objPos;
 
 			// rotate point light 4
 			stackAnglePtLight[3] += 5.0f;
 			if (stackAnglePtLight[3] == 360.0f) stackAnglePtLight[3] = .0f;
 			pointLight[3].pos = tre::Maths::getRotatePosition(originPtLight[3], stackAnglePtLight[3], sectorAnglePtLight[3], 5.0f);
 			lightObjQ[3].objPos = pointLight[3].pos;
+			lightResc.pointLights[3].pos = lightObjQ[3].objPos;
 		}
 		lightResc.updateBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get());
 		deviceAndContext.context.Get()->PSSetShaderResources(2, 1, lightResc.pLightShaderRescView.GetAddressOf());
