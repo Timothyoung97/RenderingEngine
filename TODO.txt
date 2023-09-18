@@ -25,6 +25,17 @@ Graphics Tasks:
     • Full screen pass (Quad or Triangle) for lighting
         • Reconstruct world position from depth buffer
     • Utilize light volumes for point lights
+• Update point lights in GPU
+    • Use Compute Shaders
+• Instanced Rendering
+    • Draw multiple primitives in single Draw Calls
+    • Batch primitives with similar Textures & Meshes
+    • Build Instance Constants in a Buffer to be accessed in VS/PS
+    • DrawIndexedInstanced
+• Image Based Lighting
+• Ambient Occlusion
+• Static Animations
+• Skinning
 
 Done:
 • init d3d11 device/context, and clear swap chain to grey color
