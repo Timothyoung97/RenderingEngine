@@ -40,6 +40,7 @@
 #include "maths.h"
 #include "inputlayout.h"
 #include "scene.h"
+#include "shadowmap.h"
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 1920;
@@ -217,6 +218,10 @@ int main()
 	scene.createFloor();
 	scene.createDirLight();
 
+	XMMATRIX lightOrtho = XMMatrixOrthographicLH(1024, 1024, 1.f, 200.f);
+	XMMATRIX lightView = XMMatrixLookAtLH(XMVECTOR{ -.5f, .5f, -.5f } * 50, XMVECTOR{ .0f, .0f, .0f }, XMVECTOR{ .0f, 1.f, .0f });
+	XMMATRIX lightViewProj = XMMatrixMultiply(lightView, lightOrtho);
+
 	// Testing Obj
 	tre::Object testCube;
 
@@ -249,67 +254,69 @@ int main()
 		opaqueObjQ.push_back(testCube);
 	}
 
-	tre::Object testSphere;
+	//tre::Object testSphere;
 
-	testSphere.pObjMesh = &meshes[1];
-	testSphere.objPos = XMFLOAT3(.0f, .5f, .0f);
-	testSphere.objScale = XMFLOAT3(1.f, 1.f, 1.f);
-	testSphere.objRotation = XMFLOAT3(.0f, .0f, .0f);
-	testSphere.pObjTexture = &textures[3];
-	testSphere.isObjWithTexture = 1;
-	testSphere.pObjNormalMap = &normals[0];
-	testSphere.isObjWithNormalMap = 1;
-	testSphere.objColor = colors[2];
-	testSphere.ritterBs = testSphere.pObjMesh->ritterSphere;
-	testSphere.naiveBs = testSphere.pObjMesh->naiveSphere;
-	testSphere.aabb = testSphere.pObjMesh->aabb;
+	//testSphere.pObjMesh = &meshes[1];
+	//testSphere.objPos = XMFLOAT3(.0f, .5f, .0f);
+	//testSphere.objScale = XMFLOAT3(1.f, 1.f, 1.f);
+	//testSphere.objRotation = XMFLOAT3(.0f, .0f, .0f);
+	//testSphere.pObjTexture = &textures[3];
+	//testSphere.isObjWithTexture = 1;
+	//testSphere.pObjNormalMap = &normals[0];
+	//testSphere.isObjWithNormalMap = 1;
+	//testSphere.objColor = colors[2];
+	//testSphere.ritterBs = testSphere.pObjMesh->ritterSphere;
+	//testSphere.naiveBs = testSphere.pObjMesh->naiveSphere;
+	//testSphere.aabb = testSphere.pObjMesh->aabb;
 
-	// transparent queue -> object with texture with alpha channel or object with color.w below 1.0f
-	if ((testSphere.isObjWithTexture && testSphere.pObjTexture->hasAlphaChannel)
-		|| (!testSphere.isObjWithTexture && testSphere.objColor.w < 1.0f)) {
+	//// transparent queue -> object with texture with alpha channel or object with color.w below 1.0f
+	//if ((testSphere.isObjWithTexture && testSphere.pObjTexture->hasAlphaChannel)
+	//	|| (!testSphere.isObjWithTexture && testSphere.objColor.w < 1.0f)) {
 
-		// find its distance from cam
-		testSphere.distFromCam = tre::Maths::distBetweentObjToCam(testSphere.objPos, cam.camPositionV);
+	//	// find its distance from cam
+	//	testSphere.distFromCam = tre::Maths::distBetweentObjToCam(testSphere.objPos, cam.camPositionV);
 
-		transparentObjQ.push_back(testSphere);
+	//	transparentObjQ.push_back(testSphere);
 
-		toSortTransparentQ = true;
+	//	toSortTransparentQ = true;
 
-	}
-	else {
-		opaqueObjQ.push_back(testSphere);
-	}
+	//}
+	//else {
+	//	opaqueObjQ.push_back(testSphere);
+	//}
 
-	tre::Object testTeapot;
+	//tre::Object testTeapot;
 
-	testTeapot.pObjMesh = &meshes[2];
-	testTeapot.objPos = XMFLOAT3(5.f, .5f, .0f);
-	testTeapot.objScale = XMFLOAT3(.1f, .1f, .1f);
-	testTeapot.objRotation = XMFLOAT3(.0f, .0f, .0f);
-	testTeapot.pObjTexture = &textures[0];
-	testTeapot.isObjWithTexture = 1;
-	testTeapot.pObjNormalMap = nullptr;
-	testTeapot.isObjWithNormalMap = 0;
-	testTeapot.objColor = colors[2];
-	testTeapot.ritterBs = testTeapot.pObjMesh->ritterSphere;
-	testTeapot.naiveBs = testTeapot.pObjMesh->naiveSphere;
-	testTeapot.aabb = testTeapot.pObjMesh->aabb;
+	//testTeapot.pObjMesh = &meshes[2];
+	//testTeapot.objPos = XMFLOAT3(5.f, .5f, .0f);
+	//testTeapot.objScale = XMFLOAT3(.1f, .1f, .1f);
+	//testTeapot.objRotation = XMFLOAT3(.0f, .0f, .0f);
+	//testTeapot.pObjTexture = &textures[0];
+	//testTeapot.isObjWithTexture = 1;
+	//testTeapot.pObjNormalMap = nullptr;
+	//testTeapot.isObjWithNormalMap = 0;
+	//testTeapot.objColor = colors[2];
+	//testTeapot.ritterBs = testTeapot.pObjMesh->ritterSphere;
+	//testTeapot.naiveBs = testTeapot.pObjMesh->naiveSphere;
+	//testTeapot.aabb = testTeapot.pObjMesh->aabb;
 
-	// transparent queue -> object with texture with alpha channel or object with color.w below 1.0f
-	if ((testTeapot.isObjWithTexture && testTeapot.pObjTexture->hasAlphaChannel)
-		|| (!testTeapot.isObjWithTexture && testTeapot.objColor.w < 1.0f)) {
+	//// transparent queue -> object with texture with alpha channel or object with color.w below 1.0f
+	//if ((testTeapot.isObjWithTexture && testTeapot.pObjTexture->hasAlphaChannel)
+	//	|| (!testTeapot.isObjWithTexture && testTeapot.objColor.w < 1.0f)) {
 
-		// find its distance from cam
-		testTeapot.distFromCam = tre::Maths::distBetweentObjToCam(testTeapot.objPos, cam.camPositionV);
+	//	// find its distance from cam
+	//	testTeapot.distFromCam = tre::Maths::distBetweentObjToCam(testTeapot.objPos, cam.camPositionV);
 
-		transparentObjQ.push_back(testTeapot);
+	//	transparentObjQ.push_back(testTeapot);
 
-		toSortTransparentQ = true;
+	//	toSortTransparentQ = true;
 
-	}
-	else {
-		opaqueObjQ.push_back(testTeapot);
-	}
+	//}
+	//else {
+	//	opaqueObjQ.push_back(testTeapot);
+	//}
+
+	tre::ShadowMap shadowMap(deviceAndContext.device.Get());
 
 	// main loop
 	while (!input.shouldQuit())
@@ -492,11 +499,41 @@ int main()
 			backBuffer, NULL, &renderTargetView
 		));
 
-		deviceAndContext.context->OMSetRenderTargets(1, &renderTargetView, depthBuffer.depthStencilView.Get());
-		
+
 		deviceAndContext.context->ClearRenderTargetView(renderTargetView, scene.bgColor);
 
+		{
+			deviceAndContext.context->ClearDepthStencilView(shadowMap.shadowDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+
+			deviceAndContext.context->OMSetRenderTargets(0, nullptr, shadowMap.shadowDepthStencilView.Get());
+
+			deviceAndContext.context->RSSetState(shadowMap.shadowRasterizerState.Get());
+			
+			deviceAndContext.context->RSSetViewports(1, &shadowMap.shadowViewport);
+
+			//Set vertex buffer
+			UINT vertexStride = sizeof(Vertex);
+			UINT offset = 0;
+			deviceAndContext.context->IASetVertexBuffers(0, 1, testCube.pObjMesh->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
+
+			deviceAndContext.context->IASetIndexBuffer(testCube.pObjMesh->pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0u);
+
+			// set const buffer for camera
+			tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), lightViewProj, scene.dirlight, lightResc.pointLights.size());
+
+			// Set Pixel Shader
+			deviceAndContext.context->PSSetShader(nullptr, NULL, 0u);
+
+			deviceAndContext.context->DrawIndexed(testCube.pObjMesh->indexSize, 0, 0);
+
+		}
+
 		deviceAndContext.context->ClearDepthStencilView(depthBuffer.depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+		
+		deviceAndContext.context->OMSetRenderTargets(1, &renderTargetView, depthBuffer.depthStencilView.Get());
+
+		//Set Viewport
+		deviceAndContext.context->RSSetViewports(1, &viewport);
 
 		// Set camera view const buffer
 		cam.camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovY), static_cast<float>(SCREEN_WIDTH) / SCREEN_HEIGHT, 1.0f, 1000.0f);
