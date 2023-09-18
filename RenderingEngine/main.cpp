@@ -79,10 +79,11 @@ int main()
 	deviceAndContext.context->VSSetShader(vertex_shader.pShader.Get(), NULL, 0u);
 
 	// 3D objects
-	static tre::Mesh meshes[3] = {
+	static tre::Mesh meshes[4] = {
 		tre::CubeMesh(deviceAndContext.device.Get()), 
 		tre::SphereMesh(deviceAndContext.device.Get(), 20, 20),
-		tre::TeapotMesh(deviceAndContext.device.Get())
+		tre::TeapotMesh(deviceAndContext.device.Get()),
+		tre::FloorMesh(deviceAndContext.device.Get())
 	};
 
 	// Create texture
@@ -221,6 +222,18 @@ int main()
 	tre::BoundVolumeEnum typeOfBound = tre::AABBBoundingBox;
 	int meshIdx = 0;
 	float fovY = 45.0f;
+
+	// create floor 
+	tre::Object floor;
+	floor.pObjMesh = &meshes[3];
+	floor.objPos = XMFLOAT3(.0f, .0f, .0f);
+	floor.objScale = XMFLOAT3(100.f, 100.f, 100.f);
+	floor.objRotation = XMFLOAT3(.0f, .0f, .0f);
+	floor.pObjTexture = &textures[0];
+	floor.pObjNormalMap = nullptr;
+	floor.isObjWithTexture = 1;
+	floor.isObjWithNormalMap = 0;
+	floor.objColor = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 
 	// main loop
 	while (!input.shouldQuit())
@@ -467,6 +480,8 @@ int main()
 		deviceAndContext.context->PSSetShader(pixel_shader.pShader.Get(), NULL, 0u);
 
 		// Draw all opaque objects
+		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateFCCW.Get(), {floor});
+
 		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateFCCW.Get(), culledOpaqueObjQ);
 
 		if (toRecalDistFromCam) {
