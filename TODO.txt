@@ -1,10 +1,4 @@
 Graphics Tasks:
-• Frustum Culling
-    • Bounding Volume generation (Sphere & AABB)
-    • shape-frustum intersection tests
-    • debug color if intersecting or completely inside frustum
-    • stress test (populate scene with >10,000 objects spread out)
-• Convert local light lists to StructuredBuffer
 • Shadow Maps
     • Hardcode a simple scene with a few objects & a large "floor" mesh to test
     • Start with simple single-cascade hard shadows
@@ -70,6 +64,12 @@ Done:
 • Normal Mapping
     • detailed per-pixel lighting
     • TBN matrix
+• Frustum Culling
+    • Bounding Volume generation (Sphere & AABB)
+    • shape-frustum intersection tests
+    • debug color if intersecting or completely inside frustum
+    • stress test (populate scene with >10,000 objects spread out)
+• Convert local light lists to StructuredBuffer
 
 //////////////////////////////////////////////////////////////////////////////
 
