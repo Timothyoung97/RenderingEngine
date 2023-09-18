@@ -39,6 +39,7 @@
 #include "boundingvolume.h"
 #include "maths.h"
 #include "inputlayout.h"
+#include "scene.h"
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 1920;
@@ -223,17 +224,10 @@ int main()
 	int meshIdx = 0;
 	float fovY = 45.0f;
 
-	// create floor 
-	tre::Object floor;
-	floor.pObjMesh = &meshes[3];
-	floor.objPos = XMFLOAT3(.0f, .0f, .0f);
-	floor.objScale = XMFLOAT3(100.f, 100.f, 100.f);
-	floor.objRotation = XMFLOAT3(.0f, .0f, .0f);
-	floor.pObjTexture = &textures[0];
-	floor.pObjNormalMap = nullptr;
-	floor.isObjWithTexture = 1;
-	floor.isObjWithNormalMap = 0;
-	floor.objColor = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+
+	// Scene
+	tre::Scene scene;
+	scene.createFloor(&meshes[3], &textures[0]);
 
 	// main loop
 	while (!input.shouldQuit())
@@ -480,7 +474,7 @@ int main()
 		deviceAndContext.context->PSSetShader(pixel_shader.pShader.Get(), NULL, 0u);
 
 		// Draw all opaque objects
-		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateFCCW.Get(), {floor});
+		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateFCCW.Get(), {scene.floor});
 
 		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateFCCW.Get(), culledOpaqueObjQ);
 
