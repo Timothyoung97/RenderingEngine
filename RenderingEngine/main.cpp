@@ -152,14 +152,6 @@ int main()
 	bool toSortTransparentQ = false;
 	bool toRecalDistFromCam = false;
 
-	// set light
-	tre::Light dirlight{
-		XMFLOAT3(-.5f, .5f, -.5f), .0f, XMFLOAT4(.5f, .5f, .5f, 1.0f), XMFLOAT4(.5f, .5f, .5f, .5f)
-	};
-
-	XMVECTOR lightDir = XMLoadFloat3(&dirlight.direction);
-	XMStoreFloat3(&dirlight.direction, XMVector3Normalize(lightDir));
-
 	// create point light
 	tre::PointLight pointLight[4] = {
 		{ XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT3(.0f, .0f, .0f), 100.0f, XMFLOAT3(.0f, .2f, .0f), .0f, XMFLOAT4(.1f, .1f, .1f, .1f), XMFLOAT4(.5f, .5f, .5f, .5f) },
@@ -225,6 +217,7 @@ int main()
 	// Scene
 	tre::Scene scene(deviceAndContext.device.Get());
 	scene.createFloor();
+	scene.createDirLight();
 
 	// main loop
 	while (!input.shouldQuit())
@@ -418,7 +411,7 @@ int main()
 		cam.updateCamera();
 
 		// set const buffer for camera
-		tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camViewProjection, dirlight, lightResc.pointLights.size());
+		tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camViewProjection, scene.dirlight, lightResc.pointLights.size());
 
 		// cull objects
 		culledOpaqueObjQ.clear();

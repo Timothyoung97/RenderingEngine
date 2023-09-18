@@ -1,7 +1,5 @@
 #include "scene.h"
 
-#include "mesh.h"
-#include "texture.h"
 #include "utility.h"
 
 namespace tre {
@@ -42,6 +40,16 @@ void Scene::createFloor() {
 	floor.isObjWithTexture = 1;
 	floor.isObjWithNormalMap = 0;
 	floor.objColor = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+}
+
+void Scene::createDirLight() {
+	dirlight = {
+		XMFLOAT3(-.5f, .5f, -.5f), .0f, XMFLOAT4(.5f, .5f, .5f, 1.0f), XMFLOAT4(.5f, .5f, .5f, .5f)
+	};
+
+	// normalize
+	XMVECTOR lightDir = XMLoadFloat3(&dirlight.direction);
+	XMStoreFloat3(&dirlight.direction, XMVector3Normalize(lightDir));
 }
 
 }
