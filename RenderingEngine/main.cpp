@@ -135,9 +135,6 @@ int main()
 	//Input Handler
 	tre::Input input;
 	
-	//Background Color
-	float bgColor[4] = { .5f, .5f, .5f, 1.0f };
-	
 	//Delta Time between frame
 	float deltaTime = 0;
 
@@ -412,7 +409,7 @@ int main()
 
 		deviceAndContext.context->OMSetRenderTargets(1, &renderTargetView, depthBuffer.depthStencilView.Get());
 		
-		deviceAndContext.context->ClearRenderTargetView(renderTargetView, bgColor);
+		deviceAndContext.context->ClearRenderTargetView(renderTargetView, scene.bgColor);
 
 		deviceAndContext.context->ClearDepthStencilView(depthBuffer.depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
