@@ -226,8 +226,8 @@ int main()
 
 
 	// Scene
-	tre::Scene scene;
-	scene.createFloor(&meshes[3], &textures[0]);
+	tre::Scene scene(deviceAndContext.device.Get());
+	scene.createFloor();
 
 	// main loop
 	while (!input.shouldQuit())
