@@ -83,8 +83,7 @@ int main()
 	static tre::Mesh meshes[4] = {
 		tre::CubeMesh(deviceAndContext.device.Get()), 
 		tre::SphereMesh(deviceAndContext.device.Get(), 20, 20),
-		tre::TeapotMesh(deviceAndContext.device.Get()),
-		tre::FloorMesh(deviceAndContext.device.Get())
+		tre::TeapotMesh(deviceAndContext.device.Get())
 	};
 
 	// Create texture

@@ -60,8 +60,4 @@ public:
 	TeapotMesh(ID3D11Device* device);
 };
 
-class FloorMesh : public Mesh {
-public:
-	FloorMesh(ID3D11Device* device);
-};
 }

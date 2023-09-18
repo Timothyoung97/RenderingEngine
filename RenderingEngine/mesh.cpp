@@ -7,44 +7,6 @@
 
 namespace tre {
 
-FloorMesh::FloorMesh(ID3D11Device* device) {
-
-	std::vector<Vertex> vertices;
-	std::vector<uint16_t> indices;
-	std::vector<XMFLOAT3> uniqueVertexPos;
-
-	// Vertices
-	Vertex vertex[] = {
-		XMFLOAT3(-unitLength, .0f, unitLength), XMFLOAT3(0, 1, 0), XMFLOAT3(1, 0, 0), XMFLOAT2(0, 0), // 0
-		XMFLOAT3(-unitLength, .0f, -unitLength), XMFLOAT3(0, 1, 0), XMFLOAT3(1, 0, 0), XMFLOAT2(0, 1),
-		XMFLOAT3(unitLength, .0f, unitLength), XMFLOAT3(0, 1, 0), XMFLOAT3(1, 0, 0), XMFLOAT2(1, 0),
-		XMFLOAT3(unitLength, .0f, -unitLength), XMFLOAT3(0, 1, 0), XMFLOAT3(1, 0, 0), XMFLOAT2(1, 1)
-	};
-
-	vertices.assign(std::begin(vertex), std::end(vertex));
-
-	uniqueVertexPos = {
-		XMFLOAT3(-unitLength, .0f, unitLength),
-		XMFLOAT3(-unitLength, .0f, -unitLength),
-		XMFLOAT3(unitLength, .0f, unitLength),
-		XMFLOAT3(unitLength, .0f, -unitLength)
-	};
-
-	ritterSphere = tre::BoundingVolume::createRitterBS(uniqueVertexPos);
-	naiveSphere = tre::BoundingVolume::createNaiveBS(uniqueVertexPos);
-	aabb = tre::BoundingVolume::createAABB(uniqueVertexPos);
-
-	//Indices
-	uint16_t index[] = {
-		0, 1, 3,
-		0, 3, 2,
-	};
-
-	indices.assign(std::begin(index), std::end(index));
-
-	createVertexAndIndexBuffer(device, vertices, indices);
-}
-
 CubeMesh::CubeMesh(ID3D11Device* device) {
 	create(device);
 }

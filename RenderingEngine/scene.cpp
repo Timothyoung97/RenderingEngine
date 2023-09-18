@@ -9,8 +9,7 @@ Scene::Scene(ID3D11Device* device) {
 	meshes = {
 		tre::CubeMesh(device),
 		tre::SphereMesh(device, 20, 20),
-		tre::TeapotMesh(device),
-		tre::FloorMesh(device)
+		tre::TeapotMesh(device)
 	};
 	
 	// Create texture
@@ -31,9 +30,9 @@ Scene::Scene(ID3D11Device* device) {
 }
 	
 void Scene::createFloor() {
-	floor.pObjMesh = &meshes[3];
+	floor.pObjMesh = &meshes[0];
 	floor.objPos = XMFLOAT3(.0f, .0f, .0f);
-	floor.objScale = XMFLOAT3(100.f, 100.f, 100.f);
+	floor.objScale = XMFLOAT3(100.f, 0.01f, 100.f);
 	floor.objRotation = XMFLOAT3(.0f, .0f, .0f);
 	floor.pObjTexture = &textures[0];
 	floor.pObjNormalMap = nullptr;
