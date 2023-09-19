@@ -40,7 +40,6 @@
 #include "maths.h"
 #include "inputlayout.h"
 #include "scene.h"
-#include "shadowmap.h"
 #include "viewport.h"
 
 //Screen dimension constants
@@ -309,7 +308,6 @@ int main()
 	//	opaqueObjQ.push_back(testTeapot);
 	//}
 
-	tre::ShadowMap shadowMap(deviceAndContext.device.Get());
 
 	// main loop
 	while (!input.shouldQuit())
@@ -496,9 +494,9 @@ int main()
 		deviceAndContext.context->ClearRenderTargetView(renderTargetView, scene.bgColor);
 
 		{ //draw shadow
-			deviceAndContext.context->ClearDepthStencilView(shadowMap.shadowDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+			deviceAndContext.context->ClearDepthStencilView(depthBuffer.pShadowDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 
-			deviceAndContext.context->OMSetRenderTargets(0, nullptr, shadowMap.shadowDepthStencilView.Get());
+			deviceAndContext.context->OMSetRenderTargets(0, nullptr, depthBuffer.pShadowDepthStencilView.Get());
 
 			deviceAndContext.context->RSSetState(rasterizer.pShadowRasterizerState.Get());
 			
@@ -521,9 +519,9 @@ int main()
 
 		}
 
-		deviceAndContext.context->ClearDepthStencilView(depthBuffer.depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+		deviceAndContext.context->ClearDepthStencilView(depthBuffer.pDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 		
-		deviceAndContext.context->OMSetRenderTargets(1, &renderTargetView, depthBuffer.depthStencilView.Get());
+		deviceAndContext.context->OMSetRenderTargets(1, &renderTargetView, depthBuffer.pDepthStencilView.Get());
 
 		//Set Viewport for color draw
 		deviceAndContext.context->RSSetViewports(1, &viewports.defaultViewport);

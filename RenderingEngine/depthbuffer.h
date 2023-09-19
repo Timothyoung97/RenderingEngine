@@ -9,8 +9,12 @@ namespace tre {
 
 class DepthBuffer {
 public:
-	ComPtr<ID3D11DepthStencilView> depthStencilView;
-	ComPtr<ID3D11Texture2D> depthStencilBuffer;
+	ComPtr<ID3D11Texture2D> pDepthStencilTexture;
+	ComPtr<ID3D11DepthStencilView> pDepthStencilView;
+	
+	ComPtr<ID3D11Texture2D> pShadowMapTexture;
+	ComPtr<ID3D11DepthStencilView> pShadowDepthStencilView;
+	ComPtr<ID3D11ShaderResourceView> pShadowShaderRescView;
 
 	ComPtr<ID3D11DepthStencilState> pDSStateWithDepthTWriteEnabled;
 	ComPtr<ID3D11DepthStencilState> pDSStateWithDepthTWriteDisabled;
