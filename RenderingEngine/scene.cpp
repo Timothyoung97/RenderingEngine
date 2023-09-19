@@ -36,7 +36,7 @@ void Scene::createFloor() {
 	floor.objRotation = XMFLOAT3(.0f, .0f, .0f);
 	floor.pObjTexture = &textures[0];
 	floor.pObjNormalMap = nullptr;
-	floor.isObjWithTexture = 1;
+	floor.isObjWithTexture = 0;
 	floor.isObjWithNormalMap = 0;
 	floor.objColor = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 }
