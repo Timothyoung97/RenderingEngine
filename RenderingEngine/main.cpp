@@ -493,15 +493,18 @@ int main()
 			backBuffer, NULL, &renderTargetView
 		));
 
-
 		deviceAndContext.context->ClearRenderTargetView(renderTargetView, scene.bgColor);
 
 		{ //draw shadow
+
+			ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
+			deviceAndContext.context->PSSetShaderResources(3, 1, nullSRV);
+
 			deviceAndContext.context->ClearDepthStencilView(depthBuffer.pShadowDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 
-			deviceAndContext.context->OMSetRenderTargets(0, nullptr, depthBuffer.pShadowDepthStencilView.Get());
-			
 			deviceAndContext.context->OMSetDepthStencilState(depthBuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
+			
+			deviceAndContext.context->OMSetRenderTargets(0, nullptr, depthBuffer.pShadowDepthStencilView.Get());
 
 			deviceAndContext.context->RSSetViewports(1, &viewports.shadowViewport);
 
@@ -516,6 +519,9 @@ int main()
 		deviceAndContext.context->ClearDepthStencilView(depthBuffer.pDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 		
 		deviceAndContext.context->OMSetRenderTargets(1, &renderTargetView, depthBuffer.pDepthStencilView.Get());
+
+		// set shadowMap
+		deviceAndContext.context->PSSetShaderResources(3, 1, depthBuffer.pShadowShaderRescView.GetAddressOf());
 
 		//Set Viewport for color draw
 		deviceAndContext.context->RSSetViewports(1, &viewports.defaultViewport);

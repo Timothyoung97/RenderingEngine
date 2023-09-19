@@ -74,18 +74,20 @@ void vs_main (
 };
 
 float ShadowCalculation(float4 pixelPosLightSpace) {
-    // perspective divide
-    float3 projCoords = pixelPosLightSpace.xyz / pixelPosLightSpace.w;
 
-    projCoords = projCoords * .5f + .5f;
+    float2 shadowTexCoords;
+    shadowTexCoords.x = .5f + (pixelPosLightSpace.x / pixelPosLightSpace.w * .5f);
+    shadowTexCoords.y = .5f - (pixelPosLightSpace.y / pixelPosLightSpace.w * .5f);
 
-    float closestDepth = ObjShadowMap.Sample(ObjSamplerStateMipPtWhiteBorder, projCoords.xy).r;
+    float pixelDepth = pixelPosLightSpace.z / pixelPosLightSpace.w;
+    pixelDepth -= .001f;
 
-    float currDepth = projCoords.z;
+    float closestDepth = ObjShadowMap.Sample(
+        ObjSamplerStateMipPtWhiteBorder,
+        shadowTexCoords.xy
+    ).x;
 
-    float shadow = currDepth > closestDepth ? 1.f : .0f;
-
-    return shadow;
+    return closestDepth > pixelDepth ? .0f : 1.0f;
 };
 
 // Pixel Shader
@@ -134,7 +136,7 @@ void ps_main (
     // init pixel color with directional light
     float3 fColor = sampleTexture.xyz * .1f; // with ambient lighting of directional light (hard coded)
 
-    float4 pixelPosLightSpace = mul(viewProjection, outWorldPosition);
+    float4 pixelPosLightSpace = mul(lightviewProjection, outWorldPosition);
 
     float shadow = ShadowCalculation(pixelPosLightSpace);
 
