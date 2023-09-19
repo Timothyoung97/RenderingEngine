@@ -35,6 +35,7 @@ cbuffer constBuffer2 : register(b1) {
 Texture2D ObjTexture : register(t0);
 Texture2D ObjNormMap : register(t1);
 StructuredBuffer<PointLight> pointLights : register(t2);
+Texture2D ObjShadowMap : register(t3);
 
 SamplerState ObjSamplerStateLinear : register(s0);
 SamplerState ObjSamplerStateMipPtWhiteBorder : register(s1);
@@ -70,6 +71,21 @@ void vs_main (
 
     // Texture
     outTexCoord = inTexCoord;
+};
+
+float ShadowCalculation(float4 pixelPosLightSpace) {
+    // perspective divide
+    float3 projCoords = pixelPosLightSpace.xyz / pixelPosLightSpace.w;
+
+    projCoords = projCoords * .5f + .5f;
+
+    float closestDepth = ObjShadowMap.Sample(ObjSamplerStateMipPtWhiteBorder, projCoords.xy).r;
+
+    float currDepth = projCoords.z;
+
+    float shadow = currDepth > closestDepth ? 1.f : .0f;
+
+    return shadow;
 };
 
 // Pixel Shader
@@ -116,8 +132,13 @@ void ps_main (
     }
 
     // init pixel color with directional light
-    float3 fColor = saturate(dot(dirLight.dir, vOutNormal.xyz)) * dirLight.diffuse.xyz * sampleTexture.xyz;
-    fColor += sampleTexture.xyz * .1f; // with ambient lighting of directional light (hard coded)
+    float3 fColor = sampleTexture.xyz * .1f; // with ambient lighting of directional light (hard coded)
+
+    float4 pixelPosLightSpace = mul(viewProjection, outWorldPosition);
+
+    float shadow = ShadowCalculation(pixelPosLightSpace);
+
+    fColor += (1.0 -shadow) * saturate(dot(dirLight.dir, vOutNormal.xyz)) * dirLight.diffuse.xyz * sampleTexture.xyz;
 
     float3 pixelLightColor = float3(.0f, .0f, .0f);
 
