@@ -21,6 +21,7 @@ Graphics Tasks:
     • Utilize light volumes for point lights
 • Update point lights in GPU
     • Use Compute Shaders
+• SSAO
 • Instanced Rendering
     • Draw multiple primitives in single Draw Calls
     • Batch primitives with similar Textures & Meshes
