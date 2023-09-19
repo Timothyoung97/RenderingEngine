@@ -16,7 +16,7 @@ Sampler::Sampler(ID3D11Device* device) {
 	samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
 
 	CHECK_DX_ERROR(device->CreateSamplerState(
-		&samplerDesc, pSamplerState.GetAddressOf()
+		&samplerDesc, pSamplerStateLinear.GetAddressOf()
 	));
 
 	// Create sampler state for shadow
@@ -36,6 +36,6 @@ Sampler::Sampler(ID3D11Device* device) {
 	shadowSamplerDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
 	shadowSamplerDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_POINT;
 
-	CHECK_DX_ERROR(device->CreateSamplerState(&shadowSamplerDesc, pShadowSamplerState.GetAddressOf()));
+	CHECK_DX_ERROR(device->CreateSamplerState(&shadowSamplerDesc, pSamplerStateMipPtWhiteBorder.GetAddressOf()));
 }
 }

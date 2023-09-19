@@ -35,7 +35,8 @@ Texture2D ObjTexture : register(t0);
 Texture2D ObjNormMap : register(t1);
 StructuredBuffer<PointLight> pointLights : register(t2);
 
-SamplerState ObjSamplerState;
+SamplerState ObjSamplerStateLinear : register(s0);
+SamplerState ObjSamplerStateMipPtWhiteBorder : register(s1);
 
 // Vertex Shader
 void vs_main (
@@ -89,13 +90,13 @@ void ps_main (
     float4 sampleTexture;
 
     if (isWithTexture) {
-        sampleTexture = ObjTexture.Sample(ObjSamplerState, vOutTexCoord);
+        sampleTexture = ObjTexture.Sample(ObjSamplerStateLinear, vOutTexCoord);
     } else {
         sampleTexture = color;
     }
 
     if (hasNormMap) {
-        float4 normalMap = ObjNormMap.Sample(ObjSamplerState, vOutTexCoord);
+        float4 normalMap = ObjNormMap.Sample(ObjSamplerStateLinear, vOutTexCoord);
 
         normalMap = (2.0f * normalMap) - 1.0f; // change from [0, 1] to [-1, 1]
         

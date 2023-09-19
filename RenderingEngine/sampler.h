@@ -10,8 +10,8 @@ namespace tre {
 class Sampler {
 
 public:
-	ComPtr<ID3D11SamplerState> pSamplerState;
-	ComPtr<ID3D11SamplerState> pShadowSamplerState;
+	ComPtr<ID3D11SamplerState> pSamplerStateLinear;
+	ComPtr<ID3D11SamplerState> pSamplerStateMipPtWhiteBorder;
 
 
 	Sampler(ID3D11Device* device);
