@@ -210,16 +210,18 @@ int main()
 	scene.createFloor();
 	scene.createDirLight();
 
-	XMMATRIX lightOrtho = XMMatrixOrthographicLH(1024, 1024, 1.f, 200.f);
-	XMMATRIX lightView = XMMatrixLookAtLH(XMVECTOR{ -.5f, .5f, -.5f } * 50, XMVECTOR{ .0f, .0f, .0f }, XMVECTOR{ .0f, 1.f, .0f });
+	XMMATRIX lightOrtho = XMMatrixOrthographicLH(100, 100, 1.f, 300.f);
+
+	XMVECTOR lightDir{ scene.dirlight.direction.x, scene.dirlight.direction.y, scene.dirlight.direction.z };
+	XMMATRIX lightView = XMMatrixLookAtLH(lightDir * 100, XMVECTOR{ .0f, .0f, .0f }, XMVECTOR{ .0f, 1.f, .0f });
 	XMMATRIX lightViewProj = XMMatrixMultiply(lightView, lightOrtho);
 
 	// Testing Obj
 	tre::Object testCube;
 
 	testCube.pObjMesh = &meshes[0];
-	testCube.objPos = XMFLOAT3(-5.f, .5f, .0f);
-	testCube.objScale = XMFLOAT3(1.f, 1.f, 1.f);
+	testCube.objPos = XMFLOAT3(.0f, 2.5f, .0f);
+	testCube.objScale = XMFLOAT3(5.f, 5.f, 5.f);
 	testCube.objRotation = XMFLOAT3(.0f, .0f, .0f);
 	testCube.pObjTexture = &textures[4];
 	testCube.isObjWithTexture = 1;
@@ -497,26 +499,17 @@ int main()
 			deviceAndContext.context->ClearDepthStencilView(depthBuffer.pShadowDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 			deviceAndContext.context->OMSetRenderTargets(0, nullptr, depthBuffer.pShadowDepthStencilView.Get());
-
-			deviceAndContext.context->RSSetState(rasterizer.pShadowRasterizerState.Get());
 			
+			deviceAndContext.context->OMSetDepthStencilState(depthBuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
+
 			deviceAndContext.context->RSSetViewports(1, &viewports.shadowViewport);
 
-			//Set vertex buffer
-			UINT vertexStride = sizeof(Vertex);
-			UINT offset = 0;
-			deviceAndContext.context->IASetVertexBuffers(0, 1, testCube.pObjMesh->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
-
-			deviceAndContext.context->IASetIndexBuffer(testCube.pObjMesh->pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0u);
+			deviceAndContext.context->PSSetShader(nullptr, NULL, 0u);
 
 			// set const buffer for camera
 			tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), lightViewProj, scene.dirlight, lightResc.pointLights.size());
 
-			// Set Pixel Shader
-			deviceAndContext.context->PSSetShader(nullptr, NULL, 0u);
-
-			deviceAndContext.context->DrawIndexed(testCube.pObjMesh->indexSize, 0, 0);
-
+			renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pShadowRasterizerState.Get(), { scene.floor, testCube });
 		}
 
 		deviceAndContext.context->ClearDepthStencilView(depthBuffer.pDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
