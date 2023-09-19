@@ -55,13 +55,6 @@ ShadowMap::ShadowMap(ID3D11Device* device) {
 	
 	CHECK_DX_ERROR(device->CreateRasterizerState(&shadowRenderStateDesc, shadowRasterizerState.GetAddressOf()));
 
-	// Init viewport for shadow rendering
-	ZeroMemory(&shadowViewport, sizeof(D3D11_VIEWPORT));
-	shadowViewport.Height = 1024;
-	shadowViewport.Width = 1024;
-	shadowViewport.MinDepth = 0.f;
-	shadowViewport.MaxDepth = 1.f;
-	
 }
 
 

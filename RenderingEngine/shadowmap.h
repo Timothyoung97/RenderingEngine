@@ -16,8 +16,6 @@ public:
 	ComPtr<ID3D11RasterizerState> shadowRasterizerState;
 	ComPtr<ID3D11RasterizerState> drawingRasterizerState;
 	
-	D3D11_VIEWPORT shadowViewport;
-
 	ShadowMap(ID3D11Device* device);
 
 };
