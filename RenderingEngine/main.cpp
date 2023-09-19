@@ -70,7 +70,8 @@ int main()
 
 	//Create Sampler
 	tre::Sampler sampler(deviceAndContext.device.Get());
-	deviceAndContext.context->PSSetSamplers(0, 1, sampler.pSamplerState.GetAddressOf());
+	deviceAndContext.context->PSSetSamplers(0, 1, sampler.pSamplerStateLinear.GetAddressOf());
+	deviceAndContext.context->PSSetSamplers(1, 1, sampler.pSamplerStateMipPtWhiteBorder.GetAddressOf());
 
 	//Load pre-compiled shaders
 	std::wstring basePathWstr = tre::Utility::getBasePathWstr();
@@ -506,8 +507,8 @@ int main()
 
 			deviceAndContext.context->PSSetShader(nullptr, NULL, 0u);
 
-			// set const buffer for camera
-			tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), lightViewProj, scene.dirlight, lightResc.pointLights.size());
+			// set const buffer from the light pov 
+			tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), lightViewProj, lightViewProj, scene.dirlight, lightResc.pointLights.size());
 
 			renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pShadowRasterizerState.Get(), { scene.floor, testCube });
 		}
@@ -524,7 +525,7 @@ int main()
 		cam.updateCamera();
 
 		// set const buffer for camera
-		tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camViewProjection, scene.dirlight, lightResc.pointLights.size());
+		tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camViewProjection, lightViewProj, scene.dirlight, lightResc.pointLights.size());
 
 		// cull objects
 		culledOpaqueObjQ.clear();

@@ -18,6 +18,7 @@ struct PointLight {
 // Global 
 cbuffer constBuffer : register(b0) {
     matrix viewProjection;
+    matrix lightviewProjection;
     Light dirLight;
     int numPtLights;
 };
