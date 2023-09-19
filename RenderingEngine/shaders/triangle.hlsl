@@ -46,19 +46,19 @@ void vs_main (
     in float3 inTangent : TANGENT,
     in float2 inTexCoord : TEXCOORD,
     out float4 outPosition : SV_POSITION,
-    out float4 outLocalPosition : TEXCOORD0,
+    out float4 outWorldPosition : TEXCOORD0,
     out float4 outNormal : TEXCOORD1,
     out float4 outTangent : TEXCOORD2,
     out float2 outTexCoord : TEXCOORD3
 ) 
 {   
     // Position
-    float4 tempInPos = float4(inPosition, 1);
-    float4 localPos = mul(transformation, tempInPos);
-    outPosition = mul(viewProjection, localPos);
+    float4 localPos = float4(inPosition, 1);
+    float4 worldPos = mul(transformation, localPos);
+    outPosition = mul(viewProjection, worldPos);
 
-    // local position
-    outLocalPosition = localPos;
+    // world position
+    outWorldPosition = worldPos;
 
     // Normal
     float4 tempInNormal = float4(inNormal, 0);
@@ -75,7 +75,7 @@ void vs_main (
 // Pixel Shader
 void ps_main (
     in float4 vOutPosition : SV_POSITION,
-    in float4 vOutLocalPosition : TEXCOORD0,
+    in float4 outWorldPosition : TEXCOORD0,
     in float4 vOutNormal : TEXCOORD1,
     in float4 vOutTangent : TEXCOORD2,
     in float2 vOutTexCoord : TEXCOORD3,
@@ -126,7 +126,7 @@ void ps_main (
     for (int i = 0; i < numPtLights; i++) {
         
         // vector between light pos and pixel pos
-        float3 pixelToLightV = pointLights[i].pos - vOutLocalPosition.xyz;
+        float3 pixelToLightV = pointLights[i].pos - outWorldPosition.xyz;
         float d = length(pixelToLightV);   
 
         float3 localLight = float3(.0f, .0f, .0f);
