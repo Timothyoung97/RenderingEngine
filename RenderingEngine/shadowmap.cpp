@@ -39,22 +39,6 @@ ShadowMap::ShadowMap(ID3D11Device* device) {
 		shadowMap.Get(), &shaderResourceViewDesc, shadowShaderRescView.GetAddressOf()
 	));
 
-	D3D11_RASTERIZER_DESC drawingRenderStateDesc;
-	ZeroMemory(&drawingRenderStateDesc, sizeof(D3D11_RASTERIZER_DESC));
-	drawingRenderStateDesc.CullMode = D3D11_CULL_BACK;
-	drawingRenderStateDesc.FillMode = D3D11_FILL_SOLID;
-	drawingRenderStateDesc.DepthClipEnable = true; // Feature level 9_1 requires DepthClipEnable == true
-	CHECK_DX_ERROR(device->CreateRasterizerState(&drawingRenderStateDesc, drawingRasterizerState.GetAddressOf()));
-
-
-	D3D11_RASTERIZER_DESC shadowRenderStateDesc;
-	ZeroMemory(&shadowRenderStateDesc, sizeof(D3D11_RASTERIZER_DESC));
-	shadowRenderStateDesc.CullMode = D3D11_CULL_FRONT;
-	shadowRenderStateDesc.FillMode = D3D11_FILL_SOLID;
-	shadowRenderStateDesc.DepthClipEnable = true; 
-	
-	CHECK_DX_ERROR(device->CreateRasterizerState(&shadowRenderStateDesc, shadowRasterizerState.GetAddressOf()));
-
 }
 
 

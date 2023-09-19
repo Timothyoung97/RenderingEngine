@@ -41,6 +41,7 @@
 #include "inputlayout.h"
 #include "scene.h"
 #include "shadowmap.h"
+#include "viewport.h"
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 1920;
@@ -118,16 +119,8 @@ int main()
 	deviceAndContext.context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	//Create Viewport
-	D3D11_VIEWPORT viewport = {};
-	viewport.TopLeftX = 0;
-	viewport.TopLeftY = 0;
-	viewport.Width = SCREEN_WIDTH;
-	viewport.Height = SCREEN_HEIGHT;
-	viewport.MinDepth = 0;
-	viewport.MaxDepth = 1;
-
-	//Set Viewport
-	deviceAndContext.context->RSSetViewports(1, &viewport);
+	tre::Viewport viewports;
+	viewports.Init(SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	//Create rasterizer buffer
 	tre::Rasterizer rasterizer(deviceAndContext.device.Get());
@@ -502,14 +495,14 @@ int main()
 
 		deviceAndContext.context->ClearRenderTargetView(renderTargetView, scene.bgColor);
 
-		{
+		{ //draw shadow
 			deviceAndContext.context->ClearDepthStencilView(shadowMap.shadowDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 			deviceAndContext.context->OMSetRenderTargets(0, nullptr, shadowMap.shadowDepthStencilView.Get());
 
-			deviceAndContext.context->RSSetState(shadowMap.shadowRasterizerState.Get());
+			deviceAndContext.context->RSSetState(rasterizer.pShadowRasterizerState.Get());
 			
-			deviceAndContext.context->RSSetViewports(1, &shadowMap.shadowViewport);
+			deviceAndContext.context->RSSetViewports(1, &viewports.shadowViewport);
 
 			//Set vertex buffer
 			UINT vertexStride = sizeof(Vertex);
@@ -532,8 +525,8 @@ int main()
 		
 		deviceAndContext.context->OMSetRenderTargets(1, &renderTargetView, depthBuffer.depthStencilView.Get());
 
-		//Set Viewport
-		deviceAndContext.context->RSSetViewports(1, &viewport);
+		//Set Viewport for color draw
+		deviceAndContext.context->RSSetViewports(1, &viewports.defaultViewport);
 
 		// Set camera view const buffer
 		cam.camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovY), static_cast<float>(SCREEN_WIDTH) / SCREEN_HEIGHT, 1.0f, 1000.0f);
