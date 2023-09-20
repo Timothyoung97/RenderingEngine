@@ -89,7 +89,76 @@ float Plane::getSignedDistanceToPlane(const XMFLOAT3& point) {
 	float d = (this->eqn.x * point.x + this->eqn.y * point.y + this->eqn.z * point.z - this->eqn.w) 
 		/ sqrtf(this->eqn.x * this->eqn.x + this->eqn.y * this->eqn.y + this->eqn.z * this->eqn.z);
 	return d;
-};
+}
 
+std::vector<XMVECTOR> Maths::getFrustumCornersWorldSpace(const XMMATRIX& viewProjection) {
+	XMMATRIX inverseViewProj = XMMatrixInverse(nullptr, viewProjection);
+	
+	std::vector<XMVECTOR> corners;
+
+	for (int x = 0; x < 2; x++) {
+		for (int y = 0; y < 2; y++) {
+			for (int z = 0; z < 2; z++) {
+				XMFLOAT4 pt;
+				XMStoreFloat4(&pt, XMVector4Transform(XMVECTOR{ 2.f * x - 1.f, 2.f * y - 1.f, 2.f * z - 1.f, 1.f }, inverseViewProj));
+
+				corners.push_back(XMVECTOR{ pt.x / pt.w, pt.y / pt.w, pt.z / pt.w, 1.f });
+			}
+		}
+	}
+	return corners;
+}
+
+XMVECTOR Maths::getAverageVector(const std::vector<XMVECTOR>& vectors) {
+	
+	XMVECTOR resultantV{ .0f, .0f, .0f };
+	
+	for (const XMVECTOR& vector : vectors) {
+		XMFLOAT4 vectorF;
+		XMStoreFloat4(&vectorF, vector);
+
+		resultantV += XMVECTOR{ vectorF.x, vectorF.y, vectorF.z };
+	}
+
+	return resultantV / vectors.size();
+}
+
+XMMATRIX Maths::createOrthoMatrixFromFrustumCorners(float zMult, const std::vector<XMVECTOR>& corners, const XMMATRIX& viewMatrix) {
+	float minX = std::numeric_limits<float>::max();
+	float maxX = std::numeric_limits<float>::lowest();
+	float minY = std::numeric_limits<float>::max();
+	float maxY = std::numeric_limits<float>::lowest();
+	float minZ = std::numeric_limits<float>::max();
+	float maxZ = std::numeric_limits<float>::lowest();
+
+	for (const XMVECTOR& c : corners) {
+		XMFLOAT3 cF;
+		XMStoreFloat3(&cF, c);
+		
+		XMFLOAT4 viewspaceCoor;
+		XMStoreFloat4(&viewspaceCoor, XMVector4Transform(XMVECTOR{ cF.x, cF.y, cF.z, 1.f }, viewMatrix)); // check if need to transpose viewMatrix 
+
+		minX = std::min(minX, viewspaceCoor.x);
+		maxX = std::max(maxX, viewspaceCoor.x);
+		minY = std::min(minY, viewspaceCoor.y);
+		maxY = std::max(maxY, viewspaceCoor.y);
+		minZ = std::min(minZ, viewspaceCoor.z);
+		maxZ = std::max(maxZ, viewspaceCoor.z);
+	}
+
+	if (minZ < 0) {
+		minZ *= zMult;
+	} else {
+		minZ /= zMult;
+	}
+	
+	if (maxZ < 0) {
+		maxZ /= zMult;
+	} else {
+		maxZ *= zMult;
+	}
+
+	return XMMatrixOrthographicOffCenterLH(minX, maxX, minY, maxY, minZ, maxZ);
+}
 
 }
