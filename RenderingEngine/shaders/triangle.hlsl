@@ -38,7 +38,7 @@ StructuredBuffer<PointLight> pointLights : register(t2);
 Texture2D ObjShadowMap : register(t3);
 
 SamplerState ObjSamplerStateLinear : register(s0);
-SamplerState ObjSamplerStateMipPtWhiteBorder : register(s1);
+SamplerComparisonState ObjSamplerStateMipPtWhiteBorder : register(s1);
 
 // Vertex Shader
 void vs_main (
@@ -89,8 +89,8 @@ float ShadowCalculation(float4 pixelPosLightSpace) {
     float shadow = .0f;
     for (int x = -1; x <= 1; ++x) {
         for (int y = -1; y <= 1; ++y) {
-            float closestDepth = ObjShadowMap.Sample(ObjSamplerStateMipPtWhiteBorder, shadowTexCoords.xy + float2(x, y) * texelSize).x;
-            shadow += closestDepth > pixelDepth ? .0f : 1.0f;
+            float currShadow = ObjShadowMap.SampleCmp(ObjSamplerStateMipPtWhiteBorder, shadowTexCoords.xy + float2(x, y) * texelSize, pixelDepth);
+            shadow += currShadow;
         }
     }
 

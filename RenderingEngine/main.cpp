@@ -211,7 +211,7 @@ int main()
 	scene.createFloor();
 	scene.updateDirLight();
 
-	XMMATRIX lightOrtho = XMMatrixOrthographicLH(100, 100, 1.f, 300.f);
+	XMMATRIX lightOrtho = XMMatrixOrthographicLH(75, 75, 1.f, 300.f);
 
 	XMVECTOR lightDir{ scene.dirlight.direction.x, scene.dirlight.direction.y, scene.dirlight.direction.z };
 	XMMATRIX lightView = XMMatrixLookAtLH(lightDir * 100, XMVECTOR{ .0f, .0f, .0f }, XMVECTOR{ .0f, 1.f, .0f });

@@ -29,8 +29,8 @@ DepthBuffer::DepthBuffer(ID3D11Device* device, int screenW, int screenH) {
 	// For shadow
 	depthStencilDesc.Format = DXGI_FORMAT_R24G8_TYPELESS;
 	depthStencilDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_DEPTH_STENCIL;
-	depthStencilDesc.Height = static_cast<UINT>(1024);
-	depthStencilDesc.Width = static_cast<UINT>(1024);
+	depthStencilDesc.Height = static_cast<UINT>(4096);
+	depthStencilDesc.Width = static_cast<UINT>(4096);
 
 	CHECK_DX_ERROR(device->CreateTexture2D(
 		&depthStencilDesc, nullptr, pShadowMapTexture.GetAddressOf()

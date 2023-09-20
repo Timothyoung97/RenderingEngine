@@ -9,9 +9,9 @@ Rasterizer::Rasterizer(ID3D11Device* device) {
 	rasterizerDesc.FillMode = D3D11_FILL_SOLID;
 	rasterizerDesc.CullMode = D3D11_CULL_BACK;
 	rasterizerDesc.FrontCounterClockwise = true;
-	rasterizerDesc.DepthBias = 125.f;
+	rasterizerDesc.DepthBias = 250.f;
 	rasterizerDesc.DepthBiasClamp = D3D11_DEFAULT_DEPTH_BIAS_CLAMP;
-	rasterizerDesc.SlopeScaledDepthBias = 1.5f;
+	rasterizerDesc.SlopeScaledDepthBias = 2.6f;
 	rasterizerDesc.DepthClipEnable = false;
 	rasterizerDesc.ScissorEnable = false;
 	rasterizerDesc.MultisampleEnable = false;

@@ -12,8 +12,8 @@ void Viewport::Init(int width, int height) {
 	defaultViewport.MaxDepth = 1;
 	
 	ZeroMemory(&shadowViewport, sizeof(D3D11_VIEWPORT));
-	shadowViewport.Height = 1024;
-	shadowViewport.Width = 1024;
+	shadowViewport.Height = 4096;
+	shadowViewport.Width = 4096;
 	shadowViewport.MinDepth = 0.f;
 	shadowViewport.MaxDepth = 1.f;
 }
