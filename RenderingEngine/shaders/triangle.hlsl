@@ -81,12 +81,20 @@ float ShadowCalculation(float4 pixelPosLightSpace) {
 
     float pixelDepth = pixelPosLightSpace.z / pixelPosLightSpace.w;
 
-    float closestDepth = ObjShadowMap.Sample(
-        ObjSamplerStateMipPtWhiteBorder,
-        shadowTexCoords.xy
-    ).x;
+    float shadowMapW, shadowMapH;
+    ObjShadowMap.GetDimensions(shadowMapW, shadowMapH);
 
-    return closestDepth > pixelDepth ? .0f : 1.0f;
+    float2 texelSize = float2(1.f / shadowMapW, 1.f / shadowMapH);
+
+    float shadow = .0f;
+    for (int x = -1; x <= 1; ++x) {
+        for (int y = -1; y <= 1; ++y) {
+            float closestDepth = ObjShadowMap.Sample(ObjSamplerStateMipPtWhiteBorder, shadowTexCoords.xy + float2(x, y) * texelSize).x;
+            shadow += closestDepth > pixelDepth ? .0f : 1.0f;
+        }
+    }
+
+    return shadow / 9.f;
 };
 
 // Pixel Shader
