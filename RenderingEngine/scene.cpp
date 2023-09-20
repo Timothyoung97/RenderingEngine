@@ -41,14 +41,17 @@ void Scene::createFloor() {
 	floor.objColor = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 }
 
-void Scene::createDirLight() {
-	dirlight = {
-		XMFLOAT3(-.5f, .5f, -.5f), .0f, XMFLOAT4(.5f, .5f, .5f, 1.0f), XMFLOAT4(.5f, .5f, .5f, .5f)
-	};
+void Scene::updateDirLight() {
 
-	// normalize
-	XMVECTOR lightDir = XMLoadFloat3(&dirlight.direction);
-	XMStoreFloat3(&dirlight.direction, XMVector3Normalize(lightDir));
+	XMFLOAT3 dirF = tre::Maths::getRotatePosition(XMFLOAT3(.0f, .0f, .0f), dirlightPitch, dirlightYaw, 1.f);
+	XMVECTOR dirV = XMLoadFloat3(&dirF);
+
+	XMStoreFloat3(&dirF, XMVector3Normalize(dirV));
+
+	dirlight = {
+		dirF, .0f, XMFLOAT4(.5f, .5f, .5f, 1.0f), XMFLOAT4(.5f, .5f, .5f, .5f)
+	};
 }
+
 
 }

@@ -16,6 +16,8 @@ public:
 
 	// Directional light
 	tre::Light dirlight;
+	float dirlightYaw = .0f;
+	float dirlightPitch = .0f;
 	
 	// Resources
 	std::vector<Mesh> meshes;
@@ -27,6 +29,6 @@ public:
 	tre::Object floor;
 
 	void createFloor();
-	void createDirLight();
+	void updateDirLight();
 };
 }

@@ -209,7 +209,7 @@ int main()
 	// Scene
 	tre::Scene scene(deviceAndContext.device.Get());
 	scene.createFloor();
-	scene.createDirLight();
+	scene.updateDirLight();
 
 	XMMATRIX lightOrtho = XMMatrixOrthographicLH(100, 100, 1.f, 300.f);
 
@@ -442,7 +442,7 @@ int main()
 				}
 			}
 
-			// Add random light 
+			// light 
 			{
 				ImGui::SeparatorText("Lights");
 				ImGui::Checkbox("Pause Light", &pauseLight);
@@ -469,6 +469,10 @@ int main()
 				} else {
 					ImGui::Text("Max Light Count: %d/%d", lightResc.pointLights.size(), lightResc.maxPointLightNum);
 				}
+
+				ImGui::BulletText("Dir Light");
+				ImGui::SliderFloat("Yaw", &scene.dirlightYaw, .0f, 360.f);
+				ImGui::SliderFloat("Pitch", &scene.dirlightPitch, .0f, 360.f);
 			}
 
 			ImGui::SeparatorText("Debug Info");
@@ -661,6 +665,12 @@ int main()
 		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
 		CHECK_DX_ERROR(swapchain.mainSwapchain->Present( 0, 0) );
+
+		scene.updateDirLight();
+
+		XMVECTOR lightDir{ scene.dirlight.direction.x, scene.dirlight.direction.y, scene.dirlight.direction.z };
+		lightView = XMMatrixLookAtLH(lightDir * 100, XMVECTOR{ .0f, .0f, .0f }, XMVECTOR{ .0f, 1.f, .0f });
+		lightViewProj = XMMatrixMultiply(lightView, lightOrtho);
 
 		while (timer.getDeltaTime() < 1000.0 / 60) {
 		}
