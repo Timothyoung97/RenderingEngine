@@ -472,7 +472,7 @@ int main()
 
 				ImGui::BulletText("Dir Light");
 				ImGui::SliderFloat("Yaw", &scene.dirlightYaw, .0f, 360.f);
-				ImGui::SliderFloat("Pitch", &scene.dirlightPitch, .0f, 360.f);
+				ImGui::SliderFloat("Pitch", &scene.dirlightPitch, .0f, 180.f);
 			}
 
 			ImGui::SeparatorText("Debug Info");

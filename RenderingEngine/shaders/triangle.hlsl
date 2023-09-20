@@ -80,7 +80,6 @@ float ShadowCalculation(float4 pixelPosLightSpace) {
     shadowTexCoords.y = .5f - (pixelPosLightSpace.y / pixelPosLightSpace.w * .5f);
 
     float pixelDepth = pixelPosLightSpace.z / pixelPosLightSpace.w;
-    pixelDepth -= .001f;
 
     float closestDepth = ObjShadowMap.Sample(
         ObjSamplerStateMipPtWhiteBorder,
