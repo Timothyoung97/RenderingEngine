@@ -211,11 +211,13 @@ int main()
 	scene.createFloor();
 	scene.updateDirLight();
 
-	XMMATRIX lightOrtho = XMMatrixOrthographicLH(75, 75, 1.f, 300.f);
+	//XMMATRIX lightOrtho = XMMatrixOrthographicLH(75, 75, 1.f, 300.f);
 
-	XMVECTOR lightDir{ scene.dirlight.direction.x, scene.dirlight.direction.y, scene.dirlight.direction.z };
-	XMMATRIX lightView = XMMatrixLookAtLH(lightDir * 100, XMVECTOR{ .0f, .0f, .0f }, XMVECTOR{ .0f, 1.f, .0f });
-	XMMATRIX lightViewProj = XMMatrixMultiply(lightView, lightOrtho);
+	//XMVECTOR lightDir{ scene.dirlight.direction.x, scene.dirlight.direction.y, scene.dirlight.direction.z };
+	//XMMATRIX lightView = XMMatrixLookAtLH(lightDir * 100, XMVECTOR{ .0f, .0f, .0f }, XMVECTOR{ .0f, 1.f, .0f });
+	//XMMATRIX lightViewProj = XMMatrixMultiply(lightView, lightOrtho);
+
+	float planeIntervals[5] = { 1.0f, 50.f, 250.f, 500.f, 1000.f };
 
 	// Testing Obj
 	tre::Object testCube;
@@ -311,6 +313,13 @@ int main()
 	//	opaqueObjQ.push_back(testTeapot);
 	//}
 
+
+	tagRECT rectArr[4] = {
+		{ 0, 0, 2048, 2048 }, // top left
+		{ 2048, 0, 4096, 2048 }, // top rihgt
+		{ 0, 2048, 2048, 4096 }, // bottom left
+		{ 2048, 2048, 4096, 4096 }  // bottom right
+	};
 
 	// main loop
 	while (!input.shouldQuit())
@@ -472,7 +481,7 @@ int main()
 
 				ImGui::BulletText("Dir Light");
 				ImGui::SliderFloat("Yaw", &scene.dirlightYaw, .0f, 360.f);
-				ImGui::SliderFloat("Pitch", &scene.dirlightPitch, .0f, 90.f);
+				ImGui::SliderFloat("Pitch", &scene.dirlightPitch, .0f, 89.f);
 			}
 
 			ImGui::SeparatorText("Debug Info");
@@ -499,7 +508,7 @@ int main()
 
 		deviceAndContext.context->ClearRenderTargetView(renderTargetView, scene.bgColor);
 
-		{ //draw shadow
+		{ //Shadow Config
 
 			ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
 			deviceAndContext.context->PSSetShaderResources(3, 1, nullSRV);
@@ -510,12 +519,36 @@ int main()
 			
 			deviceAndContext.context->OMSetRenderTargets(0, nullptr, depthBuffer.pShadowDepthStencilView.Get());
 
-			deviceAndContext.context->RSSetViewports(1, &viewports.shadowViewport);
-
 			deviceAndContext.context->PSSetShader(nullptr, NULL, 0u);
+		}
+
+		std::vector<XMMATRIX> lightViewProjs;
+		for (int i = 0; i < 4; i++) {
+
+			// projection matrix of camera with specific near and far plane
+			XMMATRIX projMatrix = XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0f), static_cast<float>(SCREEN_WIDTH) / SCREEN_HEIGHT, planeIntervals[i], planeIntervals[i + 1]);
+
+			std::vector<XMVECTOR> corners = tre::Maths::getFrustumCornersWorldSpace(cam.camView, projMatrix);
+
+			XMVECTOR center = tre::Maths::getAverageVector(corners);
+
+			XMMATRIX lightView = XMMatrixLookAtLH(center - XMVECTOR{ scene.dirlight.direction.x, scene.dirlight.direction.y, scene.dirlight.direction.z }, center, XMVECTOR{ .0f, 1.f, .0f });
+
+			XMMATRIX lightOrthoProj = tre::Maths::createOrthoMatrixFromFrustumCorners(.5f, corners, lightView);
+
+			XMMATRIX lightViewProj = XMMatrixMultiply(lightView, lightOrthoProj);
+
+			lightViewProjs.push_back(lightOrthoProj);
+		}
+
+		for (int i = 0; i < 4; i++) {
+			viewports.shadowViewport.TopLeftX = rectArr[i].left;
+			viewports.shadowViewport.TopLeftY = rectArr[i].top;
+			deviceAndContext.context->RSSetViewports(1, &viewports.shadowViewport);
+			deviceAndContext.context->RSSetScissorRects(1, &rectArr[i]);
 
 			// set const buffer from the light pov 
-			tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), lightViewProj, lightViewProj, scene.dirlight, lightResc.pointLights.size());
+			tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camView, lightViewProjs[i], lightViewProjs, scene.dirlight, lightResc.pointLights.size());
 
 			renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pShadowRasterizerState.Get(), { scene.floor, testCube });
 		}
@@ -535,7 +568,7 @@ int main()
 		cam.updateCamera();
 
 		// set const buffer for camera
-		tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camViewProjection, lightViewProj, scene.dirlight, lightResc.pointLights.size());
+		tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camView, cam.camViewProjection, lightViewProjs, scene.dirlight, lightResc.pointLights.size());
 
 		// cull objects
 		culledOpaqueObjQ.clear();
@@ -668,9 +701,9 @@ int main()
 
 		scene.updateDirLight();
 
-		XMVECTOR lightDir{ scene.dirlight.direction.x, scene.dirlight.direction.y, scene.dirlight.direction.z };
-		lightView = XMMatrixLookAtLH(lightDir * 100, XMVECTOR{ .0f, .0f, .0f }, XMVECTOR{ .0f, 1.f, .0f });
-		lightViewProj = XMMatrixMultiply(lightView, lightOrtho);
+		//XMVECTOR lightDir{ scene.dirlight.direction.x, scene.dirlight.direction.y, scene.dirlight.direction.z };
+		//lightView = XMMatrixLookAtLH(lightDir * 100, XMVECTOR{ .0f, .0f, .0f }, XMVECTOR{ .0f, 1.f, .0f });
+		//lightViewProj = XMMatrixMultiply(lightView, lightOrtho);
 
 		while (timer.getDeltaTime() < 1000.0 / 60) {
 		}

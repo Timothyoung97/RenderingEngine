@@ -17,8 +17,9 @@ struct PointLight {
 
 // Global 
 cbuffer constBuffer : register(b0) {
+    matrix camViewMatrix;
     matrix viewProjection;
-    matrix lightviewProjection;
+    matrix lightviewProjection[4];
     Light dirLight;
     int numPtLights;
 };
@@ -143,7 +144,7 @@ void ps_main (
     // init pixel color with directional light
     float3 fColor = sampleTexture.xyz * .1f; // with ambient lighting of directional light (hard coded)
 
-    float4 pixelPosLightSpace = mul(lightviewProjection, outWorldPosition);
+    float4 pixelPosLightSpace = mul(lightviewProjection[0], outWorldPosition);
 
     float shadow = ShadowCalculation(pixelPosLightSpace);
 

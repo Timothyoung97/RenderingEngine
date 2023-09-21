@@ -4,7 +4,7 @@
 
 namespace tre {
 
-void ConstantBuffer::setCamConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, XMMATRIX viewProjection, XMMATRIX lightViewProjection, tre::Light dirLight, int numOfPointLight) {
+void ConstantBuffer::setCamConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, XMMATRIX camViewMatrix, XMMATRIX viewProjection, std::vector<XMMATRIX> lightViewProjection, tre::Light dirLight, int numOfPointLight) {
 
 	D3D11_BUFFER_DESC constantBufferDescCam;
 	constantBufferDescCam.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
@@ -15,8 +15,9 @@ void ConstantBuffer::setCamConstBuffer(ID3D11Device* device, ID3D11DeviceContext
 	constantBufferDescCam.StructureByteStride = 0u;
 
 	constBufferShaderRescCam constBufferRescCam;
+	constBufferRescCam.camViewMatrix = camViewMatrix;
 	constBufferRescCam.viewProjection = viewProjection;
-	constBufferRescCam.lightViewProjection = lightViewProjection;
+	std::copy(lightViewProjection.begin(), lightViewProjection.end(), constBufferRescCam.lightViewProjection);
 	constBufferRescCam.light = dirLight;
 	constBufferRescCam.numOfPointLight = numOfPointLight;
 
