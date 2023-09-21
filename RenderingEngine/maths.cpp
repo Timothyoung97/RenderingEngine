@@ -91,8 +91,9 @@ float Plane::getSignedDistanceToPlane(const XMFLOAT3& point) {
 	return d;
 }
 
-std::vector<XMVECTOR> Maths::getFrustumCornersWorldSpace(const XMMATRIX& viewProjection) {
-	XMMATRIX inverseViewProj = XMMatrixInverse(nullptr, viewProjection);
+std::vector<XMVECTOR> Maths::getFrustumCornersWorldSpace(const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix) {
+	XMMATRIX inverseViewMatrix = XMMatrixInverse(nullptr, viewMatrix);
+	XMMATRIX inverseProjMatrix = XMMatrixInverse(nullptr, projectionMatrix);
 	
 	std::vector<XMVECTOR> corners;
 
@@ -100,8 +101,7 @@ std::vector<XMVECTOR> Maths::getFrustumCornersWorldSpace(const XMMATRIX& viewPro
 		for (int y = 0; y < 2; y++) {
 			for (int z = 0; z < 2; z++) {
 				XMFLOAT4 pt;
-				XMStoreFloat4(&pt, XMVector4Transform(XMVECTOR{ 2.f * x - 1.f, 2.f * y - 1.f, 2.f * z - 1.f, 1.f }, inverseViewProj));
-
+				XMStoreFloat4(&pt, XMVector4Transform(XMVector4Transform(XMVECTOR{ 2.f * x - 1.f, 2.f * y - 1.f, 2.f * z - 1.f, 1.f }, inverseProjMatrix), inverseViewMatrix));
 				corners.push_back(XMVECTOR{ pt.x / pt.w, pt.y / pt.w, pt.z / pt.w, 1.f });
 			}
 		}
