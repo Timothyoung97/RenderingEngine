@@ -171,6 +171,7 @@ void ps_main (
     fColor += (1.0 - shadow) * saturate(dot(dirLight.dir, vOutNormal.xyz)) * dirLight.diffuse.xyz * sampleTexture.xyz;
 
     float3 pixelLightColor = float3(.0f, .0f, .0f);
+    // debug colors
     if (dist < 20.f) {
         pixelLightColor = float3(.0f, 1.f, .0f);
     } else if (dist < 100.f ) {
