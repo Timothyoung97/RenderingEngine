@@ -211,12 +211,6 @@ int main()
 	scene.createFloor();
 	scene.updateDirLight();
 
-	//XMMATRIX lightOrtho = XMMatrixOrthographicLH(75, 75, 1.f, 300.f);
-
-	//XMVECTOR lightDir{ scene.dirlight.direction.x, scene.dirlight.direction.y, scene.dirlight.direction.z };
-	//XMMATRIX lightView = XMMatrixLookAtLH(lightDir * 100, XMVECTOR{ .0f, .0f, .0f }, XMVECTOR{ .0f, 1.f, .0f });
-	//XMMATRIX lightViewProj = XMMatrixMultiply(lightView, lightOrtho);
-
 	float planeIntervals[5] = { 1.0f, 20.f, 100.f, 250.f, 500.f };
 
 	// Testing Obj
@@ -700,10 +694,6 @@ int main()
 		CHECK_DX_ERROR(swapchain.mainSwapchain->Present( 0, 0) );
 
 		scene.updateDirLight();
-
-		//XMVECTOR lightDir{ scene.dirlight.direction.x, scene.dirlight.direction.y, scene.dirlight.direction.z };
-		//lightView = XMMatrixLookAtLH(lightDir * 100, XMVECTOR{ .0f, .0f, .0f }, XMVECTOR{ .0f, 1.f, .0f });
-		//lightViewProj = XMMatrixMultiply(lightView, lightOrtho);
 
 		while (timer.getDeltaTime() < 1000.0 / 60) {
 		}
