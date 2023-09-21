@@ -14,7 +14,7 @@ using Microsoft::WRL::ComPtr;
 namespace tre {
 
 struct constBufferShaderRescCam {
-	XMMATRIX camViewMatrix;
+	XMFLOAT4 camPos;
 	XMMATRIX viewProjection;
 	XMMATRIX lightViewProjection[4];
 	tre::Light light;
@@ -31,7 +31,7 @@ struct constBufferShaderRescModel {
 
 class ConstantBuffer {
 public:
-	static void setCamConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, XMMATRIX camViewMatrix, XMMATRIX viewProjection, const std::vector<XMMATRIX>& lightViewProjection, const tre::Light& dirLight, int numOfPointLight);
+	static void setCamConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, XMVECTOR camPos, XMMATRIX viewProjection, const std::vector<XMMATRIX>& lightViewProjection, const tre::Light& dirLight, int numOfPointLight);
 	static void setObjConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, XMMATRIX transformationLocal, XMFLOAT4 color, UINT isWithTexture, UINT hasNormalMap);
 };
 

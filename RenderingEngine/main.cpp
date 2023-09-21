@@ -548,7 +548,7 @@ int main()
 			deviceAndContext.context->RSSetScissorRects(1, &rectArr[i]);
 
 			// set const buffer from the light pov 
-			tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camView, lightViewProjs[i], lightViewProjs, scene.dirlight, lightResc.pointLights.size());
+			tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, lightViewProjs[i], lightViewProjs, scene.dirlight, lightResc.pointLights.size());
 
 			renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pShadowRasterizerState.Get(), { scene.floor, testCube });
 		}
@@ -568,7 +568,7 @@ int main()
 		cam.updateCamera();
 
 		// set const buffer for camera
-		tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camView, cam.camViewProjection, lightViewProjs, scene.dirlight, lightResc.pointLights.size());
+		tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, cam.camViewProjection, lightViewProjs, scene.dirlight, lightResc.pointLights.size());
 
 		// cull objects
 		culledOpaqueObjQ.clear();

@@ -17,7 +17,7 @@ struct PointLight {
 
 // Global 
 cbuffer constBuffer : register(b0) {
-    matrix camViewMatrix;
+    float4 camPos;
     matrix viewProjection;
     matrix lightviewProjection[4];
     Light dirLight;
@@ -78,7 +78,7 @@ float ShadowCalculation(float4 outWorldPosition, float distFromCamera) {
 
     float4 pixelPosLightSpace;
     float2 shadowTexCoords;
-    [branch] if (distFromCamera < 20.f) {
+    if (distFromCamera < 20.f) {
         pixelPosLightSpace = mul(lightviewProjection[0], outWorldPosition);
         shadowTexCoords.x = clamp(.25f + (pixelPosLightSpace.x / pixelPosLightSpace.w * .25f), .0f, .49f);
         shadowTexCoords.y = clamp(.25f - (pixelPosLightSpace.y / pixelPosLightSpace.w * .25f), .0f, .49f);
@@ -162,16 +162,24 @@ void ps_main (
     float3 fColor = sampleTexture.xyz * .1f; // with ambient lighting of directional light (hard coded)
 
     // get dist of pixel from camera
-    float3 camPos = float3(camViewMatrix._41, camViewMatrix._42, camViewMatrix._43);
-    float3 diff = outWorldPosition.xyz - camPos;
+    float3 diff = outWorldPosition.xyz - camPos.xyz;
     float dist = sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
 
     // calculate shadow
     float shadow = ShadowCalculation(outWorldPosition, dist);
 
-    fColor += (1.0 -shadow) * saturate(dot(dirLight.dir, vOutNormal.xyz)) * dirLight.diffuse.xyz * sampleTexture.xyz;
+    fColor += (1.0 - shadow) * saturate(dot(dirLight.dir, vOutNormal.xyz)) * dirLight.diffuse.xyz * sampleTexture.xyz;
 
     float3 pixelLightColor = float3(.0f, .0f, .0f);
+    if (dist < 20.f) {
+        pixelLightColor = float3(.0f, 1.f, .0f);
+    } else if (dist < 100.f ) {
+        pixelLightColor = float3(.0f, .0f, 1.f);
+    } else if (dist < 250.f) {
+        pixelLightColor = float3(1.f, .0f, .5f);
+    } else {
+        pixelLightColor = float3(1.f, .0f, .0f);
+    }
 
     // read in point light one by one
     // local lighting
