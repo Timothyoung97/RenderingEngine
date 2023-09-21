@@ -20,6 +20,7 @@ cbuffer constBuffer : register(b0) {
     float4 camPos;
     matrix viewProjection;
     matrix lightviewProjection[4];
+    float4 planeIntervals;
     Light dirLight;
     int numPtLights;
 };
@@ -78,15 +79,15 @@ float ShadowCalculation(float4 outWorldPosition, float distFromCamera) {
 
     float4 pixelPosLightSpace;
     float2 shadowTexCoords;
-    if (distFromCamera < 20.f) {
+    if (distFromCamera < planeIntervals[0]) {
         pixelPosLightSpace = mul(lightviewProjection[0], outWorldPosition);
         shadowTexCoords.x = clamp(.25f + (pixelPosLightSpace.x / pixelPosLightSpace.w * .25f), .0f, .49f);
         shadowTexCoords.y = clamp(.25f - (pixelPosLightSpace.y / pixelPosLightSpace.w * .25f), .0f, .49f);
-    } else if (distFromCamera < 100.f ) {
+    } else if (distFromCamera < planeIntervals[1] ) {
         pixelPosLightSpace = mul(lightviewProjection[1], outWorldPosition);
         shadowTexCoords.x = clamp(.75f + (pixelPosLightSpace.x / pixelPosLightSpace.w * .25f), .5f, 1.f);
         shadowTexCoords.y = clamp(.25f - (pixelPosLightSpace.y / pixelPosLightSpace.w * .25f), .0f, .49f);
-    } else if (distFromCamera < 250.f) {
+    } else if (distFromCamera < planeIntervals[2]) {
         pixelPosLightSpace = mul(lightviewProjection[2], outWorldPosition);
         shadowTexCoords.x = clamp(.25f + (pixelPosLightSpace.x / pixelPosLightSpace.w * .25f), .0f, .49f);
         shadowTexCoords.y = clamp(.75f - (pixelPosLightSpace.y / pixelPosLightSpace.w * .25f), .5f, 1.f);
@@ -172,11 +173,11 @@ void ps_main (
 
     float3 pixelLightColor = float3(.0f, .0f, .0f);
     // debug colors
-    if (dist < 20.f) {
+    if (dist < planeIntervals[0]) {
         pixelLightColor = float3(.0f, 1.f, .0f);
-    } else if (dist < 100.f ) {
+    } else if (dist < planeIntervals[1] ) {
         pixelLightColor = float3(.0f, .0f, 1.f);
-    } else if (dist < 250.f) {
+    } else if (dist < planeIntervals[2]) {
         pixelLightColor = float3(1.f, .0f, .5f);
     } else {
         pixelLightColor = float3(1.f, .0f, .0f);
