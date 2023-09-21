@@ -532,13 +532,13 @@ int main()
 
 			XMVECTOR center = tre::Maths::getAverageVector(corners);
 
-			XMMATRIX lightView = XMMatrixLookAtLH(center - XMVECTOR{ scene.dirlight.direction.x, scene.dirlight.direction.y, scene.dirlight.direction.z }, center, XMVECTOR{ .0f, 1.f, .0f });
+			XMMATRIX lightView = XMMatrixLookAtLH(center + XMVECTOR{ scene.dirlight.direction.x, scene.dirlight.direction.y, scene.dirlight.direction.z }, center, XMVECTOR{ .0f, 1.f, .0f });
 
-			XMMATRIX lightOrthoProj = tre::Maths::createOrthoMatrixFromFrustumCorners(.5f, corners, lightView);
+			XMMATRIX lightOrthoProj = tre::Maths::createOrthoMatrixFromFrustumCorners(10.f, corners, lightView);
 
 			XMMATRIX lightViewProj = XMMatrixMultiply(lightView, lightOrthoProj);
 
-			lightViewProjs.push_back(lightOrthoProj);
+			lightViewProjs.push_back(lightViewProj);
 		}
 
 		for (int i = 0; i < 4; i++) {
