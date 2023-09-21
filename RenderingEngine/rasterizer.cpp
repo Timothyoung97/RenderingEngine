@@ -34,6 +34,7 @@ Rasterizer::Rasterizer(ID3D11Device* device) {
 	rasterizerDesc.CullMode = D3D11_CULL_FRONT;
 	rasterizerDesc.FillMode = D3D11_FILL_SOLID;
 	rasterizerDesc.DepthClipEnable = true;
+	rasterizerDesc.ScissorEnable = true;
 	CHECK_DX_ERROR(device->CreateRasterizerState(
 		&rasterizerDesc, pShadowRasterizerState.GetAddressOf()
 	));
