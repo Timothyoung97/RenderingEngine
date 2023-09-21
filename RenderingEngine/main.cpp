@@ -528,7 +528,7 @@ int main()
 			// projection matrix of camera with specific near and far plane
 			XMMATRIX projMatrix = XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0f), static_cast<float>(SCREEN_WIDTH) / SCREEN_HEIGHT, planeIntervals[i], planeIntervals[i + 1]);
 
-			std::vector<XMVECTOR> corners = tre::Maths::getFrustumCornersWorldSpace(cam.camView, projMatrix);
+			std::vector<XMVECTOR> corners = tre::Maths::getFrustumCornersWorldSpace(XMMatrixMultiply(cam.camView, projMatrix));
 
 			XMVECTOR center = tre::Maths::getAverageVector(corners);
 
