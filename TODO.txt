@@ -29,7 +29,6 @@ Graphics Tasks:
     • Build Instance Constants in a Buffer to be accessed in VS/PS
     • DrawIndexedInstanced
 • Image Based Lighting
-• Ambient Occlusion
 • Static Animations
 • Skinning
 
