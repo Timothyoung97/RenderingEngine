@@ -217,7 +217,7 @@ int main()
 	//XMMATRIX lightView = XMMatrixLookAtLH(lightDir * 100, XMVECTOR{ .0f, .0f, .0f }, XMVECTOR{ .0f, 1.f, .0f });
 	//XMMATRIX lightViewProj = XMMatrixMultiply(lightView, lightOrtho);
 
-	float planeIntervals[5] = { 1.0f, 50.f, 250.f, 500.f, 1000.f };
+	float planeIntervals[5] = { 1.0f, 20.f, 100.f, 250.f, 500.f };
 
 	// Testing Obj
 	tre::Object testCube;

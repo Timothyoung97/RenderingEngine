@@ -74,18 +74,35 @@ void vs_main (
     outTexCoord = inTexCoord;
 };
 
-float ShadowCalculation(float4 pixelPosLightSpace) {
+float ShadowCalculation(float4 outWorldPosition, float distFromCamera) {
 
+    float4 pixelPosLightSpace;
     float2 shadowTexCoords;
-    shadowTexCoords.x = .5f + (pixelPosLightSpace.x / pixelPosLightSpace.w * .5f);
-    shadowTexCoords.y = .5f - (pixelPosLightSpace.y / pixelPosLightSpace.w * .5f);
+    [branch] if (distFromCamera < 20.f) {
+        pixelPosLightSpace = mul(lightviewProjection[0], outWorldPosition);
+        shadowTexCoords.x = clamp(.25f + (pixelPosLightSpace.x / pixelPosLightSpace.w * .25f), .0f, .49f);
+        shadowTexCoords.y = clamp(.25f - (pixelPosLightSpace.y / pixelPosLightSpace.w * .25f), .0f, .49f);
+    } else if (distFromCamera < 100.f ) {
+        pixelPosLightSpace = mul(lightviewProjection[1], outWorldPosition);
+        shadowTexCoords.x = clamp(.75f + (pixelPosLightSpace.x / pixelPosLightSpace.w * .25f), .5f, 1.f);
+        shadowTexCoords.y = clamp(.25f - (pixelPosLightSpace.y / pixelPosLightSpace.w * .25f), .0f, .49f);
+    } else if (distFromCamera < 250.f) {
+        pixelPosLightSpace = mul(lightviewProjection[2], outWorldPosition);
+        shadowTexCoords.x = clamp(.25f + (pixelPosLightSpace.x / pixelPosLightSpace.w * .25f), .0f, .49f);
+        shadowTexCoords.y = clamp(.75f - (pixelPosLightSpace.y / pixelPosLightSpace.w * .25f), .5f, 1.f);
+    } else {
+        pixelPosLightSpace = mul(lightviewProjection[3], outWorldPosition);
+        shadowTexCoords.x = clamp(.75f + (pixelPosLightSpace.x / pixelPosLightSpace.w * .25f), .5f, 1.f);
+        shadowTexCoords.y = clamp(.75f - (pixelPosLightSpace.y / pixelPosLightSpace.w * .25f), .5f, 1.f);
+    }
 
     float pixelDepth = pixelPosLightSpace.z / pixelPosLightSpace.w;
 
-    float shadowMapW, shadowMapH;
+    float shadowMapW, shadowMapH; // 4K
     ObjShadowMap.GetDimensions(shadowMapW, shadowMapH);
 
-    float2 texelSize = float2(1.f / shadowMapW, 1.f / shadowMapH);
+    // convert to 2K
+    float2 texelSize = float2(1.f / (shadowMapW / 2.f), 1.f / (shadowMapH / 2.f));
 
     float shadow = .0f;
     for (int x = -1; x <= 1; ++x) {
@@ -144,9 +161,13 @@ void ps_main (
     // init pixel color with directional light
     float3 fColor = sampleTexture.xyz * .1f; // with ambient lighting of directional light (hard coded)
 
-    float4 pixelPosLightSpace = mul(lightviewProjection[0], outWorldPosition);
+    // get dist of pixel from camera
+    float3 camPos = float3(camViewMatrix._41, camViewMatrix._42, camViewMatrix._43);
+    float3 diff = outWorldPosition.xyz - camPos;
+    float dist = sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
 
-    float shadow = ShadowCalculation(pixelPosLightSpace);
+    // calculate shadow
+    float shadow = ShadowCalculation(outWorldPosition, dist);
 
     fColor += (1.0 -shadow) * saturate(dot(dirLight.dir, vOutNormal.xyz)) * dirLight.diffuse.xyz * sampleTexture.xyz;
 
