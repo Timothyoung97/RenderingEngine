@@ -41,6 +41,7 @@
 #include "inputlayout.h"
 #include "scene.h"
 #include "viewport.h"
+#include "modelloader.h"
 
 //Screen dimension constants
 const int SCREEN_WIDTH = 1920;
@@ -90,6 +91,11 @@ int main()
 
 	// Create texture
 	std::string basePathStr = tre::Utility::getBasePathStr();
+
+	tre::ModelLoader ml;
+
+	ml.load(deviceAndContext.device.Get(), basePathStr + "glTF-models\\Box\\Box.gltf");
+
 	tre::Texture textures[5] = { 
 		tre::Texture(deviceAndContext.device.Get(), basePathStr + "textures\\UV_image.jpg"), 
 		tre::Texture(deviceAndContext.device.Get(), basePathStr + "textures\\UV_image2.jpg"),
@@ -218,14 +224,14 @@ int main()
 	// Testing Obj
 	tre::Object testCube;
 
-	testCube.pObjMesh = &meshes[0];
+	testCube.pObjMesh = &ml._meshes[0];
 	testCube.objPos = XMFLOAT3(.0f, 2.5f, .0f);
 	testCube.objScale = XMFLOAT3(5.f, 5.f, 5.f);
 	testCube.objRotation = XMFLOAT3(.0f, .0f, .0f);
-	testCube.pObjTexture = &textures[4];
-	testCube.isObjWithTexture = 1;
-	testCube.pObjNormalMap = &normals[1];
-	testCube.isObjWithNormalMap = 1;
+	testCube.pObjTexture = &textures[0];
+	testCube.isObjWithTexture = 0;
+	testCube.pObjNormalMap = &normals[0];
+	testCube.isObjWithNormalMap = 0;
 	testCube.objColor = colors[2];
 	testCube.ritterBs = testCube.pObjMesh->ritterSphere;
 	testCube.naiveBs = testCube.pObjMesh->naiveSphere;

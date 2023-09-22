@@ -3,6 +3,7 @@
 #include <DirectXMath.h>
 #include <d3d11.h>
 #include <wrl/client.h>
+#include <assimp/scene.h>
 
 #include <vector>
 
@@ -35,6 +36,11 @@ public:
 	int indexSize;
 	void createVertexAndIndexBuffer(ID3D11Device* device, const std::vector<Vertex> &vertices, const std::vector<uint16_t> &indices);
 
+};
+
+class CustomMesh : public Mesh {
+public:
+	CustomMesh(ID3D11Device* device, aiMesh* mesh, const aiScene* scene);
 };
 
 class CubeMesh : public Mesh {
