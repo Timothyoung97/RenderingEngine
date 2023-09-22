@@ -24,6 +24,7 @@ cbuffer constBuffer : register(b0) {
     Light dirLight;
     int numPtLights;
     float2 shadowMapDimension;
+    int csmDebugSwitch;
 };
 
 // Per Object
@@ -174,15 +175,18 @@ void ps_main (
     fColor += (1.0 - shadow) * saturate(dot(dirLight.dir, vOutNormal.xyz)) * dirLight.diffuse.xyz * sampleTexture.xyz;
 
     float3 pixelLightColor = float3(.0f, .0f, .0f);
+
     // debug colors
-    if (dist < planeIntervals[0]) {
-        pixelLightColor = float3(.0f, 5.f, .0f);
-    } else if (dist < planeIntervals[1] ) {
-        pixelLightColor = float3(.0f, .0f, 5.f);
-    } else if (dist < planeIntervals[2]) {
-        pixelLightColor = float3(5.f, .0f, .5f);
-    } else {
-        pixelLightColor = float3(5.f, .0f, .0f);
+    if (csmDebugSwitch) {
+        if (dist < planeIntervals[0]) {
+            pixelLightColor = float3(.0f, 5.f, .0f);
+        } else if (dist < planeIntervals[1] ) {
+            pixelLightColor = float3(.0f, .0f, 5.f);
+        } else if (dist < planeIntervals[2]) {
+            pixelLightColor = float3(5.f, .0f, .5f);
+        } else {
+            pixelLightColor = float3(5.f, .0f, .0f);
+        }
     }
 
     // read in point light one by one

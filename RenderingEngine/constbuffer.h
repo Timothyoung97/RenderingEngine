@@ -21,6 +21,7 @@ struct constBufferShaderRescCam {
 	tre::Light light;
 	int numOfPointLight;
 	XMFLOAT2 shadowMapDimension;
+	int csmDebugSwitch;
 };
 
 struct constBufferShaderRescModel {
@@ -41,7 +42,8 @@ public:
 		XMFLOAT4 planeIntervals, 
 		const tre::Light& dirLight, 
 		int numOfPointLight,
-		XMFLOAT2 shadowMapDimension
+		XMFLOAT2 shadowMapDimension,
+		int csmDebugSwitch
 	);
 	static void setObjConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, XMMATRIX transformationLocal, XMFLOAT4 color, UINT isWithTexture, UINT hasNormalMap);
 };
