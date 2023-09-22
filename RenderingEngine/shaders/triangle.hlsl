@@ -23,6 +23,7 @@ cbuffer constBuffer : register(b0) {
     float4 planeIntervals;
     Light dirLight;
     int numPtLights;
+    float2 shadowMapDimension;
 };
 
 // Per Object
@@ -103,11 +104,8 @@ float ShadowCalculation(float4 outWorldPosition, float distFromCamera) {
 
     float pixelDepth = pixelPosLightSpace.z / pixelPosLightSpace.w;
 
-    float shadowMapW, shadowMapH; // 4K
-    ObjShadowMap.GetDimensions(shadowMapW, shadowMapH);
-
     // convert to 2K
-    float2 texelSize = float2(1.f / (shadowMapW / 2.f), 1.f / (shadowMapH / 2.f));
+    float2 texelSize = float2(.5f / shadowMapDimension.x, .5f / shadowMapDimension.y);
 
     float shadow = .0f;
     for (int x = -1; x <= 1; ++x) {

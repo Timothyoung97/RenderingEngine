@@ -20,6 +20,7 @@ struct constBufferShaderRescCam {
 	XMFLOAT4 planeIntervals;
 	tre::Light light;
 	int numOfPointLight;
+	XMFLOAT2 shadowMapDimension;
 };
 
 struct constBufferShaderRescModel {
@@ -32,7 +33,16 @@ struct constBufferShaderRescModel {
 
 class ConstantBuffer {
 public:
-	static void setCamConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, XMVECTOR camPos, XMMATRIX viewProjection, const std::vector<XMMATRIX>& lightViewProjection, XMFLOAT4 planeIntervals, const tre::Light& dirLight, int numOfPointLight);
+	static void setCamConstBuffer(
+		ID3D11Device* device, ID3D11DeviceContext* context, 
+		XMVECTOR camPos, 
+		XMMATRIX viewProjection, 
+		const std::vector<XMMATRIX>& lightViewProjection, 
+		XMFLOAT4 planeIntervals, 
+		const tre::Light& dirLight, 
+		int numOfPointLight,
+		XMFLOAT2 shadowMapDimension
+	);
 	static void setObjConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, XMMATRIX transformationLocal, XMFLOAT4 color, UINT isWithTexture, UINT hasNormalMap);
 };
 
