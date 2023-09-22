@@ -211,8 +211,8 @@ int main()
 	scene.createFloor();
 	scene.updateDirLight();
 
-	std::vector<float> planeIntervals = { 1.0f, 20.f, 100.f, 250.f, 500.f };
-	XMFLOAT4 planeIntervalsF = { 20.f, 100.f, 250.f, 500.f };
+	float planeIntervals[5] = {1.0f, 20.f, 100.f, 250.f, 500.f};
+	XMFLOAT4 planeIntervalsF = { planeIntervals[1], planeIntervals[2], planeIntervals[3], planeIntervals[4]};
 
 	// Testing Obj
 	tre::Object testCube;
@@ -477,6 +477,17 @@ int main()
 				ImGui::BulletText("Dir Light");
 				ImGui::SliderFloat("Yaw", &scene.dirlightYaw, .0f, 360.f);
 				ImGui::SliderFloat("Pitch", &scene.dirlightPitch, .0f, 89.f);
+			}
+
+			// farplane intervals
+			{
+				ImGui::SeparatorText("Far Planes");
+				ImGui::SliderFloat("Far Plane 1", &planeIntervalsF.x, planeIntervals[0], planeIntervals[2]);
+				ImGui::SliderFloat("Far Plane 2", &planeIntervalsF.y, planeIntervals[1], planeIntervals[3]);
+				ImGui::SliderFloat("Far Plane 3", &planeIntervalsF.z, planeIntervals[2], planeIntervals[4]);
+				ImGui::SliderFloat("Far Plane 4", &planeIntervalsF.w, planeIntervals[3], 1000.0f);
+
+				planeIntervals[1] = planeIntervalsF.x, planeIntervals[2] = planeIntervalsF.y, planeIntervals[3] = planeIntervalsF.z, planeIntervals[4] = planeIntervalsF.w;
 			}
 
 			ImGui::SeparatorText("Debug Info");
