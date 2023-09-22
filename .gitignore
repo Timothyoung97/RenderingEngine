@@ -2,5 +2,7 @@
 external/SDL2/lib/
 build/
 
+/*.lib
+
 RenderingEngine/x64
 RenderingEngine/shaders/*.bin
