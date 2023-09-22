@@ -20,7 +20,22 @@ Graphics Tasks:
     • Batch primitives with similar Textures & Meshes
     • Build Instance Constants in a Buffer to be accessed in VS/PS
     • DrawIndexedInstanced
-• Image Based Lighting
+• HDR Pipeline
+    • floating point RT format for lighting
+    • tonemap to LDR RGB8 format, with manual camera exposure control
+    • Gamma Correction
+    • improve with auto-exposure via luminance histogram
+    • image based lighting for non-hardcoded ambient
+• PBR Rendering
+    • Energy conserving for Diffuse
+    • Microfacet surface model for Specular
+    • Physically based BRDF (Bidirectional Reflective Distribution Function)
+• Bloom
+    • start with simple blur-based bloom
+        • extract bright pixels (based on luminance threshold above avg scene luimnance) from lighting RT
+        • perform full screen blur
+        • additively blend back to lighting RT
+    • move on to down-sample based bloom with custom radius filter
 • Static Animations
 • Skinning
 
