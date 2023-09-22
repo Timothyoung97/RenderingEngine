@@ -75,26 +75,30 @@ void vs_main (
     outTexCoord = inTexCoord;
 };
 
+static float2 shadowTexCoordCenter[4] = {
+    float2(.25f, .25f),
+    float2(.75f, .25f),
+    float2(.25f, .75f),
+    float2(.75f, .75f)
+};
+
+static float4 borderClamp[4] = {
+    float4(.0f, .49f, .0f, .49f),
+    float4(.5f, 1.f, .0f, .49f),
+    float4(.0f, .49f, .5f, 1.f),
+    float4(.5f, 1.f, .5f, 1.f)
+};
+
 float ShadowCalculation(float4 outWorldPosition, float distFromCamera) {
 
     float4 pixelPosLightSpace;
     float2 shadowTexCoords;
-    if (distFromCamera < planeIntervals[0]) {
-        pixelPosLightSpace = mul(lightviewProjection[0], outWorldPosition);
-        shadowTexCoords.x = clamp(.25f + (pixelPosLightSpace.x / pixelPosLightSpace.w * .25f), .0f, .49f);
-        shadowTexCoords.y = clamp(.25f - (pixelPosLightSpace.y / pixelPosLightSpace.w * .25f), .0f, .49f);
-    } else if (distFromCamera < planeIntervals[1] ) {
-        pixelPosLightSpace = mul(lightviewProjection[1], outWorldPosition);
-        shadowTexCoords.x = clamp(.75f + (pixelPosLightSpace.x / pixelPosLightSpace.w * .25f), .5f, 1.f);
-        shadowTexCoords.y = clamp(.25f - (pixelPosLightSpace.y / pixelPosLightSpace.w * .25f), .0f, .49f);
-    } else if (distFromCamera < planeIntervals[2]) {
-        pixelPosLightSpace = mul(lightviewProjection[2], outWorldPosition);
-        shadowTexCoords.x = clamp(.25f + (pixelPosLightSpace.x / pixelPosLightSpace.w * .25f), .0f, .49f);
-        shadowTexCoords.y = clamp(.75f - (pixelPosLightSpace.y / pixelPosLightSpace.w * .25f), .5f, 1.f);
-    } else {
-        pixelPosLightSpace = mul(lightviewProjection[3], outWorldPosition);
-        shadowTexCoords.x = clamp(.75f + (pixelPosLightSpace.x / pixelPosLightSpace.w * .25f), .5f, 1.f);
-        shadowTexCoords.y = clamp(.75f - (pixelPosLightSpace.y / pixelPosLightSpace.w * .25f), .5f, 1.f);
+
+    for (int i = 0; i < 4; i++) {
+        pixelPosLightSpace = mul(lightviewProjection[i], outWorldPosition);
+        shadowTexCoords.x = clamp(shadowTexCoordCenter[i].x + (pixelPosLightSpace.x / pixelPosLightSpace.w * .25f), borderClamp[i].x, borderClamp[i].y);
+        shadowTexCoords.y = clamp(shadowTexCoordCenter[i].y - (pixelPosLightSpace.y / pixelPosLightSpace.w * .25f), borderClamp[i].z, borderClamp[i].w);
+        if (distFromCamera < planeIntervals[i]) break;
     }
 
     float pixelDepth = pixelPosLightSpace.z / pixelPosLightSpace.w;
@@ -174,13 +178,13 @@ void ps_main (
     float3 pixelLightColor = float3(.0f, .0f, .0f);
     // debug colors
     if (dist < planeIntervals[0]) {
-        pixelLightColor = float3(.0f, 1.f, .0f);
+        pixelLightColor = float3(.0f, 5.f, .0f);
     } else if (dist < planeIntervals[1] ) {
-        pixelLightColor = float3(.0f, .0f, 1.f);
+        pixelLightColor = float3(.0f, .0f, 5.f);
     } else if (dist < planeIntervals[2]) {
-        pixelLightColor = float3(1.f, .0f, .5f);
+        pixelLightColor = float3(5.f, .0f, .5f);
     } else {
-        pixelLightColor = float3(1.f, .0f, .0f);
+        pixelLightColor = float3(5.f, .0f, .0f);
     }
 
     // read in point light one by one
