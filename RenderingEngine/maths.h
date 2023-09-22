@@ -4,6 +4,9 @@
 
 using namespace DirectX;
 
+//std
+#include <vector>
+
 namespace tre {
 
 struct Plane { // represented using plane equation
@@ -35,5 +38,8 @@ public:
 	static XMFLOAT3 XMFLOAT3Addition(XMFLOAT3 a, XMFLOAT3 b);
 	static XMFLOAT3 XMFLOAT3Minus(XMFLOAT3 a, XMFLOAT3 b);
 	static XMFLOAT3 XMFLOAT3ScalarMultiply(XMFLOAT3 a, float x);
+	static std::vector<XMVECTOR> getFrustumCornersWorldSpace(const XMMATRIX& viewProjMatrix);
+	static XMVECTOR getAverageVector(const std::vector<XMVECTOR>& vectors);
+	static XMMATRIX createOrthoMatrixFromFrustumCorners(float zMult, const std::vector<XMVECTOR>& corners, const XMMATRIX& viewMatrix);
 };
 }

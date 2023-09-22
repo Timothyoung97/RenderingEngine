@@ -59,4 +59,5 @@ public:
 
 	TeapotMesh(ID3D11Device* device);
 };
+
 }

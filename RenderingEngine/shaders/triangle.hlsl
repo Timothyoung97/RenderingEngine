@@ -17,9 +17,14 @@ struct PointLight {
 
 // Global 
 cbuffer constBuffer : register(b0) {
+    float4 camPos;
     matrix viewProjection;
+    matrix lightviewProjection[4];
+    float4 planeIntervals;
     Light dirLight;
     int numPtLights;
+    float2 shadowMapDimension;
+    int csmDebugSwitch;
 };
 
 // Per Object
@@ -34,8 +39,10 @@ cbuffer constBuffer2 : register(b1) {
 Texture2D ObjTexture : register(t0);
 Texture2D ObjNormMap : register(t1);
 StructuredBuffer<PointLight> pointLights : register(t2);
+Texture2D ObjShadowMap : register(t3);
 
-SamplerState ObjSamplerState;
+SamplerState ObjSamplerStateLinear : register(s0);
+SamplerComparisonState ObjSamplerStateMipPtWhiteBorder : register(s1);
 
 // Vertex Shader
 void vs_main (
@@ -44,19 +51,19 @@ void vs_main (
     in float3 inTangent : TANGENT,
     in float2 inTexCoord : TEXCOORD,
     out float4 outPosition : SV_POSITION,
-    out float4 outLocalPosition : TEXCOORD0,
+    out float4 outWorldPosition : TEXCOORD0,
     out float4 outNormal : TEXCOORD1,
     out float4 outTangent : TEXCOORD2,
     out float2 outTexCoord : TEXCOORD3
 ) 
 {   
     // Position
-    float4 tempInPos = float4(inPosition, 1);
-    float4 localPos = mul(transformation, tempInPos);
-    outPosition = mul(viewProjection, localPos);
+    float4 localPos = float4(inPosition, 1);
+    float4 worldPos = mul(transformation, localPos);
+    outPosition = mul(viewProjection, worldPos);
 
-    // local position
-    outLocalPosition = localPos;
+    // world position
+    outWorldPosition = worldPos;
 
     // Normal
     float4 tempInNormal = float4(inNormal, 0);
@@ -70,10 +77,52 @@ void vs_main (
     outTexCoord = inTexCoord;
 };
 
+static float2 shadowTexCoordCenter[4] = {
+    float2(.25f, .25f),
+    float2(.75f, .25f),
+    float2(.25f, .75f),
+    float2(.75f, .75f)
+};
+
+static float4 borderClamp[4] = {
+    float4(.0f, .49f, .0f, .49f),
+    float4(.5f, 1.f, .0f, .49f),
+    float4(.0f, .49f, .5f, 1.f),
+    float4(.5f, 1.f, .5f, 1.f)
+};
+
+float ShadowCalculation(float4 outWorldPosition, float distFromCamera) {
+
+    float4 pixelPosLightSpace;
+    float2 shadowTexCoords;
+
+    for (int i = 0; i < 4; i++) {
+        pixelPosLightSpace = mul(lightviewProjection[i], outWorldPosition);
+        shadowTexCoords.x = clamp(shadowTexCoordCenter[i].x + (pixelPosLightSpace.x / pixelPosLightSpace.w * .25f), borderClamp[i].x, borderClamp[i].y);
+        shadowTexCoords.y = clamp(shadowTexCoordCenter[i].y - (pixelPosLightSpace.y / pixelPosLightSpace.w * .25f), borderClamp[i].z, borderClamp[i].w);
+        if (distFromCamera < planeIntervals[i]) break;
+    }
+
+    float pixelDepth = pixelPosLightSpace.z / pixelPosLightSpace.w;
+
+    // convert to 2K
+    float2 texelSize = float2(.5f / shadowMapDimension.x, .5f / shadowMapDimension.y);
+
+    float shadow = .0f;
+    for (int x = -1; x <= 1; ++x) {
+        for (int y = -1; y <= 1; ++y) {
+            float currShadow = ObjShadowMap.SampleCmp(ObjSamplerStateMipPtWhiteBorder, shadowTexCoords.xy + float2(x, y) * texelSize, pixelDepth);
+            shadow += currShadow;
+        }
+    }
+
+    return shadow / 9.f;
+};
+
 // Pixel Shader
 void ps_main (
     in float4 vOutPosition : SV_POSITION,
-    in float4 vOutLocalPosition : TEXCOORD0,
+    in float4 outWorldPosition : TEXCOORD0,
     in float4 vOutNormal : TEXCOORD1,
     in float4 vOutTangent : TEXCOORD2,
     in float2 vOutTexCoord : TEXCOORD3,
@@ -89,13 +138,13 @@ void ps_main (
     float4 sampleTexture;
 
     if (isWithTexture) {
-        sampleTexture = ObjTexture.Sample(ObjSamplerState, vOutTexCoord);
+        sampleTexture = ObjTexture.Sample(ObjSamplerStateLinear, vOutTexCoord);
     } else {
         sampleTexture = color;
     }
 
     if (hasNormMap) {
-        float4 normalMap = ObjNormMap.Sample(ObjSamplerState, vOutTexCoord);
+        float4 normalMap = ObjNormMap.Sample(ObjSamplerStateLinear, vOutTexCoord);
 
         normalMap = (2.0f * normalMap) - 1.0f; // change from [0, 1] to [-1, 1]
         
@@ -114,17 +163,38 @@ void ps_main (
     }
 
     // init pixel color with directional light
-    float3 fColor = saturate(dot(dirLight.dir, vOutNormal.xyz)) * dirLight.diffuse.xyz * sampleTexture.xyz;
-    fColor += sampleTexture.xyz * .1f; // with ambient lighting of directional light (hard coded)
+    float3 fColor = sampleTexture.xyz * .1f; // with ambient lighting of directional light (hard coded)
+
+    // get dist of pixel from camera
+    float3 diff = outWorldPosition.xyz - camPos.xyz;
+    float dist = sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
+
+    // calculate shadow
+    float shadow = ShadowCalculation(outWorldPosition, dist);
+
+    fColor += (1.0 - shadow) * saturate(dot(dirLight.dir, vOutNormal.xyz)) * dirLight.diffuse.xyz * sampleTexture.xyz;
 
     float3 pixelLightColor = float3(.0f, .0f, .0f);
+
+    // debug colors
+    if (csmDebugSwitch) {
+        if (dist < planeIntervals[0]) {
+            pixelLightColor = float3(.0f, 5.f, .0f);
+        } else if (dist < planeIntervals[1] ) {
+            pixelLightColor = float3(.0f, .0f, 5.f);
+        } else if (dist < planeIntervals[2]) {
+            pixelLightColor = float3(5.f, .0f, .5f);
+        } else {
+            pixelLightColor = float3(5.f, .0f, .0f);
+        }
+    }
 
     // read in point light one by one
     // local lighting
     for (int i = 0; i < numPtLights; i++) {
         
         // vector between light pos and pixel pos
-        float3 pixelToLightV = pointLights[i].pos - vOutLocalPosition.xyz;
+        float3 pixelToLightV = pointLights[i].pos - outWorldPosition.xyz;
         float d = length(pixelToLightV);   
 
         float3 localLight = float3(.0f, .0f, .0f);

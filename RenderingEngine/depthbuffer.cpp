@@ -19,11 +19,41 @@ DepthBuffer::DepthBuffer(ID3D11Device* device, int screenW, int screenH) {
 	depthStencilDesc.MiscFlags = 0;
 
 	CHECK_DX_ERROR(device->CreateTexture2D(
-		&depthStencilDesc, nullptr, depthStencilBuffer.GetAddressOf()
+		&depthStencilDesc, nullptr, pDepthStencilTexture.GetAddressOf()
 	));
 
 	CHECK_DX_ERROR(device->CreateDepthStencilView(
-		depthStencilBuffer.Get(), nullptr, depthStencilView.GetAddressOf()
+		pDepthStencilTexture.Get(), nullptr, pDepthStencilView.GetAddressOf()
+	));
+
+	// For shadow
+	depthStencilDesc.Format = DXGI_FORMAT_R24G8_TYPELESS;
+	depthStencilDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_DEPTH_STENCIL;
+	depthStencilDesc.Height = static_cast<UINT>(4096);
+	depthStencilDesc.Width = static_cast<UINT>(4096);
+
+	CHECK_DX_ERROR(device->CreateTexture2D(
+		&depthStencilDesc, nullptr, pShadowMapTexture.GetAddressOf()
+	));
+
+	D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
+	ZeroMemory(&depthStencilViewDesc, sizeof(D3D11_DEPTH_STENCIL_VIEW_DESC));
+	depthStencilViewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+	depthStencilViewDesc.Texture2D.MipSlice = 0;
+
+	CHECK_DX_ERROR(device->CreateDepthStencilView(
+		pShadowMapTexture.Get(), &depthStencilViewDesc, pShadowDepthStencilView.GetAddressOf()
+	));
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc;
+	ZeroMemory(&shaderResourceViewDesc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
+	shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	shaderResourceViewDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+	shaderResourceViewDesc.Texture2D.MipLevels = 1;
+
+	CHECK_DX_ERROR(device->CreateShaderResourceView(
+		pShadowMapTexture.Get(), &shaderResourceViewDesc, pShadowShaderRescView.GetAddressOf()
 	));
 
 	D3D11_DEPTH_STENCIL_DESC ddsd;
