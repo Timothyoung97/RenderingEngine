@@ -1,13 +1,4 @@
 Graphics Tasks:
-• Control sun light via yaw/pitch
-• Shadow Maps
-    • Hardcode a simple scene with a few objects & a large "floor" mesh to test
-    • Start with simple single-cascade hard shadows
-    • Render opaque geometry in Directional Light-Space w/ front-face culling to a high resolution shadow map
-    • Sample shadow map in Shader & compare with light-space depth
-    • Implement soft shadows via 3x3 PCF
-    • Further improve soft shadows with with a "Comparison Sampler"
-    • Cascaded Shadow Maps
 • Mesh loading
     • use library: https://github.com/assimp/assimp
     • Manage scene objects' meshes & materials
@@ -15,6 +6,7 @@ Graphics Tasks:
     • Example scenes: https://casual-effects.com/data/ & https://github.com/KhronosGroup/glTF-Sample-Models
         • NOTE: .obj files only support bump maps, not normal maps. convert them to normal maps manually offline or in Pixel Shader
     • Goal: successfully import & render the "Crytek Sponza", "Rungholt", "Amazon Lumberyard Bistro" in succession
+• Culling before shadow
 • Deferred Shading Renderer
     • 2 GBuffers to start: Albedo & Normal
     • Full screen pass (Quad or Triangle) for lighting
@@ -71,6 +63,15 @@ Done:
     • debug color if intersecting or completely inside frustum
     • stress test (populate scene with >10,000 objects spread out)
 • Convert local light lists to StructuredBuffer
+• Control sun light via yaw/pitch
+• Shadow Maps
+    • Hardcode a simple scene with a few objects & a large "floor" mesh to test
+    • Start with simple single-cascade hard shadows
+    • Render opaque geometry in Directional Light-Space w/ front-face culling to a high resolution shadow map
+    • Sample shadow map in Shader & compare with light-space depth
+    • Implement soft shadows via 3x3 PCF
+    • Further improve soft shadows with with a "Comparison Sampler"
+    • Cascaded Shadow Maps
 
 //////////////////////////////////////////////////////////////////////////////
 
