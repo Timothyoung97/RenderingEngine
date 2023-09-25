@@ -11,6 +11,7 @@ class Utility {
 
 public:
 	static std::string getBasePathStr();
+	static std::string getDirPathStr(std::string filepath);
 	static std::wstring getBasePathWstr();
 	static std::wstring convertToWstr(std::string str);
 	static std::string convertToStr(std::wstring wstr);

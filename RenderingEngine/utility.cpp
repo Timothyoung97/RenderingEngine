@@ -21,6 +21,11 @@ std::string Utility::getBasePathStr() {
 	return filepath.substr(0, lastSlash + 1);
 }
 
+std::string Utility::getDirPathStr(std::string filepath) {
+	size_t lastSlash = filepath.find_last_of("\\/");
+	return filepath.substr(0, lastSlash + 1);
+}
+
 std::wstring Utility::getBasePathWstr() {
 	std::string filepath = __FILE__;
 	size_t lastSlash = filepath.find_last_of("\\/");
