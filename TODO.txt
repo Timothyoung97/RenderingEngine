@@ -26,6 +26,8 @@ Graphics Tasks:
 
 (Side)
 • More sampler states -> to follow according to glTF's specfication
+• Rasterizer state's depth bias and slope scale depth bias to adjust according to CSM section (to reduce peter pan)
+• Convert to use DirectXCollision.h
 
 Done:
 • init d3d11 device/context, and clear swap chain to grey color
