@@ -16,7 +16,8 @@ void ModelLoader::load(ID3D11Device* device, std::string filename) {
 	const aiScene* pScene = importer.ReadFile(filename,
 		aiProcess_Triangulate |
 		aiProcess_MakeLeftHanded | 
-		aiProcess_FlipUVs
+		aiProcess_FlipUVs |
+		aiProcess_CalcTangentSpace
 	);
 
 	CHECK_ERROR(pScene != nullptr, "File should be loaded");
@@ -32,9 +33,9 @@ void ModelLoader::loadTextures(ID3D11Device* device, aiMaterial* mat, aiTextureT
 		aiString str;
 		mat->GetTexture(type, i, &str);
 
-		std::string filename = this->_directoryPath + std::string(str.C_Str());
+		std::string filename = this->_directoryPath + tre::Utility::uriDecode(std::string(str.C_Str()));
 
-		_textures.push_back(tre::TextureLoader::createTexture(device, filename));
+		_textures.push_back(tre::TextureLoader::createTexture(device, filename, type));
 	}
 }
 
@@ -46,6 +47,7 @@ void ModelLoader::processNode(ID3D11Device* device, aiNode* node, const aiScene*
 		if (mesh->mMaterialIndex >= 0) {
 			aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 			this->loadTextures(device, scene->mMaterials[mesh->mMaterialIndex], aiTextureType_DIFFUSE, scene);
+			this->loadTextures(device, scene->mMaterials[mesh->mMaterialIndex], aiTextureType_NORMALS, scene);
 		}
 	}
 

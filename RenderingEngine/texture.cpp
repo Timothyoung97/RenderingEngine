@@ -9,9 +9,10 @@
 
 namespace tre {
 
-Texture TextureLoader::createTexture(ID3D11Device* device, std::string filepath) {
+Texture TextureLoader::createTexture(ID3D11Device* device, std::string filepath, aiTextureType textureType) {
 
 	Texture newTexture;
+	newTexture.textureType = textureType;
 
 	// load image
 	int imgWidth, imgHeight, imgChannels, desiredChannels = 4;
