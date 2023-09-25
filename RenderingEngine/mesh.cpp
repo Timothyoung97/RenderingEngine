@@ -8,7 +8,7 @@
 
 namespace tre {
 
-CustomMesh::CustomMesh(ID3D11Device* device, aiMesh* mesh, const aiScene* scene) {
+CustomMesh::CustomMesh(ID3D11Device* device, aiMesh* mesh) {
 	std::vector<Vertex> vertices;
 	std::vector<uint16_t> indices;
 	std::vector<XMFLOAT3> uniqueVertexPos;
@@ -17,8 +17,21 @@ CustomMesh::CustomMesh(ID3D11Device* device, aiMesh* mesh, const aiScene* scene)
 		Vertex newVertex;
 		newVertex.pos = XMFLOAT3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
 		newVertex.uvCoord = XMFLOAT2(.0f, .0f);
+
 		newVertex.normal = XMFLOAT3(.0f, .0f, .0f);
+		if (mesh->HasNormals()) {
+			newVertex.normal = XMFLOAT3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
+		}
+
 		newVertex.tangent = XMFLOAT3(.0f, .0f, .0f);
+		if (mesh->HasTangentsAndBitangents()) {
+			newVertex.tangent = XMFLOAT3(mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z);
+		}
+
+		if (mesh->mTextureCoords[0]) {
+			newVertex.uvCoord = XMFLOAT2((float)mesh->mTextureCoords[0][i].x, (float)mesh->mTextureCoords[0][i].y);
+		}
+
 		vertices.push_back(newVertex);
 		uniqueVertexPos.push_back(newVertex.pos);
 	}

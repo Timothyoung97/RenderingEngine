@@ -40,7 +40,7 @@ public:
 
 class CustomMesh : public Mesh {
 public:
-	CustomMesh(ID3D11Device* device, aiMesh* mesh, const aiScene* scene);
+	CustomMesh(ID3D11Device* device, aiMesh* mesh);
 };
 
 class CubeMesh : public Mesh {
