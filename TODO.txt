@@ -13,7 +13,7 @@ Graphics Tasks:
         • Reconstruct world position from depth buffer
     • Utilize light volumes for point lights
 • Update point lights in GPU
-    • Use Compute Shaders
+    • Use Compute ShadersT
 • SSAO
 • Instanced Rendering
     • Draw multiple primitives in single Draw Calls
@@ -25,17 +25,36 @@ Graphics Tasks:
     • tonemap to LDR RGB8 format, with manual camera exposure control
     • Gamma Correction
     • improve with auto-exposure via luminance histogram
-    • image based lighting for non-hardcoded ambient
+• Space Partitioning
+    • Quad/Oct tree scene partitioning
+    • Initial Support for static objects only
+    • Leaf Node Broad-Phase culling per view-proj
+    • Per Instance fine-grained frustum culling after
+• Spherical Environment Mapping
+    • Essentially a non-hardcoded ambient term contribution
+    • https://www.clicktorelease.com/blog/creating-spherical-environment-mapping-shader/
 • PBR Rendering
     • Energy conserving for Diffuse
     • Microfacet surface model for Specular
     • Physically based BRDF (Bidirectional Reflective Distribution Function)
 • Bloom
-    • start with simple blur-based bloom
-        • extract bright pixels (based on luminance threshold above avg scene luimnance) from lighting RT
-        • perform full screen blur
-        • additively blend back to lighting RT
-    • move on to down-sample based bloom with custom radius filter
+    • Simple blur-based bloom
+    • Extract bright pixels (based on luminance threshold above avg scene luimnance) from lighting RT
+    • Perform full screen blur
+    • Additively blend back to lighting RT
+
+Stretch Graphic Tasks:
+• Shadows for Point Lights
+• Height-map based terrain rendering
+    • Start with high detail CPU-generated mesh
+    • Render with multiple TriangleStrip draw calls
+    • Optimize with single Indirect Draw Call
+    • Move on to Tesselated GPU-Driven terrain rendering
+    • Biome/Height/Steepness based Terrain Albedo
+• Image Based Lighting
+    • Physically correct variant of Spherical Environment Mapping
+• Physically-Based Bloom Post Process
+• Extend Space Partition to dynamic objects
 • Static Animations
 • Skinning
 
