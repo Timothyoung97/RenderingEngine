@@ -97,16 +97,16 @@ int main()
 	ml.load(deviceAndContext.device.Get(), basePathStr + "glTF-models\\Box\\Box.gltf");
 
 	tre::Texture textures[5] = { 
-		tre::Texture(deviceAndContext.device.Get(), basePathStr + "textures\\UV_image.jpg"), 
-		tre::Texture(deviceAndContext.device.Get(), basePathStr + "textures\\UV_image2.jpg"),
-		tre::Texture(deviceAndContext.device.Get(), basePathStr + "textures\\UV_image_a.png"),
-		tre::Texture(deviceAndContext.device.Get(), basePathStr + "textures\\glTF.png"),
-		tre::Texture(deviceAndContext.device.Get(), basePathStr + "textures\\wall.jpg")
+		tre::TextureLoader::createTexture(deviceAndContext.device.Get(), basePathStr + "textures\\UV_image.jpg"),
+		tre::TextureLoader::createTexture(deviceAndContext.device.Get(), basePathStr + "textures\\UV_image2.jpg"),
+		tre::TextureLoader::createTexture(deviceAndContext.device.Get(), basePathStr + "textures\\UV_image_a.png"),
+		tre::TextureLoader::createTexture(deviceAndContext.device.Get(), basePathStr + "textures\\glTF.png"),
+		tre::TextureLoader::createTexture(deviceAndContext.device.Get(), basePathStr + "textures\\wall.jpg")
 	};
 
 	tre::Texture normals[2] = {
-		tre::Texture(deviceAndContext.device.Get(), basePathStr + "textures\\glTF_normal.png"),
-		tre::Texture(deviceAndContext.device.Get(), basePathStr + "textures\\wall_normal.jpg")
+		tre::TextureLoader::createTexture(deviceAndContext.device.Get(), basePathStr + "textures\\glTF_normal.png"),
+		tre::TextureLoader::createTexture(deviceAndContext.device.Get(), basePathStr + "textures\\wall_normal.jpg")
 	};
 
 	// Create input layout

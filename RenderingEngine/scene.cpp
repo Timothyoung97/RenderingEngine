@@ -15,16 +15,16 @@ Scene::Scene(ID3D11Device* device) {
 	// Create texture
 	std::string basePathStr = Utility::getBasePathStr();
 	textures = {
-		tre::Texture(device, basePathStr + "textures\\UV_image.jpg"),
-		tre::Texture(device, basePathStr + "textures\\UV_image2.jpg"),
-		tre::Texture(device, basePathStr + "textures\\UV_image_a.png"),
-		tre::Texture(device, basePathStr + "textures\\glTF.png"),
-		tre::Texture(device, basePathStr + "textures\\wall.jpg")
+		tre::TextureLoader::createTexture(device, basePathStr + "textures\\UV_image.jpg"),
+		tre::TextureLoader::createTexture(device, basePathStr + "textures\\UV_image2.jpg"),
+		tre::TextureLoader::createTexture(device, basePathStr + "textures\\UV_image_a.png"),
+		tre::TextureLoader::createTexture(device, basePathStr + "textures\\glTF.png"),
+		tre::TextureLoader::createTexture(device, basePathStr + "textures\\wall.jpg")
 	};
 
 	normalTextures = {
-		tre::Texture(device, basePathStr + "textures\\glTF_normal.png"),
-		tre::Texture(device, basePathStr + "textures\\wall_normal.jpg")
+		tre::TextureLoader::createTexture(device, basePathStr + "textures\\glTF_normal.png"),
+		tre::TextureLoader::createTexture(device, basePathStr + "textures\\wall_normal.jpg")
 	};
 
 }
