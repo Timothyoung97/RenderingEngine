@@ -17,7 +17,7 @@ public:
 	// Directional light
 	tre::Light dirlight;
 	float dirlightYaw = .0f;
-	float dirlightPitch = .0f;
+	float dirlightPitch = 45.f;
 	
 	// Resources
 	std::vector<Mesh> meshes;
