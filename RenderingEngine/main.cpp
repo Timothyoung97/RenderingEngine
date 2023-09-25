@@ -94,7 +94,7 @@ int main()
 
 	tre::ModelLoader ml;
 
-	ml.load(deviceAndContext.device.Get(), basePathStr + "glTF-models\\Box\\Box.gltf");
+	ml.load(deviceAndContext.device.Get(), basePathStr + "glTF-models\\BoxTextured\\BoxTextured.gltf");
 
 	tre::Texture textures[5] = { 
 		tre::TextureLoader::createTexture(deviceAndContext.device.Get(), basePathStr + "textures\\UV_image.jpg"),
@@ -228,8 +228,8 @@ int main()
 	testCube.objPos = XMFLOAT3(.0f, 2.5f, .0f);
 	testCube.objScale = XMFLOAT3(5.f, 5.f, 5.f);
 	testCube.objRotation = XMFLOAT3(.0f, .0f, .0f);
-	testCube.pObjTexture = &textures[0];
-	testCube.isObjWithTexture = 0;
+	testCube.pObjTexture = &ml._textures[0];
+	testCube.isObjWithTexture = 1;
 	testCube.pObjNormalMap = &normals[0];
 	testCube.isObjWithNormalMap = 0;
 	testCube.objColor = colors[2];
