@@ -15,6 +15,7 @@ public:
 
 	std::vector<Mesh> _meshes;
 	std::vector<Texture> _textures;
+	std::vector<Material> _materials;
 	std::string _directoryPath;
 
 	void load(ID3D11Device* device, std::string filename);

@@ -228,9 +228,9 @@ int main()
 	testCube.objPos = XMFLOAT3(.0f, 5.f, .0f);
 	testCube.objScale = XMFLOAT3(5.f, 5.f, 5.f);
 	testCube.objRotation = XMFLOAT3(.0f, .0f, .0f);
-	testCube.pObjTexture = &ml._textures[0];
+	testCube.pObjTexture = ml._meshes[0].material->pObjTexture;
 	testCube.isObjWithTexture = 1;
-	testCube.pObjNormalMap = &ml._textures[1];
+	testCube.pObjNormalMap = ml._meshes[0].material->pObjNormalMap;
 	testCube.isObjWithNormalMap = 1;
 	testCube.objColor = colors[2];
 	testCube.ritterBs = testCube.pObjMesh->ritterSphere;

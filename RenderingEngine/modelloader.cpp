@@ -29,26 +29,40 @@ void ModelLoader::load(ID3D11Device* device, std::string filename) {
 
 void ModelLoader::loadTextures(ID3D11Device* device, aiMaterial* mat, aiTextureType type, const aiScene* scene) {
 	
-	for (int i = 0; i < mat->GetTextureCount(type); i++) {
-		aiString str;
-		mat->GetTexture(type, i, &str);
+	aiString str;
+	mat->GetTexture(type, 0, &str); // hardcoded
 
-		std::string filename = this->_directoryPath + tre::Utility::uriDecode(std::string(str.C_Str()));
+	std::string filename = this->_directoryPath + tre::Utility::uriDecode(std::string(str.C_Str()));
 
-		_textures.push_back(tre::TextureLoader::createTexture(device, filename, type));
-	}
+	Texture newTexture = tre::TextureLoader::createTexture(device, filename, type);
+	_textures.push_back(newTexture);
 }
 
 void ModelLoader::processNode(ID3D11Device* device, aiNode* node, const aiScene* scene) {
 	for (int i = 0; i < node->mNumMeshes; i++) {
 		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-		_meshes.push_back(CustomMesh(device, mesh));
+
+		CustomMesh newMesh(device, mesh);
 
 		if (mesh->mMaterialIndex >= 0) {
 			aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+
+			Material newMaterial;
+
 			this->loadTextures(device, scene->mMaterials[mesh->mMaterialIndex], aiTextureType_DIFFUSE, scene);
+
+			newMaterial.pObjTexture = &_textures.at(_textures.size() - 1);
+
 			this->loadTextures(device, scene->mMaterials[mesh->mMaterialIndex], aiTextureType_NORMALS, scene);
+
+			newMaterial.pObjNormalMap = &_textures.at(_textures.size() - 1);
+
+			_materials.push_back(newMaterial);
+
+			newMesh.material = &_materials.at(_materials.size() - 1);
 		}
+		
+		_meshes.push_back(newMesh);
 	}
 
 	for (int i = 0; i < node->mNumChildren; i++) {
