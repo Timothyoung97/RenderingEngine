@@ -94,7 +94,7 @@ int main()
 
 	tre::ModelLoader ml;
 
-	ml.load(deviceAndContext.device.Get(), basePathStr + "glTF-models\\BoxTextured\\BoxTextured.gltf");
+	ml.load(deviceAndContext.device.Get(), basePathStr + "glTF-models\\BoxTexturedNPOT\\BoxTexturedNonPowerOfTwo.gltf");
 
 	tre::Texture textures[5] = { 
 		tre::TextureLoader::createTexture(deviceAndContext.device.Get(), basePathStr + "textures\\UV_image.jpg"),
@@ -206,7 +206,7 @@ int main()
 
 	// imgui setting
 	bool show_demo_window = false;
-	bool showBoundingVolume = true;
+	bool showBoundingVolume = false;
 	bool pauseLight = false;
 	tre::BoundVolumeEnum typeOfBound = tre::AABBBoundingBox;
 	int meshIdx = 0;
