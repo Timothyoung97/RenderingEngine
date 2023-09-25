@@ -2,6 +2,7 @@
 #include <iostream>
 #include <codecvt>
 #include <locale>
+#include <regex>
 
 #include "utility.h"
 
@@ -13,6 +14,12 @@ std::wstring Utility::convertToWstr(std::string str) {
 
 std::string Utility::convertToStr(std::wstring wstr) {
 	return std::wstring_convert<std::codecvt_utf8<wchar_t>>().to_bytes(wstr);
+}
+
+std::string Utility::uriDecode(std::string str) {
+	std::regex toReplace("%20");
+	std::string res = std::regex_replace(str, toReplace, " ");
+	return res;
 }
 
 std::string Utility::getBasePathStr() {
