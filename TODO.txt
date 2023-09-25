@@ -24,6 +24,9 @@ Graphics Tasks:
 • Static Animations
 • Skinning
 
+(Side)
+• More sampler states -> to follow according to glTF's specfication
+
 Done:
 • init d3d11 device/context, and clear swap chain to grey color
 • 1 red triangle
