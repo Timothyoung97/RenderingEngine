@@ -12,7 +12,7 @@ void ModelLoader::load(ID3D11Device* device, std::string filename) {
 
 	const aiScene* pScene = importer.ReadFile(filename,
 		aiProcess_Triangulate |
-		aiProcess_ConvertToLeftHanded
+		aiProcess_MakeLeftHanded
 	);
 
 	CHECK_ERROR(pScene != nullptr, "File should be loaded");
