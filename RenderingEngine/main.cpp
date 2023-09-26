@@ -28,7 +28,6 @@
 #include "constbuffer.h"
 #include "texture.h"
 #include "object.h"
-#include "sampler.h"
 #include "shader.h"
 #include "renderer.h"
 #include "light.h"
@@ -61,11 +60,6 @@ int main()
 	tre::Swapchain swapchain;
 	swapchain.DescSwapchain(tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);
 	swapchain.InitSwapchainViaHwnd(factory.dxgiFactory2, deviceAndContext.device, window.getWindowHandle());
-
-	//Create Sampler
-	tre::Sampler sampler(deviceAndContext.device.Get());
-	deviceAndContext.context->PSSetSamplers(0, 1, sampler.pSamplerStateLinear.GetAddressOf());
-	deviceAndContext.context->PSSetSamplers(1, 1, sampler.pSamplerStateMipPtWhiteBorder.GetAddressOf());
 
 	//Load pre-compiled shaders
 	std::wstring basePathWstr = tre::Utility::getBasePathWstr();
@@ -434,7 +428,7 @@ int main()
 			backBuffer, NULL, &renderTargetView
 		));
 
-		deviceAndContext.context->ClearRenderTargetView(renderTargetView, scene.bgColor);
+		deviceAndContext.context->ClearRenderTargetView(renderTargetView, tre::BACKGROUND_COLOR);
 
 		{ //Shadow Config
 

@@ -5,15 +5,14 @@
 #include "mesh.h"
 #include "texture.h"
 
-
 #include <vector>
 
 namespace tre {
+
+static const float BACKGROUND_COLOR[4] = { .5f, .5f, .5f, 1.0f };
+
 class Scene {
 public:
-	//Background Color
-	const float bgColor[4] = { .5f, .5f, .5f, 1.0f };
-
 	// Directional light
 	tre::Light dirlight;
 	float dirlightYaw = .0f;

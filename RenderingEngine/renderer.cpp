@@ -11,6 +11,9 @@ Renderer::Renderer(ID3D11Device* _device, ID3D11DeviceContext* _context) : _devi
 	_blendstate.create(_device);
 	_rasterizer.create(_device);
 	_depthbuffer.create(_device, tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);
+	_sampler.create(_device);
+	_context->PSSetSamplers(0, 1, _sampler.pSamplerStateLinear.GetAddressOf());
+	_context->PSSetSamplers(1, 1, _sampler.pSamplerStateMipPtWhiteBorder.GetAddressOf());
 }
 
 void Renderer::configureStates(RENDER_MODE renderMode) {

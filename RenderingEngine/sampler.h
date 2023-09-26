@@ -13,7 +13,6 @@ public:
 	ComPtr<ID3D11SamplerState> pSamplerStateLinear;
 	ComPtr<ID3D11SamplerState> pSamplerStateMipPtWhiteBorder;
 
-
-	Sampler(ID3D11Device* device);
+	void create(ID3D11Device* device);
 };
 }

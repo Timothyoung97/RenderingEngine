@@ -4,7 +4,7 @@
 
 namespace tre {
 
-Sampler::Sampler(ID3D11Device* device) {
+void Sampler::create(ID3D11Device* device) {
 	// Create sampler state
 	D3D11_SAMPLER_DESC samplerDesc;
 	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;

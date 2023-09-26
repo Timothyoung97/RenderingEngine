@@ -8,6 +8,7 @@
 #include "blendstate.h"
 #include "rasterizer.h"
 #include "depthbuffer.h"
+#include "sampler.h"
 
 namespace tre {
 
@@ -27,6 +28,7 @@ public:
 	BlendState _blendstate;
 	Rasterizer _rasterizer;
 	DepthBuffer _depthbuffer;
+	Sampler _sampler;
 
 	Renderer(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 
