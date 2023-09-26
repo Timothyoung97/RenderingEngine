@@ -94,7 +94,7 @@ int main()
 
 	tre::ModelLoader ml;
 
-	ml.load(deviceAndContext.device.Get(), basePathStr + "glTF-models\\Cube\\Cube.gltf");
+	ml.load(deviceAndContext.device.Get(), basePathStr + "glTF-models\\Duck\\Duck.gltf");
 
 	tre::Texture textures[5] = { 
 		tre::TextureLoader::createTexture(deviceAndContext.device.Get(), basePathStr + "textures\\UV_image.jpg"),
@@ -222,35 +222,35 @@ int main()
 	XMFLOAT4 planeIntervalsF = { planeIntervals[1], planeIntervals[2], planeIntervals[3], planeIntervals[4]};
 
 	// Testing Obj
-	tre::Object testCube;
+	tre::Object importModel;
 
-	testCube.pObjMesh = &ml._meshes["Cube"];
-	testCube.objPos = XMFLOAT3(.0f, 5.f, .0f);
-	testCube.objScale = XMFLOAT3(5.f, 5.f, 5.f);
-	testCube.objRotation = XMFLOAT3(.0f, .0f, .0f);
-	testCube.pObjTexture = &ml._meshes["Cube"].material.objTexture;
-	testCube.isObjWithTexture = testCube.pObjTexture->pShaderResView.Get() != nullptr ? 1 : 0;
-	testCube.pObjNormalMap = &ml._meshes["Cube"].material.objNormalMap;
-	testCube.isObjWithNormalMap = testCube.pObjNormalMap->pShaderResView.Get() != nullptr ? 1 : 0;
-	testCube.objColor = colors[2];
-	testCube.ritterBs = testCube.pObjMesh->ritterSphere;
-	testCube.naiveBs = testCube.pObjMesh->naiveSphere;
-	testCube.aabb = testCube.pObjMesh->aabb;
+	importModel.pObjMesh = &ml._meshes.begin()->second;
+	importModel.objPos = XMFLOAT3(.0f, .0f, .0f);
+	importModel.objScale = XMFLOAT3(.1f, .1f, .1f);
+	importModel.objRotation = XMFLOAT3(.0f, .0f, .0f);
+	importModel.pObjTexture = &importModel.pObjMesh->material.objTexture;
+	importModel.isObjWithTexture = importModel.pObjTexture->pShaderResView.Get() != nullptr ? 1 : 0;
+	importModel.pObjNormalMap = &importModel.pObjMesh->material.objNormalMap;
+	importModel.isObjWithNormalMap = importModel.pObjNormalMap->pShaderResView.Get() != nullptr ? 1 : 0;
+	importModel.objColor = colors[2];
+	importModel.ritterBs = importModel.pObjMesh->ritterSphere;
+	importModel.naiveBs = importModel.pObjMesh->naiveSphere;
+	importModel.aabb = importModel.pObjMesh->aabb;
 
 	// transparent queue -> object with texture with alpha channel or object with color.w below 1.0f
-	if ((testCube.isObjWithTexture && testCube.pObjTexture->hasAlphaChannel)
-		|| (!testCube.isObjWithTexture && testCube.objColor.w < 1.0f)) {
+	if ((importModel.isObjWithTexture && importModel.pObjTexture->hasAlphaChannel)
+		|| (!importModel.isObjWithTexture && importModel.objColor.w < 1.0f)) {
 
 		// find its distance from cam
-		testCube.distFromCam = tre::Maths::distBetweentObjToCam(testCube.objPos, cam.camPositionV);
+		importModel.distFromCam = tre::Maths::distBetweentObjToCam(importModel.objPos, cam.camPositionV);
 
-		transparentObjQ.push_back(testCube);
+		transparentObjQ.push_back(importModel);
 
 		toSortTransparentQ = true;
 
 	}
 	else {
-		opaqueObjQ.push_back(testCube);
+		opaqueObjQ.push_back(importModel);
 	}
 
 	// main loop
@@ -494,7 +494,7 @@ int main()
 			// set const buffer from the light pov 
 			tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, lightViewProjs[i], lightViewProjs, planeIntervalsF, scene.dirlight, lightResc.pointLights.size(), XMFLOAT2(4096, 4096), csmDebugSwitch);
 
-			renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pShadowRasterizerState.Get(), { scene.floor, testCube });
+			renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pShadowRasterizerState.Get(), { scene.floor, importModel });
 		}
 
 		deviceAndContext.context->ClearDepthStencilView(depthBuffer.pDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
