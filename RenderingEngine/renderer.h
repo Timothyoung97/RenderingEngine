@@ -1,7 +1,5 @@
 #pragma once
 
-#include <d3d11.h>
-
 #include <vector>
 
 #include "device.h"
@@ -9,6 +7,7 @@
 #include "constbuffer.h"
 #include "blendstate.h"
 #include "rasterizer.h"
+#include "depthbuffer.h"
 
 namespace tre {
 
@@ -27,6 +26,7 @@ public:
 
 	BlendState _blendstate;
 	Rasterizer _rasterizer;
+	DepthBuffer _depthbuffer;
 
 	Renderer(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 

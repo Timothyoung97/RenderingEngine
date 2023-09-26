@@ -3,7 +3,7 @@
 
 namespace tre {
 
-DepthBuffer::DepthBuffer(ID3D11Device* device, int screenW, int screenH) {
+void DepthBuffer::create(ID3D11Device* device, int screenW, int screenH) {
 	
 	D3D11_TEXTURE2D_DESC depthStencilDesc;
 	depthStencilDesc.Width = screenW;

@@ -26,7 +26,6 @@
 #include "utility.h"
 #include "camera.h"
 #include "constbuffer.h"
-#include "depthbuffer.h"
 #include "texture.h"
 #include "object.h"
 #include "sampler.h"
@@ -41,10 +40,6 @@
 #include "viewport.h"
 #include "modelloader.h"
 
-//Screen dimension constants
-const int SCREEN_WIDTH = 1920;
-const int SCREEN_HEIGHT = 1020;
-
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;
 
@@ -54,7 +49,7 @@ int main()
 	srand((uint32_t)time(NULL));
 
 	//Create Window
-	tre::Window window("RenderingEngine", SCREEN_WIDTH, SCREEN_HEIGHT);
+	tre::Window window("RenderingEngine", tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);
 
 	//Create Device 
 	tre::Device deviceAndContext;
@@ -64,7 +59,7 @@ int main()
 
 	//Create SwapChain
 	tre::Swapchain swapchain;
-	swapchain.DescSwapchain(SCREEN_WIDTH, SCREEN_HEIGHT);
+	swapchain.DescSwapchain(tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);
 	swapchain.InitSwapchainViaHwnd(factory.dxgiFactory2, deviceAndContext.device, window.getWindowHandle());
 
 	//Create Sampler
@@ -110,9 +105,6 @@ int main()
 	// Create input layout
 	tre::InputLayout inputLayout(deviceAndContext.device.Get(), &vertex_shader);
 
-	//Create Depth/Stencil 
-	tre::DepthBuffer depthBuffer(deviceAndContext.device.Get(), SCREEN_WIDTH, SCREEN_HEIGHT);
-
 	//Set input layout
 	deviceAndContext.context->IASetInputLayout( inputLayout.vertLayout.Get() );
 
@@ -121,7 +113,7 @@ int main()
 
 	//Create Viewport
 	tre::Viewport viewports;
-	viewports.Init(SCREEN_WIDTH, SCREEN_HEIGHT);
+	viewports.Init(tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);
 
 	//Input Handler
 	tre::Input input;
@@ -130,7 +122,7 @@ int main()
 	float deltaTime = 0;
 
 	//Create Camera
-	tre::Camera cam(SCREEN_WIDTH, SCREEN_HEIGHT);
+	tre::Camera cam(tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);
 	
 	//Create Renderer
 	tre::Renderer renderer(deviceAndContext.device.Get(), deviceAndContext.context.Get());
@@ -449,11 +441,9 @@ int main()
 			ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
 			deviceAndContext.context->PSSetShaderResources(3, 1, nullSRV);
 
-			deviceAndContext.context->ClearDepthStencilView(depthBuffer.pShadowDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+			deviceAndContext.context->ClearDepthStencilView(renderer._depthbuffer.pShadowDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 
-			deviceAndContext.context->OMSetDepthStencilState(depthBuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
-			
-			deviceAndContext.context->OMSetRenderTargets(0, nullptr, depthBuffer.pShadowDepthStencilView.Get());
+			deviceAndContext.context->OMSetRenderTargets(0, nullptr, renderer._depthbuffer.pShadowDepthStencilView.Get());
 
 			deviceAndContext.context->PSSetShader(nullptr, NULL, 0u);
 		}
@@ -462,7 +452,7 @@ int main()
 		for (int i = 0; i < 4; i++) { // for 4 quads
 
 			// projection matrix of camera with specific near and far plane
-			XMMATRIX projMatrix = XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0f), static_cast<float>(SCREEN_WIDTH) / SCREEN_HEIGHT, planeIntervals[i], planeIntervals[i + 1]);
+			XMMATRIX projMatrix = XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0f), static_cast<float>(tre::SCREEN_WIDTH) / tre::SCREEN_HEIGHT, planeIntervals[i], planeIntervals[i + 1]);
 
 			std::vector<XMVECTOR> corners = tre::Maths::getFrustumCornersWorldSpace(XMMatrixMultiply(cam.camView, projMatrix));
 
@@ -489,18 +479,18 @@ int main()
 			renderer.draw({ scene.floor, importModel }, tre::RENDER_MODE::SHADOW_M);
 		}
 
-		deviceAndContext.context->ClearDepthStencilView(depthBuffer.pDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+		deviceAndContext.context->ClearDepthStencilView(renderer._depthbuffer.pDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 		
-		deviceAndContext.context->OMSetRenderTargets(1, &renderTargetView, depthBuffer.pDepthStencilView.Get());
+		deviceAndContext.context->OMSetRenderTargets(1, &renderTargetView, renderer._depthbuffer.pDepthStencilView.Get());
 
 		// set shadowMap
-		deviceAndContext.context->PSSetShaderResources(3, 1, depthBuffer.pShadowShaderRescView.GetAddressOf());
+		deviceAndContext.context->PSSetShaderResources(3, 1, renderer._depthbuffer.pShadowShaderRescView.GetAddressOf());
 
 		//Set Viewport for color draw
 		deviceAndContext.context->RSSetViewports(1, &viewports.defaultViewport);
 
 		// Set camera view const buffer
-		cam.camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovY), static_cast<float>(SCREEN_WIDTH) / SCREEN_HEIGHT, 1.0f, 1000.0f);
+		cam.camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovY), static_cast<float>(tre::SCREEN_WIDTH) / tre::SCREEN_HEIGHT, 1.0f, 1000.0f);
 		cam.updateCamera();
 
 		// set const buffer for camera
@@ -547,9 +537,6 @@ int main()
 			}
 		}
 
-		// Set depth test for opaque obj
-		deviceAndContext.context->OMSetDepthStencilState(depthBuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
-
 		// Set Pixel Shader
 		deviceAndContext.context->PSSetShader(pixel_shader.pShader.Get(), NULL, 0u);
 
@@ -571,9 +558,6 @@ int main()
 			std::sort(transparentObjQ.begin(), transparentObjQ.end(), [](const tre::Object& obj1, const tre::Object& obj2) { return obj1.distFromCam > obj2.distFromCam; });
 			toSortTransparentQ = false;
 		}
-
-		// Set depth test for transparent obj
-		deviceAndContext.context->OMSetDepthStencilState(depthBuffer.pDSStateWithDepthTWriteDisabled.Get(), 0);
 
 		// Draw all transparent objects
 		renderer.draw(culledTransparentObjQ, tre::RENDER_MODE::TRANSPARENT_M);
@@ -613,9 +597,6 @@ int main()
 		// Set Pixel Shader for light
 		deviceAndContext.context->PSSetShader(light_pixel_shader.pShader.Get(), NULL, 0u);
 
-		// Set depth test for light
-		deviceAndContext.context->OMSetDepthStencilState(depthBuffer.pDSStateWithoutDepthT.Get(), 0);
-		
 		// Draw all light object wireframe
 		renderer.draw( lightObjQ, tre::RENDER_MODE::WIREFRAME_M);
 
@@ -635,7 +616,6 @@ int main()
 		}
 
 		deltaTime = timer.getDeltaTime();
-
 	}
 
 	//Cleanup

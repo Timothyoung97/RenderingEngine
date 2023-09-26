@@ -1,4 +1,5 @@
 #include "renderer.h"
+#include "window.h"
 #include "mesh.h"
 #include "device.h"
 #include "dxdebug.h"
@@ -9,6 +10,7 @@ namespace tre {
 Renderer::Renderer(ID3D11Device* _device, ID3D11DeviceContext* _context) : _device(_device), _context(_context) {
 	_blendstate.create(_device);
 	_rasterizer.create(_device);
+	_depthbuffer.create(_device, tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);
 }
 
 void Renderer::configureStates(RENDER_MODE renderMode) {
@@ -17,18 +19,22 @@ void Renderer::configureStates(RENDER_MODE renderMode) {
 	case tre::TRANSPARENT_M:
 		_context->OMSetBlendState(_blendstate.transparency.Get(), NULL, 0xffffffff);
 		_context->RSSetState(_rasterizer.pRasterizerStateFCCW.Get());
+		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0);
 		break;								
 	case tre::OPAQUE_M:						
 		_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
 		_context->RSSetState(_rasterizer.pRasterizerStateFCCW.Get());
+		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
 		break;								
 	case tre::WIREFRAME_M:					
 		_context->OMSetBlendState(_blendstate.transparency.Get(), NULL, 0xffffffff);
 		_context->RSSetState(_rasterizer.pRasterizerStateWireFrame.Get());
+		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithoutDepthT.Get(), 0);
 		break;								
 	case tre::SHADOW_M:						
 		_context->OMSetBlendState(_blendstate.transparency.Get(), NULL, 0xffffffff);
 		_context->RSSetState(_rasterizer.pShadowRasterizerState.Get());
+		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
 		break;
 	}
 }
