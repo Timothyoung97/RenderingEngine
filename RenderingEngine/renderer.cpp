@@ -5,10 +5,13 @@
 #include "dxdebug.h"
 #include "maths.h"
 #include "utility.h"
+#include "scene.h"
 
 namespace tre {
 
-Renderer::Renderer(ID3D11Device* _device, ID3D11DeviceContext* _context) : _device(_device), _context(_context) {
+Renderer::Renderer(ID3D11Device* _device, ID3D11DeviceContext* _context, HWND window) : _device(_device), _context(_context) {
+	_factory.create();
+	_swapchain.create(_factory.dxgiFactory2, _device, window);
 	_blendstate.create(_device);
 	_rasterizer.create(_device);
 	_depthbuffer.create(_device, tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);
@@ -42,6 +45,37 @@ void Renderer::setShadowBufferDrawSection(int idx) {
 	_viewport.shadowViewport.TopLeftY = _rasterizer.rectArr[idx].top;
 	_context->RSSetViewports(1, &_viewport.shadowViewport);
 	_context->RSSetScissorRects(1, &_rasterizer.rectArr[idx]);
+}
+
+void Renderer::clearBufferToDraw() {
+
+	// Alternating buffers
+	int currBackBuffer = static_cast<int>(_swapchain.mainSwapchain->GetCurrentBackBufferIndex());
+
+	ID3D11Texture2D* backBuffer = nullptr;
+
+	CHECK_DX_ERROR(_swapchain.mainSwapchain->GetBuffer(
+		currBackBuffer, __uuidof(ID3D11Texture2D), (LPVOID*)&backBuffer
+	));
+
+	// Create render target view
+	ID3D11RenderTargetView* renderTargetView = nullptr;
+
+	CHECK_DX_ERROR(_device->CreateRenderTargetView(
+		backBuffer, NULL, &renderTargetView
+	));
+
+	_context->ClearRenderTargetView(renderTargetView, tre::BACKGROUND_COLOR);
+
+	_context->ClearDepthStencilView(_depthbuffer.pDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+	_context->OMSetRenderTargets(1, &renderTargetView, _depthbuffer.pDepthStencilView.Get());
+
+	// set shadowMap
+	_context->PSSetShaderResources(3, 1, _depthbuffer.pShadowShaderRescView.GetAddressOf());
+
+	//Set Viewport for color draw
+	_context->RSSetViewports(1, &_viewport.defaultViewport);
 }
 
 void Renderer::configureStates(RENDER_MODE renderMode) {

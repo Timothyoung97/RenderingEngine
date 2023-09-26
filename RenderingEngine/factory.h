@@ -8,19 +8,18 @@
 
 #include "dxdebug.h"
 
+using Microsoft::WRL::ComPtr;
+
 namespace tre {
 class Factory {
-	// DXGI_DEBUG_ALL
-	const GUID dxgi_debug_all = { 0xe48ae283, 0xda80, 0x490b, { 0x87, 0xe6, 0x43, 0xe9, 0xa9, 0xcf, 0xda, 0x8 } };
+
+// DXGI_DEBUG_ALL
+const GUID dxgi_debug_all = { 0xe48ae283, 0xda80, 0x490b, { 0x87, 0xe6, 0x43, 0xe9, 0xa9, 0xcf, 0xda, 0x8 } };
 
 public:
-	Microsoft::WRL::ComPtr<IDXGIFactory2> dxgiFactory2;
+	ComPtr<IDXGIFactory2> dxgiFactory2;
 
-	Factory();
+	void create();
 
-	void InitFactory();
-
-	Factory(const Factory&) = delete;
-	Factory& operator=(const Factory&) = delete;
 };
 }

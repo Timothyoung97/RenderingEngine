@@ -20,8 +20,6 @@
 #include "input.h"
 #include "dxdebug.h"
 #include "device.h"
-#include "factory.h"
-#include "swapchain.h"
 #include "mesh.h"
 #include "utility.h"
 #include "camera.h"
@@ -51,14 +49,6 @@ int main()
 	//Create Device 
 	tre::Device deviceAndContext;
 
-	//Create dxgiFactory
-	tre::Factory factory;
-
-	//Create SwapChain
-	tre::Swapchain swapchain;
-	swapchain.DescSwapchain(tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);
-	swapchain.InitSwapchainViaHwnd(factory.dxgiFactory2, deviceAndContext.device, window.getWindowHandle());
-
 	// 3D objects
 	static tre::Mesh meshes[4] = {
 		tre::CubeMesh(deviceAndContext.device.Get()), 
@@ -87,7 +77,7 @@ int main()
 	};
 
 	//Create Renderer
-	tre::Renderer renderer(deviceAndContext.device.Get(), deviceAndContext.context.Get());
+	tre::Renderer renderer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), window.getWindowHandle());
 
 	//Input Handler
 	tre::Input input;
@@ -143,7 +133,6 @@ int main()
 
 	lightResc.pointLights.assign(std::begin(pointLight), std::end(pointLight));
 	lightResc.updateBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get());
-	deviceAndContext.context.Get()->PSSetShaderResources(2, 1, lightResc.pLightShaderRescView.GetAddressOf());
 
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
@@ -419,33 +408,7 @@ int main()
 			renderer.draw({ scene.floor, importModel }, tre::RENDER_MODE::SHADOW_M);
 		}
 
-		// Alternating buffers
-		int currBackBuffer = static_cast<int>(swapchain.mainSwapchain->GetCurrentBackBufferIndex());
-
-		ID3D11Texture2D* backBuffer = nullptr;
-
-		CHECK_DX_ERROR(swapchain.mainSwapchain->GetBuffer(
-			currBackBuffer, __uuidof(ID3D11Texture2D), (LPVOID*)&backBuffer
-		));
-
-		// Create render target view
-		ID3D11RenderTargetView* renderTargetView = nullptr;
-
-		CHECK_DX_ERROR(deviceAndContext.device->CreateRenderTargetView(
-			backBuffer, NULL, &renderTargetView
-		));
-
-		deviceAndContext.context->ClearRenderTargetView(renderTargetView, tre::BACKGROUND_COLOR);
-
-		deviceAndContext.context->ClearDepthStencilView(renderer._depthbuffer.pDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-		
-		deviceAndContext.context->OMSetRenderTargets(1, &renderTargetView, renderer._depthbuffer.pDepthStencilView.Get());
-
-		// set shadowMap
-		deviceAndContext.context->PSSetShaderResources(3, 1, renderer._depthbuffer.pShadowShaderRescView.GetAddressOf());
-
-		//Set Viewport for color draw
-		deviceAndContext.context->RSSetViewports(1, &renderer._viewport.defaultViewport);
+		renderer.clearBufferToDraw();
 
 		// Set camera view const buffer
 		cam.camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovY), static_cast<float>(tre::SCREEN_WIDTH) / tre::SCREEN_HEIGHT, 1.0f, 1000.0f);
@@ -560,7 +523,7 @@ int main()
 		ImGui::Render();
 		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
-		CHECK_DX_ERROR(swapchain.mainSwapchain->Present( 0, 0) );
+		CHECK_DX_ERROR(renderer._swapchain.mainSwapchain->Present( 0, 0) );
 
 		scene.updateDirLight();
 
