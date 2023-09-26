@@ -56,7 +56,6 @@ void ModelLoader::processNode(ID3D11Device* device, aiNode* node, const aiScene*
 			_meshes[mesh->mName.C_Str()].material.objTexture = this->loadTextures(device, scene->mMaterials[mesh->mMaterialIndex], aiTextureType_DIFFUSE, scene);
 			_meshes[mesh->mName.C_Str()].material.objNormalMap = this->loadTextures(device, scene->mMaterials[mesh->mMaterialIndex], aiTextureType_NORMALS, scene);
 		}
-		
 	}
 
 	for (int i = 0; i < node->mNumChildren; i++) {
