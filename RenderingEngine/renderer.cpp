@@ -19,7 +19,10 @@ Renderer::Renderer(ID3D11Device* _device, ID3D11DeviceContext* _context) : _devi
 	
 	std::wstring basePathWstr = tre::Utility::getBasePathWstr();
 	_vertexShader.create(basePathWstr + L"shaders\\vertex_shader.bin", _device);
+	_inputLayout.create(_device, &_vertexShader);
 	_context->VSSetShader(_vertexShader.pShader.Get(), NULL, 0u);
+	_context->IASetInputLayout(_inputLayout.vertLayout.Get());
+	_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	_pixelShader.create(basePathWstr + L"shaders\\pixel_shader.bin", _device);
 	_debugPixelShader.create(basePathWstr + L"shaders\\light_pixel.bin", _device);	

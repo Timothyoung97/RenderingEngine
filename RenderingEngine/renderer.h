@@ -11,6 +11,7 @@
 #include "sampler.h"
 #include "shader.h"
 #include "viewport.h"
+#include "inputlayout.h"
 
 namespace tre {
 
@@ -33,6 +34,7 @@ public:
 	Sampler _sampler;
 	Viewport _viewport;
 	
+	InputLayout _inputLayout;
 	VertexShader _vertexShader;
 	PixelShader _pixelShader;
 	PixelShader _debugPixelShader;

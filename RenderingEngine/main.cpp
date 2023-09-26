@@ -34,7 +34,6 @@
 #include "colors.h"
 #include "boundingvolume.h"
 #include "maths.h"
-#include "inputlayout.h"
 #include "scene.h"
 #include "modelloader.h"
 
@@ -90,15 +89,6 @@ int main()
 	//Create Renderer
 	tre::Renderer renderer(deviceAndContext.device.Get(), deviceAndContext.context.Get());
 
-	// Create input layout
-	tre::InputLayout inputLayout(deviceAndContext.device.Get(), &renderer._vertexShader);
-
-	//Set input layout
-	deviceAndContext.context->IASetInputLayout( inputLayout.vertLayout.Get() );
-
-	//Set topology
-	deviceAndContext.context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
 	//Input Handler
 	tre::Input input;
 	
@@ -107,8 +97,6 @@ int main()
 
 	//Create Camera
 	tre::Camera cam(tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);
-	
-
 
 	std::vector<tre::Object> opaqueObjQ;
 	std::vector<tre::Object> transparentObjQ;	
