@@ -3,7 +3,7 @@
 #include <d3d11.h>
 #include <assimp/scene.h>
 
-#include <vector>
+#include <unordered_map>
 
 #include "mesh.h"
 #include "texture.h"
@@ -13,9 +13,8 @@ namespace tre {
 class ModelLoader {
 public:
 
-	std::vector<Mesh> _meshes;
-	std::vector<Texture> _textures;
-	std::vector<Material> _materials;
+	std::unordered_map<std::string, Mesh> _meshes;
+	std::unordered_map<std::string, Texture> _textures;
 	std::string _directoryPath;
 
 	void load(ID3D11Device* device, std::string filename);

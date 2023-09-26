@@ -94,7 +94,7 @@ int main()
 
 	tre::ModelLoader ml;
 
-	ml.load(deviceAndContext.device.Get(), basePathStr + "glTF-models\\Box With Spaces\\Box With Spaces.gltf");
+	ml.load(deviceAndContext.device.Get(), basePathStr + "glTF-models\\Cube\\Cube.gltf");
 
 	tre::Texture textures[5] = { 
 		tre::TextureLoader::createTexture(deviceAndContext.device.Get(), basePathStr + "textures\\UV_image.jpg"),
@@ -224,14 +224,14 @@ int main()
 	// Testing Obj
 	tre::Object testCube;
 
-	testCube.pObjMesh = &ml._meshes[0];
+	testCube.pObjMesh = &ml._meshes["Cube"];
 	testCube.objPos = XMFLOAT3(.0f, 5.f, .0f);
 	testCube.objScale = XMFLOAT3(5.f, 5.f, 5.f);
 	testCube.objRotation = XMFLOAT3(.0f, .0f, .0f);
-	testCube.pObjTexture = &ml._meshes[0].material.objTexture;
-	testCube.isObjWithTexture = 1;
-	testCube.pObjNormalMap = &ml._meshes[0].material.objNormalMap;
-	testCube.isObjWithNormalMap = 1;
+	testCube.pObjTexture = &ml._meshes["Cube"].material.objTexture;
+	testCube.isObjWithTexture = testCube.pObjTexture->pShaderResView.Get() != nullptr ? 1 : 0;
+	testCube.pObjNormalMap = &ml._meshes["Cube"].material.objNormalMap;
+	testCube.isObjWithNormalMap = testCube.pObjNormalMap->pShaderResView.Get() != nullptr ? 1 : 0;
 	testCube.objColor = colors[2];
 	testCube.ritterBs = testCube.pObjMesh->ritterSphere;
 	testCube.naiveBs = testCube.pObjMesh->naiveSphere;

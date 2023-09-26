@@ -28,29 +28,35 @@ void ModelLoader::load(ID3D11Device* device, std::string filename) {
 }
 
 Texture ModelLoader::loadTextures(ID3D11Device* device, aiMaterial* mat, aiTextureType type, const aiScene* scene) {
-	
+
+	if (mat->GetTextureCount(type) == 0) {
+		return Texture();
+	}
+
 	aiString str;
-	mat->GetTexture(type, 0, &str); // hardcoded
+	mat->GetTexture(type, 0, &str); // hardcoded to get the first texture
 
-	std::string filename = this->_directoryPath + tre::Utility::uriDecode(std::string(str.C_Str()));
+	if (!_textures.contains(str.C_Str())) {
+		std::string filename = this->_directoryPath + tre::Utility::uriDecode(std::string(str.C_Str()));
+		_textures[str.C_Str()] = tre::TextureLoader::createTexture(device, filename);
+	}
 
-	return tre::TextureLoader::createTexture(device, filename);
+	return _textures[str.C_Str()];
 }
 
 void ModelLoader::processNode(ID3D11Device* device, aiNode* node, const aiScene* scene) {
 	for (int i = 0; i < node->mNumMeshes; i++) {
 		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 
-		CustomMesh newMesh(device, mesh);
+		if (!_meshes.contains(mesh->mName.C_Str())) {
+			_meshes[mesh->mName.C_Str()] = CustomMesh(device, mesh);
+		} 
 
 		if (mesh->mMaterialIndex >= 0) {
-			aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-
-			newMesh.material.objTexture = this->loadTextures(device, scene->mMaterials[mesh->mMaterialIndex], aiTextureType_DIFFUSE, scene);
-			newMesh.material.objNormalMap = this->loadTextures(device, scene->mMaterials[mesh->mMaterialIndex], aiTextureType_NORMALS, scene);
+			_meshes[mesh->mName.C_Str()].material.objTexture = this->loadTextures(device, scene->mMaterials[mesh->mMaterialIndex], aiTextureType_DIFFUSE, scene);
+			_meshes[mesh->mName.C_Str()].material.objNormalMap = this->loadTextures(device, scene->mMaterials[mesh->mMaterialIndex], aiTextureType_NORMALS, scene);
 		}
 		
-		_meshes.push_back(newMesh);
 	}
 
 	for (int i = 0; i < node->mNumChildren; i++) {
