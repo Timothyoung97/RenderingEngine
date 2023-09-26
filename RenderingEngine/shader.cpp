@@ -5,7 +5,7 @@
 
 namespace tre {
 
-VertexShader::VertexShader(std::wstring fPath, ID3D11Device* device) {
+void VertexShader::create(std::wstring fPath, ID3D11Device* device) {
 	CHECK_DX_ERROR(D3DReadFileToBlob(
 		fPath.c_str(), &pBlob
 	));
@@ -15,7 +15,7 @@ VertexShader::VertexShader(std::wstring fPath, ID3D11Device* device) {
 	));
 }
 
-PixelShader::PixelShader(std::wstring fPath, ID3D11Device* device) {
+void PixelShader::create(std::wstring fPath, ID3D11Device* device) {
 	CHECK_DX_ERROR(D3DReadFileToBlob(
 		fPath.c_str(), &pBlob
 	));

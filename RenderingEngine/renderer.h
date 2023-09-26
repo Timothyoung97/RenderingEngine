@@ -9,6 +9,7 @@
 #include "rasterizer.h"
 #include "depthbuffer.h"
 #include "sampler.h"
+#include "shader.h"
 
 namespace tre {
 
@@ -29,6 +30,9 @@ public:
 	Rasterizer _rasterizer;
 	DepthBuffer _depthbuffer;
 	Sampler _sampler;
+	tre::VertexShader _vertexShader;
+	tre::PixelShader _pixelShader;
+	tre::PixelShader _debugPixelShader;
 
 	Renderer(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 

@@ -61,14 +61,6 @@ int main()
 	swapchain.DescSwapchain(tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);
 	swapchain.InitSwapchainViaHwnd(factory.dxgiFactory2, deviceAndContext.device, window.getWindowHandle());
 
-	//Load pre-compiled shaders
-	std::wstring basePathWstr = tre::Utility::getBasePathWstr();
-	tre::VertexShader vertex_shader(basePathWstr + L"shaders\\vertex_shader.bin", deviceAndContext.device.Get());
-	tre::PixelShader pixel_shader(basePathWstr + L"shaders\\pixel_shader.bin", deviceAndContext.device.Get());
-	tre::PixelShader light_pixel_shader(basePathWstr + L"shaders\\light_pixel.bin", deviceAndContext.device.Get());
-
-	deviceAndContext.context->VSSetShader(vertex_shader.pShader.Get(), NULL, 0u);
-
 	// 3D objects
 	static tre::Mesh meshes[4] = {
 		tre::CubeMesh(deviceAndContext.device.Get()), 
@@ -96,8 +88,11 @@ int main()
 		tre::TextureLoader::createTexture(deviceAndContext.device.Get(), basePathStr + "textures\\wall_normal.jpg")
 	};
 
+	//Create Renderer
+	tre::Renderer renderer(deviceAndContext.device.Get(), deviceAndContext.context.Get());
+
 	// Create input layout
-	tre::InputLayout inputLayout(deviceAndContext.device.Get(), &vertex_shader);
+	tre::InputLayout inputLayout(deviceAndContext.device.Get(), &renderer._vertexShader);
 
 	//Set input layout
 	deviceAndContext.context->IASetInputLayout( inputLayout.vertLayout.Get() );
@@ -118,8 +113,7 @@ int main()
 	//Create Camera
 	tre::Camera cam(tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);
 	
-	//Create Renderer
-	tre::Renderer renderer(deviceAndContext.device.Get(), deviceAndContext.context.Get());
+
 
 	std::vector<tre::Object> opaqueObjQ;
 	std::vector<tre::Object> transparentObjQ;	
@@ -438,8 +432,6 @@ int main()
 			deviceAndContext.context->ClearDepthStencilView(renderer._depthbuffer.pShadowDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 			deviceAndContext.context->OMSetRenderTargets(0, nullptr, renderer._depthbuffer.pShadowDepthStencilView.Get());
-
-			deviceAndContext.context->PSSetShader(nullptr, NULL, 0u);
 		}
 
 		std::vector<XMMATRIX> lightViewProjs;
@@ -531,9 +523,6 @@ int main()
 			}
 		}
 
-		// Set Pixel Shader
-		deviceAndContext.context->PSSetShader(pixel_shader.pShader.Get(), NULL, 0u);
-
 		// Draw all opaque objects
 		renderer.draw({ scene.floor }, tre::RENDER_MODE::OPAQUE_M);
 
@@ -587,9 +576,6 @@ int main()
 		}
 		lightResc.updateBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get());
 		deviceAndContext.context.Get()->PSSetShaderResources(2, 1, lightResc.pLightShaderRescView.GetAddressOf());
-
-		// Set Pixel Shader for light
-		deviceAndContext.context->PSSetShader(light_pixel_shader.pShader.Get(), NULL, 0u);
 
 		// Draw all light object wireframe
 		renderer.draw( lightObjQ, tre::RENDER_MODE::WIREFRAME_M);

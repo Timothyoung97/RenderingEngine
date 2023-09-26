@@ -4,6 +4,7 @@
 #include "device.h"
 #include "dxdebug.h"
 #include "maths.h"
+#include "utility.h"
 
 namespace tre {
 
@@ -14,6 +15,14 @@ Renderer::Renderer(ID3D11Device* _device, ID3D11DeviceContext* _context) : _devi
 	_sampler.create(_device);
 	_context->PSSetSamplers(0, 1, _sampler.pSamplerStateLinear.GetAddressOf());
 	_context->PSSetSamplers(1, 1, _sampler.pSamplerStateMipPtWhiteBorder.GetAddressOf());
+	
+	std::wstring basePathWstr = tre::Utility::getBasePathWstr();
+	_vertexShader.create(basePathWstr + L"shaders\\vertex_shader.bin", _device);
+	_context->VSSetShader(_vertexShader.pShader.Get(), NULL, 0u);
+
+	_pixelShader.create(basePathWstr + L"shaders\\pixel_shader.bin", _device);
+	_debugPixelShader.create(basePathWstr + L"shaders\\light_pixel.bin", _device);
+	
 }
 
 void Renderer::configureStates(RENDER_MODE renderMode) {
@@ -23,21 +32,25 @@ void Renderer::configureStates(RENDER_MODE renderMode) {
 		_context->OMSetBlendState(_blendstate.transparency.Get(), NULL, 0xffffffff);
 		_context->RSSetState(_rasterizer.pRasterizerStateFCCW.Get());
 		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0);
+		_context->PSSetShader(_pixelShader.pShader.Get(), NULL, 0u);
 		break;								
 	case tre::OPAQUE_M:						
 		_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
 		_context->RSSetState(_rasterizer.pRasterizerStateFCCW.Get());
 		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
+		_context->PSSetShader(_pixelShader.pShader.Get(), NULL, 0u);
 		break;								
 	case tre::WIREFRAME_M:					
 		_context->OMSetBlendState(_blendstate.transparency.Get(), NULL, 0xffffffff);
 		_context->RSSetState(_rasterizer.pRasterizerStateWireFrame.Get());
 		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithoutDepthT.Get(), 0);
+		_context->PSSetShader(_debugPixelShader.pShader.Get(), NULL, 0u);
 		break;								
 	case tre::SHADOW_M:						
 		_context->OMSetBlendState(_blendstate.transparency.Get(), NULL, 0xffffffff);
 		_context->RSSetState(_rasterizer.pShadowRasterizerState.Get());
 		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
+		_context->PSSetShader(nullptr, NULL, 0u);
 		break;
 	}
 }
