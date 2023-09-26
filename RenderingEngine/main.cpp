@@ -34,7 +34,6 @@
 #include "shader.h"
 #include "renderer.h"
 #include "light.h"
-#include "blendstate.h"
 #include "colors.h"
 #include "boundingvolume.h"
 #include "maths.h"
@@ -115,9 +114,6 @@ int main()
 	//Create Depth/Stencil 
 	tre::DepthBuffer depthBuffer(deviceAndContext.device.Get(), SCREEN_WIDTH, SCREEN_HEIGHT);
 
-	//Blend State
-	tre::BlendState blendState(deviceAndContext.device.Get());
-
 	//Set input layout
 	deviceAndContext.context->IASetInputLayout( inputLayout.vertLayout.Get() );
 
@@ -141,7 +137,7 @@ int main()
 	tre::Camera cam(SCREEN_WIDTH, SCREEN_HEIGHT);
 	
 	//Create Renderer
-	tre::Renderer renderer;
+	tre::Renderer renderer(deviceAndContext.device.Get(), deviceAndContext.context.Get());
 
 	std::vector<tre::Object> opaqueObjQ;
 	std::vector<tre::Object> transparentObjQ;	
@@ -494,7 +490,7 @@ int main()
 			// set const buffer from the light pov 
 			tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, lightViewProjs[i], lightViewProjs, planeIntervalsF, scene.dirlight, lightResc.pointLights.size(), XMFLOAT2(4096, 4096), csmDebugSwitch);
 
-			renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pShadowRasterizerState.Get(), { scene.floor, importModel });
+			renderer.draw(rasterizer.pShadowRasterizerState.Get(), { scene.floor, importModel }, tre::RENDER_MODE::SHADOW_M);
 		}
 
 		deviceAndContext.context->ClearDepthStencilView(depthBuffer.pDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
@@ -555,9 +551,6 @@ int main()
 			}
 		}
 
-		// Set blend state for opaque obj
-		deviceAndContext.context->OMSetBlendState(blendState.opaque.Get(), NULL, 0xffffffff);
-
 		// Set depth test for opaque obj
 		deviceAndContext.context->OMSetDepthStencilState(depthBuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
 
@@ -565,9 +558,9 @@ int main()
 		deviceAndContext.context->PSSetShader(pixel_shader.pShader.Get(), NULL, 0u);
 
 		// Draw all opaque objects
-		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateFCCW.Get(), {scene.floor});
+		renderer.draw(rasterizer.pRasterizerStateFCCW.Get(), { scene.floor }, tre::RENDER_MODE::OPAQUE_M);
 
-		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateFCCW.Get(), culledOpaqueObjQ);
+		renderer.draw(rasterizer.pRasterizerStateFCCW.Get(), culledOpaqueObjQ, tre::RENDER_MODE::OPAQUE_M);
 
 		if (toRecalDistFromCam) {
 			for (int i = 0; i < transparentObjQ.size(); i++) {
@@ -583,14 +576,11 @@ int main()
 			toSortTransparentQ = false;
 		}
 
-		// Set blend state for transparent obj
-		deviceAndContext.context->OMSetBlendState(blendState.transparency.Get(), NULL, 0xffffffff);
-
 		// Set depth test for transparent obj
 		deviceAndContext.context->OMSetDepthStencilState(depthBuffer.pDSStateWithDepthTWriteDisabled.Get(), 0);
 
 		// Draw all transparent objects
-		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateFCCW.Get(), culledTransparentObjQ);
+		renderer.draw(rasterizer.pRasterizerStateFCCW.Get(), culledTransparentObjQ, tre::RENDER_MODE::TRANSPARENT_M);
 
 		if (!pauseLight) {
 			// rotate point light 1
@@ -631,11 +621,11 @@ int main()
 		deviceAndContext.context->OMSetDepthStencilState(depthBuffer.pDSStateWithoutDepthT.Get(), 0);
 		
 		// Draw all light object wireframe
-		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), lightObjQ);
+		renderer.draw( rasterizer.pRasterizerStateWireFrame.Get(), lightObjQ, tre::RENDER_MODE::WIREFRAME_M);
 
 		// Draw debug
 		if (showBoundingVolume) {
-			renderer.debugDraw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), culledOpaqueObjQ, meshes[meshIdx], typeOfBound);
+			renderer.debugDraw(rasterizer.pRasterizerStateWireFrame.Get(), culledOpaqueObjQ, meshes[meshIdx], typeOfBound, tre::RENDER_MODE::WIREFRAME_M);
 		}
 
 		ImGui::Render();

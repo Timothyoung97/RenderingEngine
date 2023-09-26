@@ -2,7 +2,7 @@
 
 namespace tre {
 
-BlendState::BlendState(ID3D11Device* device) {
+void BlendState::create(ID3D11Device* device) {
 
 	D3D11_BLEND_DESC blendDesc{};
 	D3D11_RENDER_TARGET_BLEND_DESC rtbd{};

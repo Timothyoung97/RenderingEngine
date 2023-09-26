@@ -6,9 +6,33 @@
 
 namespace tre {
 
-void Renderer::draw(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11RasterizerState* rasterizerState, const std::vector<Object>& objQ) {
+Renderer::Renderer(ID3D11Device* _device, ID3D11DeviceContext* _context) : _device(_device), _context(_context) {
+	_blendstate.create(_device);
+}
 
-	context->RSSetState(rasterizerState);
+void Renderer::configureContext(RENDER_MODE renderMode) {
+	switch (renderMode)
+	{
+	case tre::TRANSPARENT_M:
+		_context->OMSetBlendState(_blendstate.transparency.Get(), NULL, 0xffffffff);
+		break;								
+	case tre::OPAQUE_M:						
+		_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
+		break;								
+	case tre::WIREFRAME_M:					
+		_context->OMSetBlendState(_blendstate.transparency.Get(), NULL, 0xffffffff);
+		break;								
+	case tre::SHADOW_M:						
+		_context->OMSetBlendState(_blendstate.transparency.Get(), NULL, 0xffffffff);
+		break;
+	}
+}
+
+void Renderer::draw(ID3D11RasterizerState* rasterizerState, const std::vector<Object>& objQ, RENDER_MODE renderMode) {
+
+	configureContext(renderMode);
+
+	_context->RSSetState(rasterizerState);
 	
 	for (int i = 0; i < objQ.size(); i++) {
 
@@ -17,17 +41,17 @@ void Renderer::draw(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11Ra
 		//Set vertex buffer
 		UINT vertexStride = sizeof(Vertex);
 		UINT offset = 0;
-		context->IASetVertexBuffers(0, 1, currObj.pObjMesh->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
+		_context->IASetVertexBuffers(0, 1, currObj.pObjMesh->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
 
 		//Set index buffer
-		context->IASetIndexBuffer(currObj.pObjMesh->pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
+		_context->IASetIndexBuffer(currObj.pObjMesh->pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
 
 		//set shader resc view and sampler
-		context->PSSetShaderResources(0, 1, currObj.pObjTexture->pShaderResView.GetAddressOf());
+		_context->PSSetShaderResources(0, 1, currObj.pObjTexture->pShaderResView.GetAddressOf());
 
 		//Config and set const buffer
 		tre::ConstantBuffer::setObjConstBuffer(
-			device, context,
+			_device, _context,
 			tre::Maths::createTransformationMatrix(currObj.objScale, currObj.objRotation, currObj.objPos),
 			currObj.objColor,
 			currObj.isObjWithTexture,
@@ -36,16 +60,17 @@ void Renderer::draw(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11Ra
 
 		// set normal map
 		if (currObj.isObjWithNormalMap) {
-			context->PSSetShaderResources(1, 1, currObj.pObjNormalMap->pShaderResView.GetAddressOf());
+			_context->PSSetShaderResources(1, 1, currObj.pObjNormalMap->pShaderResView.GetAddressOf());
 		}
 
-		context->DrawIndexed(currObj.pObjMesh->indexSize, 0, 0);
+		_context->DrawIndexed(currObj.pObjMesh->indexSize, 0, 0);
 	}
 }
 
-void Renderer::debugDraw(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11RasterizerState* rasterizerState, std::vector<Object>& objQ, Mesh& mesh, BoundVolumeEnum typeOfBound) {
+void Renderer::debugDraw(ID3D11RasterizerState* rasterizerState, std::vector<Object>& objQ, Mesh& mesh, BoundVolumeEnum typeOfBound, RENDER_MODE renderMode) {
 
-	context->RSSetState(rasterizerState);
+	configureContext(renderMode);
+	_context->RSSetState(rasterizerState);
 
 	for (int i = 0; i < objQ.size(); i++) {
 
@@ -54,13 +79,13 @@ void Renderer::debugDraw(ID3D11Device* device, ID3D11DeviceContext* context, ID3
 		//Set vertex buffer
 		UINT vertexStride = sizeof(Vertex);
 		UINT offset = 0;
-		context->IASetVertexBuffers(0, 1, mesh.pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
+		_context->IASetVertexBuffers(0, 1, mesh.pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
 
 		//Set index buffer
-		context->IASetIndexBuffer(mesh.pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
+		_context->IASetIndexBuffer(mesh.pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
 
 		//set shader resc view and sampler
-		context->PSSetShaderResources(0, 1, currObj.pObjTexture->pShaderResView.GetAddressOf());
+		_context->PSSetShaderResources(0, 1, currObj.pObjTexture->pShaderResView.GetAddressOf());
 
 		//Update bounding volume
 		XMMATRIX transformM;
@@ -80,7 +105,7 @@ void Renderer::debugDraw(ID3D11Device* device, ID3D11DeviceContext* context, ID3
 
 		//Config and set const buffer
 		tre::ConstantBuffer::setObjConstBuffer(
-			device, context,
+			_device, _context,
 			transformM,
 			currObj.objColor,
 			currObj.isObjWithTexture,
@@ -89,10 +114,10 @@ void Renderer::debugDraw(ID3D11Device* device, ID3D11DeviceContext* context, ID3
 
 		// set normal map
 		if (currObj.isObjWithNormalMap) {
-			context->PSSetShaderResources(1, 1, currObj.pObjNormalMap->pShaderResView.GetAddressOf());
+			_context->PSSetShaderResources(1, 1, currObj.pObjNormalMap->pShaderResView.GetAddressOf());
 		}
 
-		context->DrawIndexed(mesh.indexSize, 0, 0);
+		_context->DrawIndexed(mesh.indexSize, 0, 0);
 	}
 }
 

@@ -12,6 +12,6 @@ public:
 	ComPtr<ID3D11BlendState> opaque;
 	ComPtr<ID3D11BlendState> transparency;
 	
-	BlendState(ID3D11Device* device);
+	void create(ID3D11Device* device);
 };
 }
