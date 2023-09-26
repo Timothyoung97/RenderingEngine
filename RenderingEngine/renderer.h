@@ -8,6 +8,7 @@
 #include "object.h"
 #include "constbuffer.h"
 #include "blendstate.h"
+#include "rasterizer.h"
 
 namespace tre {
 
@@ -25,11 +26,12 @@ public:
 	ID3D11DeviceContext* _context;
 
 	BlendState _blendstate;
+	Rasterizer _rasterizer;
 
 	Renderer(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 
-	void configureContext(RENDER_MODE renderMode);
-	void draw(ID3D11RasterizerState* rasterizerState, const std::vector<Object>& objQ, RENDER_MODE renderMode);
-	void debugDraw(ID3D11RasterizerState* rasterizerState, std::vector<Object>& objQ, Mesh& mesh, BoundVolumeEnum typeOfBound, RENDER_MODE renderMode);
+	void configureStates(RENDER_MODE renderMode);
+	void draw(const std::vector<Object>& objQ, RENDER_MODE renderMode);
+	void debugDraw(std::vector<Object>& objQ, Mesh& mesh, BoundVolumeEnum typeOfBound, RENDER_MODE renderMode);
 };
 }

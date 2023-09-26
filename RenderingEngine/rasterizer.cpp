@@ -3,7 +3,7 @@
 
 namespace tre {
 
-Rasterizer::Rasterizer(ID3D11Device* device) {
+void Rasterizer::create(ID3D11Device* device) {
 
 	D3D11_RASTERIZER_DESC rasterizerDesc;
 	rasterizerDesc.FillMode = D3D11_FILL_SOLID;

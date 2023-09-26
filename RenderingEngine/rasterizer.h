@@ -24,6 +24,6 @@ public:
 		{ 2048, 2048, 4096, 4096 }  // bottom right
 	};
 
-	Rasterizer(ID3D11Device* device);
+	void create(ID3D11Device* device);
 };
 }

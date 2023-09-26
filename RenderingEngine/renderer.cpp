@@ -8,31 +8,34 @@ namespace tre {
 
 Renderer::Renderer(ID3D11Device* _device, ID3D11DeviceContext* _context) : _device(_device), _context(_context) {
 	_blendstate.create(_device);
+	_rasterizer.create(_device);
 }
 
-void Renderer::configureContext(RENDER_MODE renderMode) {
+void Renderer::configureStates(RENDER_MODE renderMode) {
 	switch (renderMode)
 	{
 	case tre::TRANSPARENT_M:
 		_context->OMSetBlendState(_blendstate.transparency.Get(), NULL, 0xffffffff);
+		_context->RSSetState(_rasterizer.pRasterizerStateFCCW.Get());
 		break;								
 	case tre::OPAQUE_M:						
 		_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
+		_context->RSSetState(_rasterizer.pRasterizerStateFCCW.Get());
 		break;								
 	case tre::WIREFRAME_M:					
 		_context->OMSetBlendState(_blendstate.transparency.Get(), NULL, 0xffffffff);
+		_context->RSSetState(_rasterizer.pRasterizerStateWireFrame.Get());
 		break;								
 	case tre::SHADOW_M:						
 		_context->OMSetBlendState(_blendstate.transparency.Get(), NULL, 0xffffffff);
+		_context->RSSetState(_rasterizer.pShadowRasterizerState.Get());
 		break;
 	}
 }
 
-void Renderer::draw(ID3D11RasterizerState* rasterizerState, const std::vector<Object>& objQ, RENDER_MODE renderMode) {
+void Renderer::draw(const std::vector<Object>& objQ, RENDER_MODE renderMode) {
 
-	configureContext(renderMode);
-
-	_context->RSSetState(rasterizerState);
+	configureStates(renderMode);
 	
 	for (int i = 0; i < objQ.size(); i++) {
 
@@ -67,10 +70,9 @@ void Renderer::draw(ID3D11RasterizerState* rasterizerState, const std::vector<Ob
 	}
 }
 
-void Renderer::debugDraw(ID3D11RasterizerState* rasterizerState, std::vector<Object>& objQ, Mesh& mesh, BoundVolumeEnum typeOfBound, RENDER_MODE renderMode) {
+void Renderer::debugDraw(std::vector<Object>& objQ, Mesh& mesh, BoundVolumeEnum typeOfBound, RENDER_MODE renderMode) {
 
-	configureContext(renderMode);
-	_context->RSSetState(rasterizerState);
+	configureStates(renderMode);
 
 	for (int i = 0; i < objQ.size(); i++) {
 
