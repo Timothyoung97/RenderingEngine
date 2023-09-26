@@ -61,7 +61,7 @@ int main()
 
 	tre::ModelLoader ml;
 
-	ml.load(deviceAndContext.device.Get(), basePathStr + "glTF-models\\Box\\Box.gltf");
+	ml.load(deviceAndContext.device.Get(), basePathStr + "glTF-models\\Duck\\Duck.gltf");
 
 	tre::Texture textures[5] = { 
 		tre::TextureLoader::createTexture(deviceAndContext.device.Get(), basePathStr + "textures\\UV_image.jpg"),
@@ -169,8 +169,8 @@ int main()
 	tre::Object importModel;
 
 	importModel.pObjMesh = &ml._meshes.begin()->second;
-	importModel.objPos = XMFLOAT3(.0f, 1.f, .0f);
-	importModel.objScale = XMFLOAT3(1.f, 1.f, 1.f);
+	importModel.objPos = XMFLOAT3(.0f, .0f, .0f);
+	importModel.objScale = XMFLOAT3(.1f, .1f, .1f);
 	importModel.objRotation = XMFLOAT3(.0f, .0f, .0f);
 	importModel.pObjTexture = &importModel.pObjMesh->material.objTexture;
 	importModel.isObjWithTexture = importModel.pObjTexture->pShaderResView.Get() != nullptr ? 1 : 0;

@@ -143,6 +143,8 @@ AABB BoundingVolume::createAABB(const std::vector<XMFLOAT3>& uniquePoint) {
 	bv.center.z = (zMin.z + zMax.z) / 2;
 	bv.halfExtent.z = (zMax.z - zMin.z) / 2.0f;
 
+	bv.defaultUnitLength = bv.halfExtent;
+
 	return bv;
 }	
 
@@ -207,7 +209,7 @@ XMMATRIX BoundingVolume::updateAABB(AABB& meshAABB, AABB& objAABB, XMFLOAT3 scal
 
 	// store in objAABB
 	objAABB.center = newCenter;
-	objAABB.halfExtent = XMFLOAT3((scale.x * newIi.x / unitLength) / 2, (scale.y * newIj.y / unitLength) / 2, (scale.z * newIk.z / unitLength) / 2);
+	objAABB.halfExtent = XMFLOAT3((scale.x * newIi.x / meshAABB.defaultUnitLength.x) / 2, (scale.y * newIj.y / meshAABB.defaultUnitLength.y) / 2, (scale.z * newIk.z / meshAABB.defaultUnitLength.z) / 2);
 
 	return tre::Maths::createTransformationMatrix(
 		XMFLOAT3(scale.x * newIi.x / unitLength, scale.y * newIj.y / unitLength, scale.z * newIk.z / unitLength),
