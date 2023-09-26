@@ -61,7 +61,7 @@ int main()
 
 	tre::ModelLoader ml;
 
-	ml.load(deviceAndContext.device.Get(), basePathStr + "glTF-models\\Duck\\Duck.gltf");
+	ml.load(deviceAndContext.device.Get(), basePathStr + "glTF-models\\Box\\Box.gltf");
 
 	tre::Texture textures[5] = { 
 		tre::TextureLoader::createTexture(deviceAndContext.device.Get(), basePathStr + "textures\\UV_image.jpg"),
@@ -169,8 +169,8 @@ int main()
 	tre::Object importModel;
 
 	importModel.pObjMesh = &ml._meshes.begin()->second;
-	importModel.objPos = XMFLOAT3(.0f, .0f, .0f);
-	importModel.objScale = XMFLOAT3(.1f, .1f, .1f);
+	importModel.objPos = XMFLOAT3(.0f, 1.f, .0f);
+	importModel.objScale = XMFLOAT3(1.f, 1.f, 1.f);
 	importModel.objRotation = XMFLOAT3(.0f, .0f, .0f);
 	importModel.pObjTexture = &importModel.pObjMesh->material.objTexture;
 	importModel.isObjWithTexture = importModel.pObjTexture->pShaderResView.Get() != nullptr ? 1 : 0;
@@ -287,6 +287,11 @@ int main()
 			ImGui::Begin("Debug");
 
 			ImGui::Checkbox("Demo Window", &show_demo_window);
+
+			ImGui::SeparatorText("Test Object Control");
+			float rotationXYZ[3] = { opaqueObjQ[0].objRotation.x, opaqueObjQ[0].objRotation.y,  opaqueObjQ[0].objRotation.z};
+			ImGui::SliderFloat3("Rotation", rotationXYZ, .0f, 360.f);
+			opaqueObjQ[0].objRotation = XMFLOAT3(rotationXYZ);
 
 			ImGui::SeparatorText("Camera");
 			ImGui::SliderFloat("Camera FOV Y", &fovY, 1.0f, 179.0f);
