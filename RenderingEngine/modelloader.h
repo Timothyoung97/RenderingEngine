@@ -19,7 +19,7 @@ public:
 	std::string _directoryPath;
 
 	void load(ID3D11Device* device, std::string filename);
-	void loadTextures(ID3D11Device* device, aiMaterial* mat, aiTextureType type, const aiScene* scene);
+	Texture loadTextures(ID3D11Device* device, aiMaterial* mat, aiTextureType type, const aiScene* scene);
 	void processNode(ID3D11Device* device, aiNode* node, const aiScene* scene);
 };
 }

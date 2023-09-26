@@ -97,16 +97,16 @@ int main()
 	ml.load(deviceAndContext.device.Get(), basePathStr + "glTF-models\\Box With Spaces\\Box With Spaces.gltf");
 
 	tre::Texture textures[5] = { 
-		tre::TextureLoader::createTexture(deviceAndContext.device.Get(), basePathStr + "textures\\UV_image.jpg", aiTextureType_DIFFUSE),
-		tre::TextureLoader::createTexture(deviceAndContext.device.Get(), basePathStr + "textures\\UV_image2.jpg", aiTextureType_DIFFUSE),
-		tre::TextureLoader::createTexture(deviceAndContext.device.Get(), basePathStr + "textures\\UV_image_a.png", aiTextureType_DIFFUSE),
-		tre::TextureLoader::createTexture(deviceAndContext.device.Get(), basePathStr + "textures\\glTF.png", aiTextureType_DIFFUSE),
-		tre::TextureLoader::createTexture(deviceAndContext.device.Get(), basePathStr + "textures\\wall.jpg", aiTextureType_DIFFUSE)
+		tre::TextureLoader::createTexture(deviceAndContext.device.Get(), basePathStr + "textures\\UV_image.jpg"),
+		tre::TextureLoader::createTexture(deviceAndContext.device.Get(), basePathStr + "textures\\UV_image2.jpg"),
+		tre::TextureLoader::createTexture(deviceAndContext.device.Get(), basePathStr + "textures\\UV_image_a.png"),
+		tre::TextureLoader::createTexture(deviceAndContext.device.Get(), basePathStr + "textures\\glTF.png"),
+		tre::TextureLoader::createTexture(deviceAndContext.device.Get(), basePathStr + "textures\\wall.jpg")
 	};
 
 	tre::Texture normals[2] = {
-		tre::TextureLoader::createTexture(deviceAndContext.device.Get(), basePathStr + "textures\\glTF_normal.png", aiTextureType_NORMALS),
-		tre::TextureLoader::createTexture(deviceAndContext.device.Get(), basePathStr + "textures\\wall_normal.jpg", aiTextureType_NORMALS)
+		tre::TextureLoader::createTexture(deviceAndContext.device.Get(), basePathStr + "textures\\glTF_normal.png"),
+		tre::TextureLoader::createTexture(deviceAndContext.device.Get(), basePathStr + "textures\\wall_normal.jpg")
 	};
 
 	// Create input layout
@@ -228,9 +228,9 @@ int main()
 	testCube.objPos = XMFLOAT3(.0f, 5.f, .0f);
 	testCube.objScale = XMFLOAT3(5.f, 5.f, 5.f);
 	testCube.objRotation = XMFLOAT3(.0f, .0f, .0f);
-	testCube.pObjTexture = ml._meshes[0].material->pObjTexture;
+	testCube.pObjTexture = &ml._meshes[0].material.objTexture;
 	testCube.isObjWithTexture = 1;
-	testCube.pObjNormalMap = ml._meshes[0].material->pObjNormalMap;
+	testCube.pObjNormalMap = &ml._meshes[0].material.objNormalMap;
 	testCube.isObjWithNormalMap = 1;
 	testCube.objColor = colors[2];
 	testCube.ritterBs = testCube.pObjMesh->ritterSphere;
@@ -537,7 +537,7 @@ int main()
 		}
 
 		std::vector<XMMATRIX> lightViewProjs;
-		for (int i = 0; i < 4; i++) {
+		for (int i = 0; i < 4; i++) { // for 4 quads
 
 			// projection matrix of camera with specific near and far plane
 			XMMATRIX projMatrix = XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0f), static_cast<float>(SCREEN_WIDTH) / SCREEN_HEIGHT, planeIntervals[i], planeIntervals[i + 1]);
