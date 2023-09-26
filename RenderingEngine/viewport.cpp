@@ -2,7 +2,7 @@
 
 namespace tre {
 
-void Viewport::Init(int width, int height) {
+void Viewport::create(int width, int height) {
 	ZeroMemory(&defaultViewport, sizeof(D3D11_VIEWPORT));
 	defaultViewport.TopLeftX = 0;
 	defaultViewport.TopLeftY = 0;

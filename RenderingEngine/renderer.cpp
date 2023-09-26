@@ -15,14 +15,30 @@ Renderer::Renderer(ID3D11Device* _device, ID3D11DeviceContext* _context) : _devi
 	_sampler.create(_device);
 	_context->PSSetSamplers(0, 1, _sampler.pSamplerStateLinear.GetAddressOf());
 	_context->PSSetSamplers(1, 1, _sampler.pSamplerStateMipPtWhiteBorder.GetAddressOf());
+	_viewport.create(tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);
 	
 	std::wstring basePathWstr = tre::Utility::getBasePathWstr();
 	_vertexShader.create(basePathWstr + L"shaders\\vertex_shader.bin", _device);
 	_context->VSSetShader(_vertexShader.pShader.Get(), NULL, 0u);
 
 	_pixelShader.create(basePathWstr + L"shaders\\pixel_shader.bin", _device);
-	_debugPixelShader.create(basePathWstr + L"shaders\\light_pixel.bin", _device);
-	
+	_debugPixelShader.create(basePathWstr + L"shaders\\light_pixel.bin", _device);	
+}
+
+void Renderer::configureShadawSetting() {
+	ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
+	_context->PSSetShaderResources(3, 1, nullSRV);
+
+	_context->ClearDepthStencilView(_depthbuffer.pShadowDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+
+	_context->OMSetRenderTargets(0, nullptr, _depthbuffer.pShadowDepthStencilView.Get());
+}
+
+void Renderer::setShadowBufferDrawSection(int idx) {
+	_viewport.shadowViewport.TopLeftX = _rasterizer.rectArr[idx].left;
+	_viewport.shadowViewport.TopLeftY = _rasterizer.rectArr[idx].top;
+	_context->RSSetViewports(1, &_viewport.shadowViewport);
+	_context->RSSetScissorRects(1, &_rasterizer.rectArr[idx]);
 }
 
 void Renderer::configureStates(RENDER_MODE renderMode) {

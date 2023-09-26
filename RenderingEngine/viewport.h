@@ -8,6 +8,6 @@ public:
 	D3D11_VIEWPORT defaultViewport;
 	D3D11_VIEWPORT shadowViewport;
 
-	void Init(int width, int height);
+	void create(int width, int height);
 };
 }

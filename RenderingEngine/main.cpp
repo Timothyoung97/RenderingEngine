@@ -36,7 +36,6 @@
 #include "maths.h"
 #include "inputlayout.h"
 #include "scene.h"
-#include "viewport.h"
 #include "modelloader.h"
 
 using namespace DirectX;
@@ -99,10 +98,6 @@ int main()
 
 	//Set topology
 	deviceAndContext.context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	//Create Viewport
-	tre::Viewport viewports;
-	viewports.Init(tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);
 
 	//Input Handler
 	tre::Input input;
@@ -406,33 +401,7 @@ int main()
 			ImGui::End();
 		}
 
-		// Alternating buffers
-		int currBackBuffer = static_cast<int>(swapchain.mainSwapchain->GetCurrentBackBufferIndex());
-
-		ID3D11Texture2D* backBuffer = nullptr;
-
-		CHECK_DX_ERROR(swapchain.mainSwapchain->GetBuffer(
-			currBackBuffer, __uuidof(ID3D11Texture2D), (LPVOID*)&backBuffer
-		));
-
-		// Create render target view
-		ID3D11RenderTargetView* renderTargetView = nullptr;
-
-		CHECK_DX_ERROR(deviceAndContext.device->CreateRenderTargetView(
-			backBuffer, NULL, &renderTargetView
-		));
-
-		deviceAndContext.context->ClearRenderTargetView(renderTargetView, tre::BACKGROUND_COLOR);
-
-		{ //Shadow Config
-
-			ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
-			deviceAndContext.context->PSSetShaderResources(3, 1, nullSRV);
-
-			deviceAndContext.context->ClearDepthStencilView(renderer._depthbuffer.pShadowDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
-
-			deviceAndContext.context->OMSetRenderTargets(0, nullptr, renderer._depthbuffer.pShadowDepthStencilView.Get());
-		}
+		renderer.configureShadawSetting();
 
 		std::vector<XMMATRIX> lightViewProjs;
 		for (int i = 0; i < 4; i++) { // for 4 quads
@@ -454,16 +423,31 @@ int main()
 		}
 
 		for (int i = 0; i < 4; i++) {
-			viewports.shadowViewport.TopLeftX = renderer._rasterizer.rectArr[i].left;
-			viewports.shadowViewport.TopLeftY = renderer._rasterizer.rectArr[i].top;
-			deviceAndContext.context->RSSetViewports(1, &viewports.shadowViewport);
-			deviceAndContext.context->RSSetScissorRects(1, &renderer._rasterizer.rectArr[i]);
+			renderer.setShadowBufferDrawSection(i);
 
 			// set const buffer from the light pov 
 			tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, lightViewProjs[i], lightViewProjs, planeIntervalsF, scene.dirlight, lightResc.pointLights.size(), XMFLOAT2(4096, 4096), csmDebugSwitch);
 
 			renderer.draw({ scene.floor, importModel }, tre::RENDER_MODE::SHADOW_M);
 		}
+
+		// Alternating buffers
+		int currBackBuffer = static_cast<int>(swapchain.mainSwapchain->GetCurrentBackBufferIndex());
+
+		ID3D11Texture2D* backBuffer = nullptr;
+
+		CHECK_DX_ERROR(swapchain.mainSwapchain->GetBuffer(
+			currBackBuffer, __uuidof(ID3D11Texture2D), (LPVOID*)&backBuffer
+		));
+
+		// Create render target view
+		ID3D11RenderTargetView* renderTargetView = nullptr;
+
+		CHECK_DX_ERROR(deviceAndContext.device->CreateRenderTargetView(
+			backBuffer, NULL, &renderTargetView
+		));
+
+		deviceAndContext.context->ClearRenderTargetView(renderTargetView, tre::BACKGROUND_COLOR);
 
 		deviceAndContext.context->ClearDepthStencilView(renderer._depthbuffer.pDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 		
@@ -473,7 +457,7 @@ int main()
 		deviceAndContext.context->PSSetShaderResources(3, 1, renderer._depthbuffer.pShadowShaderRescView.GetAddressOf());
 
 		//Set Viewport for color draw
-		deviceAndContext.context->RSSetViewports(1, &viewports.defaultViewport);
+		deviceAndContext.context->RSSetViewports(1, &renderer._viewport.defaultViewport);
 
 		// Set camera view const buffer
 		cam.camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovY), static_cast<float>(tre::SCREEN_WIDTH) / tre::SCREEN_HEIGHT, 1.0f, 1000.0f);

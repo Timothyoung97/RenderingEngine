@@ -10,6 +10,7 @@
 #include "depthbuffer.h"
 #include "sampler.h"
 #include "shader.h"
+#include "viewport.h"
 
 namespace tre {
 
@@ -30,12 +31,16 @@ public:
 	Rasterizer _rasterizer;
 	DepthBuffer _depthbuffer;
 	Sampler _sampler;
-	tre::VertexShader _vertexShader;
-	tre::PixelShader _pixelShader;
-	tre::PixelShader _debugPixelShader;
+	Viewport _viewport;
+	
+	VertexShader _vertexShader;
+	PixelShader _pixelShader;
+	PixelShader _debugPixelShader;
 
 	Renderer(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 
+	void configureShadawSetting();
+	void setShadowBufferDrawSection(int idx); // idx --> 0: top left, 1: top right, 2: bottom left, 3: bottom right
 	void configureStates(RENDER_MODE renderMode);
 	void draw(const std::vector<Object>& objQ, RENDER_MODE renderMode);
 	void debugDraw(std::vector<Object>& objQ, Mesh& mesh, BoundVolumeEnum typeOfBound, RENDER_MODE renderMode);
