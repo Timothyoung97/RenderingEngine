@@ -129,7 +129,7 @@ AABB BoundingVolume::createAABB(const std::vector<XMFLOAT3>& uniquePoint) {
 		if (uniquePoint[i].x > xMax.x) xMax = uniquePoint[i];
 		if (uniquePoint[i].y < yMin.y) yMin = uniquePoint[i];
 		if (uniquePoint[i].y > yMax.y) yMax = uniquePoint[i];
-		if (uniquePoint[i].z < zMax.z) zMin = uniquePoint[i];
+		if (uniquePoint[i].z < zMin.z) zMin = uniquePoint[i];
 		if (uniquePoint[i].z > zMax.z) zMax = uniquePoint[i];
 	}
 
