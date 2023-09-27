@@ -295,18 +295,27 @@ int main()
 
 			ImGui::Checkbox("Demo Window", &show_demo_window);
 
-			ImGui::SeparatorText("Test Object Control");
-			float rotationXYZ[3] = { opaqueObjQ[0].objRotation.x, opaqueObjQ[0].objRotation.y,  opaqueObjQ[0].objRotation.z};
-			ImGui::SliderFloat3("Rotation", rotationXYZ, .0f, 360.f);
-			opaqueObjQ[0].objRotation = XMFLOAT3(rotationXYZ);
+			{	// Control for import models
 
-			ImGui::SeparatorText("Camera");
-			ImGui::SliderFloat("Camera FOV Y", &fovY, 1.0f, 179.0f);
+				ImGui::SeparatorText("Test Object Control");
+				
+				float rotationXYZ[3] = { opaqueObjQ[0].objRotation.x, opaqueObjQ[0].objRotation.y,  opaqueObjQ[0].objRotation.z};
+				ImGui::SliderFloat3("Rotation", rotationXYZ, .0f, 360.f);
+				opaqueObjQ[0].objRotation = XMFLOAT3(rotationXYZ);
 
-			// Bounding Type Selection
-			ImGui::SeparatorText("Bounding Volume");
-			ImGui::Checkbox("Show Bounding Volume", &showBoundingVolume);
-			{
+				float scaleXYZ = opaqueObjQ[0].objScale.x;
+				ImGui::SliderFloat("Scale", &scaleXYZ, .1f, 3.f);
+				opaqueObjQ[0].objScale = XMFLOAT3(scaleXYZ, scaleXYZ, scaleXYZ);
+			}
+
+			{	// Camera Setting
+				ImGui::SeparatorText("Camera");
+				ImGui::SliderFloat("Camera FOV Y", &fovY, 1.0f, 179.0f);
+			}
+
+			{	// Bounding Type Selection
+				ImGui::SeparatorText("Bounding Volume");
+				ImGui::Checkbox("Show Bounding Volume", &showBoundingVolume);
 				static int selectedIdx = 0;
 				const char* names[] = { "AABB", "Ritter Sphere", "Naive Sphere" };
 
@@ -339,8 +348,7 @@ int main()
 				}
 			}
 
-			// light 
-			{
+			{	// light 
 				ImGui::SeparatorText("Lights");
 				ImGui::Checkbox("Pause Light", &pauseLight);
 				if (lightResc.pointLights.size() < lightResc.maxPointLightNum) {
@@ -372,8 +380,7 @@ int main()
 				ImGui::SliderFloat("Pitch", &scene.dirlightPitch, .0f, 89.f);
 			}
 
-			// farplane intervals
-			{
+			{	// farplane intervals
 				ImGui::SeparatorText("Far Planes");
 				ImGui::Checkbox("CSM Debug", &csmDebugSwitch);
 				ImGui::SliderFloat("Far Plane 1", &planeIntervalsF.x, planeIntervals[0], planeIntervals[2]);
@@ -384,9 +391,12 @@ int main()
 				planeIntervals[1] = planeIntervalsF.x, planeIntervals[2] = planeIntervalsF.y, planeIntervals[3] = planeIntervalsF.z, planeIntervals[4] = planeIntervalsF.w;
 			}
 
-			ImGui::SeparatorText("Debug Info");
-			ImGui::Text("Within Frustcum/Total: %d / %d", culledOpaqueObjQ.size(), opaqueObjQ.size());
-			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+			{	// Stats
+				ImGui::SeparatorText("Debug Info");
+				ImGui::Text("Within Frustcum/Total: %d / %d", culledOpaqueObjQ.size(), opaqueObjQ.size());
+				ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+			}
+
 			ImGui::End();
 		}
 
