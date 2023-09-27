@@ -61,7 +61,7 @@ int main()
 	//	  "All Files", "*" }
 	//);
 
-	ml.load(deviceAndContext.device.Get(), basePathStr + "glTF-models\\2CylinderEngine\\2CylinderEngine.gltf");
+	//ml.load(deviceAndContext.device.Get(), basePathStr + "glTF-models\\Duck\\Duck.gltf");
 
 	// Scene
 	tre::Scene scene(deviceAndContext.device.Get());
@@ -271,6 +271,10 @@ int main()
 
 				ImGui::SeparatorText("Test Object Control");
 				
+				float translation[3] = { opaqueObjQ[0].objPos.x, opaqueObjQ[0].objPos.y,  opaqueObjQ[0].objPos.z };
+				ImGui::SliderFloat3("Translation", translation, .0f, 20.f);
+				opaqueObjQ[0].objPos = XMFLOAT3(translation);
+
 				float rotationXYZ[3] = { opaqueObjQ[0].objRotation.x, opaqueObjQ[0].objRotation.y,  opaqueObjQ[0].objRotation.z};
 				ImGui::SliderFloat3("Rotation", rotationXYZ, .0f, 360.f);
 				opaqueObjQ[0].objRotation = XMFLOAT3(rotationXYZ);
