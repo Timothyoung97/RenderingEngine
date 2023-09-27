@@ -109,14 +109,11 @@ int main()
 		tre::Object newLightObj;
 
 		newLightObj.pObjMesh = &scene._debugMeshes[1]; // sphere
+		newLightObj.pObjMesh->material = &scene._debugMaterials[2];
 		newLightObj.objPos = originPtLight[i];
 		newLightObj.objScale = XMFLOAT3(.1f, .1f, .1f);
 		newLightObj.objRotation = XMFLOAT3(.0f, .0f, .0f);
-		newLightObj.pObjTexture = &scene._debugTextures[0];
-		newLightObj.pObjNormalMap = nullptr;
-		newLightObj.isObjWithTexture = 0;
-		newLightObj.isObjWithNormalMap = 0;
-		newLightObj.objColor = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+		newLightObj._boundingVolumeColor = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 
 		lightObjQ.push_back(newLightObj);
 	}
@@ -155,22 +152,19 @@ int main()
 	// Testing Obj
 	tre::Object importModel;
 
-	importModel.pObjMesh = &ml._meshes.begin()->second;
-	importModel.objPos = XMFLOAT3(.0f, .0f, .0f);
+	importModel.pObjMesh = &scene._debugMeshes[4];
+	importModel.pObjMesh->material = &scene._debugMaterials[0];
+	importModel.objPos = XMFLOAT3(.0f, 1.0f, .0f);
 	importModel.objScale = XMFLOAT3(.1f, .1f, .1f);
 	importModel.objRotation = XMFLOAT3(.0f, .0f, .0f);
-	importModel.pObjTexture = &importModel.pObjMesh->material.objTexture;
-	importModel.isObjWithTexture = importModel.pObjTexture->pShaderResView.Get() != nullptr ? 1 : 0;
-	importModel.pObjNormalMap = &importModel.pObjMesh->material.objNormalMap;
-	importModel.isObjWithNormalMap = importModel.pObjNormalMap->pShaderResView.Get() != nullptr ? 1 : 0;
-	importModel.objColor = colors[2];
 	importModel.ritterBs = importModel.pObjMesh->ritterSphere;
 	importModel.naiveBs = importModel.pObjMesh->naiveSphere;
 	importModel.aabb = importModel.pObjMesh->aabb;
+	importModel._boundingVolumeColor = tre::colorF(Colors::Green);
 
 	// transparent queue -> object with texture with alpha channel or object with color.w below 1.0f
-	if ((importModel.isObjWithTexture && importModel.pObjTexture->hasAlphaChannel)
-		|| (!importModel.isObjWithTexture && importModel.objColor.w < 1.0f)) {
+	if ((importModel.pObjMesh->material->objTexture->pShaderResView.Get() != nullptr && importModel.pObjMesh->material->objTexture->hasAlphaChannel)
+		|| (importModel.pObjMesh->material->objTexture->pShaderResView.Get() == nullptr && importModel.pObjMesh->material->diffuseColor.w < 1.0f)) {
 
 		// find its distance from cam
 		importModel.distFromCam = tre::Maths::distBetweentObjToCam(importModel.objPos, cam.camPositionV);
@@ -227,23 +221,21 @@ int main()
 			float scaleVal = tre::Utility::getRandomFloat(3);
 			int textureIdx = tre::Utility::getRandomInt(1);
 
-			newObj.pObjMesh = &scene._debugMeshes[tre::Utility::getRandomInt(1)];
+			int selectIdx = tre::Utility::getRandomInt(1);
+			newObj.pObjMesh = &scene._debugMeshes[4 + selectIdx];
+			newObj.pObjMesh->material = &scene._debugMaterials[selectIdx];
 			newObj.objPos = XMFLOAT3(tre::Utility::getRandomFloatRange(-20, 20), tre::Utility::getRandomFloatRange(-20, 20), tre::Utility::getRandomFloatRange(-20, 20));
 			newObj.objScale = XMFLOAT3(scaleVal, scaleVal, scaleVal);
 			newObj.objRotation = XMFLOAT3(tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360));
-			newObj.pObjTexture = &scene._debugTextures[3 + textureIdx];
-			newObj.isObjWithTexture = 1;
-			newObj.pObjNormalMap = &scene._debugNormalTextures[textureIdx];
-			newObj.isObjWithNormalMap = 1;
-			newObj.objColor = colors[2];
+			newObj._boundingVolumeColor = tre::colorF(Colors::Green);
 
 			newObj.ritterBs = newObj.pObjMesh->ritterSphere;
 			newObj.naiveBs = newObj.pObjMesh->naiveSphere;
 			newObj.aabb = newObj.pObjMesh->aabb;
 
 			// transparent queue -> object with texture with alpha channel or object with color.w below 1.0f
-			if ((newObj.isObjWithTexture && newObj.pObjTexture->hasAlphaChannel)
-				|| (!newObj.isObjWithTexture && newObj.objColor.w < 1.0f)) {
+			if ((newObj.pObjMesh->material->objTexture->pShaderResView.Get() != nullptr && newObj.pObjMesh->material->objTexture->hasAlphaChannel)
+				|| (newObj.pObjMesh->material->objTexture->pShaderResView.Get() == nullptr && newObj.pObjMesh->material->diffuseColor.w < 1.0f)) {
 
 				// find its distance from cam
 				newObj.distFromCam = tre::Maths::distBetweentObjToCam(newObj.objPos, cam.camPositionV);
@@ -338,14 +330,11 @@ int main()
 						tre::Object newLightObj;
 
 						newLightObj.pObjMesh = &scene._debugMeshes[1]; // sphere
+						newLightObj.pObjMesh->material = &scene._debugMaterials[2];
 						newLightObj.objPos = lightResc.pointLights.back().pos;
 						newLightObj.objScale = XMFLOAT3(.1f, .1f, .1f);
 						newLightObj.objRotation = XMFLOAT3(.0f, .0f, .0f);
-						newLightObj.pObjTexture = &scene._debugTextures[0];
-						newLightObj.pObjNormalMap = nullptr;
-						newLightObj.isObjWithTexture = 0;
-						newLightObj.isObjWithNormalMap = 0;
-						newLightObj.objColor = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+						newLightObj._boundingVolumeColor = tre::colorF(Colors::White);
 
 						lightObjQ.push_back(newLightObj);
 					}
@@ -435,28 +424,28 @@ int main()
 			}
 
 			if (opaqueObjQ[i].aabb.isOverlapFrustum(cam.cameraFrustum)) {
-				opaqueObjQ[i].objColor = colors[1];
+				opaqueObjQ[i]._boundingVolumeColor = tre::colorF(Colors::Green);
 				culledOpaqueObjQ.push_back(opaqueObjQ[i]);
 			}
 			else if (opaqueObjQ[i].aabb.isInFrustum(cam.cameraFrustum)) {
-				opaqueObjQ[i].objColor = colors[2];
+				opaqueObjQ[i]._boundingVolumeColor = tre::colorF(Colors::Blue);
 				culledOpaqueObjQ.push_back(opaqueObjQ[i]);
 			} else {
-				opaqueObjQ[i].objColor = colors[0];
+				opaqueObjQ[i]._boundingVolumeColor = tre::colorF(Colors::Red);
 			}
 		}
 
 		culledTransparentObjQ.clear();
 		for (int i = 0; i < transparentObjQ.size(); i++) {
 			if (transparentObjQ[i].aabb.isOverlapFrustum(cam.cameraFrustum)) {
-				transparentObjQ[i].objColor = colors[1];
+				transparentObjQ[i]._boundingVolumeColor = tre::colorF(Colors::Green);
 				culledTransparentObjQ.push_back(transparentObjQ[i]);
 			}
 			else if (transparentObjQ[i].aabb.isInFrustum(cam.cameraFrustum)) {
-				transparentObjQ[i].objColor = colors[2];
+				transparentObjQ[i]._boundingVolumeColor = tre::colorF(Colors::Blue);
 				culledTransparentObjQ.push_back(transparentObjQ[i]);
 			} else {
-				opaqueObjQ[i].objColor = colors[0];
+				opaqueObjQ[i]._boundingVolumeColor = tre::colorF(Colors::Red);
 			}
 		}
 

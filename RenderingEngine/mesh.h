@@ -30,7 +30,7 @@ public:
 	ComPtr<ID3D11Buffer> pIndexBuffer;
 	ComPtr<ID3D11Buffer> pVertexBuffer;
 
-	Material material;
+	Material* material;
 
 	BoundingSphere ritterSphere;
 	BoundingSphere naiveSphere;

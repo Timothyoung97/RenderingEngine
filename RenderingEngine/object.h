@@ -17,17 +17,11 @@ struct Object {
 	BoundingSphere naiveBs;
 	AABB aabb;
 	
-	Texture* pObjTexture;
-	Texture* pObjNormalMap;
-
 	XMFLOAT3 objPos;
 	XMFLOAT3 objScale;
 	XMFLOAT3 objRotation;
 
-	bool isObjWithTexture;
-	bool isObjWithNormalMap;
-
-	XMFLOAT4 objColor;
+	XMFLOAT4 _boundingVolumeColor;
 
 	float distFromCam;
 };

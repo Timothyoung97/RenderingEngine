@@ -125,21 +125,24 @@ void Renderer::draw(const std::vector<Object>& objQ, RENDER_MODE renderMode) {
 		_context->IASetIndexBuffer(currObj.pObjMesh->pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
 
 		//set shader resc view and sampler
-		_context->PSSetShaderResources(0, 1, currObj.pObjTexture->pShaderResView.GetAddressOf());
+		if (currObj.pObjMesh->material->objTexture->pShaderResView.Get() != nullptr) {
+			_context->PSSetShaderResources(0, 1, currObj.pObjMesh->material->objTexture->pShaderResView.GetAddressOf());
+		}
+
+		// set normal map
+		if (currObj.pObjMesh->material->objNormalMap->pShaderResView.Get() != nullptr) {
+			_context->PSSetShaderResources(1, 1, currObj.pObjMesh->material->objNormalMap->pShaderResView.GetAddressOf());
+		}
 
 		//Config and set const buffer
 		tre::ConstantBuffer::setObjConstBuffer(
 			_device, _context,
 			tre::Maths::createTransformationMatrix(currObj.objScale, currObj.objRotation, currObj.objPos),
-			currObj.objColor,
-			currObj.isObjWithTexture,
-			currObj.isObjWithNormalMap
+			currObj.pObjMesh->material->diffuseColor,
+			currObj.pObjMesh->material->objTexture->pShaderResView.Get() != nullptr ? 1 : 0,
+			currObj.pObjMesh->material->objNormalMap->pShaderResView.Get() != nullptr ? 1 : 0
 		);
 
-		// set normal map
-		if (currObj.isObjWithNormalMap) {
-			_context->PSSetShaderResources(1, 1, currObj.pObjNormalMap->pShaderResView.GetAddressOf());
-		}
 
 		_context->DrawIndexed(currObj.pObjMesh->indexSize, 0, 0);
 	}
@@ -161,9 +164,6 @@ void Renderer::debugDraw(std::vector<Object>& objQ, Mesh& mesh, BoundVolumeEnum 
 		//Set index buffer
 		_context->IASetIndexBuffer(mesh.pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
 
-		//set shader resc view and sampler
-		_context->PSSetShaderResources(0, 1, currObj.pObjTexture->pShaderResView.GetAddressOf());
-
 		//Update bounding volume
 		XMMATRIX transformM;
 		switch (typeOfBound) {
@@ -180,19 +180,24 @@ void Renderer::debugDraw(std::vector<Object>& objQ, Mesh& mesh, BoundVolumeEnum 
 			break;
 		}
 
+		//set shader resc view and sampler
+		if (currObj.pObjMesh->material->objTexture->pShaderResView.Get() != nullptr) {
+			_context->PSSetShaderResources(0, 1, currObj.pObjMesh->material->objTexture->pShaderResView.GetAddressOf());
+		}
+
+		// set normal map
+		if (currObj.pObjMesh->material->objNormalMap->pShaderResView.Get() != nullptr) {
+			_context->PSSetShaderResources(1, 1, currObj.pObjMesh->material->objNormalMap->pShaderResView.GetAddressOf());
+		}
+
 		//Config and set const buffer
 		tre::ConstantBuffer::setObjConstBuffer(
 			_device, _context,
 			transformM,
-			currObj.objColor,
-			currObj.isObjWithTexture,
-			currObj.isObjWithNormalMap
+			currObj._boundingVolumeColor,
+			currObj.pObjMesh->material->objTexture->pShaderResView.Get() != nullptr ? 1 : 0,
+			currObj.pObjMesh->material->objNormalMap->pShaderResView.Get() != nullptr ? 1 : 0
 		);
-
-		// set normal map
-		if (currObj.isObjWithNormalMap) {
-			_context->PSSetShaderResources(1, 1, currObj.pObjNormalMap->pShaderResView.GetAddressOf());
-		}
 
 		_context->DrawIndexed(mesh.indexSize, 0, 0);
 	}
