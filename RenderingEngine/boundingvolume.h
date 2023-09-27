@@ -33,8 +33,6 @@ struct AABB {
 	XMFLOAT3 center{ .0f, .0f, .0f };
 	XMFLOAT3 halfExtent{ .0f, .0f, .0f };
 
-	XMFLOAT3 defaultUnitLength{ .0f, .0f, .0f };
-
 	bool testAABB(AABB& other);
 	bool overlapAABB(AABB& other);
 
