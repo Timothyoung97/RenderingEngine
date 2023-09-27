@@ -6,7 +6,7 @@
 #include "assertm.h"
 #include "utility.h"
 #include "dxdebug.h"
-
+#include "colors.h"
 
 namespace tre {
 
@@ -25,6 +25,31 @@ void ModelLoader::load(ID3D11Device* device, std::string filename) {
 	this->_directoryPath = tre::Utility::getDirPathStr(filename);
 
 	this->processNode(device, pScene->mRootNode, pScene);
+}
+
+void ModelLoader::loadResource(ID3D11Device* device, const aiScene* scene) {
+	for (int i = 0; i < scene->mNumMeshes; i++) {
+		aiMesh* mesh = scene->mMeshes[i];
+		if (!_meshes.contains(mesh->mName.C_Str())) {
+			_meshes[mesh->mName.C_Str()] = CustomMesh(device, mesh);	
+		}
+	}
+
+	for (int i = 0; i < scene->mNumTextures; i++) {
+		aiTexture* texture = scene->mTextures[i];
+		if (!_textures.contains(texture->mFilename.C_Str())) {
+			std::string fullFilepath = this->_directoryPath + tre::Utility::uriDecode(std::string(texture->mFilename.C_Str()));
+			_textures[texture->mFilename.C_Str()] = tre::TextureLoader::createTexture(device, fullFilepath);
+		}
+	}
+
+	for (int i = 0; i < scene->mNumMaterials; i++) {
+		aiMaterial* material = scene->mMaterials[i];
+		if (!_materials.contains(material->GetName().C_Str())) {
+			Material newMaterial{ nullptr, nullptr, tre::colorF(Colors::White)};
+		}
+
+	}
 }
 
 Texture ModelLoader::loadTextures(ID3D11Device* device, aiMaterial* mat, aiTextureType type, const aiScene* scene) {
