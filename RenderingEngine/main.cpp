@@ -50,38 +50,23 @@ int main()
 	//Create Device 
 	tre::Device deviceAndContext;
 
-	// 3D objects
-	static tre::Mesh meshes[4] = {
-		tre::CubeMesh(deviceAndContext.device.Get()), 
-		tre::SphereMesh(deviceAndContext.device.Get(), 20, 20),
-		tre::TeapotMesh(deviceAndContext.device.Get())
-	};
-
-	// Create texture
+	//File path
 	std::string basePathStr = tre::Utility::getBasePathStr();
 	
 	// Loading model
 	tre::ModelLoader ml;
 
-	auto f = pfd::open_file("Choose files to read", basePathStr,
-		{ "glTF Files (.gltf)", "*.gltf",
-		  "All Files", "*" }
-	);
+	//auto f = pfd::open_file("Choose files to read", basePathStr,
+	//	{ "glTF Files (.gltf)", "*.gltf",
+	//	  "All Files", "*" }
+	//);
 
-	ml.load(deviceAndContext.device.Get(), f.result()[0]);
+	ml.load(deviceAndContext.device.Get(), basePathStr + "glTF-models\\2CylinderEngine\\2CylinderEngine.gltf");
 
-	tre::Texture textures[5] = { 
-		tre::TextureLoader::createTexture(deviceAndContext.device.Get(), basePathStr + "textures\\UV_image.jpg"),
-		tre::TextureLoader::createTexture(deviceAndContext.device.Get(), basePathStr + "textures\\UV_image2.jpg"),
-		tre::TextureLoader::createTexture(deviceAndContext.device.Get(), basePathStr + "textures\\UV_image_a.png"),
-		tre::TextureLoader::createTexture(deviceAndContext.device.Get(), basePathStr + "textures\\glTF.png"),
-		tre::TextureLoader::createTexture(deviceAndContext.device.Get(), basePathStr + "textures\\wall.jpg")
-	};
-
-	tre::Texture normals[2] = {
-		tre::TextureLoader::createTexture(deviceAndContext.device.Get(), basePathStr + "textures\\glTF_normal.png"),
-		tre::TextureLoader::createTexture(deviceAndContext.device.Get(), basePathStr + "textures\\wall_normal.jpg")
-	};
+	// Scene
+	tre::Scene scene(deviceAndContext.device.Get());
+	scene.createFloor();
+	scene.updateDirLight();
 
 	//Create Renderer
 	tre::Renderer renderer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), window.getWindowHandle());
@@ -123,11 +108,11 @@ int main()
 	for (int i = 0; i < 4; i++) {
 		tre::Object newLightObj;
 
-		newLightObj.pObjMesh = &meshes[1]; // sphere
+		newLightObj.pObjMesh = &scene._debugMeshes[1]; // sphere
 		newLightObj.objPos = originPtLight[i];
 		newLightObj.objScale = XMFLOAT3(.1f, .1f, .1f);
 		newLightObj.objRotation = XMFLOAT3(.0f, .0f, .0f);
-		newLightObj.pObjTexture = &textures[0];
+		newLightObj.pObjTexture = &scene._debugTextures[0];
 		newLightObj.pObjNormalMap = nullptr;
 		newLightObj.isObjWithTexture = 0;
 		newLightObj.isObjWithNormalMap = 0;
@@ -163,11 +148,6 @@ int main()
 	int meshIdx = 0;
 	float fovY = 45.0f;
 	bool csmDebugSwitch = false;
-
-	// Scene
-	tre::Scene scene(deviceAndContext.device.Get());
-	scene.createFloor();
-	scene.updateDirLight();
 
 	float planeIntervals[5] = {1.0f, 20.f, 100.f, 250.f, 500.f};
 	XMFLOAT4 planeIntervalsF = { planeIntervals[1], planeIntervals[2], planeIntervals[3], planeIntervals[4]};
@@ -247,13 +227,13 @@ int main()
 			float scaleVal = tre::Utility::getRandomFloat(3);
 			int textureIdx = tre::Utility::getRandomInt(1);
 
-			newObj.pObjMesh = &meshes[tre::Utility::getRandomInt(1)];
+			newObj.pObjMesh = &scene._debugMeshes[tre::Utility::getRandomInt(1)];
 			newObj.objPos = XMFLOAT3(tre::Utility::getRandomFloatRange(-20, 20), tre::Utility::getRandomFloatRange(-20, 20), tre::Utility::getRandomFloatRange(-20, 20));
 			newObj.objScale = XMFLOAT3(scaleVal, scaleVal, scaleVal);
 			newObj.objRotation = XMFLOAT3(tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360));
-			newObj.pObjTexture = &textures[3 + textureIdx];
+			newObj.pObjTexture = &scene._debugTextures[3 + textureIdx];
 			newObj.isObjWithTexture = 1;
-			newObj.pObjNormalMap = &normals[textureIdx];
+			newObj.pObjNormalMap = &scene._debugNormalTextures[textureIdx];
 			newObj.isObjWithNormalMap = 1;
 			newObj.objColor = colors[2];
 
@@ -357,11 +337,11 @@ int main()
 
 						tre::Object newLightObj;
 
-						newLightObj.pObjMesh = &meshes[1]; // sphere
+						newLightObj.pObjMesh = &scene._debugMeshes[1]; // sphere
 						newLightObj.objPos = lightResc.pointLights.back().pos;
 						newLightObj.objScale = XMFLOAT3(.1f, .1f, .1f);
 						newLightObj.objRotation = XMFLOAT3(.0f, .0f, .0f);
-						newLightObj.pObjTexture = &textures[0];
+						newLightObj.pObjTexture = &scene._debugTextures[0];
 						newLightObj.pObjNormalMap = nullptr;
 						newLightObj.isObjWithTexture = 0;
 						newLightObj.isObjWithNormalMap = 0;
@@ -427,7 +407,7 @@ int main()
 			// set const buffer from the light pov 
 			tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, lightViewProjs[i], lightViewProjs, planeIntervalsF, scene.dirlight, lightResc.pointLights.size(), XMFLOAT2(4096, 4096), csmDebugSwitch);
 
-			renderer.draw({ scene.floor, importModel }, tre::RENDER_MODE::SHADOW_M);
+			renderer.draw({ scene._floor, importModel }, tre::RENDER_MODE::SHADOW_M);
 		}
 
 		renderer.clearBufferToDraw();
@@ -481,7 +461,7 @@ int main()
 		}
 
 		// Draw all opaque objects
-		renderer.draw({ scene.floor }, tre::RENDER_MODE::OPAQUE_M);
+		renderer.draw({ scene._floor }, tre::RENDER_MODE::OPAQUE_M);
 
 		renderer.draw(culledOpaqueObjQ, tre::RENDER_MODE::OPAQUE_M);
 
@@ -539,7 +519,7 @@ int main()
 
 		// Draw debug
 		if (showBoundingVolume) {
-			renderer.debugDraw(culledOpaqueObjQ, meshes[meshIdx], typeOfBound, tre::RENDER_MODE::WIREFRAME_M);
+			renderer.debugDraw(culledOpaqueObjQ, scene._debugMeshes[meshIdx], typeOfBound, tre::RENDER_MODE::WIREFRAME_M);
 		}
 
 		ImGui::Render();
