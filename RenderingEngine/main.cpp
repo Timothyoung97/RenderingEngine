@@ -155,7 +155,7 @@ int main()
 	importModel.pObjMesh = &scene._debugMeshes[4];
 	importModel.pObjMesh->material = &scene._debugMaterials[0];
 	importModel.objPos = XMFLOAT3(.0f, 1.0f, .0f);
-	importModel.objScale = XMFLOAT3(.1f, .1f, .1f);
+	importModel.objScale = XMFLOAT3(1.f, 1.f, 1.f);
 	importModel.objRotation = XMFLOAT3(.0f, .0f, .0f);
 	importModel.ritterBs = importModel.pObjMesh->ritterSphere;
 	importModel.naiveBs = importModel.pObjMesh->naiveSphere;
@@ -396,7 +396,7 @@ int main()
 			// set const buffer from the light pov 
 			tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, lightViewProjs[i], lightViewProjs, planeIntervalsF, scene.dirlight, lightResc.pointLights.size(), XMFLOAT2(4096, 4096), csmDebugSwitch);
 
-			renderer.draw({ scene._floor, importModel }, tre::RENDER_MODE::SHADOW_M);
+			renderer.draw({ scene._floor, opaqueObjQ[0] }, tre::RENDER_MODE::SHADOW_M);
 		}
 
 		renderer.clearBufferToDraw();
