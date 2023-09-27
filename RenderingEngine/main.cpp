@@ -5,6 +5,7 @@
 #include <DirectXMath.h>
 #include <wrl/client.h>
 #include "spdlog/spdlog.h"
+#include "portable-file-dialogs.h"
 
 #include "imgui.h"
 #include "imgui_impl_sdl2.h"
@@ -58,10 +59,16 @@ int main()
 
 	// Create texture
 	std::string basePathStr = tre::Utility::getBasePathStr();
-
+	
+	// Loading model
 	tre::ModelLoader ml;
 
-	ml.load(deviceAndContext.device.Get(), basePathStr + "glTF-models\\Duck\\Duck.gltf");
+	auto f = pfd::open_file("Choose files to read", basePathStr,
+		{ "glTF Files (.gltf)", "*.gltf",
+		  "All Files", "*" }
+	);
+
+	ml.load(deviceAndContext.device.Get(), f.result()[0]);
 
 	tre::Texture textures[5] = { 
 		tre::TextureLoader::createTexture(deviceAndContext.device.Get(), basePathStr + "textures\\UV_image.jpg"),
