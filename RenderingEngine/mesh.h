@@ -3,9 +3,11 @@
 #include <DirectXMath.h>
 #include <d3d11.h>
 #include <wrl/client.h>
+#include <assimp/scene.h>
 
 #include <vector>
 
+#include "material.h"
 #include "boundingvolume.h"
 
 using namespace DirectX;
@@ -28,13 +30,19 @@ public:
 	ComPtr<ID3D11Buffer> pIndexBuffer;
 	ComPtr<ID3D11Buffer> pVertexBuffer;
 
+	Material material;
+
 	BoundingSphere ritterSphere;
 	BoundingSphere naiveSphere;
 	AABB aabb;
 
 	int indexSize;
 	void createVertexAndIndexBuffer(ID3D11Device* device, const std::vector<Vertex> &vertices, const std::vector<uint16_t> &indices);
+};
 
+class CustomMesh : public Mesh {
+public:
+	CustomMesh(ID3D11Device* device, aiMesh* mesh);
 };
 
 class CubeMesh : public Mesh {

@@ -1,6 +1,11 @@
-﻿.vs/
-external/SDL2/lib/
+﻿# VS
+.vs/
 build/
 
-RenderingEngine/x64
+#Static Libs
+external/SDL2/lib/
+*.lib
+
+# Resources
 RenderingEngine/shaders/*.bin
+RenderingEngine/glTF-models/

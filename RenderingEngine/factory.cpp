@@ -1,14 +1,8 @@
 #include "factory.h"
 
-using Microsoft::WRL::ComPtr;
-
 namespace tre {
 
-Factory::Factory() {
-	InitFactory();
-}
-
-void Factory::InitFactory() {
+void Factory::create() {
 
 	//Create dxgiFactory
 	CHECK_DX_ERROR(CreateDXGIFactory2(

@@ -2,6 +2,7 @@
 #include <iostream>
 #include <codecvt>
 #include <locale>
+#include <regex>
 
 #include "utility.h"
 
@@ -15,8 +16,19 @@ std::string Utility::convertToStr(std::wstring wstr) {
 	return std::wstring_convert<std::codecvt_utf8<wchar_t>>().to_bytes(wstr);
 }
 
+std::string Utility::uriDecode(std::string str) {
+	std::regex toReplace("%20");
+	std::string res = std::regex_replace(str, toReplace, " ");
+	return res;
+}
+
 std::string Utility::getBasePathStr() {
 	std::string filepath = __FILE__;
+	size_t lastSlash = filepath.find_last_of("\\/");
+	return filepath.substr(0, lastSlash + 1);
+}
+
+std::string Utility::getDirPathStr(std::string filepath) {
 	size_t lastSlash = filepath.find_last_of("\\/");
 	return filepath.substr(0, lastSlash + 1);
 }

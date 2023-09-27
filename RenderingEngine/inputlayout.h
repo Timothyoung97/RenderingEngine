@@ -21,7 +21,7 @@ public:
 
 	ComPtr<ID3D11InputLayout> vertLayout;
 
-	InputLayout(ID3D11Device* device, VertexShader* vertShader);
+	void create(ID3D11Device* device, VertexShader* vertShader);
 
 };
 }

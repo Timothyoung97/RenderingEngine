@@ -3,16 +3,19 @@ project(RenderingEngine)
 
 set(CMAKE_CXX_STANDARD 20)
 
-file(GLOB SOURCES "RenderingEngine/*cpp" "RenderingEngine/*h" "external/imgui/*h" "external/imgui/*cpp")
+file(GLOB SOURCES "RenderingEngine/*cpp" "RenderingEngine/*h" "RenderingEngine/*hpp" "external/imgui/*h" "external/imgui/*cpp")
 add_executable(RenderingEngine ${SOURCES})
 
 target_include_directories(RenderingEngine PUBLIC "${CMAKE_CURRENT_LIST_DIR}/RenderingEngine")
 target_include_directories(RenderingEngine PUBLIC "${CMAKE_CURRENT_LIST_DIR}/external/SDL2/include")
+target_include_directories(RenderingEngine PUBLIC "${CMAKE_CURRENT_LIST_DIR}/external/assimp/include")
 target_include_directories(RenderingEngine PUBLIC "${CMAKE_CURRENT_LIST_DIR}/external/stb/include")
 target_include_directories(RenderingEngine PUBLIC "${CMAKE_CURRENT_LIST_DIR}/external/spdlog")
 target_include_directories(RenderingEngine PUBLIC "${CMAKE_CURRENT_LIST_DIR}/external/imgui")
+target_include_directories(RenderingEngine PUBLIC "${CMAKE_CURRENT_LIST_DIR}/external/portable-file-dialogs")
 
 target_link_libraries(RenderingEngine ${CMAKE_CURRENT_LIST_DIR}/external/SDL2/lib/x64/SDL2.lib)
+target_link_libraries(RenderingEngine ${CMAKE_CURRENT_LIST_DIR}/external/assimp/lib/assimp-vc143-mt.lib)
 target_link_libraries(RenderingEngine d3d11 dxgi d3dcompiler)
 
 if(MSVC)

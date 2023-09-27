@@ -9,11 +9,9 @@
 
 namespace tre {
 
-Texture::Texture(ID3D11Device* device, std::string filepath) {
-	createTexture(device, filepath);
-}
+Texture TextureLoader::createTexture(ID3D11Device* device, std::string filepath) {
 
-void Texture::createTexture(ID3D11Device* device, std::string filepath) {
+	Texture newTexture;
 
 	// load image
 	int imgWidth, imgHeight, imgChannels, desiredChannels = 4;
@@ -24,7 +22,7 @@ void Texture::createTexture(ID3D11Device* device, std::string filepath) {
 	spdlog::info("Img width: {}, Img height: {}, Img channels: {}\n", imgWidth, imgHeight, imgChannels);
 
 	// set alpha channel boolean
-	if (imgChannels == 4) hasAlphaChannel = true;
+	if (imgChannels == 4) newTexture.hasAlphaChannel = true;
 
 	// Create texture
 	D3D11_TEXTURE2D_DESC texture2dDesc;
@@ -60,8 +58,10 @@ void Texture::createTexture(ID3D11Device* device, std::string filepath) {
 	shaderResViewDesc.Texture2D = D3D11_TEX2D_SRV(0, -1);
 
 	CHECK_DX_ERROR(device->CreateShaderResourceView(
-		pTexture.Get(), &shaderResViewDesc, pShaderResView.GetAddressOf()
+		pTexture.Get(), &shaderResViewDesc, newTexture.pShaderResView.GetAddressOf()
 	));
+
+	return newTexture;
 }
 
 }

@@ -1,15 +1,16 @@
 #include "swapchain.h"
 #include "dxdebug.h"
+#include "window.h"
 
 using Microsoft::WRL::ComPtr;
 
 namespace tre {
 
-void Swapchain::DescSwapchain(int screenWidth, int screenHeight) {
+void Swapchain::create(ComPtr<IDXGIFactory2> dxgiFactory, ComPtr<ID3D11Device> device, HWND window) {
 
-	swapChainDesc = {};
-	swapChainDesc.Width = screenWidth;
-	swapChainDesc.Height = screenHeight;
+	DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
+	swapChainDesc.Width = tre::SCREEN_WIDTH;
+	swapChainDesc.Height = tre::SCREEN_HEIGHT;
 	swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	swapChainDesc.Stereo = false;
 	swapChainDesc.SampleDesc = DXGI_SAMPLE_DESC{ 1, 0 };
@@ -19,10 +20,7 @@ void Swapchain::DescSwapchain(int screenWidth, int screenHeight) {
 	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 	swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
 	swapChainDesc.Flags = 0;
-}
 
-void Swapchain::InitSwapchainViaHwnd(ComPtr<IDXGIFactory2> dxgiFactory, ComPtr<ID3D11Device> device, HWND window) {
-	
 	CHECK_DX_ERROR(dxgiFactory->CreateSwapChainForHwnd(
 		device.Get(), window, &swapChainDesc, NULL, NULL, tempSwapchain.GetAddressOf()));
 

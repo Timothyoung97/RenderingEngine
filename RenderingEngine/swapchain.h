@@ -2,21 +2,20 @@
 
 #include <d3d11.h>
 #include <dxgi1_4.h>
-#include "wrl/client.h"
+#include <wrl/client.h>
+
+using Microsoft::WRL::ComPtr;
 
 namespace tre {
 class Swapchain {
-	Microsoft::WRL::ComPtr<IDXGISwapChain1> tempSwapchain;
+	ComPtr<IDXGISwapChain1> tempSwapchain;
 
 public:
-	Microsoft::WRL::ComPtr<IDXGISwapChain3> mainSwapchain;
-	DXGI_SWAP_CHAIN_DESC1 swapChainDesc;
+	ComPtr<IDXGISwapChain3> mainSwapchain;
 
-	void DescSwapchain(int screenWidth, int screenHeight);
-
-	void InitSwapchainViaHwnd(
-		Microsoft::WRL::ComPtr<IDXGIFactory2> dxgiFactory,
-		Microsoft::WRL::ComPtr<ID3D11Device> device,
+	void create(
+		ComPtr<IDXGIFactory2> dxgiFactory,
+		ComPtr<ID3D11Device> device,
 		HWND window
 	);
 };

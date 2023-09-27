@@ -20,7 +20,7 @@ public:
 	ComPtr<ID3D11DepthStencilState> pDSStateWithDepthTWriteDisabled;
 	ComPtr<ID3D11DepthStencilState> pDSStateWithoutDepthT;
 
-	DepthBuffer(ID3D11Device* device, int screenW, int screenH);
+	void create(ID3D11Device* device, int screenW, int screenH);
 };
 
 }

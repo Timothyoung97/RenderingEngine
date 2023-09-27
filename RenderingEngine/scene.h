@@ -5,28 +5,31 @@
 #include "mesh.h"
 #include "texture.h"
 
-
 #include <vector>
 
 namespace tre {
+
+static const float BACKGROUND_COLOR[4] = { .5f, .5f, .5f, 1.0f };
+
+struct Node {
+
+};
+
 class Scene {
 public:
-	//Background Color
-	const float bgColor[4] = { .5f, .5f, .5f, 1.0f };
-
 	// Directional light
 	tre::Light dirlight;
 	float dirlightYaw = .0f;
-	float dirlightPitch = .0f;
+	float dirlightPitch = 45.f;
 	
 	// Resources
-	std::vector<Mesh> meshes;
-	std::vector<Texture> textures;
-	std::vector<Texture> normalTextures;
+	std::vector<Mesh> _debugMeshes;
+	std::vector<Texture> _debugTextures;
+	std::vector<Texture> _debugNormalTextures;
 
 	Scene(ID3D11Device* device);
 
-	tre::Object floor;
+	tre::Object _floor;
 
 	void createFloor();
 	void updateDirLight();

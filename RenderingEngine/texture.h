@@ -4,21 +4,20 @@
 #include <wrl/client.h>
 
 #include <string>
+#include <assimp/material.h>
 
 using Microsoft::WRL::ComPtr;
 
 namespace tre {
 
-class Texture {
+struct Texture {
+	bool hasAlphaChannel = false;
+	ComPtr<ID3D11ShaderResourceView> pShaderResView;
+};
+
+class TextureLoader {
 
 public:
-	bool hasAlphaChannel = false;
-
-	ComPtr<ID3D11ShaderResourceView> pShaderResView;
-
-	Texture(ID3D11Device* device, std::string filepath);
-
-	void createTexture(ID3D11Device* device, std::string filepath);
-
+	static Texture createTexture(ID3D11Device* device, std::string filepath);
 };
 }

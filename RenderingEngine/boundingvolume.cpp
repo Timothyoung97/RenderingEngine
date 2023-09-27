@@ -24,7 +24,7 @@ BoundingSphere BoundingVolume::createRitterBS(const std::vector<XMFLOAT3>& uniqu
 		if (uniquePoint[i].x > xMax.x) xMax = uniquePoint[i];
 		if (uniquePoint[i].y < yMin.y) yMin = uniquePoint[i];
 		if (uniquePoint[i].y > yMax.y) yMax = uniquePoint[i];
-		if (uniquePoint[i].z < zMax.z) zMin = uniquePoint[i];
+		if (uniquePoint[i].z < zMin.z) zMin = uniquePoint[i];
 		if (uniquePoint[i].z > zMax.z) zMax = uniquePoint[i];
 	}
 
@@ -92,6 +92,7 @@ BoundingSphere BoundingVolume::createRitterBS(const std::vector<XMFLOAT3>& uniqu
 			bs.center.z = (bs.radius * bs.center.z + oldToNew * uniquePoint[i].z) / oldToP;
 		}
 	}
+
 	return bs;
 }
 
@@ -109,6 +110,7 @@ BoundingSphere BoundingVolume::createNaiveBS(const std::vector<XMFLOAT3>& unique
 		
 		if (dist > bs.radius) bs.radius = dist;
 	}
+
 	return bs;
 }
 
@@ -129,7 +131,7 @@ AABB BoundingVolume::createAABB(const std::vector<XMFLOAT3>& uniquePoint) {
 		if (uniquePoint[i].x > xMax.x) xMax = uniquePoint[i];
 		if (uniquePoint[i].y < yMin.y) yMin = uniquePoint[i];
 		if (uniquePoint[i].y > yMax.y) yMax = uniquePoint[i];
-		if (uniquePoint[i].z < zMax.z) zMin = uniquePoint[i];
+		if (uniquePoint[i].z < zMin.z) zMin = uniquePoint[i];
 		if (uniquePoint[i].z > zMax.z) zMax = uniquePoint[i];
 	}
 

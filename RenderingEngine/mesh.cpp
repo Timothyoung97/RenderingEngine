@@ -1,3 +1,4 @@
+
 #include <vector>
 
 #include "mesh.h"
@@ -6,6 +7,49 @@
 #include "maths.h"
 
 namespace tre {
+
+CustomMesh::CustomMesh(ID3D11Device* device, aiMesh* mesh) {
+	std::vector<Vertex> vertices;
+	std::vector<uint16_t> indices;
+	std::vector<XMFLOAT3> uniqueVertexPos;
+
+	for (int i = 0; i < mesh->mNumVertices; i++) {
+		Vertex newVertex;
+		newVertex.pos = XMFLOAT3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
+		newVertex.uvCoord = XMFLOAT2(.0f, .0f);
+
+		newVertex.normal = XMFLOAT3(.0f, .0f, .0f);
+		if (mesh->HasNormals()) {
+			newVertex.normal = XMFLOAT3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
+		}
+
+		newVertex.tangent = XMFLOAT3(.0f, .0f, .0f);
+		if (mesh->HasTangentsAndBitangents()) {
+			newVertex.tangent = XMFLOAT3(mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z);
+		}
+
+		if (mesh->mTextureCoords[0]) {
+			newVertex.uvCoord = XMFLOAT2((float)mesh->mTextureCoords[0][i].x, (float)mesh->mTextureCoords[0][i].y);
+		}
+
+		vertices.push_back(newVertex);
+		uniqueVertexPos.push_back(newVertex.pos);
+	}
+
+	for (int i = 0; i < mesh->mNumFaces; i++) {
+		aiFace currFace = mesh->mFaces[i];
+
+		for (int j = 0; j < currFace.mNumIndices; j++) {
+			indices.push_back(currFace.mIndices[j]);
+		}
+	}
+
+	ritterSphere = tre::BoundingVolume::createRitterBS(uniqueVertexPos);
+	naiveSphere = tre::BoundingVolume::createNaiveBS(uniqueVertexPos);
+	aabb = tre::BoundingVolume::createAABB(uniqueVertexPos);
+
+	createVertexAndIndexBuffer(device, vertices, indices);
+}
 
 CubeMesh::CubeMesh(ID3D11Device* device) {
 	create(device);
@@ -292,6 +336,8 @@ TeapotMesh::TeapotMesh(ID3D11Device* device) {
 	std::vector<uint16_t> indices;
 	std::vector<XMFLOAT3> uniqueVertexPos;
 
+#pragma warning( push )
+#pragma warning( disable : 4305 )
 	Vertex TeapotMesh[] = {
 		Vertex(XMFLOAT3(40.6266, 28.3457, -1.10804), XMFLOAT3(-0.966742, -0.255752, 9.97231e-09), XMFLOAT3(.0f, .0f, .0f), XMFLOAT2(0, 0)),
 		Vertex(XMFLOAT3(40.0714, 30.4443, -1.10804), XMFLOAT3(-0.966824, 0.255443, 3.11149e-08), XMFLOAT3(.0f, .0f, .0f), XMFLOAT2(0, 0)),

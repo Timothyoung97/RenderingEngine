@@ -5,6 +5,7 @@
 #include <DirectXMath.h>
 #include <wrl/client.h>
 #include "spdlog/spdlog.h"
+#include "portable-file-dialogs.h"
 
 #include "imgui.h"
 #include "imgui_impl_sdl2.h"
@@ -20,31 +21,20 @@
 #include "input.h"
 #include "dxdebug.h"
 #include "device.h"
-#include "factory.h"
-#include "swapchain.h"
 #include "mesh.h"
 #include "utility.h"
 #include "camera.h"
 #include "constbuffer.h"
-#include "depthbuffer.h"
 #include "texture.h"
 #include "object.h"
-#include "sampler.h"
-#include "rasterizer.h"
 #include "shader.h"
 #include "renderer.h"
 #include "light.h"
-#include "blendstate.h"
 #include "colors.h"
 #include "boundingvolume.h"
 #include "maths.h"
-#include "inputlayout.h"
 #include "scene.h"
-#include "viewport.h"
-
-//Screen dimension constants
-const int SCREEN_WIDTH = 1920;
-const int SCREEN_HEIGHT = 1020;
+#include "modelloader.h"
 
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;
@@ -55,75 +45,31 @@ int main()
 	srand((uint32_t)time(NULL));
 
 	//Create Window
-	tre::Window window("RenderingEngine", SCREEN_WIDTH, SCREEN_HEIGHT);
+	tre::Window window("RenderingEngine", tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);
 
 	//Create Device 
 	tre::Device deviceAndContext;
 
-	//Create dxgiFactory
-	tre::Factory factory;
-
-	//Create SwapChain
-	tre::Swapchain swapchain;
-	swapchain.DescSwapchain(SCREEN_WIDTH, SCREEN_HEIGHT);
-	swapchain.InitSwapchainViaHwnd(factory.dxgiFactory2, deviceAndContext.device, window.getWindowHandle());
-
-	//Create Sampler
-	tre::Sampler sampler(deviceAndContext.device.Get());
-	deviceAndContext.context->PSSetSamplers(0, 1, sampler.pSamplerStateLinear.GetAddressOf());
-	deviceAndContext.context->PSSetSamplers(1, 1, sampler.pSamplerStateMipPtWhiteBorder.GetAddressOf());
-
-	//Load pre-compiled shaders
-	std::wstring basePathWstr = tre::Utility::getBasePathWstr();
-	tre::VertexShader vertex_shader(basePathWstr + L"shaders\\vertex_shader.bin", deviceAndContext.device.Get());
-	tre::PixelShader pixel_shader(basePathWstr + L"shaders\\pixel_shader.bin", deviceAndContext.device.Get());
-	tre::PixelShader light_pixel_shader(basePathWstr + L"shaders\\light_pixel.bin", deviceAndContext.device.Get());
-
-	deviceAndContext.context->VSSetShader(vertex_shader.pShader.Get(), NULL, 0u);
-
-	// 3D objects
-	static tre::Mesh meshes[4] = {
-		tre::CubeMesh(deviceAndContext.device.Get()), 
-		tre::SphereMesh(deviceAndContext.device.Get(), 20, 20),
-		tre::TeapotMesh(deviceAndContext.device.Get())
-	};
-
-	// Create texture
+	//File path
 	std::string basePathStr = tre::Utility::getBasePathStr();
-	tre::Texture textures[5] = { 
-		tre::Texture(deviceAndContext.device.Get(), basePathStr + "textures\\UV_image.jpg"), 
-		tre::Texture(deviceAndContext.device.Get(), basePathStr + "textures\\UV_image2.jpg"),
-		tre::Texture(deviceAndContext.device.Get(), basePathStr + "textures\\UV_image_a.png"),
-		tre::Texture(deviceAndContext.device.Get(), basePathStr + "textures\\glTF.png"),
-		tre::Texture(deviceAndContext.device.Get(), basePathStr + "textures\\wall.jpg")
-	};
+	
+	// Loading model
+	tre::ModelLoader ml;
 
-	tre::Texture normals[2] = {
-		tre::Texture(deviceAndContext.device.Get(), basePathStr + "textures\\glTF_normal.png"),
-		tre::Texture(deviceAndContext.device.Get(), basePathStr + "textures\\wall_normal.jpg")
-	};
+	//auto f = pfd::open_file("Choose files to read", basePathStr,
+	//	{ "glTF Files (.gltf)", "*.gltf",
+	//	  "All Files", "*" }
+	//);
 
-	// Create input layout
-	tre::InputLayout inputLayout(deviceAndContext.device.Get(), &vertex_shader);
+	ml.load(deviceAndContext.device.Get(), basePathStr + "glTF-models\\2CylinderEngine\\2CylinderEngine.gltf");
 
-	//Create Depth/Stencil 
-	tre::DepthBuffer depthBuffer(deviceAndContext.device.Get(), SCREEN_WIDTH, SCREEN_HEIGHT);
+	// Scene
+	tre::Scene scene(deviceAndContext.device.Get());
+	scene.createFloor();
+	scene.updateDirLight();
 
-	//Blend State
-	tre::BlendState blendState(deviceAndContext.device.Get());
-
-	//Set input layout
-	deviceAndContext.context->IASetInputLayout( inputLayout.vertLayout.Get() );
-
-	//Set topology
-	deviceAndContext.context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	//Create Viewport
-	tre::Viewport viewports;
-	viewports.Init(SCREEN_WIDTH, SCREEN_HEIGHT);
-
-	//Create rasterizer buffer
-	tre::Rasterizer rasterizer(deviceAndContext.device.Get());
+	//Create Renderer
+	tre::Renderer renderer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), window.getWindowHandle());
 
 	//Input Handler
 	tre::Input input;
@@ -132,10 +78,7 @@ int main()
 	float deltaTime = 0;
 
 	//Create Camera
-	tre::Camera cam(SCREEN_WIDTH, SCREEN_HEIGHT);
-	
-	//Create Renderer
-	tre::Renderer renderer;
+	tre::Camera cam(tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);
 
 	std::vector<tre::Object> opaqueObjQ;
 	std::vector<tre::Object> transparentObjQ;	
@@ -165,11 +108,11 @@ int main()
 	for (int i = 0; i < 4; i++) {
 		tre::Object newLightObj;
 
-		newLightObj.pObjMesh = &meshes[1]; // sphere
+		newLightObj.pObjMesh = &scene._debugMeshes[1]; // sphere
 		newLightObj.objPos = originPtLight[i];
 		newLightObj.objScale = XMFLOAT3(.1f, .1f, .1f);
 		newLightObj.objRotation = XMFLOAT3(.0f, .0f, .0f);
-		newLightObj.pObjTexture = &textures[0];
+		newLightObj.pObjTexture = &scene._debugTextures[0];
 		newLightObj.pObjNormalMap = nullptr;
 		newLightObj.isObjWithTexture = 0;
 		newLightObj.isObjWithNormalMap = 0;
@@ -182,7 +125,6 @@ int main()
 
 	lightResc.pointLights.assign(std::begin(pointLight), std::end(pointLight));
 	lightResc.updateBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get());
-	deviceAndContext.context.Get()->PSSetShaderResources(2, 1, lightResc.pLightShaderRescView.GetAddressOf());
 
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
@@ -200,122 +142,47 @@ int main()
 
 	// imgui setting
 	bool show_demo_window = false;
-	bool showBoundingVolume = true;
+	bool showBoundingVolume = false;
 	bool pauseLight = false;
 	tre::BoundVolumeEnum typeOfBound = tre::AABBBoundingBox;
 	int meshIdx = 0;
 	float fovY = 45.0f;
 	bool csmDebugSwitch = false;
 
-	// Scene
-	tre::Scene scene(deviceAndContext.device.Get());
-	scene.createFloor();
-	scene.updateDirLight();
-
 	float planeIntervals[5] = {1.0f, 20.f, 100.f, 250.f, 500.f};
 	XMFLOAT4 planeIntervalsF = { planeIntervals[1], planeIntervals[2], planeIntervals[3], planeIntervals[4]};
 
 	// Testing Obj
-	tre::Object testCube;
+	tre::Object importModel;
 
-	testCube.pObjMesh = &meshes[0];
-	testCube.objPos = XMFLOAT3(.0f, 2.5f, .0f);
-	testCube.objScale = XMFLOAT3(5.f, 5.f, 5.f);
-	testCube.objRotation = XMFLOAT3(.0f, .0f, .0f);
-	testCube.pObjTexture = &textures[4];
-	testCube.isObjWithTexture = 1;
-	testCube.pObjNormalMap = &normals[1];
-	testCube.isObjWithNormalMap = 1;
-	testCube.objColor = colors[2];
-	testCube.ritterBs = testCube.pObjMesh->ritterSphere;
-	testCube.naiveBs = testCube.pObjMesh->naiveSphere;
-	testCube.aabb = testCube.pObjMesh->aabb;
+	importModel.pObjMesh = &ml._meshes.begin()->second;
+	importModel.objPos = XMFLOAT3(.0f, .0f, .0f);
+	importModel.objScale = XMFLOAT3(.1f, .1f, .1f);
+	importModel.objRotation = XMFLOAT3(.0f, .0f, .0f);
+	importModel.pObjTexture = &importModel.pObjMesh->material.objTexture;
+	importModel.isObjWithTexture = importModel.pObjTexture->pShaderResView.Get() != nullptr ? 1 : 0;
+	importModel.pObjNormalMap = &importModel.pObjMesh->material.objNormalMap;
+	importModel.isObjWithNormalMap = importModel.pObjNormalMap->pShaderResView.Get() != nullptr ? 1 : 0;
+	importModel.objColor = colors[2];
+	importModel.ritterBs = importModel.pObjMesh->ritterSphere;
+	importModel.naiveBs = importModel.pObjMesh->naiveSphere;
+	importModel.aabb = importModel.pObjMesh->aabb;
 
 	// transparent queue -> object with texture with alpha channel or object with color.w below 1.0f
-	if ((testCube.isObjWithTexture && testCube.pObjTexture->hasAlphaChannel)
-		|| (!testCube.isObjWithTexture && testCube.objColor.w < 1.0f)) {
+	if ((importModel.isObjWithTexture && importModel.pObjTexture->hasAlphaChannel)
+		|| (!importModel.isObjWithTexture && importModel.objColor.w < 1.0f)) {
 
 		// find its distance from cam
-		testCube.distFromCam = tre::Maths::distBetweentObjToCam(testCube.objPos, cam.camPositionV);
+		importModel.distFromCam = tre::Maths::distBetweentObjToCam(importModel.objPos, cam.camPositionV);
 
-		transparentObjQ.push_back(testCube);
+		transparentObjQ.push_back(importModel);
 
 		toSortTransparentQ = true;
 
 	}
 	else {
-		opaqueObjQ.push_back(testCube);
+		opaqueObjQ.push_back(importModel);
 	}
-
-	//tre::Object testSphere;
-
-	//testSphere.pObjMesh = &meshes[1];
-	//testSphere.objPos = XMFLOAT3(.0f, .5f, .0f);
-	//testSphere.objScale = XMFLOAT3(1.f, 1.f, 1.f);
-	//testSphere.objRotation = XMFLOAT3(.0f, .0f, .0f);
-	//testSphere.pObjTexture = &textures[3];
-	//testSphere.isObjWithTexture = 1;
-	//testSphere.pObjNormalMap = &normals[0];
-	//testSphere.isObjWithNormalMap = 1;
-	//testSphere.objColor = colors[2];
-	//testSphere.ritterBs = testSphere.pObjMesh->ritterSphere;
-	//testSphere.naiveBs = testSphere.pObjMesh->naiveSphere;
-	//testSphere.aabb = testSphere.pObjMesh->aabb;
-
-	//// transparent queue -> object with texture with alpha channel or object with color.w below 1.0f
-	//if ((testSphere.isObjWithTexture && testSphere.pObjTexture->hasAlphaChannel)
-	//	|| (!testSphere.isObjWithTexture && testSphere.objColor.w < 1.0f)) {
-
-	//	// find its distance from cam
-	//	testSphere.distFromCam = tre::Maths::distBetweentObjToCam(testSphere.objPos, cam.camPositionV);
-
-	//	transparentObjQ.push_back(testSphere);
-
-	//	toSortTransparentQ = true;
-
-	//}
-	//else {
-	//	opaqueObjQ.push_back(testSphere);
-	//}
-
-	//tre::Object testTeapot;
-
-	//testTeapot.pObjMesh = &meshes[2];
-	//testTeapot.objPos = XMFLOAT3(5.f, .5f, .0f);
-	//testTeapot.objScale = XMFLOAT3(.1f, .1f, .1f);
-	//testTeapot.objRotation = XMFLOAT3(.0f, .0f, .0f);
-	//testTeapot.pObjTexture = &textures[0];
-	//testTeapot.isObjWithTexture = 1;
-	//testTeapot.pObjNormalMap = nullptr;
-	//testTeapot.isObjWithNormalMap = 0;
-	//testTeapot.objColor = colors[2];
-	//testTeapot.ritterBs = testTeapot.pObjMesh->ritterSphere;
-	//testTeapot.naiveBs = testTeapot.pObjMesh->naiveSphere;
-	//testTeapot.aabb = testTeapot.pObjMesh->aabb;
-
-	//// transparent queue -> object with texture with alpha channel or object with color.w below 1.0f
-	//if ((testTeapot.isObjWithTexture && testTeapot.pObjTexture->hasAlphaChannel)
-	//	|| (!testTeapot.isObjWithTexture && testTeapot.objColor.w < 1.0f)) {
-
-	//	// find its distance from cam
-	//	testTeapot.distFromCam = tre::Maths::distBetweentObjToCam(testTeapot.objPos, cam.camPositionV);
-
-	//	transparentObjQ.push_back(testTeapot);
-
-	//	toSortTransparentQ = true;
-
-	//}
-	//else {
-	//	opaqueObjQ.push_back(testTeapot);
-	//}
-
-
-	tagRECT rectArr[4] = {
-		{ 0, 0, 2048, 2048 }, // top left
-		{ 2048, 0, 4096, 2048 }, // top rihgt
-		{ 0, 2048, 2048, 4096 }, // bottom left
-		{ 2048, 2048, 4096, 4096 }  // bottom right
-	};
 
 	// main loop
 	while (!input.shouldQuit())
@@ -360,13 +227,13 @@ int main()
 			float scaleVal = tre::Utility::getRandomFloat(3);
 			int textureIdx = tre::Utility::getRandomInt(1);
 
-			newObj.pObjMesh = &meshes[tre::Utility::getRandomInt(1)];
+			newObj.pObjMesh = &scene._debugMeshes[tre::Utility::getRandomInt(1)];
 			newObj.objPos = XMFLOAT3(tre::Utility::getRandomFloatRange(-20, 20), tre::Utility::getRandomFloatRange(-20, 20), tre::Utility::getRandomFloatRange(-20, 20));
 			newObj.objScale = XMFLOAT3(scaleVal, scaleVal, scaleVal);
 			newObj.objRotation = XMFLOAT3(tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360));
-			newObj.pObjTexture = &textures[3 + textureIdx];
+			newObj.pObjTexture = &scene._debugTextures[3 + textureIdx];
 			newObj.isObjWithTexture = 1;
-			newObj.pObjNormalMap = &normals[textureIdx];
+			newObj.pObjNormalMap = &scene._debugNormalTextures[textureIdx];
 			newObj.isObjWithNormalMap = 1;
 			newObj.objColor = colors[2];
 
@@ -408,13 +275,27 @@ int main()
 
 			ImGui::Checkbox("Demo Window", &show_demo_window);
 
-			ImGui::SeparatorText("Camera");
-			ImGui::SliderFloat("Camera FOV Y", &fovY, 1.0f, 179.0f);
+			{	// Control for import models
 
-			// Bounding Type Selection
-			ImGui::SeparatorText("Bounding Volume");
-			ImGui::Checkbox("Show Bounding Volume", &showBoundingVolume);
-			{
+				ImGui::SeparatorText("Test Object Control");
+				
+				float rotationXYZ[3] = { opaqueObjQ[0].objRotation.x, opaqueObjQ[0].objRotation.y,  opaqueObjQ[0].objRotation.z};
+				ImGui::SliderFloat3("Rotation", rotationXYZ, .0f, 360.f);
+				opaqueObjQ[0].objRotation = XMFLOAT3(rotationXYZ);
+
+				float scaleXYZ = opaqueObjQ[0].objScale.x;
+				ImGui::SliderFloat("Scale", &scaleXYZ, .1f, 3.f);
+				opaqueObjQ[0].objScale = XMFLOAT3(scaleXYZ, scaleXYZ, scaleXYZ);
+			}
+
+			{	// Camera Setting
+				ImGui::SeparatorText("Camera");
+				ImGui::SliderFloat("Camera FOV Y", &fovY, 1.0f, 179.0f);
+			}
+
+			{	// Bounding Type Selection
+				ImGui::SeparatorText("Bounding Volume");
+				ImGui::Checkbox("Show Bounding Volume", &showBoundingVolume);
 				static int selectedIdx = 0;
 				const char* names[] = { "AABB", "Ritter Sphere", "Naive Sphere" };
 
@@ -447,8 +328,7 @@ int main()
 				}
 			}
 
-			// light 
-			{
+			{	// light 
 				ImGui::SeparatorText("Lights");
 				ImGui::Checkbox("Pause Light", &pauseLight);
 				if (lightResc.pointLights.size() < lightResc.maxPointLightNum) {
@@ -457,11 +337,11 @@ int main()
 
 						tre::Object newLightObj;
 
-						newLightObj.pObjMesh = &meshes[1]; // sphere
+						newLightObj.pObjMesh = &scene._debugMeshes[1]; // sphere
 						newLightObj.objPos = lightResc.pointLights.back().pos;
 						newLightObj.objScale = XMFLOAT3(.1f, .1f, .1f);
 						newLightObj.objRotation = XMFLOAT3(.0f, .0f, .0f);
-						newLightObj.pObjTexture = &textures[0];
+						newLightObj.pObjTexture = &scene._debugTextures[0];
 						newLightObj.pObjNormalMap = nullptr;
 						newLightObj.isObjWithTexture = 0;
 						newLightObj.isObjWithNormalMap = 0;
@@ -480,8 +360,7 @@ int main()
 				ImGui::SliderFloat("Pitch", &scene.dirlightPitch, .0f, 89.f);
 			}
 
-			// farplane intervals
-			{
+			{	// farplane intervals
 				ImGui::SeparatorText("Far Planes");
 				ImGui::Checkbox("CSM Debug", &csmDebugSwitch);
 				ImGui::SliderFloat("Far Plane 1", &planeIntervalsF.x, planeIntervals[0], planeIntervals[2]);
@@ -492,49 +371,22 @@ int main()
 				planeIntervals[1] = planeIntervalsF.x, planeIntervals[2] = planeIntervalsF.y, planeIntervals[3] = planeIntervalsF.z, planeIntervals[4] = planeIntervalsF.w;
 			}
 
-			ImGui::SeparatorText("Debug Info");
-			ImGui::Text("Within Frustcum/Total: %d / %d", culledOpaqueObjQ.size(), opaqueObjQ.size());
-			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+			{	// Stats
+				ImGui::SeparatorText("Debug Info");
+				ImGui::Text("Within Frustcum/Total: %d / %d", culledOpaqueObjQ.size(), opaqueObjQ.size());
+				ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+			}
+
 			ImGui::End();
 		}
 
-		// Alternating buffers
-		int currBackBuffer = static_cast<int>(swapchain.mainSwapchain->GetCurrentBackBufferIndex());
-
-		ID3D11Texture2D* backBuffer = nullptr;
-
-		CHECK_DX_ERROR(swapchain.mainSwapchain->GetBuffer(
-			currBackBuffer, __uuidof(ID3D11Texture2D), (LPVOID*)&backBuffer
-		));
-
-		// Create render target view
-		ID3D11RenderTargetView* renderTargetView = nullptr;
-
-		CHECK_DX_ERROR(deviceAndContext.device->CreateRenderTargetView(
-			backBuffer, NULL, &renderTargetView
-		));
-
-		deviceAndContext.context->ClearRenderTargetView(renderTargetView, scene.bgColor);
-
-		{ //Shadow Config
-
-			ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
-			deviceAndContext.context->PSSetShaderResources(3, 1, nullSRV);
-
-			deviceAndContext.context->ClearDepthStencilView(depthBuffer.pShadowDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
-
-			deviceAndContext.context->OMSetDepthStencilState(depthBuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
-			
-			deviceAndContext.context->OMSetRenderTargets(0, nullptr, depthBuffer.pShadowDepthStencilView.Get());
-
-			deviceAndContext.context->PSSetShader(nullptr, NULL, 0u);
-		}
+		renderer.configureShadawSetting();
 
 		std::vector<XMMATRIX> lightViewProjs;
-		for (int i = 0; i < 4; i++) {
+		for (int i = 0; i < 4; i++) { // for 4 quads
 
 			// projection matrix of camera with specific near and far plane
-			XMMATRIX projMatrix = XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0f), static_cast<float>(SCREEN_WIDTH) / SCREEN_HEIGHT, planeIntervals[i], planeIntervals[i + 1]);
+			XMMATRIX projMatrix = XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0f), static_cast<float>(tre::SCREEN_WIDTH) / tre::SCREEN_HEIGHT, planeIntervals[i], planeIntervals[i + 1]);
 
 			std::vector<XMVECTOR> corners = tre::Maths::getFrustumCornersWorldSpace(XMMatrixMultiply(cam.camView, projMatrix));
 
@@ -550,29 +402,18 @@ int main()
 		}
 
 		for (int i = 0; i < 4; i++) {
-			viewports.shadowViewport.TopLeftX = rectArr[i].left;
-			viewports.shadowViewport.TopLeftY = rectArr[i].top;
-			deviceAndContext.context->RSSetViewports(1, &viewports.shadowViewport);
-			deviceAndContext.context->RSSetScissorRects(1, &rectArr[i]);
+			renderer.setShadowBufferDrawSection(i);
 
 			// set const buffer from the light pov 
 			tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, lightViewProjs[i], lightViewProjs, planeIntervalsF, scene.dirlight, lightResc.pointLights.size(), XMFLOAT2(4096, 4096), csmDebugSwitch);
 
-			renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pShadowRasterizerState.Get(), { scene.floor, testCube });
+			renderer.draw({ scene._floor, importModel }, tre::RENDER_MODE::SHADOW_M);
 		}
 
-		deviceAndContext.context->ClearDepthStencilView(depthBuffer.pDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-		
-		deviceAndContext.context->OMSetRenderTargets(1, &renderTargetView, depthBuffer.pDepthStencilView.Get());
-
-		// set shadowMap
-		deviceAndContext.context->PSSetShaderResources(3, 1, depthBuffer.pShadowShaderRescView.GetAddressOf());
-
-		//Set Viewport for color draw
-		deviceAndContext.context->RSSetViewports(1, &viewports.defaultViewport);
+		renderer.clearBufferToDraw();
 
 		// Set camera view const buffer
-		cam.camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovY), static_cast<float>(SCREEN_WIDTH) / SCREEN_HEIGHT, 1.0f, 1000.0f);
+		cam.camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovY), static_cast<float>(tre::SCREEN_WIDTH) / tre::SCREEN_HEIGHT, 1.0f, 1000.0f);
 		cam.updateCamera();
 
 		// set const buffer for camera
@@ -619,19 +460,10 @@ int main()
 			}
 		}
 
-		// Set blend state for opaque obj
-		deviceAndContext.context->OMSetBlendState(blendState.opaque.Get(), NULL, 0xffffffff);
-
-		// Set depth test for opaque obj
-		deviceAndContext.context->OMSetDepthStencilState(depthBuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
-
-		// Set Pixel Shader
-		deviceAndContext.context->PSSetShader(pixel_shader.pShader.Get(), NULL, 0u);
-
 		// Draw all opaque objects
-		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateFCCW.Get(), {scene.floor});
+		renderer.draw({ scene._floor }, tre::RENDER_MODE::OPAQUE_M);
 
-		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateFCCW.Get(), culledOpaqueObjQ);
+		renderer.draw(culledOpaqueObjQ, tre::RENDER_MODE::OPAQUE_M);
 
 		if (toRecalDistFromCam) {
 			for (int i = 0; i < transparentObjQ.size(); i++) {
@@ -647,14 +479,8 @@ int main()
 			toSortTransparentQ = false;
 		}
 
-		// Set blend state for transparent obj
-		deviceAndContext.context->OMSetBlendState(blendState.transparency.Get(), NULL, 0xffffffff);
-
-		// Set depth test for transparent obj
-		deviceAndContext.context->OMSetDepthStencilState(depthBuffer.pDSStateWithDepthTWriteDisabled.Get(), 0);
-
 		// Draw all transparent objects
-		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateFCCW.Get(), culledTransparentObjQ);
+		renderer.draw(culledTransparentObjQ, tre::RENDER_MODE::TRANSPARENT_M);
 
 		if (!pauseLight) {
 			// rotate point light 1
@@ -688,24 +514,18 @@ int main()
 		lightResc.updateBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get());
 		deviceAndContext.context.Get()->PSSetShaderResources(2, 1, lightResc.pLightShaderRescView.GetAddressOf());
 
-		// Set Pixel Shader for light
-		deviceAndContext.context->PSSetShader(light_pixel_shader.pShader.Get(), NULL, 0u);
-
-		// Set depth test for light
-		deviceAndContext.context->OMSetDepthStencilState(depthBuffer.pDSStateWithoutDepthT.Get(), 0);
-		
 		// Draw all light object wireframe
-		renderer.draw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), lightObjQ);
+		renderer.draw( lightObjQ, tre::RENDER_MODE::WIREFRAME_M);
 
 		// Draw debug
 		if (showBoundingVolume) {
-			renderer.debugDraw(deviceAndContext.device.Get(), deviceAndContext.context.Get(), rasterizer.pRasterizerStateWireFrame.Get(), culledOpaqueObjQ, meshes[meshIdx], typeOfBound);
+			renderer.debugDraw(culledOpaqueObjQ, scene._debugMeshes[meshIdx], typeOfBound, tre::RENDER_MODE::WIREFRAME_M);
 		}
 
 		ImGui::Render();
 		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
-		CHECK_DX_ERROR(swapchain.mainSwapchain->Present( 0, 0) );
+		CHECK_DX_ERROR(renderer._swapchain.mainSwapchain->Present( 0, 0) );
 
 		scene.updateDirLight();
 
@@ -713,7 +533,6 @@ int main()
 		}
 
 		deltaTime = timer.getDeltaTime();
-
 	}
 
 	//Cleanup
