@@ -9,8 +9,8 @@ using namespace DirectX;
 namespace tre {
 
 struct Material {
-	Texture* objTexture;
-	Texture* objNormalMap;
+	Texture* objTexture = nullptr;
+	Texture* objNormalMap = nullptr;
 	XMFLOAT4 baseColor;
 };
 

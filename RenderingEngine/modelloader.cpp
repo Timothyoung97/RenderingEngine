@@ -33,6 +33,8 @@ void ModelLoader::load(ID3D11Device* device, std::string filename) {
 }
 
 void ModelLoader::loadResource(ID3D11Device* device, const aiScene* scene) {
+	
+	_meshes.reserve(scene->mNumMeshes);
 	for (int i = 0; i < scene->mNumMeshes; i++) {
 		aiMesh* mesh = scene->mMeshes[i];
 		if (!_meshes.contains(mesh->mName.C_Str())) {
@@ -40,6 +42,7 @@ void ModelLoader::loadResource(ID3D11Device* device, const aiScene* scene) {
 		}
 	}
 
+	_textures.reserve(scene->mNumTextures);
 	for (int i = 0; i < scene->mNumTextures; i++) {
 		aiTexture* texture = scene->mTextures[i];
 		if (!_textures.contains(texture->mFilename.C_Str())) {
@@ -48,6 +51,7 @@ void ModelLoader::loadResource(ID3D11Device* device, const aiScene* scene) {
 		}
 	}
 
+	_materials.reserve(scene->mNumMaterials);
 	for (int i = 0; i < scene->mNumMaterials; i++) {
 		aiMaterial* material = scene->mMaterials[i];
 		if (!_materials.contains(material->GetName().C_Str())) {
@@ -73,6 +77,13 @@ void ModelLoader::loadResource(ID3D11Device* device, const aiScene* scene) {
 
 			_materials[material->GetName().C_Str()] = newMaterial;
 		}
+	}
+
+	// assign materials to apply on mashes
+	for (int i = 0; i < scene->mNumMeshes; i++) {
+		aiMesh* mesh = scene->mMeshes[i];
+		aiMaterial* materialToApply = scene->mMaterials[mesh->mMaterialIndex];
+		_meshes[mesh->mName.C_Str()].material = &_materials[materialToApply->GetName().C_Str()];
 	}
 }
 

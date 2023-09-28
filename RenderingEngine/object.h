@@ -14,10 +14,10 @@ namespace tre {
 	
 struct Object {
 
-	Object* parent;
+	Object* parent = nullptr;
 	std::vector<Object> children;
 
-	Mesh* pObjMesh;
+	Mesh* pObjMesh = nullptr;
 	
 	BoundingSphere ritterBs;
 	BoundingSphere naiveBs;

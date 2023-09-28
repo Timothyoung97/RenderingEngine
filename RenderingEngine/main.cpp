@@ -61,7 +61,7 @@ int main()
 	//	  "All Files", "*" }
 	//);
 
-	ml.load(deviceAndContext.device.Get(), basePathStr + "glTF-models\\2CylinderEngine\\2CylinderEngine.gltf");
+	ml.load(deviceAndContext.device.Get(), basePathStr + "glTF-models\\Duck\\Duck.gltf");
 
 	// Scene
 	tre::Scene scene(deviceAndContext.device.Get());
@@ -455,6 +455,8 @@ int main()
 
 		// Draw all opaque objects
 		renderer.draw({ scene._floor }, tre::RENDER_MODE::OPAQUE_M);
+
+		renderer.recursiveDraw({ ml._obj }, tre::RENDER_MODE::OPAQUE_M, XMMatrixIdentity());
 
 		renderer.draw(culledOpaqueObjQ, tre::RENDER_MODE::OPAQUE_M);
 
