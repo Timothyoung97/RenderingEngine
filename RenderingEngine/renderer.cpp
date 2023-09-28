@@ -138,7 +138,7 @@ void Renderer::draw(const std::vector<Object>& objQ, RENDER_MODE renderMode) {
 		tre::ConstantBuffer::setObjConstBuffer(
 			_device, _context,
 			tre::Maths::createTransformationMatrix(currObj.objScale, currObj.objRotation, currObj.objPos),
-			currObj.pObjMesh->material->diffuseColor,
+			currObj.pObjMesh->material->baseColor,
 			currObj.pObjMesh->material->objTexture->pShaderResView.Get() != nullptr ? 1 : 0,
 			currObj.pObjMesh->material->objNormalMap->pShaderResView.Get() != nullptr ? 1 : 0
 		);

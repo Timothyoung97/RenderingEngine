@@ -24,6 +24,8 @@ void ModelLoader::load(ID3D11Device* device, std::string filename) {
 
 	this->_directoryPath = tre::Utility::getDirPathStr(filename);
 
+	this->loadResource(device, pScene);
+
 	this->processNode(device, pScene->mRootNode, pScene);
 }
 
@@ -46,9 +48,28 @@ void ModelLoader::loadResource(ID3D11Device* device, const aiScene* scene) {
 	for (int i = 0; i < scene->mNumMaterials; i++) {
 		aiMaterial* material = scene->mMaterials[i];
 		if (!_materials.contains(material->GetName().C_Str())) {
-			Material newMaterial{ nullptr, nullptr, tre::colorF(Colors::White)};
-		}
+			Material newMaterial{ nullptr, nullptr, tre::colorF(Colors::Black)};
+			
+			aiColor4D baseColor;
+			material->Get(AI_MATKEY_BASE_COLOR, baseColor);
+			if (!baseColor.IsBlack()) {
+				newMaterial.baseColor = XMFLOAT4(baseColor.r, baseColor.g, baseColor.b, baseColor.a);
+			}
 
+			aiString diffuseTexName;
+			material->GetTexture(aiTextureType_DIFFUSE, 0, &diffuseTexName);
+			if (diffuseTexName.length != 0) {
+				newMaterial.objTexture = &_textures[diffuseTexName.C_Str()];
+			}
+
+			aiString normalMapName;
+			material->GetTexture(aiTextureType_NORMALS, 0, &normalMapName);
+			if (normalMapName.length != 0) {
+				newMaterial.objTexture = &_textures[normalMapName.C_Str()];
+			}
+
+			_materials[material->GetName().C_Str()] = newMaterial;
+		}
 	}
 }
 

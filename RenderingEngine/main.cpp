@@ -61,7 +61,7 @@ int main()
 	//	  "All Files", "*" }
 	//);
 
-	//ml.load(deviceAndContext.device.Get(), basePathStr + "glTF-models\\Duck\\Duck.gltf");
+	ml.load(deviceAndContext.device.Get(), basePathStr + "glTF-models\\2CylinderEngine\\2CylinderEngine.gltf");
 
 	// Scene
 	tre::Scene scene(deviceAndContext.device.Get());
@@ -164,7 +164,7 @@ int main()
 
 	// transparent queue -> object with texture with alpha channel or object with color.w below 1.0f
 	if ((importModel.pObjMesh->material->objTexture->pShaderResView.Get() != nullptr && importModel.pObjMesh->material->objTexture->hasAlphaChannel)
-		|| (importModel.pObjMesh->material->objTexture->pShaderResView.Get() == nullptr && importModel.pObjMesh->material->diffuseColor.w < 1.0f)) {
+		|| (importModel.pObjMesh->material->objTexture->pShaderResView.Get() == nullptr && importModel.pObjMesh->material->baseColor.w < 1.0f)) {
 
 		// find its distance from cam
 		importModel.distFromCam = tre::Maths::distBetweentObjToCam(importModel.objPos, cam.camPositionV);
@@ -235,7 +235,7 @@ int main()
 
 			// transparent queue -> object with texture with alpha channel or object with color.w below 1.0f
 			if ((newObj.pObjMesh->material->objTexture->pShaderResView.Get() != nullptr && newObj.pObjMesh->material->objTexture->hasAlphaChannel)
-				|| (newObj.pObjMesh->material->objTexture->pShaderResView.Get() == nullptr && newObj.pObjMesh->material->diffuseColor.w < 1.0f)) {
+				|| (newObj.pObjMesh->material->objTexture->pShaderResView.Get() == nullptr && newObj.pObjMesh->material->baseColor.w < 1.0f)) {
 
 				// find its distance from cam
 				newObj.distFromCam = tre::Maths::distBetweentObjToCam(newObj.objPos, cam.camPositionV);

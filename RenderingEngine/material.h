@@ -11,7 +11,7 @@ namespace tre {
 struct Material {
 	Texture* objTexture;
 	Texture* objNormalMap;
-	XMFLOAT4 diffuseColor;
+	XMFLOAT4 baseColor;
 };
 
 }
