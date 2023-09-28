@@ -50,6 +50,7 @@ public:
 	void clearBufferToDraw();
 	void configureStates(RENDER_MODE renderMode);
 	void draw(const std::vector<Object>& objQ, RENDER_MODE renderMode);
+	void recursiveDraw(const std::vector<Object>& objQ, RENDER_MODE renderMode, XMMATRIX cumulateiveTransformation);
 	void debugDraw(std::vector<Object>& objQ, Mesh& mesh, BoundVolumeEnum typeOfBound, RENDER_MODE renderMode);
 };
 }

@@ -148,6 +148,58 @@ void Renderer::draw(const std::vector<Object>& objQ, RENDER_MODE renderMode) {
 	}
 }
 
+void Renderer::recursiveDraw(const std::vector<Object>& objQ, RENDER_MODE renderMode, XMMATRIX cumulateiveTransformation) {
+
+	configureStates(renderMode);
+
+	for (int i = 0; i < objQ.size(); i++) {
+
+		const tre::Object& currObj = objQ[i];
+
+		XMMATRIX currTransformaiton = tre::Maths::createTransformationMatrix(currObj.objScale, currObj.objRotation, currObj.objPos);
+		cumulateiveTransformation = XMMatrixMultiply(cumulateiveTransformation, currTransformaiton);
+
+		if (currObj.pObjMesh != nullptr) {
+			//Set vertex buffer
+			UINT vertexStride = sizeof(Vertex);
+			UINT offset = 0;
+			_context->IASetVertexBuffers(0, 1, currObj.pObjMesh->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
+
+			//Set index buffer
+			_context->IASetIndexBuffer(currObj.pObjMesh->pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
+
+			//set shader resc view and sampler
+			bool hasTexture = 0;
+			if (currObj.pObjMesh->material->objTexture != nullptr) {
+				_context->PSSetShaderResources(0, 1, currObj.pObjMesh->material->objTexture->pShaderResView.GetAddressOf());
+				hasTexture = 1;
+			}
+
+			// set normal map
+			bool hasNormal = 0;
+			if (currObj.pObjMesh->material->objNormalMap != nullptr) {
+				_context->PSSetShaderResources(1, 1, currObj.pObjMesh->material->objNormalMap->pShaderResView.GetAddressOf());
+				hasNormal = 1;
+			}
+
+			//Config and set const buffer
+			tre::ConstantBuffer::setObjConstBuffer(
+				_device, _context,
+				cumulateiveTransformation,
+				currObj.pObjMesh->material->baseColor,
+				hasTexture,
+				hasNormal
+			);
+
+			_context->DrawIndexed(currObj.pObjMesh->indexSize, 0, 0);
+		}
+
+		if (currObj.children.size() != 0) {
+			recursiveDraw(currObj.children, renderMode, cumulateiveTransformation);
+		}
+	}
+}
+
 void Renderer::debugDraw(std::vector<Object>& objQ, Mesh& mesh, BoundVolumeEnum typeOfBound, RENDER_MODE renderMode) {
 
 	configureStates(renderMode);
