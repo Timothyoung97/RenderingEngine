@@ -4,9 +4,11 @@
 #include <assimp/scene.h>
 
 #include <unordered_map>
+#include <vector>
 
 #include "mesh.h"
 #include "texture.h"
+#include "object.h"
 
 namespace tre {
 
@@ -16,11 +18,13 @@ public:
 	std::unordered_map<std::string, Mesh> _meshes;
 	std::unordered_map<std::string, Texture> _textures;
 	std::unordered_map<std::string, Material> _materials;
+	
+	Object _obj;
+
 	std::string _directoryPath;
 
 	void load(ID3D11Device* device, std::string filename);
 	void loadResource(ID3D11Device* device, const aiScene* scene);
-	Texture loadTextures(ID3D11Device* device, aiMaterial* mat, aiTextureType type, const aiScene* scene);
-	void processNode(ID3D11Device* device, aiNode* node, const aiScene* scene);
+	void processNode(aiNode* currNode, Object* currObj, Object* pParent, const aiScene* scene);
 };
 }

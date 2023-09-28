@@ -6,11 +6,17 @@
 #include "texture.h"
 #include "boundingvolume.h"
 
+#include <vector>
+
 using namespace DirectX;
 
 namespace tre {
 	
 struct Object {
+
+	Object* parent;
+	std::vector<Object> children;
+
 	Mesh* pObjMesh;
 	
 	BoundingSphere ritterBs;

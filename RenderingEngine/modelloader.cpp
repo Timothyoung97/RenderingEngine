@@ -2,11 +2,14 @@
 
 #include <assimp/postprocess.h>
 #include <assimp/Importer.hpp>
+#include <DirectXMath.h>
 
 #include "assertm.h"
 #include "utility.h"
 #include "dxdebug.h"
 #include "colors.h"
+
+using namespace DirectX;
 
 namespace tre {
 
@@ -26,7 +29,7 @@ void ModelLoader::load(ID3D11Device* device, std::string filename) {
 
 	this->loadResource(device, pScene);
 
-	this->processNode(device, pScene->mRootNode, pScene);
+	this->processNode(pScene->mRootNode, &this->_obj, nullptr, pScene);
 }
 
 void ModelLoader::loadResource(ID3D11Device* device, const aiScene* scene) {
@@ -73,39 +76,33 @@ void ModelLoader::loadResource(ID3D11Device* device, const aiScene* scene) {
 	}
 }
 
-Texture ModelLoader::loadTextures(ID3D11Device* device, aiMaterial* mat, aiTextureType type, const aiScene* scene) {
+void ModelLoader::processNode(aiNode* currNode, Object* currObj, Object* pParent, const aiScene* scene) {
+	
+	aiVector3D position, eularRotation, scale;
+	currNode->mTransformation.Decompose(scale, eularRotation, position);
+	currObj->objPos = XMFLOAT3(position.x, position.y, position.z);
+	currObj->objRotation = XMFLOAT3(XMConvertToDegrees(eularRotation.x), XMConvertToDegrees(eularRotation.y), XMConvertToDegrees(eularRotation.z));
+	currObj->objScale = XMFLOAT3(scale.x, scale.y, scale.z);
 
-	if (mat->GetTextureCount(type) == 0) {
-		return Texture();
+	if (currNode->mParent != nullptr) { 
+		currObj->parent = pParent;
+	}
+	
+	if (currNode->mNumMeshes != 0) {
+		aiMesh* currNodeMesh = scene->mMeshes[currNode->mMeshes[0]];
+		currObj->pObjMesh = &_meshes[currNodeMesh->mName.C_Str()];
+		currObj->aabb = currObj->pObjMesh->aabb;
+		currObj->ritterBs = currObj->pObjMesh->ritterSphere;
+		currObj->naiveBs = currObj->pObjMesh->naiveSphere;
+		currObj->_boundingVolumeColor = tre::colorF(Colors::LightGreen);
 	}
 
-	aiString str;
-	mat->GetTexture(type, 0, &str); // hardcoded to get the first texture
-
-	if (!_textures.contains(str.C_Str())) {
-		std::string filename = this->_directoryPath + tre::Utility::uriDecode(std::string(str.C_Str()));
-		_textures[str.C_Str()] = tre::TextureLoader::createTexture(device, filename);
-	}
-
-	return _textures[str.C_Str()];
-}
-
-void ModelLoader::processNode(ID3D11Device* device, aiNode* node, const aiScene* scene) {
-	for (int i = 0; i < node->mNumMeshes; i++) {
-		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-
-		if (!_meshes.contains(mesh->mName.C_Str())) {
-			_meshes[mesh->mName.C_Str()] = CustomMesh(device, mesh);
-		} 
-
-		if (mesh->mMaterialIndex >= 0) {
-			//_meshes[mesh->mName.C_Str()].material.objTexture = this->loadTextures(device, scene->mMaterials[mesh->mMaterialIndex], aiTextureType_DIFFUSE, scene);
-			//_meshes[mesh->mName.C_Str()].material.objNormalMap = this->loadTextures(device, scene->mMaterials[mesh->mMaterialIndex], aiTextureType_NORMALS, scene);
+	if (currNode->mNumChildren != 0) {
+		currObj->children.reserve(currNode->mNumChildren);
+		for (int i = 0; i < currNode->mNumChildren; i++) {
+			currObj->children.push_back(Object());
+			this->processNode(currNode->mChildren[i], &currObj->children.back(), currObj, scene);
 		}
-	}
-
-	for (int i = 0; i < node->mNumChildren; i++) {
-		this->processNode(device, node->mChildren[i], scene);
 	}
 };
 
