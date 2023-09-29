@@ -31,14 +31,16 @@ void ModelLoader::load(ID3D11Device* device, std::string filename) {
 	this->loadResource(device, pScene);
 
 	this->processNode(pScene->mRootNode, &this->_obj, nullptr, pScene);
+
+	this->updateObj(&this->_obj, XMMatrixIdentity());
 }
 
 void ModelLoader::loadResource(ID3D11Device* device, const aiScene* scene) {
 	
 	for (int i = 0; i < scene->mNumMeshes; i++) {
 		aiMesh* mesh = scene->mMeshes[i];
-		if (!_meshes.contains(mesh->mName.C_Str())) {
-			_meshes[mesh->mName.C_Str()] = CustomMesh(device, mesh);	
+		if (!_meshes.contains(i)) {
+			_meshes[i] = CustomMesh(device, mesh);	
 		}
 	}
 
@@ -63,7 +65,7 @@ void ModelLoader::loadResource(ID3D11Device* device, const aiScene* scene) {
 	// assign respective materials with its textures
 	for (int i = 0; i < scene->mNumMaterials; i++) {
 		aiMaterial* material = scene->mMaterials[i];
-		if (!_materials.contains(material->GetName().C_Str())) {
+		if (!_materials.contains(i)) {
 			Material newMaterial{ nullptr, nullptr, tre::colorF(Colors::Black)};
 			
 			aiColor4D baseColor;
@@ -84,7 +86,7 @@ void ModelLoader::loadResource(ID3D11Device* device, const aiScene* scene) {
 				newMaterial.objTexture = &_textures[normalMapName.C_Str()];
 			}
 
-			_materials[material->GetName().C_Str()] = newMaterial;
+			_materials[i] = newMaterial;
 		}
 	}
 
@@ -92,7 +94,7 @@ void ModelLoader::loadResource(ID3D11Device* device, const aiScene* scene) {
 	for (int i = 0; i < scene->mNumMeshes; i++) {
 		aiMesh* mesh = scene->mMeshes[i];
 		aiMaterial* materialToApply = scene->mMaterials[mesh->mMaterialIndex];
-		_meshes[mesh->mName.C_Str()].material = &_materials[materialToApply->GetName().C_Str()];
+		_meshes[i].material = &_materials[mesh->mMaterialIndex];
 	}
 }
 
@@ -111,7 +113,7 @@ void ModelLoader::processNode(aiNode* currNode, Object* currObj, Object* pParent
 	
 	if (currNode->mNumMeshes != 0) {
 		aiMesh* currNodeMesh = scene->mMeshes[currNode->mMeshes[0]];
-		currObj->pObjMesh = &_meshes[currNodeMesh->mName.C_Str()];
+		currObj->pObjMesh = &_meshes[currNode->mMeshes[0]];
 		currObj->aabb = currObj->pObjMesh->aabb;
 		currObj->ritterBs = currObj->pObjMesh->ritterSphere;
 		currObj->naiveBs = currObj->pObjMesh->naiveSphere;
@@ -122,7 +124,7 @@ void ModelLoader::processNode(aiNode* currNode, Object* currObj, Object* pParent
 		currObj->children.reserve(currNode->mNumChildren);
 		for (int i = 0; i < currNode->mNumChildren; i++) {
 			currObj->children.push_back(Object());
-			this->processNode(currNode->mChildren[i], &currObj->children.back(), currObj, scene);
+			this->processNode(currNode->mChildren[i], &currObj->children[i], currObj, scene);
 		}
 	}
 
@@ -131,12 +133,12 @@ void ModelLoader::processNode(aiNode* currNode, Object* currObj, Object* pParent
 	}
 };
 
-void ModelLoader::updateObj(Object& _obj, XMMATRIX cumulativeMatrix) {
+void ModelLoader::updateObj(Object* _obj, XMMATRIX cumulativeMatrix) {
 	
-	_obj._transformationFinal = XMMatrixMultiply(_obj._transformationFinal, cumulativeMatrix);
+	_obj->_transformationFinal = XMMatrixMultiply(_obj->_transformationFinal, cumulativeMatrix);
 
-	for (int i = 0; i < _obj.children.size(); i++) {
-		updateObj(_obj.children[i], _obj._transformationFinal);
+	for (int i = 0; i < _obj->children.size(); i++) {
+		updateObj(&_obj->children[i], _obj->_transformationFinal);
 	}
 }
 

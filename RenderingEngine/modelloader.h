@@ -15,9 +15,9 @@ namespace tre {
 class ModelLoader {
 public:
 
-	std::unordered_map<std::string, Mesh> _meshes;
+	std::unordered_map<int, Mesh> _meshes;
 	std::unordered_map<std::string, Texture> _textures;
-	std::unordered_map<std::string, Material> _materials;
+	std::unordered_map<int, Material> _materials;
 	
 	std::vector<Object*> _objectWithMesh;
 
@@ -29,6 +29,6 @@ public:
 	void loadResource(ID3D11Device* device, const aiScene* scene);
 	void processNode(aiNode* currNode, Object* currObj, Object* pParent, const aiScene* scene);
 
-	void updateObj(Object& _obj, XMMATRIX cumulativeTransformation);
+	void updateObj(Object* _obj, XMMATRIX cumulativeTransformation);
 };
 }
