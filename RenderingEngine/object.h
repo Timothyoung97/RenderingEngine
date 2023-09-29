@@ -22,14 +22,18 @@ struct Object {
 	BoundingSphere ritterBs;
 	BoundingSphere naiveBs;
 	AABB aabb;
-	
+
 	XMFLOAT3 objPos;
 	XMFLOAT3 objScale;
 	XMFLOAT3 objRotation;
 
+	XMMATRIX _transformationFinal;
+
 	XMFLOAT4 _boundingVolumeColor;
 
 	float distFromCam;
+
+	XMMATRIX makeLocalToWorldMatrix();
 };
 
 }

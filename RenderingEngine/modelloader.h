@@ -19,6 +19,8 @@ public:
 	std::unordered_map<std::string, Texture> _textures;
 	std::unordered_map<std::string, Material> _materials;
 	
+	std::vector<Object*> _objectWithMesh;
+
 	Object _obj;
 
 	std::string _directoryPath;
@@ -26,5 +28,7 @@ public:
 	void load(ID3D11Device* device, std::string filename);
 	void loadResource(ID3D11Device* device, const aiScene* scene);
 	void processNode(aiNode* currNode, Object* currObj, Object* pParent, const aiScene* scene);
+
+	void updateObj(Object& _obj, XMMATRIX cumulativeTransformation);
 };
 }

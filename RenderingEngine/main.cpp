@@ -56,12 +56,13 @@ int main()
 	// Loading model
 	tre::ModelLoader ml;
 
-	//auto f = pfd::open_file("Choose files to read", basePathStr,
+	//pfd::open_file f = pfd::open_file("Choose files to read", basePathStr,
 	//	{ "glTF Files (.gltf)", "*.gltf",
 	//	  "All Files", "*" }
 	//);
 
-	ml.load(deviceAndContext.device.Get(), basePathStr + "glTF-models\\Duck\\Duck.gltf");
+	ml.load(deviceAndContext.device.Get(), basePathStr + "glTF-models\\2CylinderEngine\\2CylinderEngine.gltf");
+	//ml.load(deviceAndContext.device.Get(), f.result()[0]);
 
 	// Scene
 	tre::Scene scene(deviceAndContext.device.Get());
@@ -406,7 +407,7 @@ int main()
 		renderer.clearBufferToDraw();
 
 		// Set camera view const buffer
-		cam.camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovY), static_cast<float>(tre::SCREEN_WIDTH) / tre::SCREEN_HEIGHT, 1.0f, 1000.0f);
+		cam.camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovY), static_cast<float>(tre::SCREEN_WIDTH) / tre::SCREEN_HEIGHT, 1.0f, 1000000000.0f);
 		cam.updateCamera();
 
 		// set const buffer for camera
@@ -456,7 +457,11 @@ int main()
 		// Draw all opaque objects
 		renderer.draw({ scene._floor }, tre::RENDER_MODE::OPAQUE_M);
 
-		renderer.recursiveDraw({ ml._obj }, tre::RENDER_MODE::OPAQUE_M, XMMatrixIdentity());
+		for (int i = 0; i < ml._objectWithMesh.size(); i++) {
+			XMMATRIX matrix = ml._objectWithMesh[i]->makeLocalToWorldMatrix();
+			renderer.draw(ml._objectWithMesh[i], tre::RENDER_MODE::OPAQUE_M, matrix);
+		}
+
 
 		renderer.draw(culledOpaqueObjQ, tre::RENDER_MODE::OPAQUE_M);
 

@@ -13,6 +13,16 @@ XMMATRIX Maths::createTransformationMatrix(XMFLOAT3 scale, XMFLOAT3 rotation, XM
 				position.z)
 		)
 	);
+	//return XMMatrixMultiply(
+	//	XMMatrixRotationRollPitchYaw(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z)),
+	//	XMMatrixMultiply(
+	//		XMMatrixScaling(scale.x, scale.y, scale.z),
+	//		XMMatrixTranslation(
+	//			position.x,
+	//			position.y,
+	//			position.z)
+	//	)
+	//);
 }
 
 XMVECTOR Maths::getMatrixNormUp(XMMATRIX matrix) {

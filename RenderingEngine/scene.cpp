@@ -61,5 +61,4 @@ void Scene::updateDirLight() {
 	};
 }
 
-
 }

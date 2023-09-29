@@ -8,6 +8,7 @@
 #include "utility.h"
 #include "dxdebug.h"
 #include "colors.h"
+#include "maths.h"
 
 using namespace DirectX;
 
@@ -96,14 +97,15 @@ void ModelLoader::loadResource(ID3D11Device* device, const aiScene* scene) {
 }
 
 void ModelLoader::processNode(aiNode* currNode, Object* currObj, Object* pParent, const aiScene* scene) {
-	
+
 	aiVector3D position, eularRotation, scale;
 	currNode->mTransformation.Decompose(scale, eularRotation, position);
 	currObj->objPos = XMFLOAT3(position.x, position.y, position.z);
 	currObj->objRotation = XMFLOAT3(XMConvertToDegrees(eularRotation.x), XMConvertToDegrees(eularRotation.y), XMConvertToDegrees(eularRotation.z));
 	currObj->objScale = XMFLOAT3(scale.x, scale.y, scale.z);
+	currObj->_transformationFinal = Maths::createTransformationMatrix(currObj->objScale, currObj->objRotation, currObj->objPos);
 
-	if (currNode->mParent != nullptr) { 
+	if (pParent != nullptr) {
 		currObj->parent = pParent;
 	}
 	
@@ -123,6 +125,19 @@ void ModelLoader::processNode(aiNode* currNode, Object* currObj, Object* pParent
 			this->processNode(currNode->mChildren[i], &currObj->children.back(), currObj, scene);
 		}
 	}
+
+	if (currNode->mNumMeshes != 0) {
+		_objectWithMesh.push_back(currObj);
+	}
 };
+
+void ModelLoader::updateObj(Object& _obj, XMMATRIX cumulativeMatrix) {
+	
+	_obj._transformationFinal = XMMatrixMultiply(_obj._transformationFinal, cumulativeMatrix);
+
+	for (int i = 0; i < _obj.children.size(); i++) {
+		updateObj(_obj.children[i], _obj._transformationFinal);
+	}
+}
 
 }
