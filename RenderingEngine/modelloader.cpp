@@ -37,6 +37,7 @@ void ModelLoader::load(ID3D11Device* device, std::string filename) {
 
 void ModelLoader::loadResource(ID3D11Device* device, const aiScene* scene) {
 	
+	// first pass: load in all meshes, using its idx in scene as key
 	for (int i = 0; i < scene->mNumMeshes; i++) {
 		aiMesh* mesh = scene->mMeshes[i];
 		if (!_meshes.contains(i)) {
@@ -44,6 +45,7 @@ void ModelLoader::loadResource(ID3D11Device* device, const aiScene* scene) {
 		}
 	}
 
+	// second pass: load in all textures via iterating through all materials, using filename as key
 	for (int i = 0; i < scene->mNumMaterials; i++) {
 		aiMaterial* material = scene->mMaterials[i];
 
@@ -111,8 +113,8 @@ void ModelLoader::processNode(aiNode* currNode, Object* currObj, Object* pParent
 		currObj->parent = pParent;
 	}
 	
+	// check if this node has mesh, if there is assign one first
 	if (currNode->mNumMeshes != 0) {
-		aiMesh* currNodeMesh = scene->mMeshes[currNode->mMeshes[0]];
 		currObj->pObjMesh = &_meshes[currNode->mMeshes[0]];
 		currObj->aabb = currObj->pObjMesh->aabb;
 		currObj->ritterBs = currObj->pObjMesh->ritterSphere;
@@ -120,12 +122,34 @@ void ModelLoader::processNode(aiNode* currNode, Object* currObj, Object* pParent
 		currObj->_boundingVolumeColor = tre::colorF(Colors::LightGreen);
 	}
 
+	// reserve space for children
+	int count = currNode->mNumChildren;
+	if (currNode->mNumMeshes > 1) { 
+		count += currNode->mNumMeshes - 1; // increment space for other meshes in this node to be included as children
+	}
+	currObj->children.reserve(count);
+
+	// recurse down to children
 	if (currNode->mNumChildren != 0) {
-		currObj->children.reserve(currNode->mNumChildren);
 		for (int i = 0; i < currNode->mNumChildren; i++) {
 			currObj->children.push_back(Object());
 			this->processNode(currNode->mChildren[i], &currObj->children[i], currObj, scene);
 		}
+	}
+
+	// add remaining meshes in this node
+	for (int i = 1; i < currNode->mNumMeshes; i++) {
+		currObj->children.push_back(Object());
+		Object* pCousin = &currObj->children.back();
+		pCousin->objPos = currObj->objPos;
+		pCousin->objRotation = currObj->objRotation;
+		pCousin->objScale = currObj->objScale;
+		pCousin->_transformationFinal = currObj->_transformationFinal;
+		pCousin->pObjMesh = &_meshes[currNode->mMeshes[i]];
+		pCousin->aabb = pCousin->pObjMesh->aabb;
+		pCousin->ritterBs = pCousin->pObjMesh->ritterSphere;
+		pCousin->naiveBs = pCousin->pObjMesh->naiveSphere;
+		pCousin->_boundingVolumeColor = tre::colorF(Colors::LightGreen);
 	}
 
 	if (currNode->mNumMeshes != 0) {
