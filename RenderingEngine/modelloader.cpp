@@ -94,9 +94,7 @@ void ModelLoader::loadResource(ID3D11Device* device, const aiScene* scene) {
 
 	// assign materials to apply on mashes
 	for (int i = 0; i < scene->mNumMeshes; i++) {
-		aiMesh* mesh = scene->mMeshes[i];
-		aiMaterial* materialToApply = scene->mMaterials[mesh->mMaterialIndex];
-		_meshes[i].material = &_materials[mesh->mMaterialIndex];
+		_meshes[i].material = &_materials[scene->mMeshes[i]->mMaterialIndex];
 	}
 }
 
@@ -109,9 +107,7 @@ void ModelLoader::processNode(aiNode* currNode, Object* currObj, Object* pParent
 	currObj->objScale = XMFLOAT3(scale.x, scale.y, scale.z);
 	currObj->_transformationFinal = Maths::createTransformationMatrix(currObj->objScale, currObj->objRotation, currObj->objPos);
 
-	if (pParent != nullptr) {
-		currObj->parent = pParent;
-	}
+	currObj->parent = pParent;
 	
 	// check if this node has mesh, if there is assign one first
 	if (currNode->mNumMeshes != 0) {
@@ -141,6 +137,7 @@ void ModelLoader::processNode(aiNode* currNode, Object* currObj, Object* pParent
 	for (int i = 1; i < currNode->mNumMeshes; i++) {
 		currObj->children.push_back(Object());
 		Object* pCousin = &currObj->children.back();
+		pCousin->parent = pParent;
 		pCousin->objPos = currObj->objPos;
 		pCousin->objRotation = currObj->objRotation;
 		pCousin->objScale = currObj->objScale;
