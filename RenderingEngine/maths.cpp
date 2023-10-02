@@ -157,4 +157,19 @@ XMMATRIX Maths::createOrthoMatrixFromFrustumCorners(float zMult, const std::vect
 	return XMMatrixOrthographicOffCenterLH(minX, maxX, minY, maxY, minZ, maxZ);
 }
 
+XMFLOAT3 Maths::convertRotationMatrixToEuler(XMMATRIX rotationMatrix) {
+	
+	XMFLOAT3X3 nQF;
+	XMStoreFloat3x3(&nQF, rotationMatrix);
+	
+	float cy = sqrtf(nQF._33 * nQF._33 + nQF._31 * nQF._31);
+	float cx = atan2f(-nQF._32, cy);
+
+	if (cy > 16.f * FLT_EPSILON) {
+		return XMFLOAT3(cx, atan2f(nQF._31, nQF._33), atan2f(nQF._12, nQF._22));
+	} 
+	return XMFLOAT3(cx, .0f, atan2f(-nQF._21, nQF._11));
+}
+
+
 }

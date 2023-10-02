@@ -57,8 +57,11 @@ int main()
 	tre::ModelLoader ml;
 
 	pfd::open_file f = pfd::open_file("Choose files to read", basePathStr,
-		{ "glTF Files (.gltf)", "*.gltf",
-		  "All Files", "*" }
+		{ 
+			"glTF Files (.gltf)", "*.gltf",
+			"obj Files (.obj)", "*.obj",
+			"All Files", "*" 
+		}
 	);
 
 	ml.load(deviceAndContext.device.Get(), f.result()[0]);

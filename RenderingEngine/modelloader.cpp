@@ -50,6 +50,7 @@ void ModelLoader::loadResource(ID3D11Device* device, const aiScene* scene) {
 		aiMaterial* material = scene->mMaterials[i];
 
 		aiString diffuseTexName;
+
 		material->GetTexture(aiTextureType_DIFFUSE, 0, &diffuseTexName);
 		if (diffuseTexName.length && !_textures.contains(diffuseTexName.C_Str())) {
 			std::string fullFilepath = this->_directoryPath + tre::Utility::uriDecode(std::string(diffuseTexName.C_Str()));
@@ -101,19 +102,22 @@ void ModelLoader::loadResource(ID3D11Device* device, const aiScene* scene) {
 void ModelLoader::processNode(aiNode* currNode, Object* currObj, Object* pParent, const aiScene* scene) {
 
 	currObj->parent = pParent;
+
+	// compute transformation
 	currObj->_transformationAssimp = currNode->mTransformation;
 
 	memcpy(&currObj->_transformationFinal, &currObj->_transformationAssimp, sizeof(aiMatrix4x4));
-	currObj->_transformationFinal = XMMatrixTranspose(currObj->_transformationFinal);
+	currObj->_transformationFinal = XMMatrixTranspose(currObj->_transformationFinal); // convert to coln major
 	
 	XMVECTOR scale, rotationQ, translation;
-
 	XMMatrixDecompose(&scale, &rotationQ, &translation, currObj->_transformationFinal);
 
 	XMStoreFloat3(&currObj->objScale, scale);
 	XMStoreFloat3(&currObj->objPos, translation);
 
 	XMMATRIX rotationMatrix = XMMatrixRotationQuaternion(rotationQ);
+	currObj->objRotation = Maths::convertRotationMatrixToEuler(rotationMatrix);
+
 	XMMATRIX scaleMatrix = XMMatrixScaling(currObj->objScale.x, currObj->objScale.y, currObj->objScale.z);
 	XMMATRIX translationMatrix = XMMatrixTranslation(currObj->objPos.x, currObj->objPos.y, currObj->objPos.z);
 
