@@ -28,6 +28,7 @@ struct Object {
 	XMFLOAT3 objRotation;
 
 	XMMATRIX _transformationFinal;
+	aiMatrix4x4 _transformationAssimp;
 
 	XMFLOAT4 _boundingVolumeColor;
 

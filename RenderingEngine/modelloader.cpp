@@ -32,7 +32,7 @@ void ModelLoader::load(ID3D11Device* device, std::string filename) {
 
 	this->processNode(pScene->mRootNode, &this->_obj, nullptr, pScene);
 
-	this->updateObj(&this->_obj, XMMatrixIdentity());
+	this->updateObj(&this->_obj, aiMatrix4x4());
 }
 
 void ModelLoader::loadResource(ID3D11Device* device, const aiScene* scene) {
@@ -106,6 +106,7 @@ void ModelLoader::processNode(aiNode* currNode, Object* currObj, Object* pParent
 	currObj->objRotation = XMFLOAT3(XMConvertToDegrees(eularRotation.x), XMConvertToDegrees(eularRotation.y), XMConvertToDegrees(eularRotation.z));
 	currObj->objScale = XMFLOAT3(scale.x, scale.y, scale.z);
 	currObj->_transformationFinal = Maths::createTransformationMatrix(currObj->objScale, currObj->objRotation, currObj->objPos);
+	currObj->_transformationAssimp = currNode->mTransformation;
 
 	currObj->parent = pParent;
 	
@@ -147,6 +148,7 @@ void ModelLoader::processNode(aiNode* currNode, Object* currObj, Object* pParent
 		pCousin->ritterBs = pCousin->pObjMesh->ritterSphere;
 		pCousin->naiveBs = pCousin->pObjMesh->naiveSphere;
 		pCousin->_boundingVolumeColor = tre::colorF(Colors::LightGreen);
+		pCousin->_transformationAssimp = currNode->mTransformation;
 	}
 
 	if (currNode->mNumMeshes != 0) {
@@ -160,6 +162,18 @@ void ModelLoader::updateObj(Object* _obj, XMMATRIX cumulativeMatrix) {
 
 	for (int i = 0; i < _obj->children.size(); i++) {
 		updateObj(&_obj->children[i], _obj->_transformationFinal);
+	}
+}
+
+void ModelLoader::updateObj(Object* _obj, aiMatrix4x4 cumulativeMatrix) {
+	_obj->_transformationAssimp = cumulativeMatrix * _obj->_transformationAssimp;
+
+	memcpy(&_obj->_transformationFinal, &_obj->_transformationAssimp, sizeof(aiMatrix4x4));
+
+	_obj->_transformationFinal = XMMatrixTranspose(_obj->_transformationFinal);
+
+	for (int i = 0; i < _obj->children.size(); i++) {
+		updateObj(&_obj->children[i], _obj->_transformationAssimp);
 	}
 }
 

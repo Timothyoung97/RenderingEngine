@@ -30,5 +30,6 @@ public:
 	void processNode(aiNode* currNode, Object* currObj, Object* pParent, const aiScene* scene);
 
 	void updateObj(Object* _obj, XMMATRIX cumulativeTransformation);
+	void updateObj(Object* _obj, aiMatrix4x4 cumulativeMatrix);
 };
 }
