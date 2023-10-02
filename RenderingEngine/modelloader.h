@@ -28,8 +28,6 @@ public:
 	void load(ID3D11Device* device, std::string filename);
 	void loadResource(ID3D11Device* device, const aiScene* scene);
 	void processNode(aiNode* currNode, Object* currObj, Object* pParent, const aiScene* scene);
-
-	void updateObj(Object* _obj, XMMATRIX cumulativeTransformation);
 	void updateObj(Object* _obj, aiMatrix4x4 cumulativeMatrix);
 };
 }

@@ -17,11 +17,12 @@ struct Object {
 	Object* parent = nullptr;
 	std::vector<Object> children;
 
-	Mesh* pObjMesh = nullptr;
+	std::vector<Mesh*> pObjMeshes;
 	
-	BoundingSphere ritterBs;
-	BoundingSphere naiveBs;
-	AABB aabb;
+	std::vector<BoundingSphere> ritterBs;
+	std::vector<BoundingSphere> naiveBs;
+	std::vector<AABB> aabb;
+	std::vector<XMFLOAT4> _boundingVolumeColor;
 
 	XMFLOAT3 objPos;
 	XMFLOAT3 objScale;
@@ -30,7 +31,6 @@ struct Object {
 	XMMATRIX _transformationFinal;
 	aiMatrix4x4 _transformationAssimp;
 
-	XMFLOAT4 _boundingVolumeColor;
 
 	float distFromCam;
 

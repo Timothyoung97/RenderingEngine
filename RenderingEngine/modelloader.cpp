@@ -112,43 +112,23 @@ void ModelLoader::processNode(aiNode* currNode, Object* currObj, Object* pParent
 	
 	// check if this node has mesh, if there is assign one first
 	if (currNode->mNumMeshes != 0) {
-		currObj->pObjMesh = &_meshes[currNode->mMeshes[0]];
-		currObj->aabb = currObj->pObjMesh->aabb;
-		currObj->ritterBs = currObj->pObjMesh->ritterSphere;
-		currObj->naiveBs = currObj->pObjMesh->naiveSphere;
-		currObj->_boundingVolumeColor = tre::colorF(Colors::LightGreen);
-	}
+		for (int i = 0; i < currNode->mNumMeshes; i++) {
 
-	// reserve space for children
-	int count = currNode->mNumChildren;
-	if (currNode->mNumMeshes > 1) { 
-		count += currNode->mNumMeshes - 1; // increment space for other meshes in this node to be included as children
+			currObj->pObjMeshes.push_back(&_meshes[currNode->mMeshes[i]]);
+			currObj->aabb.push_back(currObj->pObjMeshes.back()->aabb);
+			currObj->ritterBs.push_back(currObj->pObjMeshes.back()->ritterSphere);
+			currObj->naiveBs.push_back(currObj->pObjMeshes.back()->naiveSphere);
+			currObj->_boundingVolumeColor.push_back(tre::colorF(Colors::LightGreen));
+		}
 	}
-	currObj->children.reserve(count);
 
 	// recurse down to children
 	if (currNode->mNumChildren != 0) {
+		currObj->children.reserve(currNode->mNumChildren);
 		for (int i = 0; i < currNode->mNumChildren; i++) {
 			currObj->children.push_back(Object());
 			this->processNode(currNode->mChildren[i], &currObj->children[i], currObj, scene);
 		}
-	}
-
-	// add remaining meshes in this node
-	for (int i = 1; i < currNode->mNumMeshes; i++) {
-		currObj->children.push_back(Object());
-		Object* pCousin = &currObj->children.back();
-		pCousin->parent = pParent;
-		pCousin->objPos = currObj->objPos;
-		pCousin->objRotation = currObj->objRotation;
-		pCousin->objScale = currObj->objScale;
-		pCousin->_transformationFinal = currObj->_transformationFinal;
-		pCousin->pObjMesh = &_meshes[currNode->mMeshes[i]];
-		pCousin->aabb = pCousin->pObjMesh->aabb;
-		pCousin->ritterBs = pCousin->pObjMesh->ritterSphere;
-		pCousin->naiveBs = pCousin->pObjMesh->naiveSphere;
-		pCousin->_boundingVolumeColor = tre::colorF(Colors::LightGreen);
-		pCousin->_transformationAssimp = currNode->mTransformation;
 	}
 
 	if (currNode->mNumMeshes != 0) {
@@ -156,14 +136,6 @@ void ModelLoader::processNode(aiNode* currNode, Object* currObj, Object* pParent
 	}
 };
 
-void ModelLoader::updateObj(Object* _obj, XMMATRIX cumulativeMatrix) {
-	
-	_obj->_transformationFinal = XMMatrixMultiply(_obj->_transformationFinal, cumulativeMatrix);
-
-	for (int i = 0; i < _obj->children.size(); i++) {
-		updateObj(&_obj->children[i], _obj->_transformationFinal);
-	}
-}
 
 void ModelLoader::updateObj(Object* _obj, aiMatrix4x4 cumulativeMatrix) {
 	_obj->_transformationAssimp = cumulativeMatrix * _obj->_transformationAssimp;
