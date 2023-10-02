@@ -85,7 +85,7 @@ void ModelLoader::loadResource(ID3D11Device* device, const aiScene* scene) {
 			aiString normalMapName;
 			material->GetTexture(aiTextureType_NORMALS, 0, &normalMapName);
 			if (normalMapName.length != 0) {
-				newMaterial.objTexture = &_textures[normalMapName.C_Str()];
+				newMaterial.objNormalMap = &_textures[normalMapName.C_Str()];
 			}
 
 			_materials[i] = newMaterial;
