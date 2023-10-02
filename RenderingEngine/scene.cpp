@@ -35,7 +35,7 @@ Scene::Scene(ID3D11Device* device) {
 	_debugMaterials = {
 		Material {&_debugTextures[3], &_debugNormalTextures[0]},
 		Material {&_debugTextures[4], &_debugNormalTextures[1]},
-		Material {&_debugTextures[5], &_debugTextures[5], tre::colorF(Colors::White)}
+		Material {nullptr, nullptr, tre::colorF(Colors::White)}
 	};
 }
 	
@@ -46,7 +46,7 @@ void Scene::createFloor() {
 	_floor.objPos = XMFLOAT3(.0f, .0f, .0f);
 	_floor.objScale = XMFLOAT3(100.f, 0.01f, 100.f);
 	_floor.objRotation = XMFLOAT3(.0f, .0f, .0f);
-	_floor._boundingVolumeColor = { tre::colorF(Colors::Black) };
+	_floor._boundingVolumeColor = { tre::colorF(Colors::WhiteSmoke) };
 }
 
 void Scene::updateDirLight() {
