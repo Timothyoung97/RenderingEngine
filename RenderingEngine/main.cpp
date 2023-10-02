@@ -56,13 +56,12 @@ int main()
 	// Loading model
 	tre::ModelLoader ml;
 
-	//pfd::open_file f = pfd::open_file("Choose files to read", basePathStr,
-	//	{ "glTF Files (.gltf)", "*.gltf",
-	//	  "All Files", "*" }
-	//);
+	pfd::open_file f = pfd::open_file("Choose files to read", basePathStr,
+		{ "glTF Files (.gltf)", "*.gltf",
+		  "All Files", "*" }
+	);
 
-	ml.load(deviceAndContext.device.Get(), basePathStr + "glTF-models\\2CylinderEngine\\2CylinderEngine.gltf");
-	//ml.load(deviceAndContext.device.Get(), f.result()[0]);
+	ml.load(deviceAndContext.device.Get(), f.result()[0]);
 
 	// Scene
 	tre::Scene scene(deviceAndContext.device.Get());
@@ -289,6 +288,7 @@ int main()
 			{	// Camera Setting
 				ImGui::SeparatorText("Camera");
 				ImGui::SliderFloat("Camera FOV Y", &fovY, 1.0f, 179.0f);
+				ImGui::SliderFloat("Camera Speed", &cam.cameraMoveSpeed, .0f, 1.0f);
 			}
 
 			{	// Bounding Type Selection
