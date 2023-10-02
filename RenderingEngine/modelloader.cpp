@@ -32,7 +32,7 @@ void ModelLoader::load(ID3D11Device* device, std::string filename) {
 
 	this->processNode(pScene->mRootNode, &this->_obj, nullptr, pScene);
 
-	this->updateObj(&this->_obj, aiMatrix4x4());
+	this->updateObj(&this->_obj, XMMatrixIdentity());
 }
 
 void ModelLoader::loadResource(ID3D11Device* device, const aiScene* scene) {
@@ -100,16 +100,25 @@ void ModelLoader::loadResource(ID3D11Device* device, const aiScene* scene) {
 
 void ModelLoader::processNode(aiNode* currNode, Object* currObj, Object* pParent, const aiScene* scene) {
 
-	aiVector3D position, eularRotation, scale;
-	currNode->mTransformation.Decompose(scale, eularRotation, position);
-	currObj->objPos = XMFLOAT3(position.x, position.y, position.z);
-	currObj->objRotation = XMFLOAT3(XMConvertToDegrees(eularRotation.x), XMConvertToDegrees(eularRotation.y), XMConvertToDegrees(eularRotation.z));
-	currObj->objScale = XMFLOAT3(scale.x, scale.y, scale.z);
-	currObj->_transformationFinal = Maths::createTransformationMatrix(currObj->objScale, currObj->objRotation, currObj->objPos);
+	currObj->parent = pParent;
 	currObj->_transformationAssimp = currNode->mTransformation;
 
-	currObj->parent = pParent;
+	memcpy(&currObj->_transformationFinal, &currObj->_transformationAssimp, sizeof(aiMatrix4x4));
+	currObj->_transformationFinal = XMMatrixTranspose(currObj->_transformationFinal);
 	
+	XMVECTOR scale, rotationQ, translation;
+
+	XMMatrixDecompose(&scale, &rotationQ, &translation, currObj->_transformationFinal);
+
+	XMStoreFloat3(&currObj->objScale, scale);
+	XMStoreFloat3(&currObj->objPos, translation);
+
+	XMMATRIX rotationMatrix = XMMatrixRotationQuaternion(rotationQ);
+	XMMATRIX scaleMatrix = XMMatrixScaling(currObj->objScale.x, currObj->objScale.y, currObj->objScale.z);
+	XMMATRIX translationMatrix = XMMatrixTranslation(currObj->objPos.x, currObj->objPos.y, currObj->objPos.z);
+
+	currObj->_transformationFinal = scaleMatrix * rotationMatrix * translationMatrix;
+
 	// check if this node has mesh, if there is assign one first
 	if (currNode->mNumMeshes != 0) {
 		for (int i = 0; i < currNode->mNumMeshes; i++) {
@@ -136,7 +145,17 @@ void ModelLoader::processNode(aiNode* currNode, Object* currObj, Object* pParent
 	}
 };
 
+// Update Obj by decomposing assimp imported transformation
+void ModelLoader::updateObj(Object* _obj, XMMATRIX cumulativeMatrix) {
 
+	_obj->_transformationFinal = _obj->_transformationFinal * cumulativeMatrix;
+
+	for (int i = 0; i < _obj->children.size(); i++) {
+		updateObj(&_obj->children[i], _obj->_transformationFinal);
+	}
+}
+
+// Update Obj directly using aiMatrix4x4
 void ModelLoader::updateObj(Object* _obj, aiMatrix4x4 cumulativeMatrix) {
 	_obj->_transformationAssimp = cumulativeMatrix * _obj->_transformationAssimp;
 

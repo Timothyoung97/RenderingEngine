@@ -29,5 +29,6 @@ public:
 	void loadResource(ID3D11Device* device, const aiScene* scene);
 	void processNode(aiNode* currNode, Object* currObj, Object* pParent, const aiScene* scene);
 	void updateObj(Object* _obj, aiMatrix4x4 cumulativeMatrix);
+	void updateObj(Object* _obj, XMMATRIX cumulativeMatrix);
 };
 }
