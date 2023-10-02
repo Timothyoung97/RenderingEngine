@@ -31,7 +31,6 @@ struct Object {
 	XMMATRIX _transformationFinal;
 	aiMatrix4x4 _transformationAssimp;
 
-
 	float distFromCam;
 
 	XMMATRIX makeLocalToWorldMatrix();

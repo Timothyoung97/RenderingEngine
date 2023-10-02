@@ -127,13 +127,17 @@ void Renderer::draw(const std::vector<Object>& objQ, RENDER_MODE renderMode) {
 			_context->IASetIndexBuffer(currObj.pObjMeshes[j]->pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
 
 			//set shader resc view and sampler
+			bool hasTexture = 0;
 			if (currObj.pObjMeshes[j]->material->objTexture != nullptr) {
 				_context->PSSetShaderResources(0, 1, currObj.pObjMeshes[j]->material->objTexture->pShaderResView.GetAddressOf());
+				hasTexture = 1;
 			}
 
 			// set normal map
+			bool hasNormal = 0;
 			if (currObj.pObjMeshes[j]->material->objNormalMap != nullptr) {
 				_context->PSSetShaderResources(1, 1, currObj.pObjMeshes[j]->material->objNormalMap->pShaderResView.GetAddressOf());
+				hasNormal = 1;
 			}
 
 			//Config and set const buffer
@@ -141,8 +145,8 @@ void Renderer::draw(const std::vector<Object>& objQ, RENDER_MODE renderMode) {
 				_device, _context,
 				tre::Maths::createTransformationMatrix(currObj.objScale, currObj.objRotation, currObj.objPos),
 				currObj.pObjMeshes[j]->material->baseColor,
-				currObj.pObjMeshes[j]->material->objTexture->pShaderResView.Get() != nullptr ? 1 : 0,
-				currObj.pObjMeshes[j]->material->objNormalMap->pShaderResView.Get() != nullptr ? 1 : 0
+				hasTexture,
+				hasNormal
 			);
 
 			_context->DrawIndexed(currObj.pObjMeshes[j]->indexSize, 0, 0);
