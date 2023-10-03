@@ -25,11 +25,15 @@ public:
 	std::vector<Texture> _debugNormalTextures;
 	std::vector<Material> _debugMaterials;
 
-	// Object Q
-	std::vector<tre::Object> _opaqueObjQ;
-	std::vector<tre::Object> _transparentObjQ;
-	std::vector<tre::Object> _culledOpaqueObjQ;
-	std::vector<tre::Object> _culledTransparentObjQ;
+	// Object Queue
+	std::vector<tre::Object> _objQ;
+
+	std::vector<tre::Object*> _opaqueObjQ;
+	std::vector<tre::Object*> _transparentObjQ;
+	std::vector<tre::Object*> _culledOpaqueObjQ;
+	std::vector<tre::Object*> _culledTransparentObjQ;
+
+	std::vector<tre::Object*> _wireframeObjQ;
 
 	bool _toSortTransparentQ = false;
 	bool _toRecalDistFromCam = false;

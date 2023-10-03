@@ -7,6 +7,8 @@ namespace tre {
 
 Scene::Scene(ID3D11Device* device) {
 
+	this->_objQ.reserve(1000); // hardcoded capacity
+
 	_debugMeshes = {
 		tre::CubeMesh(device), // Bounding WireMesh
 		tre::SphereMesh(device, 20, 20), // Bounding WireMesh
