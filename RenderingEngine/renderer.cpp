@@ -124,7 +124,7 @@ void Renderer::draw(const std::vector<Object>& objQ, RENDER_MODE renderMode) {
 			_context->IASetVertexBuffers(0, 1, currObj.pObjMeshes[j]->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
 
 			//Set index buffer
-			_context->IASetIndexBuffer(currObj.pObjMeshes[j]->pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
+			_context->IASetIndexBuffer(currObj.pObjMeshes[j]->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
 			//set shader resc view and sampler
 			bool hasTexture = 0;
@@ -168,7 +168,7 @@ void Renderer::draw(Object* obj, RENDER_MODE renderMode, XMMATRIX matrix) {
 			_context->IASetVertexBuffers(0, 1, obj->pObjMeshes[i]->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
 
 			//Set index buffer
-			_context->IASetIndexBuffer(obj->pObjMeshes[i]->pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
+			_context->IASetIndexBuffer(obj->pObjMeshes[i]->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
 			//set shader resc view and sampler
 			bool hasTexture = 0;
@@ -214,7 +214,7 @@ void Renderer::recursiveDraw(Object* obj, RENDER_MODE renderMode) {
 			_context->IASetVertexBuffers(0, 1, obj->pObjMeshes[i]->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
 
 			//Set index buffer
-			_context->IASetIndexBuffer(obj->pObjMeshes[i]->pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
+			_context->IASetIndexBuffer(obj->pObjMeshes[i]->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
 			//set shader resc view and sampler
 			bool hasTexture = 0;
@@ -265,7 +265,7 @@ void Renderer::debugDraw(std::vector<Object>& objQ, Mesh& mesh, BoundVolumeEnum 
 			_context->IASetVertexBuffers(0, 1, mesh.pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
 
 			//Set index buffer
-			_context->IASetIndexBuffer(mesh.pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
+			_context->IASetIndexBuffer(mesh.pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
 			//Update bounding volume
 			XMMATRIX transformM;
