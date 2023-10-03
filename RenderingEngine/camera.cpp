@@ -44,6 +44,8 @@ void Camera::moveCamera(XMVECTOR offset) {
 void Camera::turnCamera(float yawOffset, float pitchOffset) {
 	yaw -= yawOffset * cameraRotateSpeed;
 	pitch -= pitchOffset * cameraRotateSpeed;
+	
+	pitch = pitch > 90.f ? 89.9f : pitch < -90.f ? -89.9f : pitch;
 
 	directionF.x = XMScalarCos(XMConvertToRadians(yaw)) * XMScalarCos(XMConvertToRadians(pitch));
 	directionF.y = XMScalarSin(XMConvertToRadians(pitch));
