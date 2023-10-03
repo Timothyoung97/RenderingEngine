@@ -49,8 +49,8 @@ public:
 	static BoundingSphere createNaiveBS(const std::vector<XMFLOAT3>& uniquePoint);
 	static AABB createAABB(const std::vector<XMFLOAT3>& uniquePoint);
 
-	static XMMATRIX updateBoundingSphere(BoundingSphere& meshSphere, BoundingSphere& objSphere, XMFLOAT3 scale, XMFLOAT3 rotation, XMFLOAT3 position);
-	static XMMATRIX updateAABB(AABB& meshAABB, AABB& objAABB, XMFLOAT3 scale, XMFLOAT3 rotation, XMFLOAT3 position);
+	static XMMATRIX updateBoundingSphere(BoundingSphere& meshSphere, BoundingSphere& objSphere, XMMATRIX transformation);
+	static XMMATRIX updateAABB(AABB& meshAABB, AABB& objAABB, XMMATRIX transformation);
 };
 
 }

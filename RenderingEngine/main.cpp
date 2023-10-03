@@ -390,13 +390,13 @@ int main()
 		for (int i = 0; i < scene._opaqueObjQ.size(); i++) {
 			switch (typeOfBound) {
 			case tre::AABBBoundingBox:
-				tre::BoundingVolume::updateAABB(scene._opaqueObjQ[i].first->pObjMeshes[0]->aabb, scene._opaqueObjQ[i].first->aabb[0], scene._opaqueObjQ[i].first->objScale, scene._opaqueObjQ[i].first->objRotation, scene._opaqueObjQ[i].first->objPos);
+				tre::BoundingVolume::updateAABB(scene._opaqueObjQ[i].first->pObjMeshes[0]->aabb, scene._opaqueObjQ[i].first->aabb[0], scene._opaqueObjQ[i].first->_transformationFinal);
 				break;
 			case tre::RitterBoundingSphere:
-				tre::BoundingVolume::updateBoundingSphere(scene._opaqueObjQ[i].first->pObjMeshes[0]->ritterSphere, scene._opaqueObjQ[i].first->ritterBs[0], scene._opaqueObjQ[i].first->objScale, scene._opaqueObjQ[i].first->objRotation, scene._opaqueObjQ[i].first->objPos);
+				tre::BoundingVolume::updateBoundingSphere(scene._opaqueObjQ[i].first->pObjMeshes[0]->ritterSphere, scene._opaqueObjQ[i].first->ritterBs[0], scene._opaqueObjQ[i].first->_transformationFinal);
 				break;
 			case tre::NaiveBoundingSphere:
-				tre::BoundingVolume::updateBoundingSphere(scene._opaqueObjQ[i].first->pObjMeshes[0]->naiveSphere, scene._opaqueObjQ[i].first->naiveBs[0], scene._opaqueObjQ[i].first->objScale, scene._opaqueObjQ[i].first->objRotation, scene._opaqueObjQ[i].first->objPos);
+				tre::BoundingVolume::updateBoundingSphere(scene._opaqueObjQ[i].first->pObjMeshes[0]->naiveSphere, scene._opaqueObjQ[i].first->naiveBs[0], scene._opaqueObjQ[i].first->_transformationFinal);
 				break;
 			}
 

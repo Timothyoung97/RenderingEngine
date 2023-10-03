@@ -267,15 +267,15 @@ void Renderer::debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh
 			XMMATRIX transformM;
 			switch (typeOfBound) {
 			case RitterBoundingSphere:
-				transformM = tre::BoundingVolume::updateBoundingSphere(currObj->pObjMeshes[j]->ritterSphere, currObj->ritterBs[j], currObj->objScale, currObj->objRotation, currObj->objPos);
+				transformM = tre::BoundingVolume::updateBoundingSphere(currObj->pObjMeshes[j]->ritterSphere, currObj->ritterBs[j], currObj->_transformationFinal);
 				break;
 
 			case NaiveBoundingSphere:
-				transformM = tre::BoundingVolume::updateBoundingSphere(currObj->pObjMeshes[j]->naiveSphere, currObj->naiveBs[j], currObj->objScale, currObj->objRotation, currObj->objPos);
+				transformM = tre::BoundingVolume::updateBoundingSphere(currObj->pObjMeshes[j]->naiveSphere, currObj->naiveBs[j], currObj->_transformationFinal);
 				break;
 
 			case AABBBoundingBox:
-				transformM = tre::BoundingVolume::updateAABB(currObj->pObjMeshes[j]->aabb, currObj->aabb[j], currObj->objScale, currObj->objRotation, currObj->objPos);
+				transformM = tre::BoundingVolume::updateAABB(currObj->pObjMeshes[j]->aabb, currObj->aabb[j], currObj->_transformationFinal);
 				break;
 			}
 
