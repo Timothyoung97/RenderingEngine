@@ -5,6 +5,7 @@
 #include "mesh.h"
 #include "texture.h"
 #include "material.h"
+#include "light.h"
 
 #include <vector>
 
@@ -19,6 +20,9 @@ public:
 	float dirlightYaw = .0f;
 	float dirlightPitch = 45.f;
 	
+	//Pt Light
+	tre::LightResource lightResc;
+
 	// Resources
 	std::vector<Mesh> _debugMeshes;
 	std::vector<Texture> _debugTextures;
@@ -44,5 +48,6 @@ public:
 
 	void createFloor();
 	void updateDirLight();
+	void updatePtLight();
 };
 }

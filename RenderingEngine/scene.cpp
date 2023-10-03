@@ -39,6 +39,29 @@ Scene::Scene(ID3D11Device* device) {
 		Material {&_debugTextures[4], &_debugNormalTextures[1]},
 		Material {nullptr, nullptr, tre::colorF(Colors::White)}
 	};
+
+	// Pt Lights
+	lightResc.create(device);
+	lightResc.pointLights = {
+		{ XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT3(3.0f, 3.0f, 3.0f), 100.0f, XMFLOAT3(.0f, .2f, .0f), .0f, XMFLOAT4(.1f, .1f, .1f, .1f), XMFLOAT4(.5f, .5f, .5f, .5f) },
+		{ XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT3(-3.0f, -3.0f, -3.0f), 100.0f, XMFLOAT3(.0f, .2f, .0f), .0f, XMFLOAT4(.1f, .1f, .1f, .1f), XMFLOAT4(.5f, .5f, .5f, .5f) },
+		{ XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT3(.0f, .0f, .0f), 100.0f, XMFLOAT3(.0f, .2f, .0f), .0f, XMFLOAT4(.1f, .1f, .1f, .1f), XMFLOAT4(.5f, .5f, .5f, .5f) },
+		{ XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT3(-1.0f, .0f, -1.0f), 100.0f, XMFLOAT3(.0f, .2f, .0f), .0f, XMFLOAT4(.1f, .1f, .1f, .1f), XMFLOAT4(.5f, .5f, .5f, .5f) }
+	};
+
+	for (int i = 0; i < 4; i++) {
+		tre::Object newLightObj;
+
+		newLightObj.pObjMeshes = { &_debugMeshes[1] }; // sphere
+		newLightObj.pObjMeshes[0]->material = &_debugMaterials[2];
+		newLightObj.objPos = lightResc.pointLights[i].pos;
+		newLightObj.objScale = XMFLOAT3(.1f, .1f, .1f);
+		newLightObj.objRotation = XMFLOAT3(.0f, .0f, .0f);
+		newLightObj._boundingVolumeColor = { XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) };
+
+		_objQ.push_back(newLightObj);
+		_wireframeObjQ.push_back(&_objQ.back());
+	}
 }
 	
 void Scene::createFloor() {
@@ -61,6 +84,9 @@ void Scene::updateDirLight() {
 	dirlight = {
 		dirF, .0f, XMFLOAT4(.5f, .5f, .5f, 1.0f), XMFLOAT4(.5f, .5f, .5f, .5f)
 	};
+}
+
+void Scene::updatePtLight() {
 }
 
 }

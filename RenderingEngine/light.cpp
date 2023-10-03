@@ -5,7 +5,7 @@
 
 namespace tre {
 
-LightResource::LightResource(ID3D11Device* device) {
+void LightResource::create(ID3D11Device* device) {
 	
 	// persistent
 	D3D11_BUFFER_DESC lightBufferDescGPU;

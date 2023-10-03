@@ -29,7 +29,6 @@
 #include "object.h"
 #include "shader.h"
 #include "renderer.h"
-#include "light.h"
 #include "colors.h"
 #include "boundingvolume.h"
 #include "maths.h"
@@ -83,40 +82,11 @@ int main()
 	//Create Camera
 	tre::Camera cam(tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);
 
-	// create point light
-	tre::PointLight pointLight[4] = {
-		{ XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT3(.0f, .0f, .0f), 100.0f, XMFLOAT3(.0f, .2f, .0f), .0f, XMFLOAT4(.1f, .1f, .1f, .1f), XMFLOAT4(.5f, .5f, .5f, .5f) },
-		{ XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT3(.0f, .0f, .0f), 100.0f, XMFLOAT3(.0f, .2f, .0f), .0f, XMFLOAT4(.1f, .1f, .1f, .1f), XMFLOAT4(.5f, .5f, .5f, .5f) },
-		{ XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT3(.0f, .0f, .0f), 100.0f, XMFLOAT3(.0f, .2f, .0f), .0f, XMFLOAT4(.1f, .1f, .1f, .1f), XMFLOAT4(.5f, .5f, .5f, .5f) },
-		{ XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT3(.0f, .0f, .0f), 100.0f, XMFLOAT3(.0f, .2f, .0f), .0f, XMFLOAT4(.1f, .1f, .1f, .1f), XMFLOAT4(.5f, .5f, .5f, .5f) },
-	};
-
 	float stackAnglePtLight[] = { .0f, .0f, .0f, .0f };
 	float sectorAnglePtLight[] = { .0f, .0f, .0f, -90.0f };
+
 	XMFLOAT3 originPtLight[] = { XMFLOAT3(3.0f, 3.0f, 3.0f),  XMFLOAT3(-3.0f, -3.0f, -3.0f), XMFLOAT3(.0f, .0f, .0f), XMFLOAT3(-1.0f, .0f, -1.0f) };
-
-	float stackAngleForTeapot = .0f, sectorAngleForTeapot = .0f;
-
-	// light wireframe obj
-
-	for (int i = 0; i < 4; i++) {
-		tre::Object newLightObj;
-
-		newLightObj.pObjMeshes = { &scene._debugMeshes[1] }; // sphere
-		newLightObj.pObjMeshes[0]->material = &scene._debugMaterials[2];
-		newLightObj.objPos = originPtLight[i];
-		newLightObj.objScale = XMFLOAT3(.1f, .1f, .1f);
-		newLightObj.objRotation = XMFLOAT3(.0f, .0f, .0f);
-		newLightObj._boundingVolumeColor = { XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) };
-
-		scene._objQ.push_back(newLightObj);
-		scene._wireframeObjQ.push_back(&scene._objQ.back());
-	}
-
-	tre::LightResource lightResc(deviceAndContext.device.Get());
-
-	lightResc.pointLights.assign(std::begin(pointLight), std::end(pointLight));
-	lightResc.updateBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get());
+	scene.lightResc.updateBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get());
 
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
@@ -329,15 +299,15 @@ int main()
 			{	// light 
 				ImGui::SeparatorText("Lights");
 				ImGui::Checkbox("Pause Light", &pauseLight);
-				if (lightResc.pointLights.size() < lightResc.maxPointLightNum) {
+				if (scene.lightResc.pointLights.size() < scene.lightResc.maxPointLightNum) {
 					if (ImGui::Button("Add Pt Light")) {
-						lightResc.addPointLight();
+						scene.lightResc.addPointLight();
 
 						tre::Object newLightObj;
 
 						newLightObj.pObjMeshes = { &scene._debugMeshes[1] }; // sphere
 						newLightObj.pObjMeshes[0]->material = &scene._debugMaterials[2];
-						newLightObj.objPos = lightResc.pointLights.back().pos;
+						newLightObj.objPos = scene.lightResc.pointLights.back().pos;
 						newLightObj.objScale = XMFLOAT3(.1f, .1f, .1f);
 						newLightObj.objRotation = XMFLOAT3(.0f, .0f, .0f);
 						newLightObj._boundingVolumeColor = { tre::colorF(Colors::White) };
@@ -346,9 +316,9 @@ int main()
 						scene._wireframeObjQ.push_back(&scene._objQ.back());
 					}
 					ImGui::SameLine();
-					ImGui::Text("Current Light Count: %d/%d", lightResc.pointLights.size(), lightResc.maxPointLightNum);
+					ImGui::Text("Current Light Count: %d/%d", scene.lightResc.pointLights.size(), scene.lightResc.maxPointLightNum);
 				} else {
-					ImGui::Text("Max Light Count: %d/%d", lightResc.pointLights.size(), lightResc.maxPointLightNum);
+					ImGui::Text("Max Light Count: %d/%d", scene.lightResc.pointLights.size(), scene.lightResc.maxPointLightNum);
 				}
 
 				ImGui::BulletText("Dir Light");
@@ -401,7 +371,7 @@ int main()
 			renderer.setShadowBufferDrawSection(i);
 
 			// set const buffer from the light pov 
-			tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, lightViewProjs[i], lightViewProjs, planeIntervalsF, scene.dirlight, lightResc.pointLights.size(), XMFLOAT2(4096, 4096), csmDebugSwitch);
+			tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, lightViewProjs[i], lightViewProjs, planeIntervalsF, scene.dirlight, scene.lightResc.pointLights.size(), XMFLOAT2(4096, 4096), csmDebugSwitch);
 
 			renderer.draw({ &scene._floor, scene._opaqueObjQ[0] }, tre::RENDER_MODE::SHADOW_M);
 		}
@@ -413,7 +383,7 @@ int main()
 		cam.updateCamera();
 
 		// set const buffer for camera
-		tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, cam.camViewProjection, lightViewProjs, planeIntervalsF, scene.dirlight, lightResc.pointLights.size(), XMFLOAT2(4096, 4096), csmDebugSwitch);
+		tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, cam.camViewProjection, lightViewProjs, planeIntervalsF, scene.dirlight, scene.lightResc.pointLights.size(), XMFLOAT2(4096, 4096), csmDebugSwitch);
 
 		// cull objects
 		scene._culledOpaqueObjQ.clear();
@@ -489,33 +459,29 @@ int main()
 			// rotate point light 1
 			sectorAnglePtLight[0] += 1.0f;
 			if (sectorAnglePtLight[0] == 360.0f) sectorAnglePtLight[0] = .0f;
-			pointLight[0].pos = tre::Maths::getRotatePosition(originPtLight[0], stackAnglePtLight[0], sectorAnglePtLight[0], 1.0f);
-			scene._wireframeObjQ[0]->objPos = pointLight[0].pos;
-			lightResc.pointLights[0].pos = scene._wireframeObjQ[0]->objPos;
+			scene.lightResc.pointLights[0].pos = tre::Maths::getRotatePosition(originPtLight[0], stackAnglePtLight[0], sectorAnglePtLight[0], 1.0f);
+			scene._wireframeObjQ[0]->objPos = scene.lightResc.pointLights[0].pos;
 
 			// rotate point light 2
 			stackAnglePtLight[1] += 1.0f;
 			if (stackAnglePtLight[1] == 360.0f) stackAnglePtLight[1] = .0f;
-			pointLight[1].pos = tre::Maths::getRotatePosition(originPtLight[1], stackAnglePtLight[1], sectorAnglePtLight[1], 1.0f);
-			scene._wireframeObjQ[1]->objPos = pointLight[1].pos;
-			lightResc.pointLights[1].pos = scene._wireframeObjQ[1]->objPos;
+			scene.lightResc.pointLights[1].pos = tre::Maths::getRotatePosition(originPtLight[1], stackAnglePtLight[1], sectorAnglePtLight[1], 1.0f);
+			scene._wireframeObjQ[1]->objPos = scene.lightResc.pointLights[1].pos;
 
 			// rotate point light 3
 			sectorAnglePtLight[2] += 5.0f;
 			if (sectorAnglePtLight[2] == 360.0f) sectorAnglePtLight[2] = .0f;
-			pointLight[2].pos = tre::Maths::getRotatePosition(originPtLight[2], stackAnglePtLight[2], sectorAnglePtLight[2], 5.0f);
-			scene._wireframeObjQ[2]->objPos = pointLight[2].pos;
-			lightResc.pointLights[2].pos = scene._wireframeObjQ[2]->objPos;
+			scene.lightResc.pointLights[2].pos = tre::Maths::getRotatePosition(originPtLight[2], stackAnglePtLight[2], sectorAnglePtLight[2], 5.0f);
+			scene._wireframeObjQ[2]->objPos = scene.lightResc.pointLights[2].pos;
 
 			// rotate point light 4
 			stackAnglePtLight[3] += 5.0f;
 			if (stackAnglePtLight[3] == 360.0f) stackAnglePtLight[3] = .0f;
-			pointLight[3].pos = tre::Maths::getRotatePosition(originPtLight[3], stackAnglePtLight[3], sectorAnglePtLight[3], 5.0f);
-			scene._wireframeObjQ[3]->objPos = pointLight[3].pos;
-			lightResc.pointLights[3].pos = scene._wireframeObjQ[3]->objPos;
+			scene.lightResc.pointLights[3].pos = tre::Maths::getRotatePosition(originPtLight[3], stackAnglePtLight[3], sectorAnglePtLight[3], 5.0f);
+			scene._wireframeObjQ[3]->objPos = scene.lightResc.pointLights[3].pos;
 		}
-		lightResc.updateBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get());
-		deviceAndContext.context.Get()->PSSetShaderResources(2, 1, lightResc.pLightShaderRescView.GetAddressOf());
+		scene.lightResc.updateBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get());
+		deviceAndContext.context.Get()->PSSetShaderResources(2, 1, scene.lightResc.pLightShaderRescView.GetAddressOf());
 
 		// Draw all light object wireframe
 		renderer.draw(scene._wireframeObjQ, tre::RENDER_MODE::WIREFRAME_M);

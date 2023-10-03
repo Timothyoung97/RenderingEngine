@@ -37,8 +37,7 @@ public:
 	std::vector<PointLight> pointLights;
 	int maxPointLightNum = 9;
 
-	LightResource(ID3D11Device* device);
-
+	void create(ID3D11Device* device);
 	void updateBuffer(ID3D11Device* device, ID3D11DeviceContext* context);
 	void addPointLight();
 };
