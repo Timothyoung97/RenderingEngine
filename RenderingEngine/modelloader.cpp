@@ -17,6 +17,7 @@ namespace tre {
 void ModelLoader::load(ID3D11Device* device, std::string filename) {
 	Assimp::Importer importer;
 
+	spdlog::info("Importing {}", filename);
 	const aiScene* pScene = importer.ReadFile(filename,
 		aiProcess_Triangulate |
 		aiProcess_MakeLeftHanded | 
@@ -28,24 +29,30 @@ void ModelLoader::load(ID3D11Device* device, std::string filename) {
 
 	this->_directoryPath = tre::Utility::getDirPathStr(filename);
 
+	spdlog::info("Importing Resources");
 	this->loadResource(device, pScene);
 
+	spdlog::info("Procesing Nodes");
 	this->processNode(pScene->mRootNode, &this->_obj, nullptr, pScene);
 
+	spdlog::info("Updating Transformation");
 	this->updateObj(&this->_obj, XMMatrixIdentity());
 }
 
 void ModelLoader::loadResource(ID3D11Device* device, const aiScene* scene) {
 	
 	// first pass: load in all meshes, using its idx in scene as key
+	spdlog::info("Begin Mesh Loading");
 	for (int i = 0; i < scene->mNumMeshes; i++) {
 		aiMesh* mesh = scene->mMeshes[i];
 		if (!_meshes.contains(i)) {
+			spdlog::info("Loading mesh {}", i);
 			_meshes[i] = CustomMesh(device, mesh);	
 		}
 	}
 
 	// second pass: load in all textures via iterating through all materials, using filename as key
+	spdlog::info("Begin Texture Loading");
 	for (int i = 0; i < scene->mNumMaterials; i++) {
 		aiMaterial* material = scene->mMaterials[i];
 
@@ -53,6 +60,7 @@ void ModelLoader::loadResource(ID3D11Device* device, const aiScene* scene) {
 
 		material->GetTexture(aiTextureType_DIFFUSE, 0, &diffuseTexName);
 		if (diffuseTexName.length && !_textures.contains(diffuseTexName.C_Str())) {
+			spdlog::info("Loading diffuse texture {}", diffuseTexName.C_Str());
 			std::string fullFilepath = this->_directoryPath + tre::Utility::uriDecode(std::string(diffuseTexName.C_Str()));
 			_textures[diffuseTexName.C_Str()] = tre::TextureLoader::createTexture(device, fullFilepath);
 		}
@@ -60,12 +68,14 @@ void ModelLoader::loadResource(ID3D11Device* device, const aiScene* scene) {
 		aiString normalMapName;
 		material->GetTexture(aiTextureType_NORMALS, 0, &normalMapName);
 		if (normalMapName.length && !_textures.contains(normalMapName.C_Str())) {
+			spdlog::info("Loading normal texture {}", normalMapName.C_Str());
 			std::string fullFilepath = this->_directoryPath + tre::Utility::uriDecode(std::string(normalMapName.C_Str()));
 			_textures[normalMapName.C_Str()] = tre::TextureLoader::createTexture(device, fullFilepath);
 		}
 	}
 
 	// assign respective materials with its textures
+	spdlog::info("Assigning textures to materials");
 	for (int i = 0; i < scene->mNumMaterials; i++) {
 		aiMaterial* material = scene->mMaterials[i];
 		if (!_materials.contains(i)) {
@@ -94,6 +104,7 @@ void ModelLoader::loadResource(ID3D11Device* device, const aiScene* scene) {
 	}
 
 	// assign materials to apply on mashes
+	spdlog::info("Assigning materials to meshes");
 	for (int i = 0; i < scene->mNumMeshes; i++) {
 		_meshes[i].material = &_materials[scene->mMeshes[i]->mMaterialIndex];
 	}
