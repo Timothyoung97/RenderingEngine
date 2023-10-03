@@ -66,13 +66,13 @@ Scene::Scene(ID3D11Device* device) {
 }
 	
 void Scene::createFloor() {
-
 	_floor.pObjMeshes = { &_debugMeshes[3] };
 	_floor.pObjMeshes[0]->material = &_debugMaterials[2];
 	_floor.objPos = XMFLOAT3(.0f, .0f, .0f);
 	_floor.objScale = XMFLOAT3(100.f, 0.01f, 100.f);
 	_floor.objRotation = XMFLOAT3(.0f, .0f, .0f);
 	_floor._boundingVolumeColor = { tre::colorF(Colors::WhiteSmoke) };
+	_floor._transformationFinal = tre::Maths::createTransformationMatrix(_floor.objScale, _floor.objRotation, _floor.objPos);
 }
 
 void Scene::updateDirLight() {
