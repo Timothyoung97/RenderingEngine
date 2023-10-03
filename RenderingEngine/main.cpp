@@ -387,6 +387,7 @@ int main()
 
 		// cull objects
 		scene._culledOpaqueObjQ.clear();
+		scene._culledOpaqueObjQ.push_back(std::make_pair(&scene._floor, scene._floor.pObjMeshes[0]));
 		for (int i = 0; i < scene._opaqueObjQ.size(); i++) {
 			switch (typeOfBound) {
 			case tre::AABBBoundingBox:
@@ -465,13 +466,6 @@ int main()
 
 		// Draw all opaque objects
 		renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_MODE::OPAQUE_M);
-
-		//for (int i = 0; i < ml._objectWithMesh.size(); i++) {
-		//	XMMATRIX matrix = ml._objectWithMesh[i]->makeLocalToWorldMatrix();
-		//	renderer.draw(ml._objectWithMesh[i], tre::RENDER_MODE::OPAQUE_M, matrix);
-		//}
-
-		//renderer.recursiveDraw(&ml._obj, tre::RENDER_MODE::OPAQUE_M);
 
 		// Draw all transparent objects
 		renderer.draw(scene._culledTransparentObjQ, tre::RENDER_MODE::TRANSPARENT_M);
