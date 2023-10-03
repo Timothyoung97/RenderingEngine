@@ -115,6 +115,7 @@ Done:
 //////////////////////////////////////////////////////////////////////////////
 
 Engine Tasks:
+• Camera speed control using scroll
 • Assertions
 • Command line arguments
     • https://github.com/jarro2783/cxxopts
