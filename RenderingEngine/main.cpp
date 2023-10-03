@@ -49,6 +49,11 @@ int main()
 	//Create Device 
 	tre::Device deviceAndContext;
 
+	// Scene
+	tre::Scene scene(deviceAndContext.device.Get());
+	scene.createFloor();
+	scene.updateDirLight();
+
 	//File path
 	std::string basePathStr = tre::Utility::getBasePathStr();
 	
@@ -65,11 +70,6 @@ int main()
 
 	ml.load(deviceAndContext.device.Get(), f.result()[0]);
 
-	// Scene
-	tre::Scene scene(deviceAndContext.device.Get());
-	scene.createFloor();
-	scene.updateDirLight();
-
 	//Create Renderer
 	tre::Renderer renderer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), window.getWindowHandle());
 
@@ -84,8 +84,8 @@ int main()
 
 	float stackAnglePtLight[] = { .0f, .0f, .0f, .0f };
 	float sectorAnglePtLight[] = { .0f, .0f, .0f, -90.0f };
-
 	XMFLOAT3 originPtLight[] = { XMFLOAT3(3.0f, 3.0f, 3.0f),  XMFLOAT3(-3.0f, -3.0f, -3.0f), XMFLOAT3(.0f, .0f, .0f), XMFLOAT3(-1.0f, .0f, -1.0f) };
+
 	scene.lightResc.updateBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get());
 
 	// Setup Dear ImGui context
@@ -143,7 +143,6 @@ int main()
 	else {
 		scene._opaqueObjQ.push_back(&scene._objQ.back());
 	}
-
 
 	// main loop
 	while (!input.shouldQuit())
