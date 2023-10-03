@@ -19,52 +19,60 @@ void Input::updateInputEvent() {
 	switch (e.type) {
 	case SDL_KEYDOWN:
 		if (e.key.state == SDL_PRESSED) {
-			keyState[e.key.keysym.scancode] = 1;
+			_keyState[e.key.keysym.scancode] = 1;
 		}
 		break;
 	case SDL_KEYUP:
 		if (e.key.state == SDL_RELEASED) {
-			keyState[e.key.keysym.scancode] = 0;
+			_keyState[e.key.keysym.scancode] = 0;
 		}
 		break;
 	case SDL_MOUSEBUTTONDOWN:
 		if (e.button.state == SDL_PRESSED) {
-			mouseButtonState[MOUSE_BUTTON_IDX(e.button.button)] = 1;
+			_mouseButtonState[MOUSE_BUTTON_IDX(e.button.button)] = 1;
 			// mouse pressed position
-			lastPos.x = (float) e.button.x;
-			lastPos.y = (float) e .button.y;
+			_lastPos.x = (float) e.button.x;
+			_lastPos.y = (float) e.button.y;
 		}
 		break;
 	case SDL_MOUSEMOTION:
-		if (mouseButtonState[MOUSE_BUTTON_IDX(SDL_BUTTON_RIGHT)]) {
+		if (_mouseButtonState[MOUSE_BUTTON_IDX(SDL_BUTTON_RIGHT)]) {
 			// update mouse delta motion
-			deltaDisplacement.x = (float) e.motion.x - lastPos.x;
-			deltaDisplacement.y = (float) e.motion.y - lastPos.y;
-			lastPos.x = (float) e.motion.x;
-			lastPos.y = (float) e.motion.y;
+			_deltaDisplacement.x = (float) e.motion.x - _lastPos.x;
+			_deltaDisplacement.y = (float) e.motion.y - _lastPos.y;
+			_lastPos.x = (float) e.motion.x;
+			_lastPos.y = (float) e.motion.y;
 		}
 		break;
 	case SDL_MOUSEBUTTONUP:
 		if (e.button.state == SDL_RELEASED) {
-			mouseButtonState[MOUSE_BUTTON_IDX(e.button.button)] = 0;
+			_mouseButtonState[MOUSE_BUTTON_IDX(e.button.button)] = 0;
 
 			// set detla motion back to zero
-			deltaDisplacement.x = 0;
-			deltaDisplacement.y = 0;
-			lastPos.x = 0;
-			lastPos.y = 0;
+			_deltaDisplacement.x = 0;
+			_deltaDisplacement.y = 0;
+			_lastPos.x = 0;
+			_lastPos.y = 0;
+		}
+		break;
+	case SDL_MOUSEWHEEL:
+		if (_mouseButtonState[MOUSE_BUTTON_IDX(SDL_BUTTON_RIGHT)]) {
+			if (e.wheel.y != 0) {
+				_mouseWheelScollY = e.wheel.preciseY * .001f; // hardcoded multipler
+			}
 		}
 		break;
 	case SDL_QUIT:
-		toQuit = true;
+		_toQuit = true;
 		break;
 	default:
+		_mouseWheelScollY = 0;
 		break;
 	}
 }
 
 bool Input::shouldQuit() {
-	return toQuit;
+	return _toQuit;
 }
 
 Input::~Input() {};

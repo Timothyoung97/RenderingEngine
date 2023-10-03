@@ -12,11 +12,12 @@ namespace tre {
 class Input {
 	
 public:
-	bool toQuit = false;
-	int keyState[SDL_NUM_SCANCODES]{};
-	int mouseButtonState[5]{}; // total of 5 buttons in SDL2
-	XMFLOAT2 deltaDisplacement = XMFLOAT2(.0f, .0f); // <xRel, yRel>
-	XMFLOAT2 lastPos = XMFLOAT2(.0f, .0f); // <x, y>
+	bool _toQuit = false;
+	int _keyState[SDL_NUM_SCANCODES]{};
+	int _mouseButtonState[5]{}; // total of 5 buttons in SDL2
+	XMFLOAT2 _deltaDisplacement = XMFLOAT2(.0f, .0f); // <xRel, yRel>
+	XMFLOAT2 _lastPos = XMFLOAT2(.0f, .0f); // <x, y>
+	float _mouseWheelScollY = 0;
 
 	Input();
 	void updateInputEvent();
