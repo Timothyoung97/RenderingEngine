@@ -140,7 +140,7 @@ void Renderer::draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MO
 		//Config and set const buffer
 		tre::ConstantBuffer::setObjConstBuffer(
 			_device, _context,
-			tre::Maths::createTransformationMatrix(objQ[i].first->objScale, objQ[i].first->objRotation, objQ[i].first->objPos),
+			objQ[i].first->_transformationFinal,
 			objQ[i].second->material->baseColor,
 			hasTexture,
 			hasNormal

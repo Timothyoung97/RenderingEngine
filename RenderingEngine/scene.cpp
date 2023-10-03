@@ -37,7 +37,8 @@ Scene::Scene(ID3D11Device* device) {
 	_debugMaterials = {
 		Material {&_debugTextures[3], &_debugNormalTextures[0]},
 		Material {&_debugTextures[4], &_debugNormalTextures[1]},
-		Material {nullptr, nullptr, tre::colorF(Colors::White)}
+		Material {nullptr, nullptr, tre::colorF(Colors::White)},
+		Material {&_debugTextures[2], nullptr},
 	};
 
 	// Pt Lights
