@@ -260,7 +260,7 @@ void Renderer::debugDraw(std::vector<Object*> objQ, Mesh& mesh, BoundVolumeEnum 
 		UINT vertexStride = sizeof(Vertex);
 		UINT offset = 0;
 
-		for (int j = 0; j < objQ.size(); j++) {
+		for (int j = 0; j < currObj->pObjMeshes.size(); j++) {
 			//Set vertex buffer
 			_context->IASetVertexBuffers(0, 1, mesh.pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
 
