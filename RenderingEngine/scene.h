@@ -25,6 +25,15 @@ public:
 	std::vector<Texture> _debugNormalTextures;
 	std::vector<Material> _debugMaterials;
 
+	// Object Q
+	std::vector<tre::Object> _opaqueObjQ;
+	std::vector<tre::Object> _transparentObjQ;
+	std::vector<tre::Object> _culledOpaqueObjQ;
+	std::vector<tre::Object> _culledTransparentObjQ;
+
+	bool _toSortTransparentQ = false;
+	bool _toRecalDistFromCam = false;
+
 	Scene(ID3D11Device* device);
 
 	tre::Object _floor;

@@ -83,14 +83,6 @@ int main()
 	//Create Camera
 	tre::Camera cam(tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);
 
-	std::vector<tre::Object> opaqueObjQ;
-	std::vector<tre::Object> transparentObjQ;	
-	std::vector<tre::Object> culledOpaqueObjQ;
-	std::vector<tre::Object> culledTransparentObjQ;
-
-	bool toSortTransparentQ = false;
-	bool toRecalDistFromCam = false;
-
 	// create point light
 	tre::PointLight pointLight[4] = {
 		{ XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT3(.0f, .0f, .0f), 100.0f, XMFLOAT3(.0f, .2f, .0f), .0f, XMFLOAT4(.1f, .1f, .1f, .1f), XMFLOAT4(.5f, .5f, .5f, .5f) },
@@ -172,13 +164,13 @@ int main()
 		// find its distance from cam
 		debugModel.distFromCam = tre::Maths::distBetweentObjToCam(debugModel.objPos, cam.camPositionV);
 
-		transparentObjQ.push_back(debugModel);
+		scene._transparentObjQ.push_back(debugModel);
 
-		toSortTransparentQ = true;
+		scene._toSortTransparentQ = true;
 
 	}
 	else {
-		opaqueObjQ.push_back(debugModel);
+		scene._opaqueObjQ.push_back(debugModel);
 	}
 
 
@@ -193,27 +185,27 @@ int main()
 		// Control
 		if (input._keyState[SDL_SCANCODE_W]) { // control camera movement
 			cam.moveCamera(cam.directionV * deltaTime);
-			toRecalDistFromCam = true;
+			scene._toRecalDistFromCam = true;
 		}
 		else if (input._keyState[SDL_SCANCODE_S]) {
 			cam.moveCamera(-cam.directionV * deltaTime);
-			toRecalDistFromCam = true;
+			scene._toRecalDistFromCam = true;
 		}
 		else if (input._keyState[SDL_SCANCODE_D]) {
 			cam.moveCamera(-cam.camRightV * deltaTime);
-			toRecalDistFromCam = true;
+			scene._toRecalDistFromCam = true;
 		}
 		else if (input._keyState[SDL_SCANCODE_A]) {
 			cam.moveCamera(cam.camRightV * deltaTime);
-			toRecalDistFromCam = true;
+			scene._toRecalDistFromCam = true;
 		}
 		else if (input._keyState[SDL_SCANCODE_Q]) {
 			cam.moveCamera(cam.defaultUpV * deltaTime);
-			toRecalDistFromCam = true;
+			scene._toRecalDistFromCam = true;
 		}
 		else if (input._keyState[SDL_SCANCODE_E]) {
 			cam.moveCamera(-cam.defaultUpV * deltaTime);
-			toRecalDistFromCam = true;
+			scene._toRecalDistFromCam = true;
 		}
 		else if (input._mouseWheelScollY != 0) {
 			cam.cameraMoveSpeed = SDL_clamp(cam.cameraMoveSpeed + input._mouseWheelScollY, .001f, .5f);
@@ -247,13 +239,13 @@ int main()
 				// find its distance from cam
 				newObj.distFromCam = tre::Maths::distBetweentObjToCam(newObj.objPos, cam.camPositionV);
 
-				transparentObjQ.push_back(newObj);
+				scene._transparentObjQ.push_back(newObj);
 
-				toSortTransparentQ = true;
+				scene._toSortTransparentQ = true;
 
 			}
 			else {
-				opaqueObjQ.push_back(newObj);
+				scene._opaqueObjQ.push_back(newObj);
 			}
 		}
 
@@ -265,7 +257,7 @@ int main()
 		if (show_demo_window)
 			ImGui::ShowDemoWindow(&show_demo_window);
 
-		if (opaqueObjQ.size())
+		if (scene._opaqueObjQ.size())
 		{
 			static float f = 0.0f;
 			static int counter = 0;
@@ -278,17 +270,17 @@ int main()
 
 				ImGui::SeparatorText("Test Object Control");
 				
-				float translation[3] = { opaqueObjQ[0].objPos.x, opaqueObjQ[0].objPos.y,  opaqueObjQ[0].objPos.z };
+				float translation[3] = { scene._opaqueObjQ[0].objPos.x, scene._opaqueObjQ[0].objPos.y,  scene._opaqueObjQ[0].objPos.z };
 				ImGui::SliderFloat3("Translation", translation, .0f, 20.f);
-				opaqueObjQ[0].objPos = XMFLOAT3(translation);
+				scene._opaqueObjQ[0].objPos = XMFLOAT3(translation);
 
-				float rotationXYZ[3] = { opaqueObjQ[0].objRotation.x, opaqueObjQ[0].objRotation.y,  opaqueObjQ[0].objRotation.z};
+				float rotationXYZ[3] = { scene._opaqueObjQ[0].objRotation.x, scene._opaqueObjQ[0].objRotation.y, scene._opaqueObjQ[0].objRotation.z};
 				ImGui::SliderFloat3("Rotation", rotationXYZ, .0f, 360.f);
-				opaqueObjQ[0].objRotation = XMFLOAT3(rotationXYZ);
+				scene._opaqueObjQ[0].objRotation = XMFLOAT3(rotationXYZ);
 
-				float scaleXYZ = opaqueObjQ[0].objScale.x;
+				float scaleXYZ = scene._opaqueObjQ[0].objScale.x;
 				ImGui::SliderFloat("Scale", &scaleXYZ, .1f, 3.f);
-				opaqueObjQ[0].objScale = XMFLOAT3(scaleXYZ, scaleXYZ, scaleXYZ);
+				scene._opaqueObjQ[0].objScale = XMFLOAT3(scaleXYZ, scaleXYZ, scaleXYZ);
 			}
 
 			{	// Camera Setting
@@ -374,7 +366,7 @@ int main()
 
 			{	// Stats
 				ImGui::SeparatorText("Debug Info");
-				ImGui::Text("Within Frustcum/Total: %d / %d", culledOpaqueObjQ.size(), opaqueObjQ.size());
+				ImGui::Text("Within Frustcum/Total: %d / %d", scene._culledOpaqueObjQ.size(), scene._opaqueObjQ.size());
 				ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 			}
 
@@ -408,7 +400,7 @@ int main()
 			// set const buffer from the light pov 
 			tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, lightViewProjs[i], lightViewProjs, planeIntervalsF, scene.dirlight, lightResc.pointLights.size(), XMFLOAT2(4096, 4096), csmDebugSwitch);
 
-			renderer.draw({ scene._floor, opaqueObjQ[0] }, tre::RENDER_MODE::SHADOW_M);
+			renderer.draw({ scene._floor, scene._opaqueObjQ[0] }, tre::RENDER_MODE::SHADOW_M);
 		}
 
 		renderer.clearBufferToDraw();
@@ -421,43 +413,43 @@ int main()
 		tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, cam.camViewProjection, lightViewProjs, planeIntervalsF, scene.dirlight, lightResc.pointLights.size(), XMFLOAT2(4096, 4096), csmDebugSwitch);
 
 		// cull objects
-		culledOpaqueObjQ.clear();
-		for (int i = 0; i < opaqueObjQ.size(); i++) {
+		scene._culledOpaqueObjQ.clear();
+		for (int i = 0; i < scene._opaqueObjQ.size(); i++) {
 			switch (typeOfBound) {
 			case tre::AABBBoundingBox:
-				tre::BoundingVolume::updateAABB(opaqueObjQ[i].pObjMeshes[0]->aabb, opaqueObjQ[i].aabb[0], opaqueObjQ[i].objScale, opaqueObjQ[i].objRotation, opaqueObjQ[i].objPos);
+				tre::BoundingVolume::updateAABB(scene._opaqueObjQ[i].pObjMeshes[0]->aabb, scene._opaqueObjQ[i].aabb[0], scene._opaqueObjQ[i].objScale, scene._opaqueObjQ[i].objRotation, scene._opaqueObjQ[i].objPos);
 				break;
 			case tre::RitterBoundingSphere:
-				tre::BoundingVolume::updateBoundingSphere(opaqueObjQ[i].pObjMeshes[0]->ritterSphere, opaqueObjQ[i].ritterBs[0], opaqueObjQ[i].objScale, opaqueObjQ[i].objRotation, opaqueObjQ[i].objPos);
+				tre::BoundingVolume::updateBoundingSphere(scene._opaqueObjQ[i].pObjMeshes[0]->ritterSphere, scene._opaqueObjQ[i].ritterBs[0], scene._opaqueObjQ[i].objScale, scene._opaqueObjQ[i].objRotation, scene._opaqueObjQ[i].objPos);
 				break;			
 			case tre::NaiveBoundingSphere:
-				tre::BoundingVolume::updateBoundingSphere(opaqueObjQ[i].pObjMeshes[0]->naiveSphere, opaqueObjQ[i].naiveBs[0], opaqueObjQ[i].objScale, opaqueObjQ[i].objRotation, opaqueObjQ[i].objPos);
+				tre::BoundingVolume::updateBoundingSphere(scene._opaqueObjQ[i].pObjMeshes[0]->naiveSphere, scene._opaqueObjQ[i].naiveBs[0], scene._opaqueObjQ[i].objScale, scene._opaqueObjQ[i].objRotation, scene._opaqueObjQ[i].objPos);
 				break;
 			}
 
-			if (opaqueObjQ[i].aabb[0].isOverlapFrustum(cam.cameraFrustum)) {
-				opaqueObjQ[i]._boundingVolumeColor[0] = tre::colorF(Colors::Green);
-				culledOpaqueObjQ.push_back(opaqueObjQ[i]);
+			if (scene._opaqueObjQ[i].aabb[0].isOverlapFrustum(cam.cameraFrustum)) {
+				scene._opaqueObjQ[i]._boundingVolumeColor[0] = tre::colorF(Colors::Green);
+				scene._culledOpaqueObjQ.push_back(scene._opaqueObjQ[i]);
 			}
-			else if (opaqueObjQ[i].aabb[0].isInFrustum(cam.cameraFrustum)) {
-				opaqueObjQ[i]._boundingVolumeColor[0] = tre::colorF(Colors::Blue);
-				culledOpaqueObjQ.push_back(opaqueObjQ[i]);
+			else if (scene._opaqueObjQ[i].aabb[0].isInFrustum(cam.cameraFrustum)) {
+				scene._opaqueObjQ[i]._boundingVolumeColor[0] = tre::colorF(Colors::Blue);
+				scene._culledOpaqueObjQ.push_back(scene._opaqueObjQ[i]);
 			} else {
-				opaqueObjQ[i]._boundingVolumeColor[0] = tre::colorF(Colors::Red);
+				scene._opaqueObjQ[i]._boundingVolumeColor[0] = tre::colorF(Colors::Red);
 			}
 		}
 
-		culledTransparentObjQ.clear();
-		for (int i = 0; i < transparentObjQ.size(); i++) {
-			if (transparentObjQ[i].aabb[0].isOverlapFrustum(cam.cameraFrustum)) {
-				transparentObjQ[i]._boundingVolumeColor[0] = tre::colorF(Colors::Green);
-				culledTransparentObjQ.push_back(transparentObjQ[i]);
+		scene._culledTransparentObjQ.clear();
+		for (int i = 0; i < scene._transparentObjQ.size(); i++) {
+			if (scene._transparentObjQ[i].aabb[0].isOverlapFrustum(cam.cameraFrustum)) {
+				scene._transparentObjQ[i]._boundingVolumeColor[0] = tre::colorF(Colors::Green);
+				scene._culledTransparentObjQ.push_back(scene._transparentObjQ[i]);
 			}
-			else if (transparentObjQ[i].aabb[0].isInFrustum(cam.cameraFrustum)) {
-				transparentObjQ[i]._boundingVolumeColor[0] = tre::colorF(Colors::Blue);
-				culledTransparentObjQ.push_back(transparentObjQ[i]);
+			else if (scene._transparentObjQ[i].aabb[0].isInFrustum(cam.cameraFrustum)) {
+				scene._transparentObjQ[i]._boundingVolumeColor[0] = tre::colorF(Colors::Blue);
+				scene._culledTransparentObjQ.push_back(scene._transparentObjQ[i]);
 			} else {
-				opaqueObjQ[i]._boundingVolumeColor[0] = tre::colorF(Colors::Red);
+				scene._opaqueObjQ[i]._boundingVolumeColor[0] = tre::colorF(Colors::Red);
 			}
 		}
 
@@ -471,24 +463,24 @@ int main()
 
 		renderer.recursiveDraw(&ml._obj, tre::RENDER_MODE::OPAQUE_M);
 
-		renderer.draw(culledOpaqueObjQ, tre::RENDER_MODE::OPAQUE_M);
+		renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_MODE::OPAQUE_M);
 
-		if (toRecalDistFromCam) {
-			for (int i = 0; i < transparentObjQ.size(); i++) {
-				transparentObjQ[i].distFromCam = tre::Maths::distBetweentObjToCam(transparentObjQ[i].objPos, cam.camPositionV);
+		if (scene._toRecalDistFromCam) {
+			for (int i = 0; i < scene._transparentObjQ.size(); i++) {
+				scene._transparentObjQ[i].distFromCam = tre::Maths::distBetweentObjToCam(scene._transparentObjQ[i].objPos, cam.camPositionV);
 			}
-			toSortTransparentQ = true;
-			toRecalDistFromCam = false;
+			scene._toSortTransparentQ = true;
+			scene._toRecalDistFromCam = false;
 		}
 
 		// sort the vector -> object with greater dist from cam is at the front of the Q
-		if (toSortTransparentQ) {
-			std::sort(transparentObjQ.begin(), transparentObjQ.end(), [](const tre::Object& obj1, const tre::Object& obj2) { return obj1.distFromCam > obj2.distFromCam; });
-			toSortTransparentQ = false;
+		if (scene._toSortTransparentQ) {
+			std::sort(scene._transparentObjQ.begin(), scene._transparentObjQ.end(), [](const tre::Object& obj1, const tre::Object& obj2) { return obj1.distFromCam > obj2.distFromCam; });
+			scene._toSortTransparentQ = false;
 		}
 
 		// Draw all transparent objects
-		renderer.draw(culledTransparentObjQ, tre::RENDER_MODE::TRANSPARENT_M);
+		renderer.draw(scene._culledTransparentObjQ, tre::RENDER_MODE::TRANSPARENT_M);
 
 		if (!pauseLight) {
 			// rotate point light 1
@@ -527,7 +519,7 @@ int main()
 
 		// Draw debug
 		if (showBoundingVolume) {
-			renderer.debugDraw(culledOpaqueObjQ, scene._debugMeshes[meshIdx], typeOfBound, tre::RENDER_MODE::WIREFRAME_M);
+			renderer.debugDraw(scene._culledOpaqueObjQ, scene._debugMeshes[meshIdx], typeOfBound, tre::RENDER_MODE::WIREFRAME_M);
 		}
 
 		ImGui::Render();
