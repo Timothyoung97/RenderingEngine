@@ -10,7 +10,7 @@ namespace tre {
 
 CustomMesh::CustomMesh(ID3D11Device* device, aiMesh* mesh) {
 	std::vector<Vertex> vertices;
-	std::vector<uint16_t> indices;
+	std::vector<uint32_t> indices;
 	std::vector<XMFLOAT3> uniqueVertexPos;
 
 	for (int i = 0; i < mesh->mNumVertices; i++) {
@@ -40,7 +40,7 @@ CustomMesh::CustomMesh(ID3D11Device* device, aiMesh* mesh) {
 		aiFace currFace = mesh->mFaces[i];
 
 		for (int j = 0; j < currFace.mNumIndices; j++) {
-			indices.push_back(currFace.mIndices[j]);
+			indices.push_back(static_cast<uint32_t>(currFace.mIndices[j]));
 		}
 	}
 
@@ -58,7 +58,7 @@ CubeMesh::CubeMesh(ID3D11Device* device) {
 void CubeMesh::create(ID3D11Device* device) {
 
 	std::vector<Vertex> vertices;
-	std::vector<uint16_t> indices;
+	std::vector<uint32_t> indices;
 	std::vector<XMFLOAT3> uniqueVertexPos;
 
 	//Cube Vertices
@@ -119,7 +119,7 @@ void CubeMesh::create(ID3D11Device* device) {
 
 
 	//Cube Indices
-	uint16_t index[] = {
+	uint32_t index[] = {
 		0, 1, 2, // back
 		2, 1, 3,
 		4, 5 ,6, // right
@@ -150,7 +150,7 @@ SphereMesh::SphereMesh(ID3D11Device* device, int sectorC, int stackC, float r) {
 void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC, float r) {
 
 	std::vector<Vertex> vertices;
-	std::vector<uint16_t> indices;
+	std::vector<uint32_t> indices;
 	std::vector<XMFLOAT3> uniqueVertexPos;
 
 	//Sphere Properties
@@ -238,9 +238,9 @@ void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC, float r) 
 	//Build north pole indices
 	for (int i = 0; i < sectorCount; i++) {
 		int nextStackIdx = i + sectorCount;
-		indices.push_back(i);
-		indices.push_back(nextStackIdx);
-		indices.push_back(nextStackIdx + 1);
+		indices.push_back(static_cast<uint32_t>(i));
+		indices.push_back(static_cast<uint32_t>(nextStackIdx));
+		indices.push_back(static_cast<uint32_t>(nextStackIdx + 1));
 	}
 
 	// Build middle
@@ -258,14 +258,14 @@ void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC, float r) 
 		for (int j = 0; j < sectorCount; j++) {
 
 			//triangle a
-			indices.push_back(upperStackIdx);
-			indices.push_back(lowerStackIdx);
-			indices.push_back(upperStackIdx + 1);
+			indices.push_back(static_cast<uint32_t>(upperStackIdx));
+			indices.push_back(static_cast<uint32_t>(lowerStackIdx));
+			indices.push_back(static_cast<uint32_t>(upperStackIdx + 1));
 
 			//triangle b
-			indices.push_back(upperStackIdx + 1);
-			indices.push_back(lowerStackIdx);
-			indices.push_back(lowerStackIdx + 1);
+			indices.push_back(static_cast<uint32_t>(upperStackIdx + 1));
+			indices.push_back(static_cast<uint32_t>(lowerStackIdx));
+			indices.push_back(static_cast<uint32_t>(lowerStackIdx + 1));
 
 			upperStackIdx++;
 			lowerStackIdx++;
@@ -279,9 +279,9 @@ void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC, float r) 
 
 	for (int i = 0; i < sectorCount; i++) {
 		int upperIdx = southPoleIdx - sectorCount - 1;
-		indices.push_back(upperIdx);
-		indices.push_back(southPoleIdx);
-		indices.push_back(upperIdx + 1);
+		indices.push_back(static_cast<uint32_t>(upperIdx));
+		indices.push_back(static_cast<uint32_t>(southPoleIdx));
+		indices.push_back(static_cast<uint32_t>(upperIdx + 1));
 		southPoleIdx++;
 	}
 
@@ -292,7 +292,7 @@ XMFLOAT3 SphereMesh::findCoordinate(XMFLOAT3 unitVector, float radius) {
 	return XMFLOAT3(unitVector.x * radius, unitVector.y * radius, unitVector.z * radius);
 }
 
-void Mesh::createVertexAndIndexBuffer(ID3D11Device* device, const std::vector<Vertex>& vertices, const std::vector<uint16_t>& indices) {
+void Mesh::createVertexAndIndexBuffer(ID3D11Device* device, const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices) {
 
 	//Create vertex buffer
 	D3D11_BUFFER_DESC vertexBufferDesc;
@@ -316,7 +316,7 @@ void Mesh::createVertexAndIndexBuffer(ID3D11Device* device, const std::vector<Ve
 	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	indexBufferDesc.CPUAccessFlags = 0;
 	indexBufferDesc.MiscFlags = 0u;
-	indexBufferDesc.ByteWidth = static_cast<UINT>(sizeof(uint16_t) * indices.size());
+	indexBufferDesc.ByteWidth = static_cast<UINT>(sizeof(uint32_t) * indices.size());
 	indexBufferDesc.StructureByteStride = 0u;
 
 	D3D11_SUBRESOURCE_DATA indexData = {};
@@ -333,7 +333,7 @@ void Mesh::createVertexAndIndexBuffer(ID3D11Device* device, const std::vector<Ve
 TeapotMesh::TeapotMesh(ID3D11Device* device) {
 
 	std::vector<Vertex> vertices;
-	std::vector<uint16_t> indices;
+	std::vector<uint32_t> indices;
 	std::vector<XMFLOAT3> uniqueVertexPos;
 
 #pragma warning( push )

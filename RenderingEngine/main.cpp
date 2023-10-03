@@ -56,12 +56,15 @@ int main()
 	// Loading model
 	tre::ModelLoader ml;
 
-	//auto f = pfd::open_file("Choose files to read", basePathStr,
-	//	{ "glTF Files (.gltf)", "*.gltf",
-	//	  "All Files", "*" }
-	//);
+	pfd::open_file f = pfd::open_file("Choose files to read", basePathStr,
+		{ 
+			"glTF Files (.gltf)", "*.gltf",
+			"obj Files (.obj)", "*.obj",
+			"All Files", "*" 
+		}
+	);
 
-	ml.load(deviceAndContext.device.Get(), basePathStr + "glTF-models\\2CylinderEngine\\2CylinderEngine.gltf");
+	ml.load(deviceAndContext.device.Get(), f.result()[0]);
 
 	// Scene
 	tre::Scene scene(deviceAndContext.device.Get());
@@ -108,15 +111,12 @@ int main()
 	for (int i = 0; i < 4; i++) {
 		tre::Object newLightObj;
 
-		newLightObj.pObjMesh = &scene._debugMeshes[1]; // sphere
+		newLightObj.pObjMeshes = { &scene._debugMeshes[1] }; // sphere
+		newLightObj.pObjMeshes[0]->material = &scene._debugMaterials[2];
 		newLightObj.objPos = originPtLight[i];
 		newLightObj.objScale = XMFLOAT3(.1f, .1f, .1f);
 		newLightObj.objRotation = XMFLOAT3(.0f, .0f, .0f);
-		newLightObj.pObjTexture = &scene._debugTextures[0];
-		newLightObj.pObjNormalMap = nullptr;
-		newLightObj.isObjWithTexture = 0;
-		newLightObj.isObjWithNormalMap = 0;
-		newLightObj.objColor = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+		newLightObj._boundingVolumeColor = { XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) };
 
 		lightObjQ.push_back(newLightObj);
 	}
@@ -153,36 +153,34 @@ int main()
 	XMFLOAT4 planeIntervalsF = { planeIntervals[1], planeIntervals[2], planeIntervals[3], planeIntervals[4]};
 
 	// Testing Obj
-	tre::Object importModel;
+	tre::Object debugModel;
 
-	importModel.pObjMesh = &ml._meshes.begin()->second;
-	importModel.objPos = XMFLOAT3(.0f, .0f, .0f);
-	importModel.objScale = XMFLOAT3(.1f, .1f, .1f);
-	importModel.objRotation = XMFLOAT3(.0f, .0f, .0f);
-	importModel.pObjTexture = &importModel.pObjMesh->material.objTexture;
-	importModel.isObjWithTexture = importModel.pObjTexture->pShaderResView.Get() != nullptr ? 1 : 0;
-	importModel.pObjNormalMap = &importModel.pObjMesh->material.objNormalMap;
-	importModel.isObjWithNormalMap = importModel.pObjNormalMap->pShaderResView.Get() != nullptr ? 1 : 0;
-	importModel.objColor = colors[2];
-	importModel.ritterBs = importModel.pObjMesh->ritterSphere;
-	importModel.naiveBs = importModel.pObjMesh->naiveSphere;
-	importModel.aabb = importModel.pObjMesh->aabb;
+	debugModel.pObjMeshes = { &scene._debugMeshes[4] };
+	debugModel.pObjMeshes[0]->material = &scene._debugMaterials[0];
+	debugModel.objPos = XMFLOAT3(.0f, 1.0f, .0f);
+	debugModel.objScale = XMFLOAT3(1.f, 1.f, 1.f);
+	debugModel.objRotation = XMFLOAT3(.0f, .0f, .0f);
+	debugModel.ritterBs = { debugModel.pObjMeshes[0]->ritterSphere };
+	debugModel.naiveBs = { debugModel.pObjMeshes[0]->naiveSphere };
+	debugModel.aabb = { debugModel.pObjMeshes[0]->aabb };
+	debugModel._boundingVolumeColor = { tre::colorF(Colors::Green) };
 
 	// transparent queue -> object with texture with alpha channel or object with color.w below 1.0f
-	if ((importModel.isObjWithTexture && importModel.pObjTexture->hasAlphaChannel)
-		|| (!importModel.isObjWithTexture && importModel.objColor.w < 1.0f)) {
+	if ((debugModel.pObjMeshes[0]->material->objTexture->pShaderResView.Get() != nullptr && debugModel.pObjMeshes[0]->material->objTexture->hasAlphaChannel)
+		|| (debugModel.pObjMeshes[0]->material->objTexture->pShaderResView.Get() == nullptr && debugModel.pObjMeshes[0]->material->baseColor.w < 1.0f)) {
 
 		// find its distance from cam
-		importModel.distFromCam = tre::Maths::distBetweentObjToCam(importModel.objPos, cam.camPositionV);
+		debugModel.distFromCam = tre::Maths::distBetweentObjToCam(debugModel.objPos, cam.camPositionV);
 
-		transparentObjQ.push_back(importModel);
+		transparentObjQ.push_back(debugModel);
 
 		toSortTransparentQ = true;
 
 	}
 	else {
-		opaqueObjQ.push_back(importModel);
+		opaqueObjQ.push_back(debugModel);
 	}
+
 
 	// main loop
 	while (!input.shouldQuit())
@@ -227,23 +225,21 @@ int main()
 			float scaleVal = tre::Utility::getRandomFloat(3);
 			int textureIdx = tre::Utility::getRandomInt(1);
 
-			newObj.pObjMesh = &scene._debugMeshes[tre::Utility::getRandomInt(1)];
+			int selectIdx = tre::Utility::getRandomInt(1);
+			newObj.pObjMeshes = { &scene._debugMeshes[4 + selectIdx] };
+			newObj.pObjMeshes[0]->material = &scene._debugMaterials[selectIdx];
 			newObj.objPos = XMFLOAT3(tre::Utility::getRandomFloatRange(-20, 20), tre::Utility::getRandomFloatRange(-20, 20), tre::Utility::getRandomFloatRange(-20, 20));
 			newObj.objScale = XMFLOAT3(scaleVal, scaleVal, scaleVal);
 			newObj.objRotation = XMFLOAT3(tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360));
-			newObj.pObjTexture = &scene._debugTextures[3 + textureIdx];
-			newObj.isObjWithTexture = 1;
-			newObj.pObjNormalMap = &scene._debugNormalTextures[textureIdx];
-			newObj.isObjWithNormalMap = 1;
-			newObj.objColor = colors[2];
+			newObj._boundingVolumeColor = { tre::colorF(Colors::Green) };
 
-			newObj.ritterBs = newObj.pObjMesh->ritterSphere;
-			newObj.naiveBs = newObj.pObjMesh->naiveSphere;
-			newObj.aabb = newObj.pObjMesh->aabb;
+			newObj.ritterBs = { newObj.pObjMeshes[0]->ritterSphere };
+			newObj.naiveBs = { newObj.pObjMeshes[0]->naiveSphere };
+			newObj.aabb = { newObj.pObjMeshes[0]->aabb };
 
 			// transparent queue -> object with texture with alpha channel or object with color.w below 1.0f
-			if ((newObj.isObjWithTexture && newObj.pObjTexture->hasAlphaChannel)
-				|| (!newObj.isObjWithTexture && newObj.objColor.w < 1.0f)) {
+			if ((newObj.pObjMeshes[0]->material->objTexture->pShaderResView.Get() != nullptr && newObj.pObjMeshes[0]->material->objTexture->hasAlphaChannel)
+				|| (newObj.pObjMeshes[0]->material->objTexture->pShaderResView.Get() == nullptr && newObj.pObjMeshes[0]->material->baseColor.w < 1.0f)) {
 
 				// find its distance from cam
 				newObj.distFromCam = tre::Maths::distBetweentObjToCam(newObj.objPos, cam.camPositionV);
@@ -279,6 +275,10 @@ int main()
 
 				ImGui::SeparatorText("Test Object Control");
 				
+				float translation[3] = { opaqueObjQ[0].objPos.x, opaqueObjQ[0].objPos.y,  opaqueObjQ[0].objPos.z };
+				ImGui::SliderFloat3("Translation", translation, .0f, 20.f);
+				opaqueObjQ[0].objPos = XMFLOAT3(translation);
+
 				float rotationXYZ[3] = { opaqueObjQ[0].objRotation.x, opaqueObjQ[0].objRotation.y,  opaqueObjQ[0].objRotation.z};
 				ImGui::SliderFloat3("Rotation", rotationXYZ, .0f, 360.f);
 				opaqueObjQ[0].objRotation = XMFLOAT3(rotationXYZ);
@@ -291,6 +291,7 @@ int main()
 			{	// Camera Setting
 				ImGui::SeparatorText("Camera");
 				ImGui::SliderFloat("Camera FOV Y", &fovY, 1.0f, 179.0f);
+				ImGui::SliderFloat("Camera Speed", &cam.cameraMoveSpeed, .0f, 1.0f);
 			}
 
 			{	// Bounding Type Selection
@@ -337,15 +338,12 @@ int main()
 
 						tre::Object newLightObj;
 
-						newLightObj.pObjMesh = &scene._debugMeshes[1]; // sphere
+						newLightObj.pObjMeshes = { &scene._debugMeshes[1] }; // sphere
+						newLightObj.pObjMeshes[0]->material = &scene._debugMaterials[2];
 						newLightObj.objPos = lightResc.pointLights.back().pos;
 						newLightObj.objScale = XMFLOAT3(.1f, .1f, .1f);
 						newLightObj.objRotation = XMFLOAT3(.0f, .0f, .0f);
-						newLightObj.pObjTexture = &scene._debugTextures[0];
-						newLightObj.pObjNormalMap = nullptr;
-						newLightObj.isObjWithTexture = 0;
-						newLightObj.isObjWithNormalMap = 0;
-						newLightObj.objColor = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+						newLightObj._boundingVolumeColor = { tre::colorF(Colors::White) };
 
 						lightObjQ.push_back(newLightObj);
 					}
@@ -407,13 +405,13 @@ int main()
 			// set const buffer from the light pov 
 			tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, lightViewProjs[i], lightViewProjs, planeIntervalsF, scene.dirlight, lightResc.pointLights.size(), XMFLOAT2(4096, 4096), csmDebugSwitch);
 
-			renderer.draw({ scene._floor, importModel }, tre::RENDER_MODE::SHADOW_M);
+			renderer.draw({ scene._floor, opaqueObjQ[0] }, tre::RENDER_MODE::SHADOW_M);
 		}
 
 		renderer.clearBufferToDraw();
 
 		// Set camera view const buffer
-		cam.camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovY), static_cast<float>(tre::SCREEN_WIDTH) / tre::SCREEN_HEIGHT, 1.0f, 1000.0f);
+		cam.camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovY), static_cast<float>(tre::SCREEN_WIDTH) / tre::SCREEN_HEIGHT, 1.0f, 1000000000.0f);
 		cam.updateCamera();
 
 		// set const buffer for camera
@@ -424,44 +422,51 @@ int main()
 		for (int i = 0; i < opaqueObjQ.size(); i++) {
 			switch (typeOfBound) {
 			case tre::AABBBoundingBox:
-				tre::BoundingVolume::updateAABB(opaqueObjQ[i].pObjMesh->aabb, opaqueObjQ[i].aabb, opaqueObjQ[i].objScale, opaqueObjQ[i].objRotation, opaqueObjQ[i].objPos);
+				tre::BoundingVolume::updateAABB(opaqueObjQ[i].pObjMeshes[0]->aabb, opaqueObjQ[i].aabb[0], opaqueObjQ[i].objScale, opaqueObjQ[i].objRotation, opaqueObjQ[i].objPos);
 				break;
 			case tre::RitterBoundingSphere:
-				tre::BoundingVolume::updateBoundingSphere(opaqueObjQ[i].pObjMesh->ritterSphere, opaqueObjQ[i].ritterBs, opaqueObjQ[i].objScale, opaqueObjQ[i].objRotation, opaqueObjQ[i].objPos);
+				tre::BoundingVolume::updateBoundingSphere(opaqueObjQ[i].pObjMeshes[0]->ritterSphere, opaqueObjQ[i].ritterBs[0], opaqueObjQ[i].objScale, opaqueObjQ[i].objRotation, opaqueObjQ[i].objPos);
 				break;			
 			case tre::NaiveBoundingSphere:
-				tre::BoundingVolume::updateBoundingSphere(opaqueObjQ[i].pObjMesh->naiveSphere, opaqueObjQ[i].naiveBs, opaqueObjQ[i].objScale, opaqueObjQ[i].objRotation, opaqueObjQ[i].objPos);
+				tre::BoundingVolume::updateBoundingSphere(opaqueObjQ[i].pObjMeshes[0]->naiveSphere, opaqueObjQ[i].naiveBs[0], opaqueObjQ[i].objScale, opaqueObjQ[i].objRotation, opaqueObjQ[i].objPos);
 				break;
 			}
 
-			if (opaqueObjQ[i].aabb.isOverlapFrustum(cam.cameraFrustum)) {
-				opaqueObjQ[i].objColor = colors[1];
+			if (opaqueObjQ[i].aabb[0].isOverlapFrustum(cam.cameraFrustum)) {
+				opaqueObjQ[i]._boundingVolumeColor[0] = tre::colorF(Colors::Green);
 				culledOpaqueObjQ.push_back(opaqueObjQ[i]);
 			}
-			else if (opaqueObjQ[i].aabb.isInFrustum(cam.cameraFrustum)) {
-				opaqueObjQ[i].objColor = colors[2];
+			else if (opaqueObjQ[i].aabb[0].isInFrustum(cam.cameraFrustum)) {
+				opaqueObjQ[i]._boundingVolumeColor[0] = tre::colorF(Colors::Blue);
 				culledOpaqueObjQ.push_back(opaqueObjQ[i]);
 			} else {
-				opaqueObjQ[i].objColor = colors[0];
+				opaqueObjQ[i]._boundingVolumeColor[0] = tre::colorF(Colors::Red);
 			}
 		}
 
 		culledTransparentObjQ.clear();
 		for (int i = 0; i < transparentObjQ.size(); i++) {
-			if (transparentObjQ[i].aabb.isOverlapFrustum(cam.cameraFrustum)) {
-				transparentObjQ[i].objColor = colors[1];
+			if (transparentObjQ[i].aabb[0].isOverlapFrustum(cam.cameraFrustum)) {
+				transparentObjQ[i]._boundingVolumeColor[0] = tre::colorF(Colors::Green);
 				culledTransparentObjQ.push_back(transparentObjQ[i]);
 			}
-			else if (transparentObjQ[i].aabb.isInFrustum(cam.cameraFrustum)) {
-				transparentObjQ[i].objColor = colors[2];
+			else if (transparentObjQ[i].aabb[0].isInFrustum(cam.cameraFrustum)) {
+				transparentObjQ[i]._boundingVolumeColor[0] = tre::colorF(Colors::Blue);
 				culledTransparentObjQ.push_back(transparentObjQ[i]);
 			} else {
-				opaqueObjQ[i].objColor = colors[0];
+				opaqueObjQ[i]._boundingVolumeColor[0] = tre::colorF(Colors::Red);
 			}
 		}
 
 		// Draw all opaque objects
 		renderer.draw({ scene._floor }, tre::RENDER_MODE::OPAQUE_M);
+
+		//for (int i = 0; i < ml._objectWithMesh.size(); i++) {
+		//	XMMATRIX matrix = ml._objectWithMesh[i]->makeLocalToWorldMatrix();
+		//	renderer.draw(ml._objectWithMesh[i], tre::RENDER_MODE::OPAQUE_M, matrix);
+		//}
+
+		renderer.recursiveDraw(&ml._obj, tre::RENDER_MODE::OPAQUE_M);
 
 		renderer.draw(culledOpaqueObjQ, tre::RENDER_MODE::OPAQUE_M);
 

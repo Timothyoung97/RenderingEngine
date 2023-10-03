@@ -4,16 +4,13 @@
 #include "light.h"
 #include "mesh.h"
 #include "texture.h"
+#include "material.h"
 
 #include <vector>
 
 namespace tre {
 
 static const float BACKGROUND_COLOR[4] = { .5f, .5f, .5f, 1.0f };
-
-struct Node {
-
-};
 
 class Scene {
 public:
@@ -26,6 +23,7 @@ public:
 	std::vector<Mesh> _debugMeshes;
 	std::vector<Texture> _debugTextures;
 	std::vector<Texture> _debugNormalTextures;
+	std::vector<Material> _debugMaterials;
 
 	Scene(ID3D11Device* device);
 

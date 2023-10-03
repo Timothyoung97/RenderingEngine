@@ -4,21 +4,31 @@
 #include <assimp/scene.h>
 
 #include <unordered_map>
+#include <vector>
 
 #include "mesh.h"
 #include "texture.h"
+#include "object.h"
 
 namespace tre {
 
 class ModelLoader {
 public:
 
-	std::unordered_map<std::string, Mesh> _meshes;
+	std::unordered_map<int, Mesh> _meshes;
 	std::unordered_map<std::string, Texture> _textures;
+	std::unordered_map<int, Material> _materials;
+	
+	std::vector<Object*> _objectWithMesh;
+
+	Object _obj;
+
 	std::string _directoryPath;
 
 	void load(ID3D11Device* device, std::string filename);
-	Texture loadTextures(ID3D11Device* device, aiMaterial* mat, aiTextureType type, const aiScene* scene);
-	void processNode(ID3D11Device* device, aiNode* node, const aiScene* scene);
+	void loadResource(ID3D11Device* device, const aiScene* scene);
+	void processNode(aiNode* currNode, Object* currObj, Object* pParent, const aiScene* scene);
+	void updateObj(Object* _obj, aiMatrix4x4 cumulativeMatrix);
+	void updateObj(Object* _obj, XMMATRIX cumulativeMatrix);
 };
 }

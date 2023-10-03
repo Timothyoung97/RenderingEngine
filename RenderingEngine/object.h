@@ -6,30 +6,34 @@
 #include "texture.h"
 #include "boundingvolume.h"
 
+#include <vector>
+
 using namespace DirectX;
 
 namespace tre {
 	
 struct Object {
-	Mesh* pObjMesh;
+
+	Object* parent = nullptr;
+	std::vector<Object> children;
+
+	std::vector<Mesh*> pObjMeshes;
 	
-	BoundingSphere ritterBs;
-	BoundingSphere naiveBs;
-	AABB aabb;
-	
-	Texture* pObjTexture;
-	Texture* pObjNormalMap;
+	std::vector<BoundingSphere> ritterBs;
+	std::vector<BoundingSphere> naiveBs;
+	std::vector<AABB> aabb;
+	std::vector<XMFLOAT4> _boundingVolumeColor;
 
 	XMFLOAT3 objPos;
 	XMFLOAT3 objScale;
 	XMFLOAT3 objRotation;
 
-	bool isObjWithTexture;
-	bool isObjWithNormalMap;
-
-	XMFLOAT4 objColor;
+	XMMATRIX _transformationFinal;
+	aiMatrix4x4 _transformationAssimp;
 
 	float distFromCam;
+
+	XMMATRIX makeLocalToWorldMatrix();
 };
 
 }

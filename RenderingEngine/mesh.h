@@ -30,14 +30,14 @@ public:
 	ComPtr<ID3D11Buffer> pIndexBuffer;
 	ComPtr<ID3D11Buffer> pVertexBuffer;
 
-	Material material;
+	Material* material;
 
 	BoundingSphere ritterSphere;
 	BoundingSphere naiveSphere;
 	AABB aabb;
 
 	int indexSize;
-	void createVertexAndIndexBuffer(ID3D11Device* device, const std::vector<Vertex> &vertices, const std::vector<uint16_t> &indices);
+	void createVertexAndIndexBuffer(ID3D11Device* device, const std::vector<Vertex> &vertices, const std::vector<uint32_t> &indices);
 };
 
 class CustomMesh : public Mesh {

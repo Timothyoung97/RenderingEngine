@@ -1,5 +1,6 @@
 #include "scene.h"
 
+#include "colors.h"
 #include "utility.h"
 
 namespace tre {
@@ -7,9 +8,12 @@ namespace tre {
 Scene::Scene(ID3D11Device* device) {
 
 	_debugMeshes = {
-		tre::CubeMesh(device),
-		tre::SphereMesh(device, 20, 20),
-		tre::TeapotMesh(device)
+		tre::CubeMesh(device), // Bounding WireMesh
+		tre::SphereMesh(device, 20, 20), // Bounding WireMesh
+		tre::TeapotMesh(device),
+		tre::CubeMesh(device), // floor
+		tre::CubeMesh(device), // testing cube
+		tre::SphereMesh(device, 20, 20) // testing sphere
 	};
 	
 	// Create testing texture
@@ -19,7 +23,8 @@ Scene::Scene(ID3D11Device* device) {
 		tre::TextureLoader::createTexture(device, basePathStr + "textures\\UV_image2.jpg"),
 		tre::TextureLoader::createTexture(device, basePathStr + "textures\\UV_image_a.png"),
 		tre::TextureLoader::createTexture(device, basePathStr + "textures\\glTF.png"),
-		tre::TextureLoader::createTexture(device, basePathStr + "textures\\wall.jpg")
+		tre::TextureLoader::createTexture(device, basePathStr + "textures\\wall.jpg"),
+		tre::Texture()
 	};
 
 	_debugNormalTextures = {
@@ -27,18 +32,21 @@ Scene::Scene(ID3D11Device* device) {
 		tre::TextureLoader::createTexture(device, basePathStr + "textures\\wall_normal.jpg")
 	};
 
+	_debugMaterials = {
+		Material {&_debugTextures[3], &_debugNormalTextures[0]},
+		Material {&_debugTextures[4], &_debugNormalTextures[1]},
+		Material {nullptr, nullptr, tre::colorF(Colors::White)}
+	};
 }
 	
 void Scene::createFloor() {
-	_floor.pObjMesh = &_debugMeshes[0];
+
+	_floor.pObjMeshes = { &_debugMeshes[3] };
+	_floor.pObjMeshes[0]->material = &_debugMaterials[2];
 	_floor.objPos = XMFLOAT3(.0f, .0f, .0f);
 	_floor.objScale = XMFLOAT3(100.f, 0.01f, 100.f);
 	_floor.objRotation = XMFLOAT3(.0f, .0f, .0f);
-	_floor.pObjTexture = &_debugTextures[0];
-	_floor.pObjNormalMap = nullptr;
-	_floor.isObjWithTexture = 0;
-	_floor.isObjWithNormalMap = 0;
-	_floor.objColor = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	_floor._boundingVolumeColor = { tre::colorF(Colors::WhiteSmoke) };
 }
 
 void Scene::updateDirLight() {
@@ -52,6 +60,5 @@ void Scene::updateDirLight() {
 		dirF, .0f, XMFLOAT4(.5f, .5f, .5f, 1.0f), XMFLOAT4(.5f, .5f, .5f, .5f)
 	};
 }
-
 
 }
