@@ -60,7 +60,7 @@ Scene::Scene(ID3D11Device* device) {
 		newLightObj._boundingVolumeColor = { XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) };
 
 		_objQ.push_back(newLightObj);
-		_wireframeObjQ.push_back(&_objQ.back());
+		_wireframeObjQ.push_back(std::make_pair(&_objQ.back(), _objQ.back().pObjMeshes[0]));
 	}
 }
 	
@@ -84,9 +84,6 @@ void Scene::updateDirLight() {
 	dirlight = {
 		dirF, .0f, XMFLOAT4(.5f, .5f, .5f, 1.0f), XMFLOAT4(.5f, .5f, .5f, .5f)
 	};
-}
-
-void Scene::updatePtLight() {
 }
 
 }

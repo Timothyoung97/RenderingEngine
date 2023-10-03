@@ -135,13 +135,13 @@ int main()
 		// find its distance from cam
 		scene._objQ.back().distFromCam = tre::Maths::distBetweentObjToCam(scene._objQ.back().objPos, cam.camPositionV);
 
-		scene._transparentObjQ.push_back(&scene._objQ.back());
+		scene._transparentObjQ.push_back(std::make_pair(&scene._objQ.back(), scene._objQ.back().pObjMeshes[0]));
 
 		scene._toSortTransparentQ = true;
 
 	}
 	else {
-		scene._opaqueObjQ.push_back(&scene._objQ.back());
+		scene._opaqueObjQ.push_back(std::make_pair(&scene._objQ.back(), scene._objQ.back().pObjMeshes[0]));
 	}
 
 	// main loop
@@ -210,13 +210,13 @@ int main()
 				// find its distance from cam
 				scene._objQ.back().distFromCam = tre::Maths::distBetweentObjToCam(scene._objQ.back().objPos, cam.camPositionV);
 
-				scene._transparentObjQ.push_back(&scene._objQ.back());
+				scene._transparentObjQ.push_back(std::make_pair(&scene._objQ.back(), scene._objQ.back().pObjMeshes[0]));
 
 				scene._toSortTransparentQ = true;
 
 			}
 			else {
-				scene._opaqueObjQ.push_back(&scene._objQ.back());
+				scene._opaqueObjQ.push_back(std::make_pair(&scene._objQ.back(), scene._objQ.back().pObjMeshes[0]));
 			}
 		}
 
@@ -241,17 +241,17 @@ int main()
 
 				ImGui::SeparatorText("Test Object Control");
 				
-				float translation[3] = { scene._opaqueObjQ[0]->objPos.x, scene._opaqueObjQ[0]->objPos.y,  scene._opaqueObjQ[0]->objPos.z };
+				float translation[3] = { scene._opaqueObjQ[0].first->objPos.x, scene._opaqueObjQ[0].first->objPos.y,  scene._opaqueObjQ[0].first->objPos.z };
 				ImGui::SliderFloat3("Translation", translation, .0f, 20.f);
-				scene._opaqueObjQ[0]->objPos = XMFLOAT3(translation);
+				scene._opaqueObjQ[0].first->objPos = XMFLOAT3(translation);
 
-				float rotationXYZ[3] = { scene._opaqueObjQ[0]->objRotation.x, scene._opaqueObjQ[0]->objRotation.y, scene._opaqueObjQ[0]->objRotation.z};
+				float rotationXYZ[3] = { scene._opaqueObjQ[0].first->objRotation.x, scene._opaqueObjQ[0].first->objRotation.y, scene._opaqueObjQ[0].first->objRotation.z};
 				ImGui::SliderFloat3("Rotation", rotationXYZ, .0f, 360.f);
-				scene._opaqueObjQ[0]->objRotation = XMFLOAT3(rotationXYZ);
+				scene._opaqueObjQ[0].first->objRotation = XMFLOAT3(rotationXYZ);
 
-				float scaleXYZ = scene._opaqueObjQ[0]->objScale.x;
+				float scaleXYZ = scene._opaqueObjQ[0].first->objScale.x;
 				ImGui::SliderFloat("Scale", &scaleXYZ, .1f, 3.f);
-				scene._opaqueObjQ[0]->objScale = XMFLOAT3(scaleXYZ, scaleXYZ, scaleXYZ);
+				scene._opaqueObjQ[0].first->objScale = XMFLOAT3(scaleXYZ, scaleXYZ, scaleXYZ);
 			}
 
 			{	// Camera Setting
@@ -312,7 +312,7 @@ int main()
 						newLightObj._boundingVolumeColor = { tre::colorF(Colors::White) };
 
 						scene._objQ.push_back(newLightObj);
-						scene._wireframeObjQ.push_back(&scene._objQ.back());
+						scene._wireframeObjQ.push_back(std::make_pair(&scene._objQ.back(), scene._objQ.back().pObjMeshes[0]));
 					}
 					ImGui::SameLine();
 					ImGui::Text("Current Light Count: %d/%d", scene.lightResc.pointLights.size(), scene.lightResc.maxPointLightNum);
@@ -372,7 +372,7 @@ int main()
 			// set const buffer from the light pov 
 			tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, lightViewProjs[i], lightViewProjs, planeIntervalsF, scene.dirlight, scene.lightResc.pointLights.size(), XMFLOAT2(4096, 4096), csmDebugSwitch);
 
-			renderer.draw({ &scene._floor, scene._opaqueObjQ[0] }, tre::RENDER_MODE::SHADOW_M);
+			renderer.draw({ std::make_pair(&scene._floor, scene._floor.pObjMeshes[0]), scene._opaqueObjQ[0]}, tre::RENDER_MODE::SHADOW_M);
 		}
 
 		renderer.clearBufferToDraw();
@@ -389,44 +389,44 @@ int main()
 		for (int i = 0; i < scene._opaqueObjQ.size(); i++) {
 			switch (typeOfBound) {
 			case tre::AABBBoundingBox:
-				tre::BoundingVolume::updateAABB(scene._opaqueObjQ[i]->pObjMeshes[0]->aabb, scene._opaqueObjQ[i]->aabb[0], scene._opaqueObjQ[i]->objScale, scene._opaqueObjQ[i]->objRotation, scene._opaqueObjQ[i]->objPos);
+				tre::BoundingVolume::updateAABB(scene._opaqueObjQ[i].first->pObjMeshes[0]->aabb, scene._opaqueObjQ[i].first->aabb[0], scene._opaqueObjQ[i].first->objScale, scene._opaqueObjQ[i].first->objRotation, scene._opaqueObjQ[i].first->objPos);
 				break;
 			case tre::RitterBoundingSphere:
-				tre::BoundingVolume::updateBoundingSphere(scene._opaqueObjQ[i]->pObjMeshes[0]->ritterSphere, scene._opaqueObjQ[i]->ritterBs[0], scene._opaqueObjQ[i]->objScale, scene._opaqueObjQ[i]->objRotation, scene._opaqueObjQ[i]->objPos);
+				tre::BoundingVolume::updateBoundingSphere(scene._opaqueObjQ[i].first->pObjMeshes[0]->ritterSphere, scene._opaqueObjQ[i].first->ritterBs[0], scene._opaqueObjQ[i].first->objScale, scene._opaqueObjQ[i].first->objRotation, scene._opaqueObjQ[i].first->objPos);
 				break;			
 			case tre::NaiveBoundingSphere:
-				tre::BoundingVolume::updateBoundingSphere(scene._opaqueObjQ[i]->pObjMeshes[0]->naiveSphere, scene._opaqueObjQ[i]->naiveBs[0], scene._opaqueObjQ[i]->objScale, scene._opaqueObjQ[i]->objRotation, scene._opaqueObjQ[i]->objPos);
+				tre::BoundingVolume::updateBoundingSphere(scene._opaqueObjQ[i].first->pObjMeshes[0]->naiveSphere, scene._opaqueObjQ[i].first->naiveBs[0], scene._opaqueObjQ[i].first->objScale, scene._opaqueObjQ[i].first->objRotation, scene._opaqueObjQ[i].first->objPos);
 				break;
 			}
 
-			if (scene._opaqueObjQ[i]->aabb[0].isOverlapFrustum(cam.cameraFrustum)) {
-				scene._opaqueObjQ[i]->_boundingVolumeColor[0] = tre::colorF(Colors::Green);
+			if (scene._opaqueObjQ[i].first->aabb[0].isOverlapFrustum(cam.cameraFrustum)) {
+				scene._opaqueObjQ[i].first->_boundingVolumeColor[0] = tre::colorF(Colors::Green);
 				scene._culledOpaqueObjQ.push_back(scene._opaqueObjQ[i]);
 			}
-			else if (scene._opaqueObjQ[i]->aabb[0].isInFrustum(cam.cameraFrustum)) {
-				scene._opaqueObjQ[i]->_boundingVolumeColor[0] = tre::colorF(Colors::Blue);
+			else if (scene._opaqueObjQ[i].first->aabb[0].isInFrustum(cam.cameraFrustum)) {
+				scene._opaqueObjQ[i].first->_boundingVolumeColor[0] = tre::colorF(Colors::Blue);
 				scene._culledOpaqueObjQ.push_back(scene._opaqueObjQ[i]);
 			} else {
-				scene._opaqueObjQ[i]->_boundingVolumeColor[0] = tre::colorF(Colors::Red);
+				scene._opaqueObjQ[i].first->_boundingVolumeColor[0] = tre::colorF(Colors::Red);
 			}
 		}
 
 		scene._culledTransparentObjQ.clear();
 		for (int i = 0; i < scene._transparentObjQ.size(); i++) {
-			if (scene._transparentObjQ[i]->aabb[0].isOverlapFrustum(cam.cameraFrustum)) {
-				scene._transparentObjQ[i]->_boundingVolumeColor[0] = tre::colorF(Colors::Green);
+			if (scene._transparentObjQ[i].first->aabb[0].isOverlapFrustum(cam.cameraFrustum)) {
+				scene._transparentObjQ[i].first->_boundingVolumeColor[0] = tre::colorF(Colors::Green);
 				scene._culledTransparentObjQ.push_back(scene._transparentObjQ[i]);
 			}
-			else if (scene._transparentObjQ[i]->aabb[0].isInFrustum(cam.cameraFrustum)) {
-				scene._transparentObjQ[i]->_boundingVolumeColor[0] = tre::colorF(Colors::Blue);
+			else if (scene._transparentObjQ[i].first->aabb[0].isInFrustum(cam.cameraFrustum)) {
+				scene._transparentObjQ[i].first->_boundingVolumeColor[0] = tre::colorF(Colors::Blue);
 				scene._culledTransparentObjQ.push_back(scene._transparentObjQ[i]);
 			} else {
-				scene._opaqueObjQ[i]->_boundingVolumeColor[0] = tre::colorF(Colors::Red);
+				scene._opaqueObjQ[i].first->_boundingVolumeColor[0] = tre::colorF(Colors::Red);
 			}
 		}
 
 		// Draw all opaque objects
-		renderer.draw({ &scene._floor }, tre::RENDER_MODE::OPAQUE_M);
+		renderer.draw({ std::make_pair(&scene._floor, scene._floor.pObjMeshes[0])}, tre::RENDER_MODE::OPAQUE_M);
 
 		//for (int i = 0; i < ml._objectWithMesh.size(); i++) {
 		//	XMMATRIX matrix = ml._objectWithMesh[i]->makeLocalToWorldMatrix();
@@ -439,7 +439,7 @@ int main()
 
 		if (scene._toRecalDistFromCam) {
 			for (int i = 0; i < scene._transparentObjQ.size(); i++) {
-				scene._transparentObjQ[i]->distFromCam = tre::Maths::distBetweentObjToCam(scene._transparentObjQ[i]->objPos, cam.camPositionV);
+				scene._transparentObjQ[i].first->distFromCam = tre::Maths::distBetweentObjToCam(scene._transparentObjQ[i].first->objPos, cam.camPositionV);
 			}
 			scene._toSortTransparentQ = true;
 			scene._toRecalDistFromCam = false;
@@ -447,7 +447,7 @@ int main()
 
 		// sort the vector -> object with greater dist from cam is at the front of the Q
 		if (scene._toSortTransparentQ) {
-			std::sort(scene._transparentObjQ.begin(), scene._transparentObjQ.end(), [](const tre::Object* obj1, const tre::Object* obj2) { return obj1->distFromCam > obj2->distFromCam; });
+			std::sort(scene._transparentObjQ.begin(), scene._transparentObjQ.end(), [](const std::pair<tre::Object*, tre::Mesh*> obj1, const std::pair<tre::Object*, tre::Mesh*> obj2) { return obj1.first->distFromCam > obj2.first->distFromCam; });
 			scene._toSortTransparentQ = false;
 		}
 
@@ -459,25 +459,25 @@ int main()
 			sectorAnglePtLight[0] += 1.0f;
 			if (sectorAnglePtLight[0] == 360.0f) sectorAnglePtLight[0] = .0f;
 			scene.lightResc.pointLights[0].pos = tre::Maths::getRotatePosition(originPtLight[0], stackAnglePtLight[0], sectorAnglePtLight[0], 1.0f);
-			scene._wireframeObjQ[0]->objPos = scene.lightResc.pointLights[0].pos;
+			scene._wireframeObjQ[0].first->objPos = scene.lightResc.pointLights[0].pos;
 
 			// rotate point light 2
 			stackAnglePtLight[1] += 1.0f;
 			if (stackAnglePtLight[1] == 360.0f) stackAnglePtLight[1] = .0f;
 			scene.lightResc.pointLights[1].pos = tre::Maths::getRotatePosition(originPtLight[1], stackAnglePtLight[1], sectorAnglePtLight[1], 1.0f);
-			scene._wireframeObjQ[1]->objPos = scene.lightResc.pointLights[1].pos;
+			scene._wireframeObjQ[1].first->objPos = scene.lightResc.pointLights[1].pos;
 
 			// rotate point light 3
 			sectorAnglePtLight[2] += 5.0f;
 			if (sectorAnglePtLight[2] == 360.0f) sectorAnglePtLight[2] = .0f;
 			scene.lightResc.pointLights[2].pos = tre::Maths::getRotatePosition(originPtLight[2], stackAnglePtLight[2], sectorAnglePtLight[2], 5.0f);
-			scene._wireframeObjQ[2]->objPos = scene.lightResc.pointLights[2].pos;
+			scene._wireframeObjQ[2].first->objPos = scene.lightResc.pointLights[2].pos;
 
 			// rotate point light 4
 			stackAnglePtLight[3] += 5.0f;
 			if (stackAnglePtLight[3] == 360.0f) stackAnglePtLight[3] = .0f;
 			scene.lightResc.pointLights[3].pos = tre::Maths::getRotatePosition(originPtLight[3], stackAnglePtLight[3], sectorAnglePtLight[3], 5.0f);
-			scene._wireframeObjQ[3]->objPos = scene.lightResc.pointLights[3].pos;
+			scene._wireframeObjQ[3].first->objPos = scene.lightResc.pointLights[3].pos;
 		}
 		scene.lightResc.updateBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get());
 		deviceAndContext.context.Get()->PSSetShaderResources(2, 1, scene.lightResc.pLightShaderRescView.GetAddressOf());

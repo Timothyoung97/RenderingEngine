@@ -49,9 +49,9 @@ public:
 	void setShadowBufferDrawSection(int idx); // idx --> 0: top left, 1: top right, 2: bottom left, 3: bottom right
 	void clearBufferToDraw();
 	void configureStates(RENDER_MODE renderMode);
-	void draw(const std::vector<Object*> objQ, RENDER_MODE renderMode);
+	void draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MODE renderMode);
 	void draw(Object* objQ, RENDER_MODE renderMode, XMMATRIX matrix);
 	void recursiveDraw(Object* obj, RENDER_MODE renderMode);
-	void debugDraw(std::vector<Object*> objQ, Mesh& mesh, BoundVolumeEnum typeOfBound, RENDER_MODE renderMode);
+	void debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh& mesh, BoundVolumeEnum typeOfBound, RENDER_MODE renderMode);
 };
 }

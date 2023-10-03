@@ -32,12 +32,12 @@ public:
 	// Object Queue
 	std::vector<tre::Object> _objQ;
 
-	std::vector<tre::Object*> _opaqueObjQ;
-	std::vector<tre::Object*> _transparentObjQ;
-	std::vector<tre::Object*> _culledOpaqueObjQ;
-	std::vector<tre::Object*> _culledTransparentObjQ;
-
-	std::vector<tre::Object*> _wireframeObjQ;
+	// Render Queue
+	std::vector<std::pair<tre::Object*, tre::Mesh*>> _opaqueObjQ;
+	std::vector<std::pair<tre::Object*, tre::Mesh*>> _transparentObjQ;
+	std::vector<std::pair<tre::Object*, tre::Mesh*>> _culledOpaqueObjQ;
+	std::vector<std::pair<tre::Object*, tre::Mesh*>> _culledTransparentObjQ;
+	std::vector<std::pair<tre::Object*, tre::Mesh*>> _wireframeObjQ;
 
 	bool _toSortTransparentQ = false;
 	bool _toRecalDistFromCam = false;
@@ -48,6 +48,5 @@ public:
 
 	void createFloor();
 	void updateDirLight();
-	void updatePtLight();
 };
 }
