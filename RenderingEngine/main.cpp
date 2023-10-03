@@ -54,6 +54,9 @@ int main()
 	scene.createFloor();
 	scene.updateDirLight();
 
+	//Create Camera
+	tre::Camera cam(tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);
+
 	//File path
 	std::string basePathStr = tre::Utility::getBasePathStr();
 	
@@ -70,6 +73,24 @@ int main()
 
 	ml.load(deviceAndContext.device.Get(), f.result()[0]);
 
+	for (int i = 0; i < ml._objectWithMesh.size(); i++) {
+		tre::Object* obj = ml._objectWithMesh[i];
+		for (int j = 0; j < obj->pObjMeshes.size(); j++) {
+			tre::Mesh* mesh = obj->pObjMeshes[i];
+			if ((mesh->material->objTexture != nullptr && mesh->material->objTexture->hasAlphaChannel) ||
+				(mesh->material->objTexture == nullptr && mesh->material->baseColor.w < 1.0f)) {
+
+				obj->distFromCam = tre::Maths::distBetweentObjToCam(scene._objQ.back().objPos, cam.camPositionV);
+
+				scene._transparentObjQ.push_back(std::make_pair(obj, mesh));
+				
+				scene._toSortTransparentQ = true;
+			} else {
+				scene._opaqueObjQ.push_back(std::make_pair(obj, mesh));
+			}
+		}
+	}
+
 	//Create Renderer
 	tre::Renderer renderer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), window.getWindowHandle());
 
@@ -78,9 +99,6 @@ int main()
 	
 	//Delta Time between frame
 	float deltaTime = 0;
-
-	//Create Camera
-	tre::Camera cam(tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);
 
 	float stackAnglePtLight[] = { .0f, .0f, .0f, .0f };
 	float sectorAnglePtLight[] = { .0f, .0f, .0f, -90.0f };
