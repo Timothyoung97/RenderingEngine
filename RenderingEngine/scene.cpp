@@ -182,7 +182,9 @@ void Scene::cullObject(Camera& cam, BoundVolumeEnum typeOfBound) {
 				// add to queue function
 				if (isTransparent) {
 					// find its distance from cam
-					pObj->distFromCam = tre::Maths::distBetweentObjToCam(pObj->objPos, cam.camPositionV);
+					if (_toRecalDistFromCam) {
+						pObj->distFromCam = tre::Maths::distBetweentObjToCam(pObj->objPos, cam.camPositionV);
+					}
 					_toSortTransparentQ = true;
 
 					_culledTransparentObjQ.push_back(std::make_pair(pObj, pMesh));
@@ -194,6 +196,16 @@ void Scene::cullObject(Camera& cam, BoundVolumeEnum typeOfBound) {
 			}
 
 		}
+	}
+
+	if (_toRecalDistFromCam) {
+		_toRecalDistFromCam = false;
+	}
+
+	// sort the vector -> object with greater dist from cam is at the front of the Q
+	if (_toSortTransparentQ) {
+		std::sort(_culledTransparentObjQ.begin(), _culledTransparentObjQ.end(), [](const std::pair<tre::Object*, tre::Mesh*> obj1, const std::pair<tre::Object*, tre::Mesh*> obj2) { return obj1.first->distFromCam > obj2.first->distFromCam; });
+		_toSortTransparentQ = false;
 	}
 }
 

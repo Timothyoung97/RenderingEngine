@@ -330,21 +330,6 @@ int main()
 		// culling
 		scene.cullObject(cam, typeOfBound);
 
-		// update distance from camera - for transparent obj only
-		if (scene._toRecalDistFromCam) {
-			for (int i = 0; i < scene._culledTransparentObjQ.size(); i++) {
-				scene._culledTransparentObjQ[i].first->distFromCam = tre::Maths::distBetweentObjToCam(scene._culledTransparentObjQ[i].first->objPos, cam.camPositionV);
-			}
-			scene._toSortTransparentQ = true;
-			scene._toRecalDistFromCam = false;
-		}
-
-		// sort the vector -> object with greater dist from cam is at the front of the Q
-		if (scene._toSortTransparentQ) {
-			std::sort(scene._culledTransparentObjQ.begin(), scene._culledTransparentObjQ.end(), [](const std::pair<tre::Object*, tre::Mesh*> obj1, const std::pair<tre::Object*, tre::Mesh*> obj2) { return obj1.first->distFromCam > obj2.first->distFromCam; });
-			scene._toSortTransparentQ = false;
-		}
-
 		renderer.configureShadawSetting();
 
 		std::vector<XMMATRIX> lightViewProjs;
