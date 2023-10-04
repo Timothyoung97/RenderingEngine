@@ -127,7 +127,7 @@ void Scene::cullObject(Camera& cam, BoundVolumeEnum typeOfBound) {
 			if ((pMesh->material->objTexture != nullptr && pMesh->material->objTexture->hasAlphaChannel)
 				|| (pMesh->material->objTexture == nullptr && pMesh->material->baseColor.w < 1.0f)) {
 
-				isTransparent ^= 1;
+				isTransparent = 1;
 			}
 
 			int addToQ = 0;
@@ -135,11 +135,11 @@ void Scene::cullObject(Camera& cam, BoundVolumeEnum typeOfBound) {
 			case RitterBoundingSphere:
 				if (pObj->ritterBs[j].isOverlapFrustum(cam.cameraFrustum)) {
 					pObj->_boundingVolumeColor[j] = tre::colorF(Colors::LightGreen);
-					addToQ ^= 1;
+					addToQ = 1;
 				}
 				else if (pObj->ritterBs[j].isInFrustum(cam.cameraFrustum)) {
 					pObj->_boundingVolumeColor[j] = tre::colorF(Colors::Blue);
-					addToQ ^= 1;
+					addToQ = 1;
 				}
 				else {
 					pObj->_boundingVolumeColor[j] = tre::colorF(Colors::Red);
@@ -150,11 +150,11 @@ void Scene::cullObject(Camera& cam, BoundVolumeEnum typeOfBound) {
 			case NaiveBoundingSphere:
 				if (pObj->naiveBs[j].isOverlapFrustum(cam.cameraFrustum)) {
 					pObj->_boundingVolumeColor[j] = tre::colorF(Colors::LightGreen);
-					addToQ ^= 1;
+					addToQ = 1;
 				}
 				else if (pObj->naiveBs[j].isInFrustum(cam.cameraFrustum)) {
 					pObj->_boundingVolumeColor[j] = tre::colorF(Colors::Blue);
-					addToQ ^= 1;
+					addToQ = 1;
 				}
 				else {
 					pObj->_boundingVolumeColor[j] = tre::colorF(Colors::Red);
@@ -165,11 +165,11 @@ void Scene::cullObject(Camera& cam, BoundVolumeEnum typeOfBound) {
 			case AABBBoundingBox:
 				if (pObj->aabb[j].isOverlapFrustum(cam.cameraFrustum)) {
 					pObj->_boundingVolumeColor[j] = tre::colorF(Colors::LightGreen);
-					addToQ ^= 1;
+					addToQ = 1;
 				}
 				else if (pObj->aabb[j].isInFrustum(cam.cameraFrustum)) {
 					pObj->_boundingVolumeColor[j] = tre::colorF(Colors::Blue);
-					addToQ ^= 1;
+					addToQ = 1;
 				}
 				else {
 					pObj->_boundingVolumeColor[j] = tre::colorF(Colors::Red);
