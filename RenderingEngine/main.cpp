@@ -327,6 +327,9 @@ int main()
 		cam.camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovY), static_cast<float>(tre::SCREEN_WIDTH) / tre::SCREEN_HEIGHT, 1.0f, 1000000000.0f);
 		cam.updateCamera();
 
+		// Update Bounding volume for all objects once
+		scene.updateBoundingVolume(typeOfBound);
+
 		// shadow draw
 		renderer.configureShadawSetting();
 

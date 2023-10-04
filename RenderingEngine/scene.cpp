@@ -131,10 +131,8 @@ void Scene::updateTransparentQ(Camera& cam) {
 
 void Scene::cullObject(Frustum& frustum, BoundVolumeEnum typeOfBound) {
 
-	updateBoundingVolume(typeOfBound);
-
+	// clear render queue
 	_culledOpaqueObjQ.clear();
-	_culledOpaqueObjQ.push_back(std::make_pair(&_floor, _floor.pObjMeshes[0]));
 	_culledTransparentObjQ.clear();
 
 	for (int i = 0; i < _pObjQ.size(); i++) {
