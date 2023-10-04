@@ -71,6 +71,9 @@ void Scene::createFloor() {
 	_floor.objPos = XMFLOAT3(.0f, .0f, .0f);
 	_floor.objScale = XMFLOAT3(100.f, 0.01f, 100.f);
 	_floor.objRotation = XMFLOAT3(.0f, .0f, .0f);
+	_floor.aabb = { _floor.pObjMeshes[0]->aabb };
+	_floor.ritterBs = { _floor.pObjMeshes[0]->ritterSphere };
+	_floor.naiveBs = { _floor.pObjMeshes[0]->naiveSphere };
 	_floor._boundingVolumeColor = { tre::colorF(Colors::WhiteSmoke) };
 	_floor._transformationFinal = tre::Maths::createTransformationMatrix(_floor.objScale, _floor.objRotation, _floor.objPos);
 }

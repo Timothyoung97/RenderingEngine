@@ -359,7 +359,7 @@ int main()
 
 			{	// Stats
 				ImGui::SeparatorText("Debug Info");
-				ImGui::Text("Within Frustcum/Total: %d / %d", scene._culledOpaqueObjQ.size(), scene._opaqueObjQ.size());
+				ImGui::Text("Within Frustcum/Total: %d / %d", scene._culledOpaqueObjQ.size(), scene._opaqueObjQ.size() + 1);
 				ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 			}
 
