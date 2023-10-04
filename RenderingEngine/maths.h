@@ -42,5 +42,6 @@ public:
 	static XMVECTOR getAverageVector(const std::vector<XMVECTOR>& vectors);
 	static XMMATRIX createOrthoMatrixFromFrustumCorners(float zMult, const std::vector<XMVECTOR>& corners, const XMMATRIX& viewMatrix);
 	static XMFLOAT3 convertRotationMatrixToEuler(XMMATRIX rotationMatrix);
+	static Frustum createFrustumFromViewProjectionMatrix(XMMATRIX viewProjection);
 };
 }
