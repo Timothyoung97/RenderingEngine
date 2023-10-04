@@ -42,7 +42,7 @@ public:
 	std::vector<std::pair<tre::Object*, tre::Mesh*>> _wireframeObjQ;
 
 	bool _toSortTransparentQ = false;
-	bool _toRecalDistFromCam = false;
+	bool _toRecalDistFromCam = true; // when scene is init, to calculate distance from camera
 
 	Scene(ID3D11Device* device);
 
