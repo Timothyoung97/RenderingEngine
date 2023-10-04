@@ -65,9 +65,9 @@ int main()
 
 	pfd::open_file f = pfd::open_file("Choose files to read", basePathStr,
 		{ 
+			"All Files", "*" ,
 			"glTF Files (.gltf)", "*.gltf",
 			"obj Files (.obj)", "*.obj",
-			"All Files", "*" 
 		}
 	);
 
@@ -327,10 +327,7 @@ int main()
 		cam.camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovY), static_cast<float>(tre::SCREEN_WIDTH) / tre::SCREEN_HEIGHT, 1.0f, 1000000000.0f);
 		cam.updateCamera();
 
-		// culling
-		scene.cullObject(cam, typeOfBound);
-		scene.updateTransparentQ(cam);
-
+		// shadow draw
 		renderer.configureShadawSetting();
 
 		std::vector<XMMATRIX> lightViewProjs;
@@ -358,10 +355,18 @@ int main()
 			// set const buffer from the light pov 
 			tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, lightViewProjs[i], lightViewProjs, planeIntervalsF, scene.dirlight, scene.lightResc.pointLights.size(), XMFLOAT2(4096, 4096), csmDebugSwitch);
 
+			tre::Frustum lightFrustum = tre::Maths::createFrustumFromViewProjectionMatrix(lightViewProjs[i]);
+
+			scene.cullObject(lightFrustum, typeOfBound);
+
 			renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_MODE::SHADOW_M);
 		}
 
 		renderer.clearBufferToDraw();
+
+		// culling for scene draw
+		scene.cullObject(cam.cameraFrustum, typeOfBound);
+		scene.updateTransparentQ(cam);
 
 		// set const buffer for camera
 		tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, cam.camViewProjection, lightViewProjs, planeIntervalsF, scene.dirlight, scene.lightResc.pointLights.size(), XMFLOAT2(4096, 4096), csmDebugSwitch);

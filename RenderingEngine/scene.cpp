@@ -129,7 +129,7 @@ void Scene::updateTransparentQ(Camera& cam) {
 	}
 }
 
-void Scene::cullObject(Camera& cam, BoundVolumeEnum typeOfBound) {
+void Scene::cullObject(Frustum& frustum, BoundVolumeEnum typeOfBound) {
 
 	updateBoundingVolume(typeOfBound);
 
@@ -152,11 +152,11 @@ void Scene::cullObject(Camera& cam, BoundVolumeEnum typeOfBound) {
 			int addToQ = 0;
 			switch (typeOfBound) {
 			case RitterBoundingSphere:
-				if (pObj->ritterBs[j].isOverlapFrustum(cam.cameraFrustum)) {
+				if (pObj->ritterBs[j].isOverlapFrustum(frustum)) {
 					pObj->_boundingVolumeColor[j] = tre::colorF(Colors::LightGreen);
 					addToQ = 1;
 				}
-				else if (pObj->ritterBs[j].isInFrustum(cam.cameraFrustum)) {
+				else if (pObj->ritterBs[j].isInFrustum(frustum)) {
 					pObj->_boundingVolumeColor[j] = tre::colorF(Colors::Blue);
 					addToQ = 1;
 				}
@@ -167,11 +167,11 @@ void Scene::cullObject(Camera& cam, BoundVolumeEnum typeOfBound) {
 				break;
 
 			case NaiveBoundingSphere:
-				if (pObj->naiveBs[j].isOverlapFrustum(cam.cameraFrustum)) {
+				if (pObj->naiveBs[j].isOverlapFrustum(frustum)) {
 					pObj->_boundingVolumeColor[j] = tre::colorF(Colors::LightGreen);
 					addToQ = 1;
 				}
-				else if (pObj->naiveBs[j].isInFrustum(cam.cameraFrustum)) {
+				else if (pObj->naiveBs[j].isInFrustum(frustum)) {
 					pObj->_boundingVolumeColor[j] = tre::colorF(Colors::Blue);
 					addToQ = 1;
 				}
@@ -182,11 +182,11 @@ void Scene::cullObject(Camera& cam, BoundVolumeEnum typeOfBound) {
 				break;
 
 			case AABBBoundingBox:
-				if (pObj->aabb[j].isOverlapFrustum(cam.cameraFrustum)) {
+				if (pObj->aabb[j].isOverlapFrustum(frustum)) {
 					pObj->_boundingVolumeColor[j] = tre::colorF(Colors::LightGreen);
 					addToQ = 1;
 				}
-				else if (pObj->aabb[j].isInFrustum(cam.cameraFrustum)) {
+				else if (pObj->aabb[j].isInFrustum(frustum)) {
 					pObj->_boundingVolumeColor[j] = tre::colorF(Colors::Blue);
 					addToQ = 1;
 				}

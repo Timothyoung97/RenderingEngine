@@ -51,7 +51,7 @@ public:
 	void createFloor();
 	void updateDirLight();
 	void updateBoundingVolume(BoundVolumeEnum typeOfBound);
-	void cullObject(Camera& cam, BoundVolumeEnum typeOfBound);
+	void cullObject(Frustum& frustum, BoundVolumeEnum typeOfBound);
 	void updateTransparentQ(Camera& cam);
 };
 }
