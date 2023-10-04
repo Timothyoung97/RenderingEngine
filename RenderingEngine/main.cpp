@@ -71,11 +71,13 @@ int main()
 		}
 	);
 
-	ml.load(deviceAndContext.device.Get(), f.result()[0]);
+	if (f.result().size()) {
+		ml.load(deviceAndContext.device.Get(), f.result()[0]);
 
-	for (int i = 0; i < ml._objectWithMesh.size(); i++) {
-		tre::Object* pObj = ml._objectWithMesh[i];
-		scene._pObjQ.push_back(pObj);
+		for (int i = 0; i < ml._objectWithMesh.size(); i++) {
+			tre::Object* pObj = ml._objectWithMesh[i];
+			scene._pObjQ.push_back(pObj);
+		}
 	}
 
 	//Create Renderer
@@ -207,9 +209,19 @@ int main()
 			newObj.ritterBs = { newObj.pObjMeshes[0]->ritterSphere };
 			newObj.naiveBs = { newObj.pObjMeshes[0]->naiveSphere };
 			newObj.aabb = { newObj.pObjMeshes[0]->aabb };
+			newObj._transformationFinal = tre::Maths::createTransformationMatrix(newObj.objScale, newObj.objRotation, newObj.objPos);
 
 			scene._objQ.push_back(newObj);
 			scene._pObjQ.push_back(&scene._objQ.back());
+
+			totalMeshCount++;
+			if ((newObj.pObjMeshes[0]->material->objTexture != nullptr && newObj.pObjMeshes[0]->material->objTexture->hasAlphaChannel)
+				|| (newObj.pObjMeshes[0]->material->objTexture == nullptr && newObj.pObjMeshes[0]->material->baseColor.w < 1.0f)) {
+				transparentMeshCount++;
+			}
+			else {
+				opaqueMeshCount++;
+			}
 		}
 
 		// Start the Dear ImGui frame
