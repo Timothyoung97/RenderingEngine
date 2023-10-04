@@ -125,16 +125,18 @@ void Renderer::draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MO
 
 		//set shader resc view and sampler
 		bool hasTexture = 0;
-		if (objQ[i].second->material->objTexture != nullptr) {
-			_context->PSSetShaderResources(0, 1, objQ[i].second->material->objTexture->pShaderResView.GetAddressOf());
-			hasTexture = 1;
-		}
-
-		// set normal map
 		bool hasNormal = 0;
-		if (objQ[i].second->material->objNormalMap != nullptr) {
-			_context->PSSetShaderResources(1, 1, objQ[i].second->material->objNormalMap->pShaderResView.GetAddressOf());
-			hasNormal = 1;
+		if (objQ[i].second->material != nullptr) {
+			if (objQ[i].second->material->objTexture != nullptr) {
+				_context->PSSetShaderResources(0, 1, objQ[i].second->material->objTexture->pShaderResView.GetAddressOf());
+				hasTexture = 1;
+			}
+
+			// set normal map
+			if (objQ[i].second->material->objNormalMap != nullptr) {
+				_context->PSSetShaderResources(1, 1, objQ[i].second->material->objNormalMap->pShaderResView.GetAddressOf());
+				hasNormal = 1;
+			}
 		}
 
 		//Config and set const buffer
@@ -186,16 +188,18 @@ void Renderer::debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh
 
 			//set shader resc view and sampler
 			bool hasTexture = 0;
-			if (currObj->pObjMeshes[j]->material->objTexture != nullptr) {
-				_context->PSSetShaderResources(0, 1, currObj->pObjMeshes[j]->material->objTexture->pShaderResView.GetAddressOf());
-				hasTexture = 1;
-			}
-
-			// set normal map
 			bool hasNormal = 0;
-			if (currObj->pObjMeshes[j]->material->objNormalMap != nullptr) {
-				_context->PSSetShaderResources(1, 1, currObj->pObjMeshes[j]->material->objNormalMap->pShaderResView.GetAddressOf());
-				hasNormal = 1;
+			if (objQ[i].second->material != nullptr) {
+				if (objQ[i].second->material->objTexture != nullptr) {
+					_context->PSSetShaderResources(0, 1, objQ[i].second->material->objTexture->pShaderResView.GetAddressOf());
+					hasTexture = 1;
+				}
+
+				// set normal map
+				if (objQ[i].second->material->objNormalMap != nullptr) {
+					_context->PSSetShaderResources(1, 1, objQ[i].second->material->objNormalMap->pShaderResView.GetAddressOf());
+					hasNormal = 1;
+				}
 			}
 
 			//Config and set const buffer
