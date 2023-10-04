@@ -116,7 +116,6 @@ Done:
 //////////////////////////////////////////////////////////////////////////////
 
 Engine Tasks:
-• Camera speed control using scroll
 • Assertions
 • Command line arguments
     • https://github.com/jarro2783/cxxopts
@@ -133,3 +132,4 @@ Done:
 • Utilize CMake to generate project files
     • SDL header files should be in project & repo. Binary files must not.
 • Remove the Windows console for the application
+• Camera speed control using scroll
