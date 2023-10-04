@@ -331,12 +331,18 @@ int main()
 			}
 
 			{	// farplane intervals
-				ImGui::SeparatorText("Far Planes");
+				ImGui::SeparatorText("Cascaded Shadow");
+				ImGui::Text("Total Opaque Mesh: %d; Total Transparent Mesh: %d; All Mesh: %d;", opaqueMeshCount, transparentMeshCount, totalMeshCount);
+				ImGui::Text("");
 				ImGui::Checkbox("CSM Debug", &csmDebugSwitch);
-				ImGui::SliderFloat("Far Plane 1", &planeIntervalsF.x, planeIntervals[0], planeIntervals[2]);
-				ImGui::SliderFloat("Far Plane 2", &planeIntervalsF.y, planeIntervals[1], planeIntervals[3]);
-				ImGui::SliderFloat("Far Plane 3", &planeIntervalsF.z, planeIntervals[2], planeIntervals[4]);
-				ImGui::SliderFloat("Far Plane 4", &planeIntervalsF.w, planeIntervals[3], 1000.0f);
+				ImGui::Text("Opaque Draw in Shadow Cascade 0: %d / %d", shadowCascadeOpaqueObjs[0], opaqueMeshCount);
+				ImGui::SliderFloat("Far Plane 0", &planeIntervalsF.x, planeIntervals[0], planeIntervals[2]);
+				ImGui::Text("Opaque Draw in Shadow Cascade 1: %d / %d", shadowCascadeOpaqueObjs[1], opaqueMeshCount);
+				ImGui::SliderFloat("Far Plane 1", &planeIntervalsF.y, planeIntervals[1], planeIntervals[3]);
+				ImGui::Text("Opaque Draw in Shadow Cascade 2: %d / %d", shadowCascadeOpaqueObjs[2], opaqueMeshCount);
+				ImGui::SliderFloat("Far Plane 2", &planeIntervalsF.z, planeIntervals[2], planeIntervals[4]);
+				ImGui::Text("Opaque Draw in Shadow Cascade 3: %d / %d", shadowCascadeOpaqueObjs[3], opaqueMeshCount);
+				ImGui::SliderFloat("Far Plane 3", &planeIntervalsF.w, planeIntervals[3], 1000.0f);
 
 				planeIntervals[1] = planeIntervalsF.x, planeIntervals[2] = planeIntervalsF.y, planeIntervals[3] = planeIntervalsF.z, planeIntervals[4] = planeIntervalsF.w;
 			}
@@ -345,15 +351,6 @@ int main()
 				ImGui::SeparatorText("Debug Info");
 				ImGui::Text("Within Frustcum/Total: %d / %d", scene._culledOpaqueObjQ.size() + scene._culledTransparentObjQ.size(), scene._pObjQ.size());
 				ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-			}
-
-			{	// shadow info
-				ImGui::SeparatorText("Shadow Buffer Draws Info");
-				ImGui::Text("Total Opaque Mesh: %d; Total Transparent Mesh: %d; All Mesh: %d;", opaqueMeshCount, transparentMeshCount, totalMeshCount);
-				ImGui::Text("Opaque Draw in Shadow Cascade 0: %d / %d", shadowCascadeOpaqueObjs[0], opaqueMeshCount);
-				ImGui::Text("Opaque Draw in Shadow Cascade 1: %d / %d", shadowCascadeOpaqueObjs[1], opaqueMeshCount);
-				ImGui::Text("Opaque Draw in Shadow Cascade 2: %d / %d", shadowCascadeOpaqueObjs[2], opaqueMeshCount);
-				ImGui::Text("Opaque Draw in Shadow Cascade 3: %d / %d", shadowCascadeOpaqueObjs[3], opaqueMeshCount);
 			}
 
 			ImGui::End();

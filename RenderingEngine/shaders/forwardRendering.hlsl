@@ -184,8 +184,10 @@ void ps_main (
             pixelLightColor = float3(.0f, .0f, 5.f);
         } else if (dist < planeIntervals[2]) {
             pixelLightColor = float3(5.f, .0f, .5f);
-        } else {
+        } else if (dist < planeIntervals[3]){
             pixelLightColor = float3(5.f, .0f, .0f);
+        } else {
+            pixelLightColor = float3(0.f, .0f, .0f);
         }
     }
 
