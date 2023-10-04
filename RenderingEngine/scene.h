@@ -52,5 +52,6 @@ public:
 	void updateDirLight();
 	void updateBoundingVolume(BoundVolumeEnum typeOfBound);
 	void cullObject(Camera& cam, BoundVolumeEnum typeOfBound);
+	void updateTransparentQ(Camera& cam);
 };
 }

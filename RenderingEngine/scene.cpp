@@ -110,6 +110,25 @@ void Scene::updateBoundingVolume(BoundVolumeEnum typeOfBound) {
 	}
 }
 
+void Scene::updateTransparentQ(Camera& cam) {
+	if (_toRecalDistFromCam) {
+		for (int i = 0; i < _culledTransparentObjQ.size(); i++) {
+			Object* pObj = _culledOpaqueObjQ[i].first;
+			// find its distance from cam
+			pObj->distFromCam = tre::Maths::distBetweentObjToCam(pObj->objPos, cam.camPositionV);
+		}
+		
+		_toSortTransparentQ = true;
+		_toRecalDistFromCam = false;
+	}
+
+	// sort the vector -> object with greater dist from cam is at the front of the Q
+	if (_toSortTransparentQ) {
+		std::sort(_culledTransparentObjQ.begin(), _culledTransparentObjQ.end(), [](const std::pair<tre::Object*, tre::Mesh*> obj1, const std::pair<tre::Object*, tre::Mesh*> obj2) { return obj1.first->distFromCam > obj2.first->distFromCam; });
+		_toSortTransparentQ = false;
+	}
+}
+
 void Scene::cullObject(Camera& cam, BoundVolumeEnum typeOfBound) {
 
 	updateBoundingVolume(typeOfBound);
@@ -181,10 +200,6 @@ void Scene::cullObject(Camera& cam, BoundVolumeEnum typeOfBound) {
 			if (addToQ) {
 				// add to queue function
 				if (isTransparent) {
-					// find its distance from cam
-					if (_toRecalDistFromCam) {
-						pObj->distFromCam = tre::Maths::distBetweentObjToCam(pObj->objPos, cam.camPositionV);
-					}
 					_toSortTransparentQ = true;
 
 					_culledTransparentObjQ.push_back(std::make_pair(pObj, pMesh));
@@ -192,20 +207,8 @@ void Scene::cullObject(Camera& cam, BoundVolumeEnum typeOfBound) {
 				} else {
 					_culledOpaqueObjQ.push_back(std::make_pair(pObj, pMesh));
 				}
-
 			}
-
 		}
-	}
-
-	if (_toRecalDistFromCam) {
-		_toRecalDistFromCam = false;
-	}
-
-	// sort the vector -> object with greater dist from cam is at the front of the Q
-	if (_toSortTransparentQ) {
-		std::sort(_culledTransparentObjQ.begin(), _culledTransparentObjQ.end(), [](const std::pair<tre::Object*, tre::Mesh*> obj1, const std::pair<tre::Object*, tre::Mesh*> obj2) { return obj1.first->distFromCam > obj2.first->distFromCam; });
-		_toSortTransparentQ = false;
 	}
 }
 

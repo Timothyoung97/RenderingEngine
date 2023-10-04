@@ -329,6 +329,7 @@ int main()
 
 		// culling
 		scene.cullObject(cam, typeOfBound);
+		scene.updateTransparentQ(cam);
 
 		renderer.configureShadawSetting();
 
