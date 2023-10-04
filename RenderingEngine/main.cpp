@@ -115,6 +115,21 @@ int main()
 	int meshIdx = 0;
 	float fovY = 45.0f;
 	bool csmDebugSwitch = false;
+	int shadowCascadeOpaqueObjs[4] = { 0, 0, 0, 0 };
+	int opaqueMeshCount = 0, transparentMeshCount = 0, totalMeshCount = 0;
+
+	for (int i = 0; i < scene._pObjQ.size(); i++) {
+		for (int j = 0; j < scene._pObjQ[i]->pObjMeshes.size(); j++) {
+			totalMeshCount++;
+			tre::Mesh* pMesh = scene._pObjQ[i]->pObjMeshes[j];
+			if ((pMesh->material->objTexture != nullptr && pMesh->material->objTexture->hasAlphaChannel)
+				|| (pMesh->material->objTexture == nullptr && pMesh->material->baseColor.w < 1.0f)) {
+				transparentMeshCount++;
+			} else {
+				opaqueMeshCount++;
+			}
+		}
+	}
 
 	float planeIntervals[5] = {1.0f, 20.f, 100.f, 250.f, 500.f};
 	XMFLOAT4 planeIntervalsF = { planeIntervals[1], planeIntervals[2], planeIntervals[3], planeIntervals[4]};
@@ -320,6 +335,15 @@ int main()
 				ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 			}
 
+			{	// shadow info
+				ImGui::SeparatorText("Shadow Buffer Draws Info");
+				ImGui::Text("Total Opaque Mesh: %d; Total Transparent Mesh: %d; All Mesh: %d;", opaqueMeshCount, transparentMeshCount, totalMeshCount);
+				ImGui::Text("Opaque Draw in Shadow Cascade 0: %d / %d", shadowCascadeOpaqueObjs[0], opaqueMeshCount);
+				ImGui::Text("Opaque Draw in Shadow Cascade 1: %d / %d", shadowCascadeOpaqueObjs[1], opaqueMeshCount);
+				ImGui::Text("Opaque Draw in Shadow Cascade 2: %d / %d", shadowCascadeOpaqueObjs[2], opaqueMeshCount);
+				ImGui::Text("Opaque Draw in Shadow Cascade 3: %d / %d", shadowCascadeOpaqueObjs[3], opaqueMeshCount);
+			}
+
 			ImGui::End();
 		}
 
@@ -361,6 +385,7 @@ int main()
 			tre::Frustum lightFrustum = tre::Maths::createFrustumFromViewProjectionMatrix(lightViewProjs[i]);
 
 			scene.cullObject(lightFrustum, typeOfBound);
+			shadowCascadeOpaqueObjs[i] = scene._culledOpaqueObjQ.size();
 
 			// draw shadow only for opaque objects
 			renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_MODE::SHADOW_M);
