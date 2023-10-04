@@ -74,21 +74,8 @@ int main()
 	ml.load(deviceAndContext.device.Get(), f.result()[0]);
 
 	for (int i = 0; i < ml._objectWithMesh.size(); i++) {
-		tre::Object* obj = ml._objectWithMesh[i];
-		for (int j = 0; j < obj->pObjMeshes.size(); j++) {
-			tre::Mesh* mesh = obj->pObjMeshes[j];
-			if ((mesh->material->objTexture != nullptr && mesh->material->objTexture->hasAlphaChannel) ||
-				(mesh->material->objTexture == nullptr && mesh->material->baseColor.w < 1.0f)) {
-
-				obj->distFromCam = tre::Maths::distBetweentObjToCam(scene._objQ.back().objPos, cam.camPositionV);
-
-				scene._transparentObjQ.push_back(std::make_pair(obj, mesh));
-				
-				scene._toSortTransparentQ = true;
-			} else {
-				scene._opaqueObjQ.push_back(std::make_pair(obj, mesh));
-			}
-		}
+		tre::Object* pObj = ml._objectWithMesh[i];
+		scene._pObjQ.push_back(pObj);
 	}
 
 	//Create Renderer
@@ -143,26 +130,11 @@ int main()
 	debugModel.ritterBs = { debugModel.pObjMeshes[0]->ritterSphere };
 	debugModel.naiveBs = { debugModel.pObjMeshes[0]->naiveSphere };
 	debugModel.aabb = { debugModel.pObjMeshes[0]->aabb };
-	debugModel._boundingVolumeColor = { tre::colorF(Colors::Green) };
+	debugModel._boundingVolumeColor = { tre::colorF(Colors::LightGreen) };
 	scene._objQ.push_back(debugModel);
+	scene._pObjQ.push_back(&scene._objQ.back());
 
 	tre::Object* pDebugModel = &scene._objQ.back();
-
-	// transparent queue -> object with texture with alpha channel or object with color.w below 1.0f
-	if ((scene._objQ.back().pObjMeshes[0]->material->objTexture != nullptr && scene._objQ.back().pObjMeshes[0]->material->objTexture->hasAlphaChannel)
-		|| (scene._objQ.back().pObjMeshes[0]->material->objTexture == nullptr && scene._objQ.back().pObjMeshes[0]->material->baseColor.w < 1.0f)) {
-
-		// find its distance from cam
-		scene._objQ.back().distFromCam = tre::Maths::distBetweentObjToCam(scene._objQ.back().objPos, cam.camPositionV);
-
-		scene._transparentObjQ.push_back(std::make_pair(&scene._objQ.back(), scene._objQ.back().pObjMeshes[0]));
-
-		scene._toSortTransparentQ = true;
-
-	}
-	else {
-		scene._opaqueObjQ.push_back(std::make_pair(&scene._objQ.back(), scene._objQ.back().pObjMeshes[0]));
-	}
 
 	// main loop
 	while (!input.shouldQuit())
@@ -222,22 +194,7 @@ int main()
 			newObj.aabb = { newObj.pObjMeshes[0]->aabb };
 
 			scene._objQ.push_back(newObj);
-
-			// transparent queue -> object with texture with alpha channel or object with color.w below 1.0f
-			if ((scene._objQ.back().pObjMeshes[0]->material->objTexture != nullptr && scene._objQ.back().pObjMeshes[0]->material->objTexture->hasAlphaChannel)
-				|| (scene._objQ.back().pObjMeshes[0]->material->objTexture == nullptr && scene._objQ.back().pObjMeshes[0]->material->baseColor.w < 1.0f)) {
-
-				// find its distance from cam
-				scene._objQ.back().distFromCam = tre::Maths::distBetweentObjToCam(scene._objQ.back().objPos, cam.camPositionV);
-
-				scene._transparentObjQ.push_back(std::make_pair(&scene._objQ.back(), scene._objQ.back().pObjMeshes[0]));
-
-				scene._toSortTransparentQ = true;
-
-			}
-			else {
-				scene._opaqueObjQ.push_back(std::make_pair(&scene._objQ.back(), scene._objQ.back().pObjMeshes[0]));
-			}
+			scene._pObjQ.push_back(&scene._objQ.back());
 		}
 
 		// Start the Dear ImGui frame
@@ -359,7 +316,7 @@ int main()
 
 			{	// Stats
 				ImGui::SeparatorText("Debug Info");
-				ImGui::Text("Within Frustcum/Total: %d / %d", scene._culledOpaqueObjQ.size(), scene._opaqueObjQ.size() + 1);
+				ImGui::Text("Within Frustcum/Total: %d / %d", scene._culledOpaqueObjQ.size(), scene._pObjQ.size() + 1);
 				ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 			}
 
@@ -370,10 +327,13 @@ int main()
 		cam.camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovY), static_cast<float>(tre::SCREEN_WIDTH) / tre::SCREEN_HEIGHT, 1.0f, 1000000000.0f);
 		cam.updateCamera();
 
-		// update distance from camera
+		// culling
+		scene.cullObject(cam, typeOfBound);
+
+		// update distance from camera - for transparent obj only
 		if (scene._toRecalDistFromCam) {
-			for (int i = 0; i < scene._transparentObjQ.size(); i++) {
-				scene._transparentObjQ[i].first->distFromCam = tre::Maths::distBetweentObjToCam(scene._transparentObjQ[i].first->objPos, cam.camPositionV);
+			for (int i = 0; i < scene._culledTransparentObjQ.size(); i++) {
+				scene._culledTransparentObjQ[i].first->distFromCam = tre::Maths::distBetweentObjToCam(scene._culledTransparentObjQ[i].first->objPos, cam.camPositionV);
 			}
 			scene._toSortTransparentQ = true;
 			scene._toRecalDistFromCam = false;
@@ -381,52 +341,8 @@ int main()
 
 		// sort the vector -> object with greater dist from cam is at the front of the Q
 		if (scene._toSortTransparentQ) {
-			std::sort(scene._transparentObjQ.begin(), scene._transparentObjQ.end(), [](const std::pair<tre::Object*, tre::Mesh*> obj1, const std::pair<tre::Object*, tre::Mesh*> obj2) { return obj1.first->distFromCam > obj2.first->distFromCam; });
+			std::sort(scene._culledTransparentObjQ.begin(), scene._culledTransparentObjQ.end(), [](const std::pair<tre::Object*, tre::Mesh*> obj1, const std::pair<tre::Object*, tre::Mesh*> obj2) { return obj1.first->distFromCam > obj2.first->distFromCam; });
 			scene._toSortTransparentQ = false;
-		}
-
-		// cull objects
-		scene._culledOpaqueObjQ.clear();
-		scene._culledOpaqueObjQ.push_back(std::make_pair(&scene._floor, scene._floor.pObjMeshes[0]));
-		for (int i = 0; i < scene._opaqueObjQ.size(); i++) {
-			switch (typeOfBound) {
-			case tre::AABBBoundingBox:
-				tre::BoundingVolume::updateAABB(scene._opaqueObjQ[i].first->pObjMeshes[0]->aabb, scene._opaqueObjQ[i].first->aabb[0], scene._opaqueObjQ[i].first->_transformationFinal);
-				break;
-			case tre::RitterBoundingSphere:
-				tre::BoundingVolume::updateBoundingSphere(scene._opaqueObjQ[i].first->pObjMeshes[0]->ritterSphere, scene._opaqueObjQ[i].first->ritterBs[0], scene._opaqueObjQ[i].first->_transformationFinal);
-				break;
-			case tre::NaiveBoundingSphere:
-				tre::BoundingVolume::updateBoundingSphere(scene._opaqueObjQ[i].first->pObjMeshes[0]->naiveSphere, scene._opaqueObjQ[i].first->naiveBs[0], scene._opaqueObjQ[i].first->_transformationFinal);
-				break;
-			}
-
-			if (scene._opaqueObjQ[i].first->aabb[0].isOverlapFrustum(cam.cameraFrustum)) {
-				scene._opaqueObjQ[i].first->_boundingVolumeColor[0] = tre::colorF(Colors::Green);
-				scene._culledOpaqueObjQ.push_back(scene._opaqueObjQ[i]);
-			}
-			else if (scene._opaqueObjQ[i].first->aabb[0].isInFrustum(cam.cameraFrustum)) {
-				scene._opaqueObjQ[i].first->_boundingVolumeColor[0] = tre::colorF(Colors::Blue);
-				scene._culledOpaqueObjQ.push_back(scene._opaqueObjQ[i]);
-			}
-			else {
-				scene._opaqueObjQ[i].first->_boundingVolumeColor[0] = tre::colorF(Colors::Red);
-			}
-		}
-
-		scene._culledTransparentObjQ.clear();
-		for (int i = 0; i < scene._transparentObjQ.size(); i++) {
-			if (scene._transparentObjQ[i].first->aabb[0].isOverlapFrustum(cam.cameraFrustum)) {
-				scene._transparentObjQ[i].first->_boundingVolumeColor[0] = tre::colorF(Colors::Green);
-				scene._culledTransparentObjQ.push_back(scene._transparentObjQ[i]);
-			}
-			else if (scene._transparentObjQ[i].first->aabb[0].isInFrustum(cam.cameraFrustum)) {
-				scene._transparentObjQ[i].first->_boundingVolumeColor[0] = tre::colorF(Colors::Blue);
-				scene._culledTransparentObjQ.push_back(scene._transparentObjQ[i]);
-			}
-			else {
-				scene._opaqueObjQ[i].first->_boundingVolumeColor[0] = tre::colorF(Colors::Red);
-			}
 		}
 
 		renderer.configureShadawSetting();
@@ -504,6 +420,7 @@ int main()
 		// Draw debug
 		if (showBoundingVolume) {
 			renderer.debugDraw(scene._culledOpaqueObjQ, scene._debugMeshes[meshIdx], typeOfBound, tre::RENDER_MODE::WIREFRAME_M);
+			renderer.debugDraw(scene._culledTransparentObjQ, scene._debugMeshes[meshIdx], typeOfBound, tre::RENDER_MODE::WIREFRAME_M);
 		}
 
 		ImGui::Render();
