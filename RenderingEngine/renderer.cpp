@@ -186,29 +186,13 @@ void Renderer::debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh
 				break;
 			}
 
-			//set shader resc view and sampler
-			bool hasTexture = 0;
-			bool hasNormal = 0;
-			if (objQ[i].second->material != nullptr) {
-				if (objQ[i].second->material->objTexture != nullptr) {
-					_context->PSSetShaderResources(0, 1, objQ[i].second->material->objTexture->pShaderResView.GetAddressOf());
-					hasTexture = 1;
-				}
-
-				// set normal map
-				if (objQ[i].second->material->objNormalMap != nullptr) {
-					_context->PSSetShaderResources(1, 1, objQ[i].second->material->objNormalMap->pShaderResView.GetAddressOf());
-					hasNormal = 1;
-				}
-			}
-
 			//Config and set const buffer
 			tre::ConstantBuffer::setObjConstBuffer(
 				_device, _context,
 				transformM,
 				currObj->_boundingVolumeColor[j],
-				hasTexture,
-				hasNormal
+				0, // bounding volume has no texture
+				0 // bounding volume has no normal
 			);
 
 			_context->DrawIndexed(mesh.indexSize, 0, 0);

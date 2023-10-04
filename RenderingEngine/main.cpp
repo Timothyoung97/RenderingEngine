@@ -359,6 +359,7 @@ int main()
 
 			scene.cullObject(lightFrustum, typeOfBound);
 
+			// draw shadow only for opaque objects
 			renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_MODE::SHADOW_M);
 		}
 
