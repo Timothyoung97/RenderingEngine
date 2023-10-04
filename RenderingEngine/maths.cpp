@@ -171,5 +171,67 @@ XMFLOAT3 Maths::convertRotationMatrixToEuler(XMMATRIX rotationMatrix) {
 	return XMFLOAT3(cx, .0f, atan2f(-nQF._21, nQF._11));
 }
 
+Frustum Maths::createFrustumFromViewProjectionMatrix(XMMATRIX viewProjection) {
+	XMFLOAT4X4 viewProjectionF;
+	XMStoreFloat4x4(&viewProjectionF, viewProjection);
+
+	Frustum frustum;
+
+	// add 1st col to 4th col of viewProj
+	frustum.leftF.eqn = XMFLOAT4(
+		-(viewProjectionF._14 + viewProjectionF._11),
+		-(viewProjectionF._24 + viewProjectionF._21),
+		-(viewProjectionF._34 + viewProjectionF._31),
+		viewProjectionF._44 + viewProjectionF._41
+	);
+	frustum.leftF.normalizePlane();
+
+	// minus 1st col from 4th col of viewPr0j
+	frustum.rightF.eqn = XMFLOAT4(
+		-(viewProjectionF._14 - viewProjectionF._11),
+		-(viewProjectionF._24 - viewProjectionF._21),
+		-(viewProjectionF._34 - viewProjectionF._31),
+		viewProjectionF._44 - viewProjectionF._41
+	);
+	frustum.rightF.normalizePlane();
+
+	// minus 2nd col from 4th col 
+	frustum.topF.eqn = XMFLOAT4(
+		-(viewProjectionF._14 - viewProjectionF._12),
+		-(viewProjectionF._24 - viewProjectionF._22),
+		-(viewProjectionF._34 - viewProjectionF._32),
+		viewProjectionF._44 - viewProjectionF._42
+	);
+	frustum.topF.normalizePlane();
+
+	// add 2nd col to 4th col
+	frustum.bottomF.eqn = XMFLOAT4(
+		-(viewProjectionF._14 + viewProjectionF._12),
+		-(viewProjectionF._24 + viewProjectionF._22),
+		-(viewProjectionF._34 + viewProjectionF._32),
+		viewProjectionF._44 + viewProjectionF._42
+	);
+	frustum.bottomF.normalizePlane();
+
+	// 3rd col itself + 4th
+	frustum.nearF.eqn = XMFLOAT4(
+		-(viewProjectionF._13 + viewProjectionF._14),
+		-(viewProjectionF._23 + viewProjectionF._24),
+		-(viewProjectionF._33 + viewProjectionF._34),
+		viewProjectionF._43 + viewProjectionF._44
+	);
+	frustum.nearF.normalizePlane();
+
+	// minus 3rd col from 4th col
+	frustum.farF.eqn = XMFLOAT4(
+		-(viewProjectionF._14 - viewProjectionF._13),
+		-(viewProjectionF._24 - viewProjectionF._23),
+		-(viewProjectionF._34 - viewProjectionF._33),
+		viewProjectionF._44 - viewProjectionF._43
+	);
+	frustum.farF.normalizePlane();
+
+	return frustum;
+};
 
 }

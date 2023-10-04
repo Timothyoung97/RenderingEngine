@@ -125,16 +125,18 @@ void Renderer::draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MO
 
 		//set shader resc view and sampler
 		bool hasTexture = 0;
-		if (objQ[i].second->material->objTexture != nullptr) {
-			_context->PSSetShaderResources(0, 1, objQ[i].second->material->objTexture->pShaderResView.GetAddressOf());
-			hasTexture = 1;
-		}
-
-		// set normal map
 		bool hasNormal = 0;
-		if (objQ[i].second->material->objNormalMap != nullptr) {
-			_context->PSSetShaderResources(1, 1, objQ[i].second->material->objNormalMap->pShaderResView.GetAddressOf());
-			hasNormal = 1;
+		if (objQ[i].second->material != nullptr) {
+			if (objQ[i].second->material->objTexture != nullptr) {
+				_context->PSSetShaderResources(0, 1, objQ[i].second->material->objTexture->pShaderResView.GetAddressOf());
+				hasTexture = 1;
+			}
+
+			// set normal map
+			if (objQ[i].second->material->objNormalMap != nullptr) {
+				_context->PSSetShaderResources(1, 1, objQ[i].second->material->objNormalMap->pShaderResView.GetAddressOf());
+				hasNormal = 1;
+			}
 		}
 
 		//Config and set const buffer
@@ -148,101 +150,6 @@ void Renderer::draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MO
 
 		_context->DrawIndexed(objQ[i].second->indexSize, 0, 0);
 	}
-}
-
-void Renderer::draw(Object* obj, RENDER_MODE renderMode, XMMATRIX matrix) {
-
-	configureStates(renderMode);
-
-	if (obj->pObjMeshes.size() != 0) {
-
-		UINT vertexStride = sizeof(Vertex);
-		UINT offset = 0;
-
-		for (int i = 0; i < obj->pObjMeshes.size(); i++) {
-			//Set vertex buffer
-			_context->IASetVertexBuffers(0, 1, obj->pObjMeshes[i]->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
-
-			//Set index buffer
-			_context->IASetIndexBuffer(obj->pObjMeshes[i]->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-
-			//set shader resc view and sampler
-			bool hasTexture = 0;
-			if (obj->pObjMeshes[i]->material->objTexture != nullptr) {
-				_context->PSSetShaderResources(0, 1, obj->pObjMeshes[i]->material->objTexture->pShaderResView.GetAddressOf());
-				hasTexture = 1;
-			}
-
-			// set normal map
-			bool hasNormal = 0;
-			if (obj->pObjMeshes[i]->material->objNormalMap != nullptr) {
-				_context->PSSetShaderResources(1, 1, obj->pObjMeshes[i]->material->objNormalMap->pShaderResView.GetAddressOf());
-				hasNormal = 1;
-			}
-
-			//Config and set const buffer
-			tre::ConstantBuffer::setObjConstBuffer(
-				_device, _context,
-				matrix,
-				obj->pObjMeshes[i]->material->baseColor,
-				hasTexture,
-				hasNormal
-			);
-
-			_context->DrawIndexed(obj->pObjMeshes[i]->indexSize, 0, 0);
-		}
-
-	}
-
-}
-
-void Renderer::recursiveDraw(Object* obj, RENDER_MODE renderMode) {
-
-	configureStates(renderMode);
-
-	if (obj->pObjMeshes.size() != 0) {
-
-		UINT vertexStride = sizeof(Vertex);
-		UINT offset = 0;
-
-		for (int i = 0; i < obj->pObjMeshes.size(); i++) {
-			//Set vertex buffer
-			_context->IASetVertexBuffers(0, 1, obj->pObjMeshes[i]->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
-
-			//Set index buffer
-			_context->IASetIndexBuffer(obj->pObjMeshes[i]->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-
-			//set shader resc view and sampler
-			bool hasTexture = 0;
-			if (obj->pObjMeshes[i]->material->objTexture != nullptr) {
-				_context->PSSetShaderResources(0, 1, obj->pObjMeshes[i]->material->objTexture->pShaderResView.GetAddressOf());
-				hasTexture = 1;
-			}
-
-			// set normal map
-			bool hasNormal = 0;
-			if (obj->pObjMeshes[i]->material->objNormalMap != nullptr) {
-				_context->PSSetShaderResources(1, 1, obj->pObjMeshes[i]->material->objNormalMap->pShaderResView.GetAddressOf());
-				hasNormal = 1;
-			}
-
-			//Config and set const buffer
-			tre::ConstantBuffer::setObjConstBuffer(
-				_device, _context,
-				obj->_transformationFinal,
-				obj->pObjMeshes[i]->material->baseColor,
-				hasTexture,
-				hasNormal
-			);
-
-			_context->DrawIndexed(obj->pObjMeshes[i]->indexSize, 0, 0);
-		}
-	}
-
-	for (int i = 0; i < obj->children.size(); i++) {
-		recursiveDraw(&obj->children[i], renderMode);
-	}
-
 }
 
 void Renderer::debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh& mesh, BoundVolumeEnum typeOfBound, RENDER_MODE renderMode) {
@@ -279,27 +186,13 @@ void Renderer::debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh
 				break;
 			}
 
-			//set shader resc view and sampler
-			bool hasTexture = 0;
-			if (currObj->pObjMeshes[j]->material->objTexture != nullptr) {
-				_context->PSSetShaderResources(0, 1, currObj->pObjMeshes[j]->material->objTexture->pShaderResView.GetAddressOf());
-				hasTexture = 1;
-			}
-
-			// set normal map
-			bool hasNormal = 0;
-			if (currObj->pObjMeshes[j]->material->objNormalMap != nullptr) {
-				_context->PSSetShaderResources(1, 1, currObj->pObjMeshes[j]->material->objNormalMap->pShaderResView.GetAddressOf());
-				hasNormal = 1;
-			}
-
 			//Config and set const buffer
 			tre::ConstantBuffer::setObjConstBuffer(
 				_device, _context,
 				transformM,
 				currObj->_boundingVolumeColor[j],
-				hasTexture,
-				hasNormal
+				0, // bounding volume has no texture
+				0 // bounding volume has no normal
 			);
 
 			_context->DrawIndexed(mesh.indexSize, 0, 0);

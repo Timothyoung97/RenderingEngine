@@ -76,6 +76,7 @@ void Scene::createFloor() {
 	_floor.naiveBs = { _floor.pObjMeshes[0]->naiveSphere };
 	_floor._boundingVolumeColor = { tre::colorF(Colors::WhiteSmoke) };
 	_floor._transformationFinal = tre::Maths::createTransformationMatrix(_floor.objScale, _floor.objRotation, _floor.objPos);
+	_pObjQ.push_back(&_floor);
 }
 
 void Scene::updateDirLight() {
@@ -88,6 +89,127 @@ void Scene::updateDirLight() {
 	dirlight = {
 		dirF, .0f, XMFLOAT4(.5f, .5f, .5f, 1.0f), XMFLOAT4(.5f, .5f, .5f, .5f)
 	};
+}
+
+void Scene::updateBoundingVolume(BoundVolumeEnum typeOfBound) {
+	for (int i = 0; i < _pObjQ.size(); i++) {
+		Object* pObj = _pObjQ[i];
+		for (int j = 0; j < pObj->pObjMeshes.size(); j++) {
+			switch (typeOfBound) {
+			case tre::AABBBoundingBox:
+				tre::BoundingVolume::updateAABB(pObj->pObjMeshes[j]->aabb, pObj->aabb[j], pObj->_transformationFinal);
+				break;
+			case tre::RitterBoundingSphere:
+				tre::BoundingVolume::updateBoundingSphere(pObj->pObjMeshes[j]->ritterSphere, pObj->ritterBs[j], pObj->_transformationFinal);
+				break;
+			case tre::NaiveBoundingSphere:
+				tre::BoundingVolume::updateBoundingSphere(pObj->pObjMeshes[j]->naiveSphere, pObj->naiveBs[j], pObj->_transformationFinal);
+				break;
+			}
+		}
+	}
+}
+
+void Scene::updateTransparentQ(Camera& cam) {
+	if (_toRecalDistFromCam) {
+		for (int i = 0; i < _culledTransparentObjQ.size(); i++) {
+			Object* pObj = _culledOpaqueObjQ[i].first;
+			// find its distance from cam
+			pObj->distFromCam = tre::Maths::distBetweentObjToCam(pObj->objPos, cam.camPositionV);
+		}
+		
+		_toSortTransparentQ = true;
+		_toRecalDistFromCam = false;
+	}
+
+	// sort the vector -> object with greater dist from cam is at the front of the Q
+	if (_toSortTransparentQ) {
+		std::sort(_culledTransparentObjQ.begin(), _culledTransparentObjQ.end(), [](const std::pair<tre::Object*, tre::Mesh*> obj1, const std::pair<tre::Object*, tre::Mesh*> obj2) { return obj1.first->distFromCam > obj2.first->distFromCam; });
+		_toSortTransparentQ = false;
+	}
+}
+
+void Scene::cullObject(Frustum& frustum, BoundVolumeEnum typeOfBound) {
+
+	updateBoundingVolume(typeOfBound);
+
+	_culledOpaqueObjQ.clear();
+	_culledOpaqueObjQ.push_back(std::make_pair(&_floor, _floor.pObjMeshes[0]));
+	_culledTransparentObjQ.clear();
+
+	for (int i = 0; i < _pObjQ.size(); i++) {
+		Object* pObj = _pObjQ[i];
+		for (int j = 0; j < pObj->pObjMeshes.size(); j++) {
+			Mesh* pMesh = pObj->pObjMeshes[j];
+
+			int isTransparent = 0;
+			if ((pMesh->material->objTexture != nullptr && pMesh->material->objTexture->hasAlphaChannel)
+				|| (pMesh->material->objTexture == nullptr && pMesh->material->baseColor.w < 1.0f)) {
+
+				isTransparent = 1;
+			}
+
+			int addToQ = 0;
+			switch (typeOfBound) {
+			case RitterBoundingSphere:
+				if (pObj->ritterBs[j].isOverlapFrustum(frustum)) {
+					pObj->_boundingVolumeColor[j] = tre::colorF(Colors::LightGreen);
+					addToQ = 1;
+				}
+				else if (pObj->ritterBs[j].isInFrustum(frustum)) {
+					pObj->_boundingVolumeColor[j] = tre::colorF(Colors::Blue);
+					addToQ = 1;
+				}
+				else {
+					pObj->_boundingVolumeColor[j] = tre::colorF(Colors::Red);
+				}
+
+				break;
+
+			case NaiveBoundingSphere:
+				if (pObj->naiveBs[j].isOverlapFrustum(frustum)) {
+					pObj->_boundingVolumeColor[j] = tre::colorF(Colors::LightGreen);
+					addToQ = 1;
+				}
+				else if (pObj->naiveBs[j].isInFrustum(frustum)) {
+					pObj->_boundingVolumeColor[j] = tre::colorF(Colors::Blue);
+					addToQ = 1;
+				}
+				else {
+					pObj->_boundingVolumeColor[j] = tre::colorF(Colors::Red);
+				}
+
+				break;
+
+			case AABBBoundingBox:
+				if (pObj->aabb[j].isOverlapFrustum(frustum)) {
+					pObj->_boundingVolumeColor[j] = tre::colorF(Colors::LightGreen);
+					addToQ = 1;
+				}
+				else if (pObj->aabb[j].isInFrustum(frustum)) {
+					pObj->_boundingVolumeColor[j] = tre::colorF(Colors::Blue);
+					addToQ = 1;
+				}
+				else {
+					pObj->_boundingVolumeColor[j] = tre::colorF(Colors::Red);
+				}
+
+				break;
+			}
+
+			if (addToQ) {
+				// add to queue function
+				if (isTransparent) {
+					_toSortTransparentQ = true;
+
+					_culledTransparentObjQ.push_back(std::make_pair(pObj, pMesh));
+
+				} else {
+					_culledOpaqueObjQ.push_back(std::make_pair(pObj, pMesh));
+				}
+			}
+		}
+	}
 }
 
 }

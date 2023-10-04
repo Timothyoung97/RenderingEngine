@@ -6,6 +6,7 @@
 #include "texture.h"
 #include "material.h"
 #include "light.h"
+#include "camera.h"
 
 #include <vector>
 
@@ -29,12 +30,13 @@ public:
 	std::vector<Texture> _debugNormalTextures;
 	std::vector<Material> _debugMaterials;
 
-	// Object Queue
+	// Object Queue to store debug objects created in Scene
 	std::vector<tre::Object> _objQ;
 
+	// Object ptr queue
+	std::vector<tre::Object*> _pObjQ;
+
 	// Render Queue
-	std::vector<std::pair<tre::Object*, tre::Mesh*>> _opaqueObjQ;
-	std::vector<std::pair<tre::Object*, tre::Mesh*>> _transparentObjQ;
 	std::vector<std::pair<tre::Object*, tre::Mesh*>> _culledOpaqueObjQ;
 	std::vector<std::pair<tre::Object*, tre::Mesh*>> _culledTransparentObjQ;
 	std::vector<std::pair<tre::Object*, tre::Mesh*>> _wireframeObjQ;
@@ -48,5 +50,8 @@ public:
 
 	void createFloor();
 	void updateDirLight();
+	void updateBoundingVolume(BoundVolumeEnum typeOfBound);
+	void cullObject(Frustum& frustum, BoundVolumeEnum typeOfBound);
+	void updateTransparentQ(Camera& cam);
 };
 }

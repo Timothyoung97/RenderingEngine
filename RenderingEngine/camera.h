@@ -34,6 +34,5 @@ public:
 	void updateCamera();
 	void moveCamera(XMVECTOR offset);
 	void turnCamera(float yawOffset, float pitchOffset);
-	void updateCameraFrustum();
 };
 }

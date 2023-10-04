@@ -50,8 +50,6 @@ public:
 	void clearBufferToDraw();
 	void configureStates(RENDER_MODE renderMode);
 	void draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MODE renderMode);
-	void draw(Object* objQ, RENDER_MODE renderMode, XMMATRIX matrix);
-	void recursiveDraw(Object* obj, RENDER_MODE renderMode);
 	void debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh& mesh, BoundVolumeEnum typeOfBound, RENDER_MODE renderMode);
 };
 }
