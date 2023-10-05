@@ -14,14 +14,15 @@
 #include "shader.h"
 #include "viewport.h"
 #include "inputlayout.h"
+#include "gbuffer.h"
 
 namespace tre {
 
-enum RENDER_MODE {
-	TRANSPARENT_M,
-	OPAQUE_M,
-	WIREFRAME_M,
-	SHADOW_M
+enum RENDER_OBJ_TYPE {
+	TRANSPARENT_T,
+	OPAQUE_T,
+	WIREFRAME_T,
+	SHADOW_T
 };
 
 class Renderer {
@@ -41,15 +42,23 @@ public:
 	InputLayout _inputLayout;
 	VertexShader _vertexShader;
 	PixelShader _pixelShader;
+	PixelShader _pixelDeferredAlbedoShader;
+	PixelShader _pixelDeferredNormalShader;
 	PixelShader _debugPixelShader;
 
+	GBuffer _deferredAlbedoBuffer;
+	GBuffer _deferredNormalBuffer;
+	
 	Renderer(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, HWND window);
 
 	void configureShadawSetting();
 	void setShadowBufferDrawSection(int idx); // idx --> 0: top left, 1: top right, 2: bottom left, 3: bottom right
 	void clearBufferToDraw();
-	void configureStates(RENDER_MODE renderMode);
-	void draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MODE renderMode);
-	void debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh& mesh, BoundVolumeEnum typeOfBound, RENDER_MODE renderMode);
+	void configureStates(RENDER_OBJ_TYPE renderMode);
+	void draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_OBJ_TYPE renderMode);
+	void debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh& mesh, BoundVolumeEnum typeOfBound, RENDER_OBJ_TYPE renderMode);
+
+	// deferred draw
+	void configureDeferredDraw(tre::GBUFFER_TYPE textureType);
 };
 }

@@ -28,7 +28,12 @@ Renderer::Renderer(ID3D11Device* _device, ID3D11DeviceContext* _context, HWND wi
 	_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	_pixelShader.create(basePathWstr + L"shaders\\pixel_shader.bin", _device);
-	_debugPixelShader.create(basePathWstr + L"shaders\\light_pixel.bin", _device);	
+	_pixelDeferredAlbedoShader.create(basePathWstr + L"shaders\\pixel_dAlbedo.bin", _device);
+	_pixelDeferredNormalShader.create(basePathWstr + L"shaders\\pixel_dNormal.bin", _device);
+	_debugPixelShader.create(basePathWstr + L"shaders\\light_pixel.bin", _device);
+
+	_deferredAlbedoBuffer.create(_device);
+	_deferredNormalBuffer.create(_device);
 }
 
 void Renderer::configureShadawSetting() {
@@ -65,7 +70,7 @@ void Renderer::clearBufferToDraw() {
 		backBuffer, NULL, &renderTargetView
 	));
 
-	_context->ClearRenderTargetView(renderTargetView, tre::BACKGROUND_COLOR);
+	_context->ClearRenderTargetView(renderTargetView, tre::BACKGROUND_GREY);
 
 	_context->ClearDepthStencilView(_depthbuffer.pDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
@@ -78,29 +83,29 @@ void Renderer::clearBufferToDraw() {
 	_context->RSSetViewports(1, &_viewport.defaultViewport);
 }
 
-void Renderer::configureStates(RENDER_MODE renderMode) {
-	switch (renderMode)
+void Renderer::configureStates(RENDER_OBJ_TYPE renderObjType) {
+	switch (renderObjType)
 	{
-	case tre::TRANSPARENT_M:
+	case tre::TRANSPARENT_T:
 		_context->OMSetBlendState(_blendstate.transparency.Get(), NULL, 0xffffffff);
 		_context->RSSetState(_rasterizer.pRasterizerStateFCCW.Get());
 		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0);
 		_context->PSSetShader(_pixelShader.pShader.Get(), NULL, 0u);
 		break;								
-	case tre::OPAQUE_M:						
+	case tre::OPAQUE_T:						
 		_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
 		_context->RSSetState(_rasterizer.pRasterizerStateFCCW.Get());
 		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
 		_context->PSSetShader(_pixelShader.pShader.Get(), NULL, 0u);
 		break;								
-	case tre::WIREFRAME_M:					
+	case tre::WIREFRAME_T:					
 		_context->OMSetBlendState(_blendstate.transparency.Get(), NULL, 0xffffffff);
 		_context->RSSetState(_rasterizer.pRasterizerStateWireFrame.Get());
 		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithoutDepthT.Get(), 0);
 		_context->PSSetShader(_debugPixelShader.pShader.Get(), NULL, 0u);
 		break;								
-	case tre::SHADOW_M:						
-		_context->OMSetBlendState(_blendstate.transparency.Get(), NULL, 0xffffffff);
+	case tre::SHADOW_T:						
+		_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
 		_context->RSSetState(_rasterizer.pShadowRasterizerState.Get());
 		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
 		_context->PSSetShader(nullptr, NULL, 0u);
@@ -108,9 +113,9 @@ void Renderer::configureStates(RENDER_MODE renderMode) {
 	}
 }
 
-void Renderer::draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MODE renderMode) {
+void Renderer::draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_OBJ_TYPE renderObjType) {
 
-	configureStates(renderMode);
+	configureStates(renderObjType);
 	
 	for (int i = 0; i < objQ.size(); i++) {
 
@@ -152,9 +157,9 @@ void Renderer::draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MO
 	}
 }
 
-void Renderer::debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh& mesh, BoundVolumeEnum typeOfBound, RENDER_MODE renderMode) {
+void Renderer::debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh& mesh, BoundVolumeEnum typeOfBound, RENDER_OBJ_TYPE renderObjType) {
 
-	configureStates(renderMode);
+	configureStates(renderObjType);
 
 	for (int i = 0; i < objQ.size(); i++) {
 
@@ -198,6 +203,24 @@ void Renderer::debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh
 			_context->DrawIndexed(mesh.indexSize, 0, 0);
 		}
 	}
+}
+
+void Renderer::configureDeferredDraw(tre::GBUFFER_TYPE textureType) {
+
+	ID3D11RenderTargetView* renderTarget = nullptr;
+
+	switch(textureType) {
+	case ALBEDO_T:
+		renderTarget = _deferredAlbedoBuffer.pRenderTargetView.Get();
+
+		break;
+	case NORMAL_T:
+		renderTarget = _deferredNormalBuffer.pRenderTargetView.Get();
+		break;
+	}
+	_context->ClearRenderTargetView(renderTarget, tre::BACKGROUND_BLACK);
+	_context->OMSetRenderTargets(1, &renderTarget, nullptr);
+	_context->RSSetViewports(1, &_viewport.defaultViewport);
 }
 
 }

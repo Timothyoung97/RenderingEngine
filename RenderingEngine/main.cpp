@@ -397,7 +397,7 @@ int main()
 			shadowCascadeOpaqueObjs[i] = scene._culledOpaqueObjQ.size();
 
 			// draw shadow only for opaque objects
-			renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_MODE::SHADOW_M);
+			renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_OBJ_TYPE::SHADOW_T);
 		}
 
 		renderer.clearBufferToDraw();
@@ -410,10 +410,10 @@ int main()
 		tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, cam.camViewProjection, lightViewProjs, planeIntervalsF, scene.dirlight, scene.lightResc.pointLights.size(), XMFLOAT2(4096, 4096), csmDebugSwitch);
 
 		// Draw all opaque objects
-		renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_MODE::OPAQUE_M);
+		renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_OBJ_TYPE::OPAQUE_T);
 
 		// Draw all transparent objects
-		renderer.draw(scene._culledTransparentObjQ, tre::RENDER_MODE::TRANSPARENT_M);
+		renderer.draw(scene._culledTransparentObjQ, tre::RENDER_OBJ_TYPE::TRANSPARENT_T);
 
 		if (!pauseLight) {
 			// rotate point light 1
@@ -444,12 +444,12 @@ int main()
 		deviceAndContext.context.Get()->PSSetShaderResources(2, 1, scene.lightResc.pLightShaderRescView.GetAddressOf());
 
 		// Draw all light object wireframe
-		renderer.draw(scene._wireframeObjQ, tre::RENDER_MODE::WIREFRAME_M);
+		renderer.draw(scene._wireframeObjQ, tre::RENDER_OBJ_TYPE::WIREFRAME_T);
 
 		// Draw debug
 		if (showBoundingVolume) {
-			renderer.debugDraw(scene._culledOpaqueObjQ, scene._debugMeshes[meshIdx], typeOfBound, tre::RENDER_MODE::WIREFRAME_M);
-			renderer.debugDraw(scene._culledTransparentObjQ, scene._debugMeshes[meshIdx], typeOfBound, tre::RENDER_MODE::WIREFRAME_M);
+			renderer.debugDraw(scene._culledOpaqueObjQ, scene._debugMeshes[meshIdx], typeOfBound, tre::RENDER_OBJ_TYPE::WIREFRAME_T);
+			renderer.debugDraw(scene._culledTransparentObjQ, scene._debugMeshes[meshIdx], typeOfBound, tre::RENDER_OBJ_TYPE::WIREFRAME_T);
 		}
 
 		ImGui::Render();
