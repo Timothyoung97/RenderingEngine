@@ -7,6 +7,11 @@ using Microsoft::WRL::ComPtr;
 
 namespace tre {
 
+enum GBUFFER_TYPE {
+	NORMAL_T,
+	ALBEDO_T
+};
+
 class GBuffer {
 public:
 	ComPtr<ID3D11ShaderResourceView> pShaderResView;
