@@ -36,13 +36,10 @@ cbuffer constBuffer2 : register(b1) {
     uint hasNormMap;
 };
 
+// can feed in normal or albedo textures
 Texture2D ObjTexture : register(t0);
-Texture2D ObjNormMap : register(t1);
-StructuredBuffer<PointLight> pointLights : register(t2);
-Texture2D ObjShadowMap : register(t3);
 
 SamplerState ObjSamplerStateLinear : register(s0);
-SamplerComparisonState ObjSamplerStateMipPtWhiteBorder : register(s1);
 
 // Pixel Shader for albedo
 void ps_dAlbedo (
@@ -77,7 +74,7 @@ void ps_dNormal (
 
     // normal texture
     if (hasNormMap) {
-        float4 normalMap = ObjNormMap.Sample(ObjSamplerStateLinear, vOutTexCoord);
+        float4 normalMap = ObjTexture.Sample(ObjSamplerStateLinear, vOutTexCoord);
 
         normalMap = (2.0f * normalMap) - 1.0f; // change from [0, 1] to [-1, 1]
         
