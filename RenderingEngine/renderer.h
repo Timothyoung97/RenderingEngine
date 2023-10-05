@@ -22,7 +22,8 @@ enum RENDER_OBJ_TYPE {
 	TRANSPARENT_T,
 	OPAQUE_T,
 	WIREFRAME_T,
-	SHADOW_T
+	SHADOW_T,
+	DEFERRED_OPAQUE_T
 };
 
 class Renderer {
@@ -41,9 +42,8 @@ public:
 	
 	InputLayout _inputLayout;
 	VertexShader _vertexShader;
-	PixelShader _pixelShader;
-	PixelShader _pixelDeferredAlbedoShader;
-	PixelShader _pixelDeferredNormalShader;
+	PixelShader _forwardShader;
+	PixelShader _deferredShader;
 	PixelShader _debugPixelShader;
 
 	GBuffer _gBuffer;
@@ -58,6 +58,6 @@ public:
 	void debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh& mesh, BoundVolumeEnum typeOfBound, RENDER_OBJ_TYPE renderMode);
 
 	// deferred draw
-	void configureDeferredDraw(tre::GBUFFER_TYPE textureType);
+	void configureDeferredDraw();
 };
 }

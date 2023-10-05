@@ -27,9 +27,8 @@ Renderer::Renderer(ID3D11Device* _device, ID3D11DeviceContext* _context, HWND wi
 	_context->IASetInputLayout(_inputLayout.vertLayout.Get());
 	_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	_pixelShader.create(basePathWstr + L"shaders\\pixel_shader.bin", _device);
-	_pixelDeferredAlbedoShader.create(basePathWstr + L"shaders\\pixel_dAlbedo.bin", _device);
-	_pixelDeferredNormalShader.create(basePathWstr + L"shaders\\pixel_dNormal.bin", _device);
+	_forwardShader.create(basePathWstr + L"shaders\\pixel_forward.bin", _device);
+	_deferredShader.create(basePathWstr + L"shaders\\pixel_deferred.bin", _device);
 	_debugPixelShader.create(basePathWstr + L"shaders\\light_pixel.bin", _device);
 
 	_gBuffer.create(_device);
@@ -89,13 +88,13 @@ void Renderer::configureStates(RENDER_OBJ_TYPE renderObjType) {
 		_context->OMSetBlendState(_blendstate.transparency.Get(), NULL, 0xffffffff);
 		_context->RSSetState(_rasterizer.pRasterizerStateFCCW.Get());
 		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0);
-		_context->PSSetShader(_pixelShader.pShader.Get(), NULL, 0u);
+		_context->PSSetShader(_forwardShader.pShader.Get(), NULL, 0u);
 		break;								
 	case tre::OPAQUE_T:						
 		_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
 		_context->RSSetState(_rasterizer.pRasterizerStateFCCW.Get());
 		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
-		_context->PSSetShader(_pixelShader.pShader.Get(), NULL, 0u);
+		_context->PSSetShader(_forwardShader.pShader.Get(), NULL, 0u);
 		break;								
 	case tre::WIREFRAME_T:					
 		_context->OMSetBlendState(_blendstate.transparency.Get(), NULL, 0xffffffff);
@@ -108,6 +107,12 @@ void Renderer::configureStates(RENDER_OBJ_TYPE renderObjType) {
 		_context->RSSetState(_rasterizer.pShadowRasterizerState.Get());
 		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
 		_context->PSSetShader(nullptr, NULL, 0u);
+		break;
+	case tre::DEFERRED_OPAQUE_T:
+		_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
+		_context->RSSetState(_rasterizer.pRasterizerStateFCCW.Get());
+		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
+		_context->PSSetShader(_deferredShader.pShader.Get(), NULL, 0u);
 		break;
 	}
 }
@@ -204,21 +209,13 @@ void Renderer::debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh
 	}
 }
 
-void Renderer::configureDeferredDraw(tre::GBUFFER_TYPE textureType) {
+void Renderer::configureDeferredDraw() {
 
-	ID3D11RenderTargetView* renderTarget = nullptr;
+	_context->ClearRenderTargetView(_gBuffer.pRenderTargetViewDeferredAlbedo.Get(), tre::BACKGROUND_BLACK);
+	_context->ClearRenderTargetView(_gBuffer.pRenderTargetViewDeferredNormal.Get(), tre::BACKGROUND_BLACK);
+	_context->ClearDepthStencilView(_depthbuffer.pDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-	switch(textureType) {
-	case ALBEDO_T:
-		renderTarget = _gBuffer.pRenderTargetViewDeferredAlbedo.Get();
-
-		break;
-	case NORMAL_T:
-		renderTarget = _gBuffer.pRenderTargetViewDeferredNormal.Get();
-		break;
-	}
-	_context->ClearRenderTargetView(renderTarget, tre::BACKGROUND_BLACK);
-	_context->OMSetRenderTargets(1, &renderTarget, nullptr);
+	_context->OMSetRenderTargets(2, _gBuffer.rtvs, _depthbuffer.pDepthStencilView.Get());
 	_context->RSSetViewports(1, &_viewport.defaultViewport);
 }
 
