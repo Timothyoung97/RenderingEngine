@@ -7,7 +7,7 @@ cbuffer constBuffer2 : register(b1) {
     uint hasNormMap;
 };
 
-void ps_main (
+void ps_debug (
     in float4 vOutPosition : SV_POSITION,
     in float4 vOutLocalPosition : TEXCOORD0,
     in float4 vOutNormal : TEXCOORD1,

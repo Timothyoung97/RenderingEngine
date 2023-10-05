@@ -1,32 +1,3 @@
-struct Light {
-    float3 dir;
-    float4 ambient;
-    float4 diffuse;
-};
-
-struct PointLight {
-    float3 dir;
-    float pad;
-    float3 pos;
-    float range;
-    float3 att;
-    float pad2;
-    float4 ambient;
-    float4 diffuse;
-};
-
-// Global 
-cbuffer constBuffer : register(b0) {
-    float4 camPos;
-    matrix viewProjection;
-    matrix lightviewProjection[4];
-    float4 planeIntervals;
-    Light dirLight;
-    int numPtLights;
-    float2 shadowMapDimension;
-    int csmDebugSwitch;
-};
-
 // Per Object
 cbuffer constBuffer2 : register(b1) {
     matrix transformation;
@@ -41,8 +12,8 @@ Texture2D ObjNormMap : register(t1);
 
 SamplerState ObjSamplerStateLinear : register(s0);
 
-// Pixel Shader for albedo
-void ps_main (
+// 1st deferred draw: Draw for normal and opaque
+void ps_deferred_gbuffer (
     in float4 vOutPosition : SV_POSITION,
     in float4 outWorldPosition : TEXCOORD0,
     in float4 vOutNormal : TEXCOORD1,
