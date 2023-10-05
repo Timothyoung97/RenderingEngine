@@ -32,8 +32,7 @@ Renderer::Renderer(ID3D11Device* _device, ID3D11DeviceContext* _context, HWND wi
 	_pixelDeferredNormalShader.create(basePathWstr + L"shaders\\pixel_dNormal.bin", _device);
 	_debugPixelShader.create(basePathWstr + L"shaders\\light_pixel.bin", _device);
 
-	_deferredAlbedoBuffer.create(_device);
-	_deferredNormalBuffer.create(_device);
+	_gBuffer.create(_device);
 }
 
 void Renderer::configureShadawSetting() {
@@ -211,11 +210,11 @@ void Renderer::configureDeferredDraw(tre::GBUFFER_TYPE textureType) {
 
 	switch(textureType) {
 	case ALBEDO_T:
-		renderTarget = _deferredAlbedoBuffer.pRenderTargetView.Get();
+		renderTarget = _gBuffer.pRenderTargetViewDeferredAlbedo.Get();
 
 		break;
 	case NORMAL_T:
-		renderTarget = _deferredNormalBuffer.pRenderTargetView.Get();
+		renderTarget = _gBuffer.pRenderTargetViewDeferredNormal.Get();
 		break;
 	}
 	_context->ClearRenderTargetView(renderTarget, tre::BACKGROUND_BLACK);

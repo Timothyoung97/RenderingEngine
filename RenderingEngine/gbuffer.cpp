@@ -12,14 +12,17 @@ void GBuffer::create(ID3D11Device* device) {
 	gbufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	gbufferDesc.SampleDesc.Count = 1;
 	gbufferDesc.SampleDesc.Quality = 0;
-	gbufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	gbufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	gbufferDesc.Usage = D3D11_USAGE_DEFAULT; // GPU Read and Write
+	gbufferDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE; // Render to buffer, then use as shader resource
 	gbufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	gbufferDesc.MiscFlags = 0;
 
-	ComPtr<ID3D11Texture2D> pGBufferTexture;
 	CHECK_DX_ERROR(device->CreateTexture2D(
-		&gbufferDesc, nullptr, pGBufferTexture.GetAddressOf()
+		&gbufferDesc, nullptr, pGBufferTextureAlbedo.GetAddressOf()
+	));
+
+	CHECK_DX_ERROR(device->CreateTexture2D(
+		&gbufferDesc, nullptr, pGBufferTextureNormal.GetAddressOf()
 	));
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC shaderResViewDesc;
@@ -28,7 +31,11 @@ void GBuffer::create(ID3D11Device* device) {
 	shaderResViewDesc.Texture2D = D3D11_TEX2D_SRV(0, -1);
 
 	CHECK_DX_ERROR(device->CreateShaderResourceView(
-		pGBufferTexture.Get(), &shaderResViewDesc, pShaderResView.GetAddressOf()
+		pGBufferTextureAlbedo.Get(), &shaderResViewDesc, pShaderResViewDeferredAlbedo.GetAddressOf()
+	));
+
+	CHECK_DX_ERROR(device->CreateShaderResourceView(
+		pGBufferTextureNormal.Get(), &shaderResViewDesc, pShaderResViewDeferredNormal.GetAddressOf()
 	));
 
 	D3D11_RENDER_TARGET_VIEW_DESC rtvd;
@@ -38,8 +45,14 @@ void GBuffer::create(ID3D11Device* device) {
 	rtvd.Texture2D.MipSlice = 0;
 
 	CHECK_DX_ERROR(device->CreateRenderTargetView(
-		pGBufferTexture.Get(), &rtvd, pRenderTargetView.GetAddressOf()
+		pGBufferTextureAlbedo.Get(), &rtvd, pRenderTargetViewDeferredAlbedo.GetAddressOf()
 	));
+
+	CHECK_DX_ERROR(device->CreateRenderTargetView(
+		pGBufferTextureNormal.Get(), &rtvd, pRenderTargetViewDeferredNormal.GetAddressOf()
+	));
+
+
 
 }
 }

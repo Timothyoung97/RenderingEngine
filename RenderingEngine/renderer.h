@@ -46,8 +46,7 @@ public:
 	PixelShader _pixelDeferredNormalShader;
 	PixelShader _debugPixelShader;
 
-	GBuffer _deferredAlbedoBuffer;
-	GBuffer _deferredNormalBuffer;
+	GBuffer _gBuffer;
 	
 	Renderer(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, HWND window);
 
