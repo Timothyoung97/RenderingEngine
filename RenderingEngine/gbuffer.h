@@ -15,6 +15,9 @@ enum GBUFFER_TYPE {
 class GBuffer {
 
 public:
+	
+	ID3D11RenderTargetView* rtvs[2] = { nullptr, nullptr };
+	
 	ComPtr<ID3D11Texture2D> pGBufferTextureAlbedo;
 	ComPtr<ID3D11ShaderResourceView> pShaderResViewDeferredAlbedo;
 	ComPtr<ID3D11RenderTargetView> pRenderTargetViewDeferredAlbedo;

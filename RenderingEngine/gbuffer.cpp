@@ -52,7 +52,6 @@ void GBuffer::create(ID3D11Device* device) {
 		pGBufferTextureNormal.Get(), &rtvd, pRenderTargetViewDeferredNormal.GetAddressOf()
 	));
 
-
-
+	rtvs[0] = pRenderTargetViewDeferredAlbedo.Get(), rtvs[1] = pRenderTargetViewDeferredNormal.Get();
 }
 }

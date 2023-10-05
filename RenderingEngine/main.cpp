@@ -140,7 +140,7 @@ int main()
 	tre::Object debugModel;
 
 	debugModel.pObjMeshes = { &scene._debugMeshes[4] };
-	debugModel.pObjMeshes[0]->material = &scene._debugMaterials[3];
+	debugModel.pObjMeshes[0]->material = &scene._debugMaterials[1];
 	debugModel.objPos = XMFLOAT3(.0f, 1.0f, .0f);
 	debugModel.objScale = XMFLOAT3(1.f, 1.f, 1.f);
 	debugModel.objRotation = XMFLOAT3(.0f, .0f, .0f);
@@ -400,14 +400,17 @@ int main()
 			renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_OBJ_TYPE::SHADOW_T);
 		}
 
-		renderer.clearBufferToDraw();
-
 		// culling for scene draw
 		scene.cullObject(cam.cameraFrustum, typeOfBound);
 		scene.updateTransparentQ(cam);
 
 		// set const buffer for camera
 		tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, cam.camViewProjection, lightViewProjs, planeIntervalsF, scene.dirlight, scene.lightResc.pointLights.size(), XMFLOAT2(4096, 4096), csmDebugSwitch);
+
+		renderer.configureDeferredDraw();
+		renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_OBJ_TYPE::DEFERRED_OPAQUE_T);
+
+		renderer.clearBufferToDraw();
 
 		// Draw all opaque objects
 		renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_OBJ_TYPE::OPAQUE_T);
