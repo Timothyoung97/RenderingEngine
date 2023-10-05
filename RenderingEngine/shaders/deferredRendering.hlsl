@@ -36,45 +36,34 @@ cbuffer constBuffer2 : register(b1) {
     uint hasNormMap;
 };
 
-// can feed in normal or albedo textures
 Texture2D ObjTexture : register(t0);
+Texture2D ObjNormMap : register(t1);
 
 SamplerState ObjSamplerStateLinear : register(s0);
 
 // Pixel Shader for albedo
-void ps_dAlbedo (
+void ps_main (
     in float4 vOutPosition : SV_POSITION,
     in float4 outWorldPosition : TEXCOORD0,
     in float4 vOutNormal : TEXCOORD1,
     in float4 vOutTangent : TEXCOORD2,
     in float2 vOutTexCoord : TEXCOORD3,
-    out float4 outTarget: SV_TARGET
+    out float4 outTargetAlbedo: SV_TARGET0,
+    out float4 outTargetNormal: SV_TARGET1
 ) {
-    // albedo texture
-    float4 sampleTexture;
 
-    outTarget = color;
+    // Albedo
+    outTargetAlbedo = color;
 
     if (isWithTexture) {
-        outTarget = ObjTexture.Sample(ObjSamplerStateLinear, vOutTexCoord);
+        outTargetAlbedo = ObjTexture.Sample(ObjSamplerStateLinear, vOutTexCoord);
     }
-}
 
-// Pixel Shader
-void ps_dNormal (
-    in float4 vOutPosition : SV_POSITION,
-    in float4 outWorldPosition : TEXCOORD0,
-    in float4 vOutNormal : TEXCOORD1,
-    in float4 vOutTangent : TEXCOORD2,
-    in float2 vOutTexCoord : TEXCOORD3,
-    out float4 outTarget: SV_TARGET
-) {
-    
-    outTarget = float4(.0f, .0f, .0f, .0f);
+    // Normal
+    outTargetNormal = float4(.0f, .0f, .0f, .0f);
 
-    // normal texture
     if (hasNormMap) {
-        float4 normalMap = ObjTexture.Sample(ObjSamplerStateLinear, vOutTexCoord);
+        float4 normalMap = ObjNormMap.Sample(ObjSamplerStateLinear, vOutTexCoord);
 
         normalMap = (2.0f * normalMap) - 1.0f; // change from [0, 1] to [-1, 1]
         
@@ -89,7 +78,6 @@ void ps_dNormal (
             float4(.0f, .0f, .0f, 1.0f)
         };
 
-        outTarget = normalize(mul(normalMap, texSpace)); // convert normal from normal map to texture space
+        outTargetNormal = normalize(mul(normalMap, texSpace)); // convert normal from normal map to texture space
     }
-
 }
