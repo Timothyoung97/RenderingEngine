@@ -14,8 +14,10 @@ using Microsoft::WRL::ComPtr;
 namespace tre {
 
 struct constBufferShaderRescCam {
+	XMFLOAT2 viewportDimension;
 	XMFLOAT4 camPos;
 	XMMATRIX viewProjection;
+	XMMATRIX invViewProjection;
 	XMMATRIX lightViewProjection[4];
 	XMFLOAT4 planeIntervals;
 	tre::Light light;
