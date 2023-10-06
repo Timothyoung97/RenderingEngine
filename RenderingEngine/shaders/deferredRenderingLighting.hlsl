@@ -29,15 +29,6 @@ cbuffer constBuffer : register(b0) {
     int csmDebugSwitch;
 };
 
-// Per Object
-cbuffer constBuffer2 : register(b1) {
-    matrix transformation;
-    matrix normalMatrix;
-    float4 color;
-    uint isWithTexture;
-    uint hasNormMap;
-};
-
 Texture2D ObjTexture : register(t0);
 Texture2D ObjNormMap : register(t1);
 StructuredBuffer<PointLight> pointLights : register(t2);
