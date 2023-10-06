@@ -18,12 +18,13 @@
 
 namespace tre {
 
-enum RENDER_OBJ_TYPE {
-	TRANSPARENT_T,
-	OPAQUE_T,
-	WIREFRAME_T,
-	SHADOW_T,
-	DEFERRED_OPAQUE_T
+enum RENDER_MODE {
+	TRANSPARENT_M,
+	OPAQUE_M,
+	WIREFRAME_M,
+	SHADOW_M,
+	DEFERRED_OPAQUE_M,
+	DEFERRED_OPAQUE_LIGHTING_M
 };
 
 class Renderer {
@@ -40,24 +41,33 @@ public:
 	Sampler _sampler;
 	Viewport _viewport;
 	
-	InputLayout _inputLayout;
 	VertexShader _vertexShader;
+	InputLayout _inputLayout;
+	
+	VertexShader _vertexShaderFullscreenQuad;
+
 	PixelShader _forwardShader;
 	PixelShader _deferredShader;
+	PixelShader _deferredShaderLighting;
 	PixelShader _debugPixelShader;
 
 	GBuffer _gBuffer;
 	
+	ID3D11RenderTargetView* currRenderTargetView = nullptr;
+
 	Renderer(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, HWND window);
 
-	void configureShadawSetting();
-	void setShadowBufferDrawSection(int idx); // idx --> 0: top left, 1: top right, 2: bottom left, 3: bottom right
-	void clearBufferToDraw();
-	void configureStates(RENDER_OBJ_TYPE renderMode);
-	void draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_OBJ_TYPE renderMode);
-	void debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh& mesh, BoundVolumeEnum typeOfBound, RENDER_OBJ_TYPE renderMode);
+	void reset();
 
-	// deferred draw
-	void configureDeferredDraw();
+	void setShadowBufferDrawSection(int idx); // idx --> 0: top left, 1: top right, 2: bottom left, 3: bottom right
+	void configureStates(RENDER_MODE renderMode);
+
+	void clearSwapChainBuffer();
+	void clearShadowBuffer();
+
+	void draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MODE renderMode);
+	void deferredLightingDraw();
+	void debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh& mesh, BoundVolumeEnum typeOfBound, RENDER_MODE renderMode);
+
 };
 }

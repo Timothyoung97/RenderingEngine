@@ -356,6 +356,9 @@ int main()
 			ImGui::End();
 		}
 
+		// render clear context
+		renderer.reset();
+
 		// Update Camera
 		cam.camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovY), static_cast<float>(tre::SCREEN_WIDTH) / tre::SCREEN_HEIGHT, 1.0f, 1000000000.0f);
 		cam.updateCamera();
@@ -363,9 +366,11 @@ int main()
 		// Update Bounding volume for all objects once
 		scene.updateBoundingVolume(typeOfBound);
 
-		// shadow draw
-		renderer.configureShadawSetting();
+		renderer.clearShadowBuffer();
 
+		renderer.configureStates(tre::RENDER_MODE::SHADOW_M);
+
+		// shadow draw
 		std::vector<XMMATRIX> lightViewProjs;
 		for (int i = 0; i < 4; i++) { // for 4 quads
 
@@ -397,7 +402,7 @@ int main()
 			shadowCascadeOpaqueObjs[i] = scene._culledOpaqueObjQ.size();
 
 			// draw shadow only for opaque objects
-			renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_OBJ_TYPE::SHADOW_T);
+			renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_MODE::SHADOW_M);
 		}
 
 		// culling for scene draw
@@ -407,16 +412,20 @@ int main()
 		// set const buffer for camera
 		tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, cam.camViewProjection, lightViewProjs, planeIntervalsF, scene.dirlight, scene.lightResc.pointLights.size(), XMFLOAT2(4096, 4096), csmDebugSwitch);
 
-		renderer.configureDeferredDraw();
-		renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_OBJ_TYPE::DEFERRED_OPAQUE_T);
+		// 1st pass deferred normal & albedo
+		renderer.configureStates(tre::RENDER_MODE::DEFERRED_OPAQUE_M);
+		renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_MODE::DEFERRED_OPAQUE_M);
 
-		renderer.clearBufferToDraw();
+		renderer.clearSwapChainBuffer();
 
-		// Draw all opaque objects
-		renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_OBJ_TYPE::OPAQUE_T);
+		// 2nd pass deferred lighting 
+		renderer.deferredLightingDraw();
+
+		//// Draw all opaque objects
+		//renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_MODE::OPAQUE_M);
 
 		// Draw all transparent objects
-		renderer.draw(scene._culledTransparentObjQ, tre::RENDER_OBJ_TYPE::TRANSPARENT_T);
+		//renderer.draw(scene._culledTransparentObjQ, tre::RENDER_MODE::TRANSPARENT_M);
 
 		if (!pauseLight) {
 			// rotate point light 1
@@ -447,12 +456,12 @@ int main()
 		deviceAndContext.context.Get()->PSSetShaderResources(2, 1, scene.lightResc.pLightShaderRescView.GetAddressOf());
 
 		// Draw all light object wireframe
-		renderer.draw(scene._wireframeObjQ, tre::RENDER_OBJ_TYPE::WIREFRAME_T);
+		//renderer.draw(scene._wireframeObjQ, tre::RENDER_MODE::WIREFRAME_M);
 
 		// Draw debug
 		if (showBoundingVolume) {
-			renderer.debugDraw(scene._culledOpaqueObjQ, scene._debugMeshes[meshIdx], typeOfBound, tre::RENDER_OBJ_TYPE::WIREFRAME_T);
-			renderer.debugDraw(scene._culledTransparentObjQ, scene._debugMeshes[meshIdx], typeOfBound, tre::RENDER_OBJ_TYPE::WIREFRAME_T);
+			renderer.debugDraw(scene._culledOpaqueObjQ, scene._debugMeshes[meshIdx], typeOfBound, tre::RENDER_MODE::WIREFRAME_M);
+			renderer.debugDraw(scene._culledTransparentObjQ, scene._debugMeshes[meshIdx], typeOfBound, tre::RENDER_MODE::WIREFRAME_M);
 		}
 
 		ImGui::Render();
