@@ -96,7 +96,7 @@ void ps_lightingPass (
     // getting depth from depth buffer
     float4 depth = ObjDepthMap.Load(int3(outPosition.xy, 0));
 
-    if (depth.x == 1.f) {
+    if (depth.x == 1.f) { // background
         outTarget = float4(.0f, .0f, .0f, .0f);
         return;
     }
