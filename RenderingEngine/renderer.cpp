@@ -27,9 +27,9 @@ Renderer::Renderer(ID3D11Device* _device, ID3D11DeviceContext* _context, HWND wi
 	_context->IASetInputLayout(_inputLayout.vertLayout.Get());
 	_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	_forwardShader.create(basePathWstr + L"shaders\\pixel_forward.bin", _device);
-	_deferredShader.create(basePathWstr + L"shaders\\pixel_deferred.bin", _device);
-	_debugPixelShader.create(basePathWstr + L"shaders\\light_pixel.bin", _device);
+	_forwardShader.create(basePathWstr + L"shaders\\pixel_shader_forward.bin", _device);
+	_deferredShader.create(basePathWstr + L"shaders\\pixel_shader_deferred.bin", _device);
+	_debugPixelShader.create(basePathWstr + L"shaders\\pixel_shader_debug.bin", _device);
 
 	_gBuffer.create(_device);
 }
