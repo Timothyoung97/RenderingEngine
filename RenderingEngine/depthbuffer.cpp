@@ -10,7 +10,7 @@ void DepthBuffer::create(ID3D11Device* device, int screenW, int screenH) {
 	depthStencilDesc.Height = screenH;
 	depthStencilDesc.MipLevels = 1;
 	depthStencilDesc.ArraySize = 1;
-	depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	depthStencilDesc.Format = DXGI_FORMAT_R24G8_TYPELESS;
 	depthStencilDesc.SampleDesc.Count = 1;
 	depthStencilDesc.SampleDesc.Quality = 0;
 	depthStencilDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -43,7 +43,6 @@ void DepthBuffer::create(ID3D11Device* device, int screenW, int screenH) {
 	));
 
 	// For shadow
-	depthStencilDesc.Format = DXGI_FORMAT_R24G8_TYPELESS;
 	depthStencilDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_DEPTH_STENCIL;
 	depthStencilDesc.Height = static_cast<UINT>(4096);
 	depthStencilDesc.Width = static_cast<UINT>(4096);
