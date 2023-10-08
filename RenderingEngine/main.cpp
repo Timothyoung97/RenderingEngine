@@ -359,6 +359,34 @@ int main()
 		// render clear context
 		renderer.reset();
 
+		if (!pauseLight) {
+			// rotate point light 1
+			sectorAnglePtLight[0] += 1.0f;
+			if (sectorAnglePtLight[0] == 360.0f) sectorAnglePtLight[0] = .0f;
+			scene.lightResc.pointLights[0].pos = tre::Maths::getRotatePosition(originPtLight[0], stackAnglePtLight[0], sectorAnglePtLight[0], 1.0f);
+			scene._wireframeObjQ[0].first->objPos = scene.lightResc.pointLights[0].pos;
+
+			// rotate point light 2
+			stackAnglePtLight[1] += 1.0f;
+			if (stackAnglePtLight[1] == 360.0f) stackAnglePtLight[1] = .0f;
+			scene.lightResc.pointLights[1].pos = tre::Maths::getRotatePosition(originPtLight[1], stackAnglePtLight[1], sectorAnglePtLight[1], 1.0f);
+			scene._wireframeObjQ[1].first->objPos = scene.lightResc.pointLights[1].pos;
+
+			// rotate point light 3
+			sectorAnglePtLight[2] += 5.0f;
+			if (sectorAnglePtLight[2] == 360.0f) sectorAnglePtLight[2] = .0f;
+			scene.lightResc.pointLights[2].pos = tre::Maths::getRotatePosition(originPtLight[2], stackAnglePtLight[2], sectorAnglePtLight[2], 5.0f);
+			scene._wireframeObjQ[2].first->objPos = scene.lightResc.pointLights[2].pos;
+
+			// rotate point light 4
+			stackAnglePtLight[3] += 5.0f;
+			if (stackAnglePtLight[3] == 360.0f) stackAnglePtLight[3] = .0f;
+			scene.lightResc.pointLights[3].pos = tre::Maths::getRotatePosition(originPtLight[3], stackAnglePtLight[3], sectorAnglePtLight[3], 5.0f);
+			scene._wireframeObjQ[3].first->objPos = scene.lightResc.pointLights[3].pos;
+		}
+		scene.lightResc.updateBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get());
+		deviceAndContext.context.Get()->PSSetShaderResources(2, 1, scene.lightResc.pLightShaderRescView.GetAddressOf());
+
 		// Update Camera
 		cam.camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovY), static_cast<float>(tre::SCREEN_WIDTH) / tre::SCREEN_HEIGHT, 1.0f, 1000000000.0f);
 		cam.updateCamera();
@@ -426,34 +454,6 @@ int main()
 
 		// Draw all transparent objects
 		//renderer.draw(scene._culledTransparentObjQ, tre::RENDER_MODE::TRANSPARENT_M);
-
-		if (!pauseLight) {
-			// rotate point light 1
-			sectorAnglePtLight[0] += 1.0f;
-			if (sectorAnglePtLight[0] == 360.0f) sectorAnglePtLight[0] = .0f;
-			scene.lightResc.pointLights[0].pos = tre::Maths::getRotatePosition(originPtLight[0], stackAnglePtLight[0], sectorAnglePtLight[0], 1.0f);
-			scene._wireframeObjQ[0].first->objPos = scene.lightResc.pointLights[0].pos;
-
-			// rotate point light 2
-			stackAnglePtLight[1] += 1.0f;
-			if (stackAnglePtLight[1] == 360.0f) stackAnglePtLight[1] = .0f;
-			scene.lightResc.pointLights[1].pos = tre::Maths::getRotatePosition(originPtLight[1], stackAnglePtLight[1], sectorAnglePtLight[1], 1.0f);
-			scene._wireframeObjQ[1].first->objPos = scene.lightResc.pointLights[1].pos;
-
-			// rotate point light 3
-			sectorAnglePtLight[2] += 5.0f;
-			if (sectorAnglePtLight[2] == 360.0f) sectorAnglePtLight[2] = .0f;
-			scene.lightResc.pointLights[2].pos = tre::Maths::getRotatePosition(originPtLight[2], stackAnglePtLight[2], sectorAnglePtLight[2], 5.0f);
-			scene._wireframeObjQ[2].first->objPos = scene.lightResc.pointLights[2].pos;
-
-			// rotate point light 4
-			stackAnglePtLight[3] += 5.0f;
-			if (stackAnglePtLight[3] == 360.0f) stackAnglePtLight[3] = .0f;
-			scene.lightResc.pointLights[3].pos = tre::Maths::getRotatePosition(originPtLight[3], stackAnglePtLight[3], sectorAnglePtLight[3], 5.0f);
-			scene._wireframeObjQ[3].first->objPos = scene.lightResc.pointLights[3].pos;
-		}
-		scene.lightResc.updateBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get());
-		deviceAndContext.context.Get()->PSSetShaderResources(2, 1, scene.lightResc.pLightShaderRescView.GetAddressOf());
 
 		// Draw all light object wireframe
 		//renderer.draw(scene._wireframeObjQ, tre::RENDER_MODE::WIREFRAME_M);
