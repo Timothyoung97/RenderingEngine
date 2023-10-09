@@ -59,6 +59,7 @@ Scene::Scene(ID3D11Device* device) {
 		newLightObj.objScale = XMFLOAT3(.1f, .1f, .1f);
 		newLightObj.objRotation = XMFLOAT3(.0f, .0f, .0f);
 		newLightObj._boundingVolumeColor = { XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) };
+		newLightObj._transformationFinal = tre::Maths::createTransformationMatrix(newLightObj.objScale, newLightObj.objRotation, newLightObj.objRotation);
 
 		_objQ.push_back(newLightObj);
 		_wireframeObjQ.push_back(std::make_pair(&_objQ.back(), _objQ.back().pObjMeshes[0]));
@@ -126,6 +127,12 @@ void Scene::updateTransparentQ(Camera& cam) {
 	if (_toSortTransparentQ) {
 		std::sort(_culledTransparentObjQ.begin(), _culledTransparentObjQ.end(), [](const std::pair<tre::Object*, tre::Mesh*> obj1, const std::pair<tre::Object*, tre::Mesh*> obj2) { return obj1.first->distFromCam > obj2.first->distFromCam; });
 		_toSortTransparentQ = false;
+	}
+}
+
+void Scene::updateTransformation() {
+	for (int i = 0; i < _wireframeObjQ.size(); i++) {
+		_wireframeObjQ[i].first->_transformationFinal = tre::Maths::createTransformationMatrix(_wireframeObjQ[i].first->objScale, _wireframeObjQ[i].first->objRotation, _wireframeObjQ[i].first->objPos);
 	}
 }
 

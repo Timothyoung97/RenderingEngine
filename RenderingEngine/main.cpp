@@ -151,7 +151,7 @@ int main()
 	scene._objQ.push_back(debugModel);
 	scene._pObjQ.push_back(&scene._objQ.back());
 
-	tre::Object* pDebugModel = &scene._objQ.back();
+	tre::Object* pDebugModel = scene._pObjQ.back();
 
 	// main loop
 	while (!input.shouldQuit())
@@ -384,6 +384,7 @@ int main()
 			scene.lightResc.pointLights[3].pos = tre::Maths::getRotatePosition(originPtLight[3], stackAnglePtLight[3], sectorAnglePtLight[3], 5.0f);
 			scene._wireframeObjQ[3].first->objPos = scene.lightResc.pointLights[3].pos;
 		}
+		scene.updateTransformation();
 		scene.lightResc.updateBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get());
 		deviceAndContext.context.Get()->PSSetShaderResources(2, 1, scene.lightResc.pLightShaderRescView.GetAddressOf());
 
@@ -452,11 +453,9 @@ int main()
 		// Draw all transparent objects
 		renderer.draw(scene._culledTransparentObjQ, tre::RENDER_MODE::TRANSPARENT_M);
 
-		// Draw all light object wireframe
-		//renderer.draw(scene._wireframeObjQ, tre::RENDER_MODE::WIREFRAME_M);
-
 		// Draw debug
 		if (showBoundingVolume) {
+			renderer.draw(scene._wireframeObjQ, tre::RENDER_MODE::WIREFRAME_M);
 			renderer.debugDraw(scene._culledOpaqueObjQ, scene._debugMeshes[meshIdx], typeOfBound, tre::RENDER_MODE::WIREFRAME_M);
 			renderer.debugDraw(scene._culledTransparentObjQ, scene._debugMeshes[meshIdx], typeOfBound, tre::RENDER_MODE::WIREFRAME_M);
 		}
