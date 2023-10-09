@@ -15,6 +15,7 @@ namespace tre {
 
 struct constBufferShaderRescCam {
 	XMFLOAT2 viewportDimension;
+	XMFLOAT2 pad;
 	XMFLOAT4 camPos;
 	XMMATRIX viewProjection;
 	XMMATRIX invViewProjection;

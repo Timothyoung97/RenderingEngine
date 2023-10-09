@@ -1,5 +1,6 @@
 struct Light {
     float3 dir;
+    float pad;
     float4 ambient;
     float4 diffuse;
 };
@@ -18,6 +19,7 @@ struct PointLight {
 // Global 
 cbuffer constBuffer : register(b0) {
     float2 viewportDimension; // (width, height)
+    float2 pad;
     float4 camPos;
     matrix viewProjection;
     matrix invViewProjection;
