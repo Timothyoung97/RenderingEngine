@@ -83,11 +83,11 @@ void Renderer::configureStates(RENDER_MODE renderObjType) {
 
 		_context->PSSetShader(_forwardShader.pShader.Get(), NULL, 0u);
 		_context->PSSetShaderResources(3, 1, _depthbuffer.pShadowShaderRescView.GetAddressOf()); // shadow
-		_context->PSSetShaderResources(4, 1, _depthbuffer.pDepthStencilShaderRescView.GetAddressOf()); //depth
+		_context->PSSetShaderResources(4, 1, nullSRV); 
 
 		_context->OMSetBlendState(_blendstate.transparency.Get(), NULL, 0xffffffff);
 		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0);
-		_context->OMSetRenderTargets(1, &currRenderTargetView, nullptr);
+		_context->OMSetRenderTargets(1, &currRenderTargetView, _depthbuffer.pDepthStencilView.Get());
 		break;		
 
 	case tre::OPAQUE_M:

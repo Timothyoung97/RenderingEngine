@@ -44,7 +44,6 @@ Texture2D ObjTexture : register(t0);
 Texture2D ObjNormMap : register(t1);
 StructuredBuffer<PointLight> pointLights : register(t2);
 Texture2D ObjShadowMap : register(t3);
-Texture2D ObjDepthMap : register(t4);
 
 SamplerState ObjSamplerStateLinear : register(s0);
 SamplerComparisonState ObjSamplerStateMipPtWhiteBorder : register(s1);
@@ -138,14 +137,6 @@ void ps_main (
     out float4 outTarget: SV_TARGET
 ) 
 {   
-    // getting depth from depth buffer
-    float4 depth = ObjDepthMap.Load(int3(vOutPosition.xy, 0));
-
-    if (depth.x == 1.f) { // background
-        outTarget = float4(.0f, .0f, .0f, .0f);
-        return;
-    }
-
     // normal
     vOutNormal = normalize(vOutNormal);
 
