@@ -31,7 +31,7 @@ void ps_deferred_gbuffer (
     }
 
     // Normal
-    outTargetNormal = float4(.0f, .0f, .0f, .0f);
+    outTargetNormal = normalize(vOutNormal);
 
     if (hasNormMap) {
         float4 normalMap = ObjNormMap.Sample(ObjSamplerStateLinear, vOutTexCoord);
