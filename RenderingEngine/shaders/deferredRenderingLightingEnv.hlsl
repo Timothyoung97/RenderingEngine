@@ -1,89 +1,4 @@
-struct Light {
-    float3 dir;
-    float pad;
-    float4 ambient;
-    float4 diffuse;
-};
-
-struct PointLight {
-    float3 dir;
-    float pad;
-    float3 pos;
-    float range;
-    float3 att;
-    float pad2;
-    float4 ambient;
-    float4 diffuse;
-};
-
-// Global 
-cbuffer constBuffer : register(b0) {
-    float2 viewportDimension; // (width, height)
-    float2 pad;
-    float4 camPos;
-    matrix viewProjection;
-    matrix invViewProjection;
-    matrix lightviewProjection[4];
-    float4 planeIntervals;
-    Light dirLight;
-    int numPtLights;
-    float2 shadowMapDimension;
-    int csmDebugSwitch;
-};
-
-Texture2D ObjTexture : register(t0);
-Texture2D ObjNormMap : register(t1);
-StructuredBuffer<PointLight> pointLights : register(t2);
-Texture2D ObjShadowMap : register(t3);
-Texture2D ObjDepthMap : register(t4);
-
-SamplerState ObjSamplerStateLinear : register(s0);
-SamplerComparisonState ObjSamplerStateMipPtWhiteBorder : register(s1);
-
-static float2 shadowTexCoordCenter[4] = {
-    float2(.25f, .25f),
-    float2(.75f, .25f),
-    float2(.25f, .75f),
-    float2(.75f, .75f)
-};
-
-static float4 borderClamp[4] = {
-    float4(.0f, .49f, .0f, .49f),
-    float4(.5f, 1.f, .0f, .49f),
-    float4(.0f, .49f, .5f, 1.f),
-    float4(.5f, 1.f, .5f, 1.f)
-};
-
-float ShadowCalculation(float4 outWorldPosition, float distFromCamera) {
-
-    float4 pixelPosLightSpace;
-    float2 shadowTexCoords;
-
-    [unroll]
-    for (int i = 0; i < 4; i++) {
-        pixelPosLightSpace = mul(lightviewProjection[i], outWorldPosition);
-        shadowTexCoords.x = clamp(shadowTexCoordCenter[i].x + (pixelPosLightSpace.x / pixelPosLightSpace.w * .25f), borderClamp[i].x, borderClamp[i].y);
-        shadowTexCoords.y = clamp(shadowTexCoordCenter[i].y - (pixelPosLightSpace.y / pixelPosLightSpace.w * .25f), borderClamp[i].z, borderClamp[i].w);
-        if (distFromCamera < planeIntervals[i]) break;
-    }
-
-    float pixelDepth = pixelPosLightSpace.z / pixelPosLightSpace.w;
-
-    // convert to 2K
-    float2 texelSize = float2(.5f / shadowMapDimension.x, .5f / shadowMapDimension.y);
-
-    float shadow = .0f;
-    [unroll]
-    for (int x = -1; x <= 1; ++x) {
-        [unroll]
-        for (int y = -1; y <= 1; ++y) {
-            float currShadow = ObjShadowMap.SampleCmp(ObjSamplerStateMipPtWhiteBorder, shadowTexCoords.xy + float2(x, y) * texelSize, pixelDepth);
-            shadow += currShadow;
-        }
-    }
-
-    return shadow / 9.f;
-};
+#include "forwardRendering.hlsl"
 
 void ps_lightingEnvPass (
     in float4 outPosition: SV_POSITION,
@@ -166,3 +81,4 @@ void ps_lightingEnvPass (
 
     outTarget = float4(pixelColor + pixelLightColor, sampleAlbedo.a); // RGB + Alpha Channel
 }
+
