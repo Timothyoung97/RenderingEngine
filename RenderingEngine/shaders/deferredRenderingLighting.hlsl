@@ -85,7 +85,7 @@ float ShadowCalculation(float4 outWorldPosition, float distFromCamera) {
     return shadow / 9.f;
 };
 
-void ps_lightingPass (
+void ps_lightingEnvPass (
     in float4 outPosition: SV_POSITION,
     in float2 outTexCoord: TEXCOORD0,
     out float4 outTarget: SV_TARGET

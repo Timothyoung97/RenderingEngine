@@ -25,7 +25,7 @@ Renderer::Renderer(ID3D11Device* _device, ID3D11DeviceContext* _context, HWND wi
 
 	_forwardShader.create(basePathWstr + L"shaders\\pixel_shader_forward.bin", _device);
 	_deferredShader.create(basePathWstr + L"shaders\\pixel_shader_deferred.bin", _device);
-	_deferredShaderLighting.create(basePathWstr + L"shaders\\pixel_shader_deferred_lighting.bin", _device);
+	_deferredShaderLighting.create(basePathWstr + L"shaders\\pixel_shader_deferred_lighting_env.bin", _device);
 	_debugPixelShader.create(basePathWstr + L"shaders\\pixel_shader_debug.bin", _device);
 
 	_gBuffer.create(_device);
@@ -156,7 +156,7 @@ void Renderer::configureStates(RENDER_MODE renderObjType) {
 		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
 		break;
 
-	case tre::DEFERRED_OPAQUE_LIGHTING_M:
+	case tre::DEFERRED_OPAQUE_LIGHTING_ENV_M:
 		_context->VSSetShader(_vertexShaderFullscreenQuad.pShader.Get(), NULL, 0u);
 		_context->IASetInputLayout(nullptr);
 
@@ -178,7 +178,7 @@ void Renderer::configureStates(RENDER_MODE renderObjType) {
 }
 
 void Renderer::deferredLightingDraw() {
-	configureStates(RENDER_MODE::DEFERRED_OPAQUE_LIGHTING_M);
+	configureStates(RENDER_MODE::DEFERRED_OPAQUE_LIGHTING_ENV_M);
 	_context->Draw(6, 0);
 }
 
