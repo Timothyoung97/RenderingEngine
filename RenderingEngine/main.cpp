@@ -200,7 +200,7 @@ int main()
 			int textureIdx = tre::Utility::getRandomInt(1);
 
 			int selectIdx = tre::Utility::getRandomInt(1);
-			newObj.pObjMeshes = { &scene._debugMeshes[4 + selectIdx] };
+			newObj.pObjMeshes = { &scene._debugMeshes[5 + selectIdx] };
 			newObj.pObjMeshes[0]->material = &scene._debugMaterials[selectIdx];
 			newObj.objPos = XMFLOAT3(tre::Utility::getRandomFloatRange(-20, 20), tre::Utility::getRandomFloatRange(-20, 20), tre::Utility::getRandomFloatRange(-20, 20));
 			newObj.objScale = XMFLOAT3(scaleVal, scaleVal, scaleVal);

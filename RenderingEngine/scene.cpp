@@ -14,6 +14,7 @@ Scene::Scene(ID3D11Device* device) {
 		tre::SphereMesh(device, 20, 20), // Bounding WireMesh
 		tre::TeapotMesh(device),
 		tre::CubeMesh(device), // floor
+		tre::CubeMesh(device), // transparent cube
 		tre::CubeMesh(device), // testing cube
 		tre::SphereMesh(device, 20, 20) // testing sphere
 	};
