@@ -140,8 +140,8 @@ int main()
 	tre::Object debugModel;
 
 	debugModel.pObjMeshes = { &scene._debugMeshes[4] };
-	debugModel.pObjMeshes[0]->material = &scene._debugMaterials[1];
-	debugModel.objPos = XMFLOAT3(.0f, 1.0f, .0f);
+	debugModel.pObjMeshes[0]->material = &scene._debugMaterials[3];
+	debugModel.objPos = XMFLOAT3(.0f, .5f, .0f);
 	debugModel.objScale = XMFLOAT3(1.f, 1.f, 1.f);
 	debugModel.objRotation = XMFLOAT3(.0f, .0f, .0f);
 	debugModel.ritterBs = { debugModel.pObjMeshes[0]->ritterSphere };
@@ -449,11 +449,8 @@ int main()
 		// 2nd pass deferred lighting 
 		renderer.deferredLightingDraw();
 
-		//// Draw all opaque objects
-		//renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_MODE::OPAQUE_M);
-
 		// Draw all transparent objects
-		//renderer.draw(scene._culledTransparentObjQ, tre::RENDER_MODE::TRANSPARENT_M);
+		renderer.draw(scene._culledTransparentObjQ, tre::RENDER_MODE::TRANSPARENT_M);
 
 		// Draw all light object wireframe
 		//renderer.draw(scene._wireframeObjQ, tre::RENDER_MODE::WIREFRAME_M);
