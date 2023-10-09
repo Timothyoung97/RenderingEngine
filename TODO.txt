@@ -5,8 +5,8 @@ Graphics Tasks:
         • Reconstruct world position from depth buffer
     • Transparent draw calls continue to use Forward Shading code path
     • Optimize local lights: utilize light volumes for point lights
-• Update point lights in GPU
-    • Use Compute Shaders
+    • Implement deferred lighting using CS (directional light only)
+• Update point lights positions using CS
 • SSAO
 • Instanced Rendering
     • Draw multiple primitives in single Draw Calls
