@@ -75,40 +75,51 @@ void Renderer::configureStates(RENDER_MODE renderObjType) {
 	switch (renderObjType)
 	{
 	case tre::TRANSPARENT_M:
-		_context->VSSetShader(_vertexShader.pShader.Get(), NULL, 0u);
 		_context->IASetInputLayout(_inputLayout.vertLayout.Get());
-
-		_context->OMSetBlendState(_blendstate.transparency.Get(), NULL, 0xffffffff);
-		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0);
-		
-		_context->RSSetState(_rasterizer.pRasterizerStateFCCW.Get());
-		
-		_context->PSSetShader(_forwardShader.pShader.Get(), NULL, 0u);
-		break;								
-	case tre::OPAQUE_M:
 		_context->VSSetShader(_vertexShader.pShader.Get(), NULL, 0u);
-		_context->IASetInputLayout(_inputLayout.vertLayout.Get());
 
-		_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
-		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
-		
+		_context->RSSetViewports(1, &_viewport.defaultViewport);
 		_context->RSSetState(_rasterizer.pRasterizerStateFCCW.Get());
 
 		_context->PSSetShader(_forwardShader.pShader.Get(), NULL, 0u);
 		_context->PSSetShaderResources(3, 1, _depthbuffer.pShadowShaderRescView.GetAddressOf()); // shadow
 		_context->PSSetShaderResources(4, 1, _depthbuffer.pDepthStencilShaderRescView.GetAddressOf()); //depth
-		break;								
+
+		_context->OMSetBlendState(_blendstate.transparency.Get(), NULL, 0xffffffff);
+		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0);
+		_context->OMSetRenderTargets(1, &currRenderTargetView, nullptr);
+		break;		
+
+	case tre::OPAQUE_M:
+		_context->IASetInputLayout(_inputLayout.vertLayout.Get());
+		_context->VSSetShader(_vertexShader.pShader.Get(), NULL, 0u);
+
+		_context->RSSetViewports(1, &_viewport.defaultViewport);
+		_context->RSSetState(_rasterizer.pRasterizerStateFCCW.Get());
+
+		_context->PSSetShader(_forwardShader.pShader.Get(), NULL, 0u);
+		_context->PSSetShaderResources(3, 1, _depthbuffer.pShadowShaderRescView.GetAddressOf()); // shadow
+		_context->PSSetShaderResources(4, 1, _depthbuffer.pDepthStencilShaderRescView.GetAddressOf()); //depth
+
+		_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
+		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
+		_context->OMSetRenderTargets(1, &currRenderTargetView, nullptr);
+		break;			
+
 	case tre::WIREFRAME_M:
 		_context->VSSetShader(_vertexShader.pShader.Get(), NULL, 0u);
 		_context->IASetInputLayout(_inputLayout.vertLayout.Get());
 
-		_context->OMSetBlendState(_blendstate.transparency.Get(), NULL, 0xffffffff);
-		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithoutDepthT.Get(), 0);
-		
+		_context->RSSetViewports(1, &_viewport.defaultViewport);
 		_context->RSSetState(_rasterizer.pRasterizerStateWireFrame.Get());
 		
 		_context->PSSetShader(_debugPixelShader.pShader.Get(), NULL, 0u);
+
+		_context->OMSetBlendState(_blendstate.transparency.Get(), NULL, 0xffffffff);
+		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithoutDepthT.Get(), 0);
+		_context->OMSetRenderTargets(1, &currRenderTargetView, nullptr);
 		break;								
+
 	case tre::SHADOW_M: // use normal draw func
 		_context->IASetInputLayout(_inputLayout.vertLayout.Get());
 		_context->VSSetShader(_vertexShader.pShader.Get(), NULL, 0u);
@@ -123,8 +134,8 @@ void Renderer::configureStates(RENDER_MODE renderObjType) {
 		_context->OMSetRenderTargets(0, nullptr, _depthbuffer.pShadowDepthStencilView.Get());
 		_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
 		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
-
 		break;
+
 	case tre::DEFERRED_OPAQUE_M: // use normal draw func
 		_context->IASetInputLayout(_inputLayout.vertLayout.Get());
 		_context->VSSetShader(_vertexShader.pShader.Get(), NULL, 0u);
@@ -143,8 +154,8 @@ void Renderer::configureStates(RENDER_MODE renderObjType) {
 		_context->OMSetRenderTargets(2, _gBuffer.rtvs, _depthbuffer.pDepthStencilView.Get());
 		_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
 		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
-
 		break;
+
 	case tre::DEFERRED_OPAQUE_LIGHTING_M:
 		_context->VSSetShader(_vertexShaderFullscreenQuad.pShader.Get(), NULL, 0u);
 		_context->IASetInputLayout(nullptr);
@@ -173,6 +184,7 @@ void Renderer::deferredLightingDraw() {
 
 void Renderer::draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MODE renderObjType) {
 
+	configureStates(renderObjType);
 	for (int i = 0; i < objQ.size(); i++) {
 
 		UINT vertexStride = sizeof(Vertex);
@@ -215,6 +227,7 @@ void Renderer::draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MO
 
 void Renderer::debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh& mesh, BoundVolumeEnum typeOfBound, RENDER_MODE renderObjType) {
 
+	configureStates(renderObjType);
 	for (int i = 0; i < objQ.size(); i++) {
 
 		tre::Object* currObj = objQ[i].first;
