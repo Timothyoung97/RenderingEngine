@@ -99,11 +99,11 @@ void Renderer::configureStates(RENDER_MODE renderObjType) {
 
 		_context->PSSetShader(_forwardShader.pShader.Get(), NULL, 0u);
 		_context->PSSetShaderResources(3, 1, _depthbuffer.pShadowShaderRescView.GetAddressOf()); // shadow
-		_context->PSSetShaderResources(4, 1, _depthbuffer.pDepthStencilShaderRescView.GetAddressOf()); //depth
+		_context->PSSetShaderResources(4, 1, nullSRV);
 
 		_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
 		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
-		_context->OMSetRenderTargets(1, &currRenderTargetView, nullptr);
+		_context->OMSetRenderTargets(1, &currRenderTargetView, _depthbuffer.pDepthStencilView.Get());
 		break;			
 
 	case tre::WIREFRAME_M:
@@ -141,7 +141,7 @@ void Renderer::configureStates(RENDER_MODE renderObjType) {
 		_context->VSSetShader(_vertexShader.pShader.Get(), NULL, 0u);
 
 		_context->RSSetViewports(1, &_viewport.defaultViewport);
-		_context->RSSetState(_rasterizer.pRasterizerStateNoCull.Get());
+		_context->RSSetState(_rasterizer.pRasterizerStateFCCW.Get());
 		
 		// unbind depth buffer as a shader resource, so that we can write to it
 		_context->OMSetRenderTargets(0, nullptr, nullptr);

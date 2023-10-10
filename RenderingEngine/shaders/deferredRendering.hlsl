@@ -8,12 +8,12 @@ void ps_deferred_gbuffer (
     in float4 vOutTangent : TEXCOORD2,
     in float2 vOutTexCoord : TEXCOORD3,
     out float4 outTargetAlbedo: SV_TARGET0,
-    out float4 outTargetNormal: SV_TARGET1
+    out float3 outTargetNormal: SV_TARGET1
 ) {
 
     // Albedo
     outTargetAlbedo = sampleTexture(vOutTexCoord);
 
     // Normal
-    outTargetNormal = sampleNormal(vOutTexCoord, vOutNormal, vOutTangent);
+    outTargetNormal = sampleNormal(vOutTexCoord, vOutNormal, vOutTangent).xyz;
 }

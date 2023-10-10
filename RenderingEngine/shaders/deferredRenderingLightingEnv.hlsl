@@ -26,7 +26,7 @@ void ps_lightingEnvPass (
 
     // Sampling gbuffer textures
     float4 sampleAlbedo = ObjTexture.Load(int3(outPosition.xy, 0));
-    float4 sampleNormal = ObjNormMap.Load(int3(outPosition.xy, 0));
+    float3 sampleNormal = ObjNormMap.Load(int3(outPosition.xy, 0)).xyz;
 
     float3 pixelColor = sampleAlbedo.xyz * .1f; // hardcoded ambient
 
