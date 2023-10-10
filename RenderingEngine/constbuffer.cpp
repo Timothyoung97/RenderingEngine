@@ -52,7 +52,6 @@ void ConstantBuffer::setCamConstBuffer(
 }
 
 void ConstantBuffer::setObjConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, XMMATRIX transformationLocal, XMFLOAT4 color, UINT isWithTexture, UINT hasNormalMap) {
-
 	D3D11_BUFFER_DESC constantBufferDescModel;
 	constantBufferDescModel.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	constantBufferDescModel.Usage = D3D11_USAGE_DYNAMIC;
@@ -86,7 +85,32 @@ void ConstantBuffer::setObjConstBuffer(ID3D11Device* device, ID3D11DeviceContext
 	//Set const buffer for pixel and vertex shader
 	context->VSSetConstantBuffers(1u, 1u, &pConstBuffer);
 	context->PSSetConstantBuffers(1u, 1u, &pConstBuffer);
+}
 
+void ConstantBuffer::setLightingVolumeConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, int currPtLightIdx) {
+	D3D11_BUFFER_DESC constantBufferDescModel;
+	constantBufferDescModel.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	constantBufferDescModel.Usage = D3D11_USAGE_DYNAMIC;
+	constantBufferDescModel.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	constantBufferDescModel.MiscFlags = 0u;
+	constantBufferDescModel.ByteWidth = sizeof(constBufferDeferredLightingVolume);
+	constantBufferDescModel.StructureByteStride = 0u;
+
+	constBufferDeferredLightingVolume constBufferLightingVolume;
+	constBufferLightingVolume.currPointLightIdx = (UINT) currPtLightIdx;
+
+	//map to data to subresouce
+	D3D11_SUBRESOURCE_DATA csd = {};
+	csd.pSysMem = &constBufferLightingVolume;
+
+	ID3D11Buffer* pConstBuffer;
+
+	CHECK_DX_ERROR(device->CreateBuffer(
+		&constantBufferDescModel, &csd, &pConstBuffer
+	));
+
+	//Set const buffer for pixel shader
+	context->PSSetConstantBuffers(1u, 1u, &pConstBuffer);
 }
 
 }

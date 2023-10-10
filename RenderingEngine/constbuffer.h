@@ -35,6 +35,10 @@ struct constBufferShaderRescModel {
 	UINT hasNormalMap;
 };
 
+struct constBufferDeferredLightingVolume {
+	UINT currPointLightIdx;
+};
+
 class ConstantBuffer {
 public:
 	static void setCamConstBuffer(
@@ -48,7 +52,10 @@ public:
 		XMFLOAT2 shadowMapDimension,
 		int csmDebugSwitch
 	);
+	
 	static void setObjConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, XMMATRIX transformationLocal, XMFLOAT4 color, UINT isWithTexture, UINT hasNormalMap);
+
+	static void setLightingVolumeConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, int currPtLightIdx);
 };
 
 }
