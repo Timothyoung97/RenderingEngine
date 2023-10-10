@@ -9,7 +9,7 @@ struct PointLight {
     float3 pos;
     float range;
     float3 att;
-    float pad2;
+    float pad;
     float4 diffuse;
 };
 

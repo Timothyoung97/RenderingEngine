@@ -73,4 +73,20 @@ void LightResource::addPointLight() {
 		pointLights.push_back(newPl);
 	}
 }
+
+PointLight LightResource::createPtLight(XMFLOAT3 pos, XMFLOAT3 att, XMFLOAT4 diffuse) {
+
+	PointLight newPtLight;
+
+	newPtLight.pos = pos;
+	newPtLight.att = att;
+	newPtLight.diffuse = diffuse;
+	newPtLight.pad = .0f;
+	
+	float maxIntensity = std::max(std::max(diffuse.x, diffuse.y), diffuse.z);
+
+	newPtLight.range = (-att.y + sqrtf(att.y * att.y - 4 * att.z * (att.x - maxIntensity * (1 / defaultBrightnessThreshold)))) / (2 * att.z);
+
+	return newPtLight;
+}
 }
