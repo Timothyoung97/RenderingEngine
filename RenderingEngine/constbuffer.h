@@ -37,6 +37,7 @@ struct constBufferShaderRescModel {
 
 struct constBufferDeferredLightingVolume {
 	UINT currPointLightIdx;
+	XMFLOAT3 pad;
 };
 
 class ConstantBuffer {
