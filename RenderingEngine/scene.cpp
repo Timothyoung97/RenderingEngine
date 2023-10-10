@@ -45,10 +45,10 @@ Scene::Scene(ID3D11Device* device) {
 	// Pt Lights
 	lightResc.create(device);
 	lightResc.pointLights = {
-		{ XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT3(3.0f, 3.0f, 3.0f), 50.f, XMFLOAT3(.0f, 1.f, .0f), .0f, XMFLOAT4(.5f, .5f, .5f, .5f) },
-		{ XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT3(-3.0f, -3.0f, -3.0f), 50.f, XMFLOAT3(.0f, 1.f, .0f), .0f, XMFLOAT4(.5f, .5f, .5f, .5f) },
-		{ XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT3(.0f, .0f, .0f), 50.f, XMFLOAT3(.0f, 1.f, .0f), .0f, XMFLOAT4(.5f, .5f, .5f, .5f) },
-		{ XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT3(-1.0f, .0f, -1.0f), 50.f, XMFLOAT3(.0f, 1.f, .0f), .0f, XMFLOAT4(.5f, .5f, .5f, .5f) }
+		{ XMFLOAT3(3.0f, 3.0f, 3.0f), 50.f, XMFLOAT3(.0f, 1.f, .0f), .0f, XMFLOAT4(.5f, .5f, .5f, .5f) },
+		{ XMFLOAT3(-3.0f, -3.0f, -3.0f), 50.f, XMFLOAT3(.0f, 1.f, .0f), .0f, XMFLOAT4(.5f, .5f, .5f, .5f) },
+		{ XMFLOAT3(.0f, .0f, .0f), 50.f, XMFLOAT3(.0f, 1.f, .0f), .0f, XMFLOAT4(.5f, .5f, .5f, .5f) },
+		{ XMFLOAT3(-1.0f, .0f, -1.0f), 50.f, XMFLOAT3(.0f, 1.f, .0f), .0f, XMFLOAT4(.5f, .5f, .5f, .5f) }
 	};
 
 	for (int i = 0; i < 4; i++) {

@@ -19,8 +19,6 @@ struct Light {
 };
 
 struct PointLight {
-	XMFLOAT3 direction;
-	float pad1;
 	XMFLOAT3 pos;
 	float range;
 	XMFLOAT3 att;
@@ -38,6 +36,7 @@ public:
 
 	void create(ID3D11Device* device);
 	void updateBuffer(ID3D11Device* device, ID3D11DeviceContext* context);
+	void createPtLight();
 	void addPointLight();
 };
 }

@@ -63,8 +63,6 @@ void LightResource::addPointLight() {
 
 	if (pointLights.size() < maxPointLightNum) {
 		PointLight newPl = {
-			XMFLOAT3(.0f, .0f, .0f), 
-			.0f, // pad
 			XMFLOAT3(tre::Utility::getRandomFloatRange(-20, 20), tre::Utility::getRandomFloatRange(-20, 20), tre::Utility::getRandomFloatRange(-20, 20)),
 			tre::Utility::getRandomFloat(120.0f),
 			XMFLOAT3(.0f, .2f, .0f), 
