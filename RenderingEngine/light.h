@@ -25,7 +25,6 @@ struct PointLight {
 	float range;
 	XMFLOAT3 att;
 	float pad2;
-	XMFLOAT4 ambient;
 	XMFLOAT4 diffuse;
 };
 

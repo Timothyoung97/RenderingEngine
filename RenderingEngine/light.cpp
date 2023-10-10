@@ -69,7 +69,6 @@ void LightResource::addPointLight() {
 			tre::Utility::getRandomFloat(120.0f),
 			XMFLOAT3(.0f, .2f, .0f), 
 			.0f, // pad2
-			XMFLOAT4(tre::Utility::getRandomFloat(1.0f), tre::Utility::getRandomFloat(1.0f), tre::Utility::getRandomFloat(1.0f), tre::Utility::getRandomFloat(1.0f)),
 			XMFLOAT4(tre::Utility::getRandomFloat(1.0f), tre::Utility::getRandomFloat(1.0f), tre::Utility::getRandomFloat(1.0f), tre::Utility::getRandomFloat(1.0f))
 		};
 
