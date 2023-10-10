@@ -11,7 +11,8 @@ class BlendState {
 public:
 	ComPtr<ID3D11BlendState> opaque;
 	ComPtr<ID3D11BlendState> transparency;
-	
+	ComPtr<ID3D11BlendState> lighting;
+
 	void create(ID3D11Device* device);
 };
 }
