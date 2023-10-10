@@ -1,6 +1,6 @@
 #include "forwardRendering.hlsl"
 
-cbuffer constBufferLight : register(b3) {
+cbuffer constBufferLight : register(b2) {
     uint currLightIdx;
     float3 pad_cbl;
 }
@@ -43,11 +43,10 @@ void ps_lightingLocalPass (
     pixelToLightV = pixelToLightV / d; // convert pixelToLightV to an unit vector
     float cosAngle = dot(pixelToLightV, sampledNormal.xyz); // find the cos(angle) between light and normal
 
-    if (d <= pointLights[currLightIdx].range) {
-        if (cosAngle > 0.0f) {
-            localLight = cosAngle * sampledAlbedo.xyz * pointLights[currLightIdx].diffuse.xyz; // add light to finalColor of pixel
-            localLight = localLight / (pointLights[currLightIdx].att[0] + (pointLights[currLightIdx].att[1] * d) + (pointLights[currLightIdx].att[2] * (d*d))); // Light's falloff factor
-        }
+    if (cosAngle > 0.0f) {
+        localLight = cosAngle * sampledAlbedo.xyz * pointLights[currLightIdx].diffuse.xyz; // add light to finalColor of pixel
+        localLight = localLight / (pointLights[currLightIdx].att.x + (pointLights[currLightIdx].att.y * d) + (pointLights[currLightIdx].att.z * (d*d))); // Light's falloff factor
     }
+
     outTarget = float4(localLight, 1.f);
 }

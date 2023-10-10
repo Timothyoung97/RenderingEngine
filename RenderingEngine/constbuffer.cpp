@@ -110,7 +110,7 @@ void ConstantBuffer::setLightingVolumeConstBuffer(ID3D11Device* device, ID3D11De
 	));
 
 	//Set const buffer for pixel shader
-	context->PSSetConstantBuffers(1u, 1u, &pConstBuffer);
+	context->PSSetConstantBuffers(2u, 1u, &pConstBuffer);
 }
 
 }
