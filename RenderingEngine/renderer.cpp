@@ -25,7 +25,8 @@ Renderer::Renderer(ID3D11Device* _device, ID3D11DeviceContext* _context, HWND wi
 
 	_forwardShader.create(basePathWstr + L"shaders\\pixel_shader_forward.bin", _device);
 	_deferredShader.create(basePathWstr + L"shaders\\pixel_shader_deferred.bin", _device);
-	_deferredShaderLighting.create(basePathWstr + L"shaders\\pixel_shader_deferred_lighting_env.bin", _device);
+	_deferredShaderLightingEnv.create(basePathWstr + L"shaders\\pixel_shader_deferred_lighting_env.bin", _device);
+	_deferredShaderLightingLocal.create(basePathWstr + L"shaders\\pixel_shader_deferred_lighting_local.bin", _device);
 	_debugPixelShader.create(basePathWstr + L"shaders\\pixel_shader_debug.bin", _device);
 
 	_gBuffer.create(_device);
@@ -83,7 +84,7 @@ void Renderer::configureStates(RENDER_MODE renderObjType) {
 
 		_context->PSSetShader(_forwardShader.pShader.Get(), NULL, 0u);
 		_context->PSSetShaderResources(3, 1, _depthbuffer.pShadowShaderRescView.GetAddressOf()); // shadow
-		_context->PSSetShaderResources(4, 1, nullSRV); 
+		_context->PSSetShaderResources(4, 1, nullSRV);
 
 		_context->OMSetBlendState(_blendstate.transparency.Get(), NULL, 0xffffffff);
 		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0);
@@ -157,14 +158,14 @@ void Renderer::configureStates(RENDER_MODE renderObjType) {
 		break;
 
 	case tre::DEFERRED_OPAQUE_LIGHTING_ENV_M:
-		_context->VSSetShader(_vertexShaderFullscreenQuad.pShader.Get(), NULL, 0u);
 		_context->IASetInputLayout(nullptr);
+		_context->VSSetShader(_vertexShaderFullscreenQuad.pShader.Get(), NULL, 0u);
 
 		_context->RSSetViewports(1, &_viewport.defaultViewport);
 		_context->RSSetState(_rasterizer.pRasterizerStateFCCW.Get());
 
 		_context->OMSetRenderTargets(0, nullptr, nullptr);
-		_context->PSSetShader(_deferredShaderLighting.pShader.Get(), NULL, 0u);
+		_context->PSSetShader(_deferredShaderLightingEnv.pShader.Get(), NULL, 0u);
 		_context->PSSetShaderResources(0, 1, _gBuffer.pShaderResViewDeferredAlbedo.GetAddressOf()); // albedo
 		_context->PSSetShaderResources(1, 1, _gBuffer.pShaderResViewDeferredNormal.GetAddressOf()); // normal
 		_context->PSSetShaderResources(3, 1, _depthbuffer.pShadowShaderRescView.GetAddressOf()); // shadow
@@ -174,10 +175,30 @@ void Renderer::configureStates(RENDER_MODE renderObjType) {
 		_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
 		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
 		break;
+
+	case tre::DEFERRED_LIGHTING_LOCAL_M:
+		_context->IASetInputLayout(_inputLayout.vertLayout.Get());
+		_context->VSSetShader(_vertexShader.pShader.Get(), NULL, 0u);
+
+		_context->RSSetViewports(1, &_viewport.defaultViewport);
+		_context->RSSetState(_rasterizer.pRasterizerStateNoCull.Get());
+
+		_context->OMSetRenderTargets(0, nullptr, nullptr);
+		_context->PSSetShader(_deferredShaderLightingLocal.pShader.Get(), NULL, 0u);
+		_context->PSSetShaderResources(0, 1, _gBuffer.pShaderResViewDeferredAlbedo.GetAddressOf()); // albedo
+		_context->PSSetShaderResources(1, 1, _gBuffer.pShaderResViewDeferredNormal.GetAddressOf()); // normal
+		_context->CopyResource(_depthbuffer.pDepthStencilReadOnlyTexture.Get(), _depthbuffer.pDepthStencilTexture.Get());
+		_context->PSSetShaderResources(4, 1, _depthbuffer.pDepthStencilReadOnlyShaderRescView.GetAddressOf()); //depth
+
+		_context->OMSetBlendState(_blendstate.lighting.Get(), NULL, 0xffffffff);
+		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0);
+		_context->OMSetRenderTargets(1, &currRenderTargetView, _depthbuffer.pDepthStencilView.Get());
+		break;
+
 	}
 }
 
-void Renderer::deferredLightingDraw() {
+void Renderer::deferredLightingEnvDraw() {
 	configureStates(RENDER_MODE::DEFERRED_OPAQUE_LIGHTING_ENV_M);
 	_context->Draw(6, 0);
 }
@@ -220,6 +241,10 @@ void Renderer::draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MO
 			hasTexture,
 			hasNormal
 		);
+
+		if (renderObjType == tre::RENDER_MODE::DEFERRED_LIGHTING_LOCAL_M) {
+			tre::ConstantBuffer::setLightingVolumeConstBuffer(_device, _context, i);
+		}
 
 		_context->DrawIndexed(objQ[i].second->indexSize, 0, 0);
 	}

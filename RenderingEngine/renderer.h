@@ -24,7 +24,8 @@ enum RENDER_MODE {
 	WIREFRAME_M,
 	SHADOW_M,
 	DEFERRED_OPAQUE_M,
-	DEFERRED_OPAQUE_LIGHTING_ENV_M
+	DEFERRED_OPAQUE_LIGHTING_ENV_M,
+	DEFERRED_LIGHTING_LOCAL_M
 };
 
 class Renderer {
@@ -48,7 +49,8 @@ public:
 
 	PixelShader _forwardShader;
 	PixelShader _deferredShader;
-	PixelShader _deferredShaderLighting;
+	PixelShader _deferredShaderLightingEnv;
+	PixelShader _deferredShaderLightingLocal;
 	PixelShader _debugPixelShader;
 
 	GBuffer _gBuffer;
@@ -66,7 +68,7 @@ public:
 	void clearShadowBuffer();
 
 	void draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MODE renderMode);
-	void deferredLightingDraw();
+	void deferredLightingEnvDraw();
 	void debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh& mesh, BoundVolumeEnum typeOfBound, RENDER_MODE renderMode);
 
 };
