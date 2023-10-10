@@ -312,7 +312,7 @@ int main()
 						newLightObj.pObjMeshes = { &scene._debugMeshes[1] }; // sphere
 						newLightObj.pObjMeshes[0]->material = &scene._debugMaterials[2];
 						newLightObj.objPos = scene.lightResc.pointLights.back().pos;
-						newLightObj.objScale = XMFLOAT3(.1f, .1f, .1f);
+						newLightObj.objScale = XMFLOAT3(scene.lightResc.pointLights.back().range, scene.lightResc.pointLights.back().range, scene.lightResc.pointLights.back().range);
 						newLightObj.objRotation = XMFLOAT3(.0f, .0f, .0f);
 						newLightObj._boundingVolumeColor = { tre::colorF(Colors::White) };
 
@@ -448,10 +448,13 @@ int main()
 		renderer.clearSwapChainBuffer();
 
 		// 2nd pass deferred lighting 
-		renderer.deferredLightingDraw();
+		renderer.deferredLightingEnvDraw();
 
 		// Draw all transparent objects
 		renderer.draw(scene._culledTransparentObjQ, tre::RENDER_MODE::TRANSPARENT_M);
+
+		// draw all deferred lighting volume
+		renderer.draw(scene._wireframeObjQ, tre::RENDER_MODE::DEFERRED_LIGHTING_LOCAL_M);
 
 		// Draw debug
 		if (showBoundingVolume) {
