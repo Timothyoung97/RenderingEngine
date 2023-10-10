@@ -56,28 +56,28 @@ void ps_lightingEnvPass (
         }
     }
 
-    // read in point light one by one
-    // local lighting
-    for (int i = 0; i < numPtLights; i++) {
+    // // read in point light one by one
+    // // local lighting
+    // for (int i = 0; i < numPtLights; i++) {
         
-        // vector between light pos and pixel pos
-        float3 pixelToLightV = pointLights[i].pos - worldPos.xyz;
-        float d = length(pixelToLightV);   
+    //     // vector between light pos and pixel pos
+    //     float3 pixelToLightV = pointLights[i].pos - worldPos.xyz;
+    //     float d = length(pixelToLightV);   
 
-        float3 localLight = float3(.0f, .0f, .0f);
+    //     float3 localLight = float3(.0f, .0f, .0f);
     
-        if (d <= pointLights[i].range) {
-            pixelToLightV = pixelToLightV / d; // convert pixelToLightV to an unit vector
-            float cosAngle = dot(pixelToLightV, sampleNormal.xyz); // find the cos(angle) between light and normal
+    //     if (d <= pointLights[i].range) {
+    //         pixelToLightV = pixelToLightV / d; // convert pixelToLightV to an unit vector
+    //         float cosAngle = dot(pixelToLightV, sampleNormal.xyz); // find the cos(angle) between light and normal
 
-            if (cosAngle > 0.0f) {
-                localLight = cosAngle * sampleAlbedo.xyz * pointLights[i].diffuse.xyz; // add light to finalColor of pixel
-                localLight = localLight / (pointLights[i].att[0] + (pointLights[i].att[1] * d) + (pointLights[i].att[2] * (d*d))); // Light's falloff factor
-            }
-        }
+    //         if (cosAngle > 0.0f) {
+    //             localLight = cosAngle * sampleAlbedo.xyz * pointLights[i].diffuse.xyz; // add light to finalColor of pixel
+    //             localLight = localLight / (pointLights[i].att[0] + (pointLights[i].att[1] * d) + (pointLights[i].att[2] * (d*d))); // Light's falloff factor
+    //         }
+    //     }
 
-        pixelLightColor += localLight;
-    }
+    //     pixelLightColor += localLight;
+    // }
 
     outTarget = float4(pixelColor + pixelLightColor, sampleAlbedo.a); // RGB + Alpha Channel
 }
