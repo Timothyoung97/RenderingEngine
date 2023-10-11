@@ -8,7 +8,7 @@ void Rasterizer::create(ID3D11Device* device) {
 	D3D11_RASTERIZER_DESC rasterizerDesc;
 	rasterizerDesc.FillMode = D3D11_FILL_SOLID;
 	rasterizerDesc.CullMode = D3D11_CULL_BACK;
-	rasterizerDesc.FrontCounterClockwise = true;
+	rasterizerDesc.FrontCounterClockwise = false;
 	rasterizerDesc.DepthBias = 0;
 	rasterizerDesc.DepthBiasClamp = D3D11_DEFAULT_DEPTH_BIAS_CLAMP;
 	rasterizerDesc.SlopeScaledDepthBias = 0;
@@ -16,7 +16,11 @@ void Rasterizer::create(ID3D11Device* device) {
 	rasterizerDesc.ScissorEnable = false;
 	rasterizerDesc.MultisampleEnable = false;
 	rasterizerDesc.AntialiasedLineEnable = false;
+	CHECK_DX_ERROR(device->CreateRasterizerState(
+		&rasterizerDesc, pRasterizerStateFCW.GetAddressOf()
+	));
 
+	rasterizerDesc.FrontCounterClockwise = true;
 	CHECK_DX_ERROR(device->CreateRasterizerState(
 		&rasterizerDesc, pRasterizerStateFCCW.GetAddressOf()
 	));
