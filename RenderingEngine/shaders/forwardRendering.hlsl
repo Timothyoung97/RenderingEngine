@@ -23,7 +23,7 @@ cbuffer constBuffer : register(b0) {
     matrix lightviewProjection[4];
     float4 planeIntervals;
     Light dirLight;
-    int numPtLights;
+    uint numPtLights;
     float2 shadowMapDimension;
     int csmDebugSwitch;
 };

@@ -34,7 +34,7 @@ void ConstantBuffer::setCamConstBuffer(
 	std::copy(lightViewProjection.begin(), lightViewProjection.end(), constBufferRescCam.lightViewProjection);
 	constBufferRescCam.planeIntervals = planeIntervals;
 	constBufferRescCam.light = dirLight;
-	constBufferRescCam.numOfPointLight = numOfPointLight;
+	constBufferRescCam.numOfPointLight = (UINT) numOfPointLight;
 	constBufferRescCam.csmDebugSwitch = csmDebugSwitch;
 	constBufferRescCam.shadowMapDimension = shadowMapDimension;
 

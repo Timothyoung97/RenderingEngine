@@ -22,7 +22,7 @@ struct constBufferShaderRescCam {
 	XMMATRIX lightViewProjection[4];
 	XMFLOAT4 planeIntervals;
 	tre::Light light;
-	int numOfPointLight;
+	UINT numOfPointLight;
 	XMFLOAT2 shadowMapDimension;
 	int csmDebugSwitch;
 };
