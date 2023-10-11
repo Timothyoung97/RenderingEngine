@@ -181,7 +181,7 @@ void Renderer::configureStates(RENDER_MODE renderObjType) {
 		_context->VSSetShader(_vertexShader.pShader.Get(), NULL, 0u);
 
 		_context->RSSetViewports(1, &_viewport.defaultViewport);
-		_context->RSSetState(_rasterizer.pRasterizerStateNoCull.Get());
+		_context->RSSetState(_rasterizer.pRasterizerStateFCCW.Get()); // by default: render only front face
 
 		_context->OMSetRenderTargets(0, nullptr, nullptr);
 		_context->PSSetShader(_deferredShaderLightingLocal.pShader.Get(), NULL, 0u);
@@ -191,7 +191,7 @@ void Renderer::configureStates(RENDER_MODE renderObjType) {
 		_context->PSSetShaderResources(4, 1, _depthbuffer.pDepthStencilReadOnlyShaderRescView.GetAddressOf()); //depth
 
 		_context->OMSetBlendState(_blendstate.lighting.Get(), NULL, 0xffffffff);
-		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0);
+		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0); // by default: read only depth test
 		_context->OMSetRenderTargets(1, &currRenderTargetView, _depthbuffer.pDepthStencilView.Get());
 		break;
 
@@ -202,6 +202,44 @@ void Renderer::deferredLightingEnvDraw() {
 	configureStates(RENDER_MODE::DEFERRED_OPAQUE_LIGHTING_ENV_M);
 	_context->Draw(6, 0);
 }
+
+void Renderer::deferredLightingLocalDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, XMVECTOR cameraPos) {
+	configureStates(RENDER_MODE::DEFERRED_LIGHTING_LOCAL_M);
+
+	UINT vertexStride = sizeof(Vertex);
+	UINT offset = 0;
+
+	//Set vertex buffer
+	_context->IASetVertexBuffers(0, 1, objQ[0].second->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
+
+	//Set index buffer
+	_context->IASetIndexBuffer(objQ[0].second->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+
+	for (int i = 0; i < objQ.size(); i++) {
+
+		//Config and set const buffer
+		tre::ConstantBuffer::setObjConstBuffer(
+			_device, _context,
+			objQ[i].first->_transformationFinal,
+			objQ[i].second->material->baseColor,
+			0,
+			0
+		);
+
+		tre::ConstantBuffer::setLightingVolumeConstBuffer(_device, _context, i);
+
+		float distFromObjToCam = tre::Maths::distBetweentObjToCam(objQ[i].first->objPos, cameraPos);
+		
+		// if the camera is inside the light sphere
+		if (distFromObjToCam < objQ[i].first->objScale.x) {
+			_context->RSSetState(_rasterizer.pRasterizerStateFCW.Get()); // render only back face
+			_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithoutDepthT.Get(), 0); // all depth test pass to render the sphere
+		}
+
+		_context->DrawIndexed(objQ[i].second->indexSize, 0, 0);
+	}
+}
+
 
 void Renderer::draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MODE renderObjType) {
 
@@ -242,10 +280,6 @@ void Renderer::draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MO
 			hasNormal
 		);
 
-		if (renderObjType == tre::RENDER_MODE::DEFERRED_LIGHTING_LOCAL_M) {
-			tre::ConstantBuffer::setLightingVolumeConstBuffer(_device, _context, i);
-		}
-
 		_context->DrawIndexed(objQ[i].second->indexSize, 0, 0);
 	}
 }
@@ -260,12 +294,13 @@ void Renderer::debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh
 		UINT vertexStride = sizeof(Vertex);
 		UINT offset = 0;
 
-		for (int j = 0; j < currObj->pObjMeshes.size(); j++) {
-			//Set vertex buffer
-			_context->IASetVertexBuffers(0, 1, mesh.pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
+		//Set vertex buffer
+		_context->IASetVertexBuffers(0, 1, mesh.pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
 
-			//Set index buffer
-			_context->IASetIndexBuffer(mesh.pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+		//Set index buffer
+		_context->IASetIndexBuffer(mesh.pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+
+		for (int j = 0; j < currObj->pObjMeshes.size(); j++) {
 
 			//Update bounding volume
 			XMMATRIX transformM;

@@ -454,7 +454,7 @@ int main()
 		renderer.draw(scene._culledTransparentObjQ, tre::RENDER_MODE::TRANSPARENT_M);
 
 		// draw all deferred lighting volume
-		renderer.draw(scene._wireframeObjQ, tre::RENDER_MODE::DEFERRED_LIGHTING_LOCAL_M);
+		renderer.deferredLightingLocalDraw(scene._wireframeObjQ, cam.camPositionV);
 
 		// Draw debug
 		if (showBoundingVolume) {
