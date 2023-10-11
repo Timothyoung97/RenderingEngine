@@ -5,11 +5,14 @@
 
 namespace tre {
 
-void LightResource::create(ID3D11Device* device) {
+void LightResource::create(ID3D11Device* device, ID3D11DeviceContext* context) {
 	
+	_device = device;
+	_context = context;
+
 	// persistent
 	D3D11_BUFFER_DESC lightBufferDescGPU;
-	lightBufferDescGPU.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	lightBufferDescGPU.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE;
 	lightBufferDescGPU.Usage = D3D11_USAGE_DEFAULT;
 	lightBufferDescGPU.CPUAccessFlags = 0u;
 	lightBufferDescGPU.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
@@ -19,9 +22,10 @@ void LightResource::create(ID3D11Device* device) {
 	CHECK_DX_ERROR(device->CreateBuffer(
 		&lightBufferDescGPU, NULL, pLightBufferGPU.GetAddressOf()
 	));
+
 }
 
-void LightResource::updateBuffer(ID3D11Device* device, ID3D11DeviceContext* context) {
+void LightResource::updateBufferForShaders() {
 	
 	// Create buffer on CPU side to update new light resource
 	D3D11_BUFFER_DESC lightBufferDescCPU;
@@ -37,12 +41,12 @@ void LightResource::updateBuffer(ID3D11Device* device, ID3D11DeviceContext* cont
 	
 	ID3D11Buffer* pLightBufferCPU;
 
-	CHECK_DX_ERROR(device->CreateBuffer(
+	CHECK_DX_ERROR(_device->CreateBuffer(
 		&lightBufferDescCPU, &lightData, &pLightBufferCPU
 	));
 
 	// Copy subresource from CPU to GPU
-	context->CopyResource( pLightBufferGPU.Get(), pLightBufferCPU );
+	_context->CopyResource( pLightBufferGPU.Get(), pLightBufferCPU );
 
 	// update GPU on buffer
 	D3D11_BUFFER_SRV lightBufferSRV;
@@ -54,7 +58,7 @@ void LightResource::updateBuffer(ID3D11Device* device, ID3D11DeviceContext* cont
 	lightShaderResc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
 	lightShaderResc.Buffer = lightBufferSRV;
 
-	CHECK_DX_ERROR(device->CreateShaderResourceView(
+	CHECK_DX_ERROR(_device->CreateShaderResourceView(
 		pLightBufferGPU.Get(), &lightShaderResc, pLightShaderRescView.GetAddressOf()
 	));
 }

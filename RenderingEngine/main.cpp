@@ -50,7 +50,7 @@ int main()
 	tre::Device deviceAndContext;
 
 	// Scene
-	tre::Scene scene(deviceAndContext.device.Get());
+	tre::Scene scene(deviceAndContext.device.Get(), deviceAndContext.context.Get());
 	scene.createFloor();
 	scene.updateDirLight();
 
@@ -93,7 +93,7 @@ int main()
 	float sectorAnglePtLight[] = { .0f, .0f, .0f, -90.0f };
 	XMFLOAT3 originPtLight[] = { XMFLOAT3(3.0f, 3.0f, 3.0f),  XMFLOAT3(-3.0f, -3.0f, -3.0f), XMFLOAT3(.0f, .0f, .0f), XMFLOAT3(-1.0f, .0f, -1.0f) };
 
-	scene.lightResc.updateBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get());
+	scene.lightResc.updateBufferForShaders();
 
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
@@ -385,7 +385,7 @@ int main()
 			scene._wireframeObjQ[3].first->objPos = scene.lightResc.pointLights[3].pos;
 		}
 		scene.updateTransformation();
-		scene.lightResc.updateBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get());
+		scene.lightResc.updateBufferForShaders();
 		deviceAndContext.context.Get()->PSSetShaderResources(2, 1, scene.lightResc.pLightShaderRescView.GetAddressOf());
 
 		// Update Camera

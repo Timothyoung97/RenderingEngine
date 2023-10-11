@@ -5,7 +5,7 @@
 
 namespace tre {
 
-Scene::Scene(ID3D11Device* device) {
+Scene::Scene(ID3D11Device* device, ID3D11DeviceContext* context) {
 
 	this->_objQ.reserve(1000); // hardcoded capacity
 
@@ -43,7 +43,7 @@ Scene::Scene(ID3D11Device* device) {
 	};
 
 	// Pt Lights
-	lightResc.create(device);
+	lightResc.create(device, context);
 	lightResc.pointLights = {
 		lightResc.createPtLight(XMFLOAT3(3.0f, 3.0f, 3.0f),    XMFLOAT3(1.f, .14f, .07f),  XMFLOAT4(.0f, 1.f, 1.f, .5f)),
 		lightResc.createPtLight(XMFLOAT3(-3.0f, -3.0f, -3.0f), XMFLOAT3(1.f, .35f, .44f), XMFLOAT4(.0f, 1.f, .0f, .5f)),

@@ -28,16 +28,22 @@ struct PointLight {
 
 class LightResource {
 public:
+	
+	ID3D11Device* _device;
+	ID3D11DeviceContext* _context;
+	
 	ComPtr<ID3D11Buffer> pLightBufferGPU;
 	ComPtr<ID3D11ShaderResourceView> pLightShaderRescView;
+	ComPtr<ID3D11UnorderedAccessView> pLightUnorderedAccessView;
 
 	std::vector<PointLight> pointLights;
 	int maxPointLightNum = 9;
 
 	float defaultBrightnessThreshold = .45f / 256.f;
 
-	void create(ID3D11Device* device);
-	void updateBuffer(ID3D11Device* device, ID3D11DeviceContext* context);
+	void create(ID3D11Device* device, ID3D11DeviceContext* context);
+	void updatePtLightPosition();
+	void updateBufferForShaders();
 	PointLight createPtLight(XMFLOAT3 pos, XMFLOAT3 att, XMFLOAT4 diffuse);
 	void addPointLight();
 };
