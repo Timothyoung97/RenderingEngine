@@ -34,7 +34,7 @@ public:
 	std::vector<PointLight> pointLights;
 	int maxPointLightNum = 9;
 
-	float defaultBrightnessThreshold = .4f / 256.f;
+	float defaultBrightnessThreshold = .45f / 256.f;
 
 	void create(ID3D11Device* device);
 	void updateBuffer(ID3D11Device* device, ID3D11DeviceContext* context);

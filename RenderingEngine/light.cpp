@@ -62,13 +62,11 @@ void LightResource::updateBuffer(ID3D11Device* device, ID3D11DeviceContext* cont
 void LightResource::addPointLight() {
 
 	if (pointLights.size() < maxPointLightNum) {
-		PointLight newPl = {
-			XMFLOAT3(tre::Utility::getRandomFloatRange(-20, 20), tre::Utility::getRandomFloatRange(-20, 20), tre::Utility::getRandomFloatRange(-20, 20)),
-			tre::Utility::getRandomFloat(120.0f),
-			XMFLOAT3(.0f, .2f, .0f), 
-			.0f, // pad2
-			XMFLOAT4(tre::Utility::getRandomFloat(1.0f), tre::Utility::getRandomFloat(1.0f), tre::Utility::getRandomFloat(1.0f), tre::Utility::getRandomFloat(1.0f))
-		};
+		PointLight newPl = createPtLight(
+				XMFLOAT3(tre::Utility::getRandomFloatRange(-20, 20), tre::Utility::getRandomFloatRange(-20, 20), tre::Utility::getRandomFloatRange(-20, 20)), 
+				XMFLOAT3(1.f, .14f, .07f),
+				XMFLOAT4(tre::Utility::getRandomFloat(1.0f), tre::Utility::getRandomFloat(1.0f), tre::Utility::getRandomFloat(1.0f), tre::Utility::getRandomFloat(1.0f))
+		);
 
 		pointLights.push_back(newPl);
 	}
