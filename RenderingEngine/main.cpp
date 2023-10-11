@@ -141,7 +141,7 @@ int main()
 
 	debugModel.pObjMeshes = { &scene._debugMeshes[4] };
 	debugModel.pObjMeshes[0]->material = &scene._debugMaterials[3];
-	debugModel.objPos = XMFLOAT3(.0f, 1.0f, .0f);
+	debugModel.objPos = XMFLOAT3(.0f, .5f, .0f);
 	debugModel.objScale = XMFLOAT3(1.f, 1.f, 1.f);
 	debugModel.objRotation = XMFLOAT3(.0f, .0f, .0f);
 	debugModel.ritterBs = { debugModel.pObjMeshes[0]->ritterSphere };
@@ -151,7 +151,7 @@ int main()
 	scene._objQ.push_back(debugModel);
 	scene._pObjQ.push_back(&scene._objQ.back());
 
-	tre::Object* pDebugModel = &scene._objQ.back();
+	tre::Object* pDebugModel = scene._pObjQ.back();
 
 	// main loop
 	while (!input.shouldQuit())
@@ -200,7 +200,7 @@ int main()
 			int textureIdx = tre::Utility::getRandomInt(1);
 
 			int selectIdx = tre::Utility::getRandomInt(1);
-			newObj.pObjMeshes = { &scene._debugMeshes[4 + selectIdx] };
+			newObj.pObjMeshes = { &scene._debugMeshes[5 + selectIdx] };
 			newObj.pObjMeshes[0]->material = &scene._debugMaterials[selectIdx];
 			newObj.objPos = XMFLOAT3(tre::Utility::getRandomFloatRange(-20, 20), tre::Utility::getRandomFloatRange(-20, 20), tre::Utility::getRandomFloatRange(-20, 20));
 			newObj.objScale = XMFLOAT3(scaleVal, scaleVal, scaleVal);
@@ -312,7 +312,7 @@ int main()
 						newLightObj.pObjMeshes = { &scene._debugMeshes[1] }; // sphere
 						newLightObj.pObjMeshes[0]->material = &scene._debugMaterials[2];
 						newLightObj.objPos = scene.lightResc.pointLights.back().pos;
-						newLightObj.objScale = XMFLOAT3(.1f, .1f, .1f);
+						newLightObj.objScale = XMFLOAT3(scene.lightResc.pointLights.back().range, scene.lightResc.pointLights.back().range, scene.lightResc.pointLights.back().range);
 						newLightObj.objRotation = XMFLOAT3(.0f, .0f, .0f);
 						newLightObj._boundingVolumeColor = { tre::colorF(Colors::White) };
 
@@ -356,6 +356,38 @@ int main()
 			ImGui::End();
 		}
 
+		// render clear context
+		renderer.reset();
+
+		if (!pauseLight) {
+			// rotate point light 1
+			sectorAnglePtLight[0] += 1.0f;
+			if (sectorAnglePtLight[0] == 360.0f) sectorAnglePtLight[0] = .0f;
+			scene.lightResc.pointLights[0].pos = tre::Maths::getRotatePosition(originPtLight[0], stackAnglePtLight[0], sectorAnglePtLight[0], 1.0f);
+			scene._wireframeObjQ[0].first->objPos = scene.lightResc.pointLights[0].pos;
+
+			// rotate point light 2
+			stackAnglePtLight[1] += 1.0f;
+			if (stackAnglePtLight[1] == 360.0f) stackAnglePtLight[1] = .0f;
+			scene.lightResc.pointLights[1].pos = tre::Maths::getRotatePosition(originPtLight[1], stackAnglePtLight[1], sectorAnglePtLight[1], 1.0f);
+			scene._wireframeObjQ[1].first->objPos = scene.lightResc.pointLights[1].pos;
+
+			// rotate point light 3
+			sectorAnglePtLight[2] += 5.0f;
+			if (sectorAnglePtLight[2] == 360.0f) sectorAnglePtLight[2] = .0f;
+			scene.lightResc.pointLights[2].pos = tre::Maths::getRotatePosition(originPtLight[2], stackAnglePtLight[2], sectorAnglePtLight[2], 5.0f);
+			scene._wireframeObjQ[2].first->objPos = scene.lightResc.pointLights[2].pos;
+
+			// rotate point light 4
+			stackAnglePtLight[3] += 5.0f;
+			if (stackAnglePtLight[3] == 360.0f) stackAnglePtLight[3] = .0f;
+			scene.lightResc.pointLights[3].pos = tre::Maths::getRotatePosition(originPtLight[3], stackAnglePtLight[3], sectorAnglePtLight[3], 5.0f);
+			scene._wireframeObjQ[3].first->objPos = scene.lightResc.pointLights[3].pos;
+		}
+		scene.updateTransformation();
+		scene.lightResc.updateBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get());
+		deviceAndContext.context.Get()->PSSetShaderResources(2, 1, scene.lightResc.pLightShaderRescView.GetAddressOf());
+
 		// Update Camera
 		cam.camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovY), static_cast<float>(tre::SCREEN_WIDTH) / tre::SCREEN_HEIGHT, 1.0f, 1000000000.0f);
 		cam.updateCamera();
@@ -363,9 +395,11 @@ int main()
 		// Update Bounding volume for all objects once
 		scene.updateBoundingVolume(typeOfBound);
 
-		// shadow draw
-		renderer.configureShadawSetting();
+		renderer.clearShadowBuffer();
 
+		renderer.configureStates(tre::RENDER_MODE::SHADOW_M);
+
+		// shadow draw
 		std::vector<XMMATRIX> lightViewProjs;
 		for (int i = 0; i < 4; i++) { // for 4 quads
 
@@ -400,8 +434,6 @@ int main()
 			renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_MODE::SHADOW_M);
 		}
 
-		renderer.clearBufferToDraw();
-
 		// culling for scene draw
 		scene.cullObject(cam.cameraFrustum, typeOfBound);
 		scene.updateTransparentQ(cam);
@@ -409,45 +441,24 @@ int main()
 		// set const buffer for camera
 		tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, cam.camViewProjection, lightViewProjs, planeIntervalsF, scene.dirlight, scene.lightResc.pointLights.size(), XMFLOAT2(4096, 4096), csmDebugSwitch);
 
-		// Draw all opaque objects
-		renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_MODE::OPAQUE_M);
+		// 1st pass deferred normal & albedo
+		renderer.configureStates(tre::RENDER_MODE::DEFERRED_OPAQUE_M);
+		renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_MODE::DEFERRED_OPAQUE_M);
+
+		renderer.clearSwapChainBuffer();
+
+		// 2nd pass deferred lighting 
+		renderer.deferredLightingEnvDraw();
 
 		// Draw all transparent objects
 		renderer.draw(scene._culledTransparentObjQ, tre::RENDER_MODE::TRANSPARENT_M);
 
-		if (!pauseLight) {
-			// rotate point light 1
-			sectorAnglePtLight[0] += 1.0f;
-			if (sectorAnglePtLight[0] == 360.0f) sectorAnglePtLight[0] = .0f;
-			scene.lightResc.pointLights[0].pos = tre::Maths::getRotatePosition(originPtLight[0], stackAnglePtLight[0], sectorAnglePtLight[0], 1.0f);
-			scene._wireframeObjQ[0].first->objPos = scene.lightResc.pointLights[0].pos;
-
-			// rotate point light 2
-			stackAnglePtLight[1] += 1.0f;
-			if (stackAnglePtLight[1] == 360.0f) stackAnglePtLight[1] = .0f;
-			scene.lightResc.pointLights[1].pos = tre::Maths::getRotatePosition(originPtLight[1], stackAnglePtLight[1], sectorAnglePtLight[1], 1.0f);
-			scene._wireframeObjQ[1].first->objPos = scene.lightResc.pointLights[1].pos;
-
-			// rotate point light 3
-			sectorAnglePtLight[2] += 5.0f;
-			if (sectorAnglePtLight[2] == 360.0f) sectorAnglePtLight[2] = .0f;
-			scene.lightResc.pointLights[2].pos = tre::Maths::getRotatePosition(originPtLight[2], stackAnglePtLight[2], sectorAnglePtLight[2], 5.0f);
-			scene._wireframeObjQ[2].first->objPos = scene.lightResc.pointLights[2].pos;
-
-			// rotate point light 4
-			stackAnglePtLight[3] += 5.0f;
-			if (stackAnglePtLight[3] == 360.0f) stackAnglePtLight[3] = .0f;
-			scene.lightResc.pointLights[3].pos = tre::Maths::getRotatePosition(originPtLight[3], stackAnglePtLight[3], sectorAnglePtLight[3], 5.0f);
-			scene._wireframeObjQ[3].first->objPos = scene.lightResc.pointLights[3].pos;
-		}
-		scene.lightResc.updateBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get());
-		deviceAndContext.context.Get()->PSSetShaderResources(2, 1, scene.lightResc.pLightShaderRescView.GetAddressOf());
-
-		// Draw all light object wireframe
-		renderer.draw(scene._wireframeObjQ, tre::RENDER_MODE::WIREFRAME_M);
+		// draw all deferred lighting volume
+		renderer.deferredLightingLocalDraw(scene._wireframeObjQ, cam.camPositionV);
 
 		// Draw debug
 		if (showBoundingVolume) {
+			renderer.draw(scene._wireframeObjQ, tre::RENDER_MODE::WIREFRAME_M);
 			renderer.debugDraw(scene._culledOpaqueObjQ, scene._debugMeshes[meshIdx], typeOfBound, tre::RENDER_MODE::WIREFRAME_M);
 			renderer.debugDraw(scene._culledTransparentObjQ, scene._debugMeshes[meshIdx], typeOfBound, tre::RENDER_MODE::WIREFRAME_M);
 		}

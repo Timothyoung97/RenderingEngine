@@ -12,7 +12,8 @@
 
 namespace tre {
 
-static const float BACKGROUND_COLOR[4] = { .5f, .5f, .5f, 1.0f };
+static const float BACKGROUND_GREY[4] = { .5f, .5f, .5f, 1.f };
+static const float BACKGROUND_BLACK[4] = { .0f, .0f, .0f, 1.f };
 
 class Scene {
 public:
@@ -50,6 +51,7 @@ public:
 
 	void createFloor();
 	void updateDirLight();
+	void updateTransformation(); // for wireframe obj for now
 	void updateBoundingVolume(BoundVolumeEnum typeOfBound);
 	void cullObject(Frustum& frustum, BoundVolumeEnum typeOfBound);
 	void updateTransparentQ(Camera& cam);

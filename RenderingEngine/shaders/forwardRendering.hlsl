@@ -1,24 +1,25 @@
 struct Light {
     float3 dir;
+    float pad;
     float4 ambient;
     float4 diffuse;
 };
 
 struct PointLight {
-    float3 dir;
-    float pad;
     float3 pos;
     float range;
     float3 att;
-    float pad2;
-    float4 ambient;
+    float pad;
     float4 diffuse;
 };
 
 // Global 
 cbuffer constBuffer : register(b0) {
+    float2 viewportDimension; // (width, height)
+    float2 pad;
     float4 camPos;
     matrix viewProjection;
+    matrix invViewProjection;
     matrix lightviewProjection[4];
     float4 planeIntervals;
     Light dirLight;
@@ -40,6 +41,7 @@ Texture2D ObjTexture : register(t0);
 Texture2D ObjNormMap : register(t1);
 StructuredBuffer<PointLight> pointLights : register(t2);
 Texture2D ObjShadowMap : register(t3);
+Texture2D ObjDepthMap : register(t4);
 
 SamplerState ObjSamplerStateLinear : register(s0);
 SamplerComparisonState ObjSamplerStateMipPtWhiteBorder : register(s1);
@@ -91,11 +93,12 @@ static float4 borderClamp[4] = {
     float4(.5f, 1.f, .5f, 1.f)
 };
 
-float ShadowCalculation(float4 outWorldPosition, float distFromCamera) {
+static float ShadowCalculation(float4 outWorldPosition, float distFromCamera) {
 
     float4 pixelPosLightSpace;
     float2 shadowTexCoords;
 
+    [unroll]
     for (int i = 0; i < 4; i++) {
         pixelPosLightSpace = mul(lightviewProjection[i], outWorldPosition);
         shadowTexCoords.x = clamp(shadowTexCoordCenter[i].x + (pixelPosLightSpace.x / pixelPosLightSpace.w * .25f), borderClamp[i].x, borderClamp[i].y);
@@ -109,7 +112,10 @@ float ShadowCalculation(float4 outWorldPosition, float distFromCamera) {
     float2 texelSize = float2(.5f / shadowMapDimension.x, .5f / shadowMapDimension.y);
 
     float shadow = .0f;
+    
+    [unroll]
     for (int x = -1; x <= 1; ++x) {
+        [unroll]
         for (int y = -1; y <= 1; ++y) {
             float currShadow = ObjShadowMap.SampleCmp(ObjSamplerStateMipPtWhiteBorder, shadowTexCoords.xy + float2(x, y) * texelSize, pixelDepth);
             shadow += currShadow;
@@ -118,6 +124,38 @@ float ShadowCalculation(float4 outWorldPosition, float distFromCamera) {
 
     return shadow / 9.f;
 };
+
+float4 sampleTexture(float2 textureCoord) {
+    float4 sampleTexture = color;
+    if (isWithTexture) {
+        sampleTexture = ObjTexture.Sample(ObjSamplerStateLinear, textureCoord);
+    }
+    return sampleTexture;
+}
+
+float4 sampleNormal(float2 textureCoord, float4 normal, float4 tangent) {
+    normal = normalize(normal);
+    if (hasNormMap) {
+        float4 normalMap = ObjNormMap.Sample(ObjSamplerStateLinear, textureCoord);
+
+        normalMap = (2.0f * normalMap) - 1.0f; // change from [0, 1] to [-1, 1]
+        
+        // Bitangent TODO: Should be cross(N, T)
+        float3 biTangent = normalize(-1.0f * cross(normal.xyz, tangent.xyz)); // create biTangent
+
+        // TBN Matrix
+        float4x4 texSpace = {
+            tangent,
+            float4(biTangent, 0),
+            normal,
+            float4(.0f, .0f, .0f, 1.0f)
+        };
+
+        normal = normalize(mul(normalMap, texSpace)); // convert normal from normal map to texture space
+    }
+
+    return normal;
+}
 
 // Pixel Shader
 void ps_main (
@@ -129,41 +167,14 @@ void ps_main (
     out float4 outTarget: SV_TARGET
 ) 
 {   
-    // TODO: Calculate vOutNormal from SV_POSITION
+    // uv texture
+    float4 sampledTexture = sampleTexture(vOutTexCoord);
 
     // normal
-    vOutNormal = normalize(vOutNormal);
-
-    // uv texture
-    float4 sampleTexture;
-
-    if (isWithTexture) {
-        sampleTexture = ObjTexture.Sample(ObjSamplerStateLinear, vOutTexCoord);
-    } else {
-        sampleTexture = color;
-    }
-
-    if (hasNormMap) {
-        float4 normalMap = ObjNormMap.Sample(ObjSamplerStateLinear, vOutTexCoord);
-
-        normalMap = (2.0f * normalMap) - 1.0f; // change from [0, 1] to [-1, 1]
-        
-        // Bitangent TODO: Should be cross(N, T)
-        float3 biTangent = normalize(-1.0f * cross(vOutNormal.xyz, vOutTangent.xyz)); // create biTangent
-
-        // TBN Matrix
-        float4x4 texSpace = {
-            vOutTangent,
-            float4(biTangent, 0),
-            vOutNormal,
-            float4(.0f, .0f, .0f, 1.0f)
-        };
-
-        vOutNormal = normalize(mul(normalMap, texSpace)); // convert normal from normal map to texture space
-    }
+    float4 sampledNormal = sampleNormal(vOutTexCoord, vOutNormal, vOutTangent);
 
     // init pixel color with directional light
-    float3 fColor = sampleTexture.xyz * .1f; // with ambient lighting of directional light (hard coded)
+    float3 fColor = sampledTexture.xyz * .1f; // with ambient lighting of directional light (hard coded)
 
     // get dist of pixel from camera
     float3 diff = outWorldPosition.xyz - camPos.xyz;
@@ -172,7 +183,7 @@ void ps_main (
     // calculate shadow
     float shadow = ShadowCalculation(outWorldPosition, dist);
 
-    fColor += (1.0 - shadow) * saturate(dot(dirLight.dir, vOutNormal.xyz)) * dirLight.diffuse.xyz * sampleTexture.xyz;
+    fColor += (1.0 - shadow) * saturate(dot(dirLight.dir, sampledNormal.xyz)) * dirLight.diffuse.xyz * sampledTexture.xyz;
 
     float3 pixelLightColor = float3(.0f, .0f, .0f);
 
@@ -191,28 +202,5 @@ void ps_main (
         }
     }
 
-    // read in point light one by one
-    // local lighting
-    for (int i = 0; i < numPtLights; i++) {
-        
-        // vector between light pos and pixel pos
-        float3 pixelToLightV = pointLights[i].pos - outWorldPosition.xyz;
-        float d = length(pixelToLightV);   
-
-        float3 localLight = float3(.0f, .0f, .0f);
-    
-        if (d <= pointLights[i].range) {
-            pixelToLightV = pixelToLightV / d; // convert pixelToLightV to an unit vector
-            float cosAngle = dot(pixelToLightV, vOutNormal.xyz); // find the cos(angle) between light and normal
-
-            if (cosAngle > 0.0f) {
-                localLight = cosAngle * sampleTexture.xyz * pointLights[i].diffuse.xyz; // add light to finalColor of pixel
-                localLight = localLight / (pointLights[i].att[0] + (pointLights[i].att[1] * d) + (pointLights[i].att[2] * (d*d))); // Light's falloff factor
-            }
-        }
-
-        pixelLightColor += localLight;
-    }
-
-    outTarget = float4(fColor + pixelLightColor, sampleTexture.a); // RGB + Alpha Channel
+    outTarget = float4(fColor + pixelLightColor, sampledTexture.a); // RGB + Alpha Channel
 };

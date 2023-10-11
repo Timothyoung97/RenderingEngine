@@ -14,6 +14,7 @@ Scene::Scene(ID3D11Device* device) {
 		tre::SphereMesh(device, 20, 20), // Bounding WireMesh
 		tre::TeapotMesh(device),
 		tre::CubeMesh(device), // floor
+		tre::CubeMesh(device), // transparent cube
 		tre::CubeMesh(device), // testing cube
 		tre::SphereMesh(device, 20, 20) // testing sphere
 	};
@@ -44,10 +45,10 @@ Scene::Scene(ID3D11Device* device) {
 	// Pt Lights
 	lightResc.create(device);
 	lightResc.pointLights = {
-		{ XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT3(3.0f, 3.0f, 3.0f), 100.0f, XMFLOAT3(.0f, .2f, .0f), .0f, XMFLOAT4(.1f, .1f, .1f, .1f), XMFLOAT4(.5f, .5f, .5f, .5f) },
-		{ XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT3(-3.0f, -3.0f, -3.0f), 100.0f, XMFLOAT3(.0f, .2f, .0f), .0f, XMFLOAT4(.1f, .1f, .1f, .1f), XMFLOAT4(.5f, .5f, .5f, .5f) },
-		{ XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT3(.0f, .0f, .0f), 100.0f, XMFLOAT3(.0f, .2f, .0f), .0f, XMFLOAT4(.1f, .1f, .1f, .1f), XMFLOAT4(.5f, .5f, .5f, .5f) },
-		{ XMFLOAT3(.0f, .0f, .0f), .0f, XMFLOAT3(-1.0f, .0f, -1.0f), 100.0f, XMFLOAT3(.0f, .2f, .0f), .0f, XMFLOAT4(.1f, .1f, .1f, .1f), XMFLOAT4(.5f, .5f, .5f, .5f) }
+		lightResc.createPtLight(XMFLOAT3(3.0f, 3.0f, 3.0f),    XMFLOAT3(1.f, .14f, .07f),  XMFLOAT4(.0f, 1.f, 1.f, .5f)),
+		lightResc.createPtLight(XMFLOAT3(-3.0f, -3.0f, -3.0f), XMFLOAT3(1.f, .35f, .44f), XMFLOAT4(.0f, 1.f, .0f, .5f)),
+		lightResc.createPtLight(XMFLOAT3(.0f, .0f, .0f),	   XMFLOAT3(1.f, .22f, .2f),  XMFLOAT4(.0f, .0f, 1.f, .5f)),
+		lightResc.createPtLight(XMFLOAT3(-1.0f, .0f, -1.0f),   XMFLOAT3(1.f, .22f, .27f), XMFLOAT4(1.f, 1.f, .0f, .5f))
 	};
 
 	for (int i = 0; i < 4; i++) {
@@ -56,9 +57,10 @@ Scene::Scene(ID3D11Device* device) {
 		newLightObj.pObjMeshes = { &_debugMeshes[1] }; // sphere
 		newLightObj.pObjMeshes[0]->material = &_debugMaterials[2];
 		newLightObj.objPos = lightResc.pointLights[i].pos;
-		newLightObj.objScale = XMFLOAT3(.1f, .1f, .1f);
+		newLightObj.objScale = XMFLOAT3(lightResc.pointLights[i].range, lightResc.pointLights[i].range, lightResc.pointLights[i].range);
 		newLightObj.objRotation = XMFLOAT3(.0f, .0f, .0f);
 		newLightObj._boundingVolumeColor = { XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) };
+		newLightObj._transformationFinal = tre::Maths::createTransformationMatrix(newLightObj.objScale, newLightObj.objRotation, newLightObj.objRotation);
 
 		_objQ.push_back(newLightObj);
 		_wireframeObjQ.push_back(std::make_pair(&_objQ.back(), _objQ.back().pObjMeshes[0]));
@@ -126,6 +128,12 @@ void Scene::updateTransparentQ(Camera& cam) {
 	if (_toSortTransparentQ) {
 		std::sort(_culledTransparentObjQ.begin(), _culledTransparentObjQ.end(), [](const std::pair<tre::Object*, tre::Mesh*> obj1, const std::pair<tre::Object*, tre::Mesh*> obj2) { return obj1.first->distFromCam > obj2.first->distFromCam; });
 		_toSortTransparentQ = false;
+	}
+}
+
+void Scene::updateTransformation() {
+	for (int i = 0; i < _wireframeObjQ.size(); i++) {
+		_wireframeObjQ[i].first->_transformationFinal = tre::Maths::createTransformationMatrix(_wireframeObjQ[i].first->objScale, _wireframeObjQ[i].first->objRotation, _wireframeObjQ[i].first->objPos);
 	}
 }
 

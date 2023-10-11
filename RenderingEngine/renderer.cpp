@@ -16,28 +16,27 @@ Renderer::Renderer(ID3D11Device* _device, ID3D11DeviceContext* _context, HWND wi
 	_rasterizer.create(_device);
 	_depthbuffer.create(_device, tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);
 	_sampler.create(_device);
-	_context->PSSetSamplers(0, 1, _sampler.pSamplerStateLinear.GetAddressOf());
-	_context->PSSetSamplers(1, 1, _sampler.pSamplerStateMipPtWhiteBorder.GetAddressOf());
 	_viewport.create(tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);
 	
 	std::wstring basePathWstr = tre::Utility::getBasePathWstr();
 	_vertexShader.create(basePathWstr + L"shaders\\vertex_shader.bin", _device);
+	_vertexShaderFullscreenQuad.create(basePathWstr + L"shaders\\vertex_shader_fullscreen.bin", _device);
 	_inputLayout.create(_device, &_vertexShader);
-	_context->VSSetShader(_vertexShader.pShader.Get(), NULL, 0u);
-	_context->IASetInputLayout(_inputLayout.vertLayout.Get());
-	_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	_pixelShader.create(basePathWstr + L"shaders\\pixel_shader.bin", _device);
-	_debugPixelShader.create(basePathWstr + L"shaders\\light_pixel.bin", _device);	
+	_forwardShader.create(basePathWstr + L"shaders\\pixel_shader_forward.bin", _device);
+	_deferredShader.create(basePathWstr + L"shaders\\pixel_shader_deferred.bin", _device);
+	_deferredShaderLightingEnv.create(basePathWstr + L"shaders\\pixel_shader_deferred_lighting_env.bin", _device);
+	_deferredShaderLightingLocal.create(basePathWstr + L"shaders\\pixel_shader_deferred_lighting_local.bin", _device);
+	_debugPixelShader.create(basePathWstr + L"shaders\\pixel_shader_debug.bin", _device);
+
+	_gBuffer.create(_device);
 }
 
-void Renderer::configureShadawSetting() {
-	ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
-	_context->PSSetShaderResources(3, 1, nullSRV);
-
-	_context->ClearDepthStencilView(_depthbuffer.pShadowDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
-
-	_context->OMSetRenderTargets(0, nullptr, _depthbuffer.pShadowDepthStencilView.Get());
+void Renderer::reset() {
+	_context->ClearState();
+	_context->PSSetSamplers(0, 1, _sampler.pSamplerStateLinear.GetAddressOf());
+	_context->PSSetSamplers(1, 1, _sampler.pSamplerStateMipPtWhiteBorder.GetAddressOf());
+	_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
 void Renderer::setShadowBufferDrawSection(int idx) {
@@ -47,7 +46,7 @@ void Renderer::setShadowBufferDrawSection(int idx) {
 	_context->RSSetScissorRects(1, &_rasterizer.rectArr[idx]);
 }
 
-void Renderer::clearBufferToDraw() {
+void Renderer::clearSwapChainBuffer() {
 
 	// Alternating buffers
 	int currBackBuffer = static_cast<int>(_swapchain.mainSwapchain->GetCurrentBackBufferIndex());
@@ -58,60 +57,193 @@ void Renderer::clearBufferToDraw() {
 		currBackBuffer, __uuidof(ID3D11Texture2D), (LPVOID*)&backBuffer
 	));
 
-	// Create render target view
-	ID3D11RenderTargetView* renderTargetView = nullptr;
-
 	CHECK_DX_ERROR(_device->CreateRenderTargetView(
-		backBuffer, NULL, &renderTargetView
+		backBuffer, NULL, &currRenderTargetView
 	));
-
-	_context->ClearRenderTargetView(renderTargetView, tre::BACKGROUND_COLOR);
-
-	_context->ClearDepthStencilView(_depthbuffer.pDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
-	_context->OMSetRenderTargets(1, &renderTargetView, _depthbuffer.pDepthStencilView.Get());
-
-	// set shadowMap
-	_context->PSSetShaderResources(3, 1, _depthbuffer.pShadowShaderRescView.GetAddressOf());
-
-	//Set Viewport for color draw
-	_context->RSSetViewports(1, &_viewport.defaultViewport);
+	
+	// Set draw target to Screen
+	_context->ClearRenderTargetView(currRenderTargetView, tre::BACKGROUND_GREY);
 }
 
-void Renderer::configureStates(RENDER_MODE renderMode) {
-	switch (renderMode)
+void Renderer::clearShadowBuffer() {
+	_context->ClearDepthStencilView(_depthbuffer.pShadowDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+}
+
+void Renderer::configureStates(RENDER_MODE renderObjType) {
+
+	ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
+
+	switch (renderObjType)
 	{
 	case tre::TRANSPARENT_M:
-		_context->OMSetBlendState(_blendstate.transparency.Get(), NULL, 0xffffffff);
+		_context->IASetInputLayout(_inputLayout.vertLayout.Get());
+		_context->VSSetShader(_vertexShader.pShader.Get(), NULL, 0u);
+
+		_context->RSSetViewports(1, &_viewport.defaultViewport);
 		_context->RSSetState(_rasterizer.pRasterizerStateFCCW.Get());
+
+		_context->PSSetShader(_forwardShader.pShader.Get(), NULL, 0u);
+		_context->PSSetShaderResources(3, 1, _depthbuffer.pShadowShaderRescView.GetAddressOf()); // shadow
+		_context->PSSetShaderResources(4, 1, nullSRV);
+
+		_context->OMSetBlendState(_blendstate.transparency.Get(), NULL, 0xffffffff);
 		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0);
-		_context->PSSetShader(_pixelShader.pShader.Get(), NULL, 0u);
-		break;								
-	case tre::OPAQUE_M:						
-		_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
+		_context->OMSetRenderTargets(1, &currRenderTargetView, _depthbuffer.pDepthStencilView.Get());
+		break;		
+
+	case tre::OPAQUE_M:
+		_context->IASetInputLayout(_inputLayout.vertLayout.Get());
+		_context->VSSetShader(_vertexShader.pShader.Get(), NULL, 0u);
+
+		_context->RSSetViewports(1, &_viewport.defaultViewport);
 		_context->RSSetState(_rasterizer.pRasterizerStateFCCW.Get());
+
+		_context->PSSetShader(_forwardShader.pShader.Get(), NULL, 0u);
+		_context->PSSetShaderResources(3, 1, _depthbuffer.pShadowShaderRescView.GetAddressOf()); // shadow
+		_context->PSSetShaderResources(4, 1, nullSRV);
+
+		_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
 		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
-		_context->PSSetShader(_pixelShader.pShader.Get(), NULL, 0u);
-		break;								
-	case tre::WIREFRAME_M:					
-		_context->OMSetBlendState(_blendstate.transparency.Get(), NULL, 0xffffffff);
+		_context->OMSetRenderTargets(1, &currRenderTargetView, _depthbuffer.pDepthStencilView.Get());
+		break;			
+
+	case tre::WIREFRAME_M:
+		_context->VSSetShader(_vertexShader.pShader.Get(), NULL, 0u);
+		_context->IASetInputLayout(_inputLayout.vertLayout.Get());
+
+		_context->RSSetViewports(1, &_viewport.defaultViewport);
 		_context->RSSetState(_rasterizer.pRasterizerStateWireFrame.Get());
-		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithoutDepthT.Get(), 0);
+		
 		_context->PSSetShader(_debugPixelShader.pShader.Get(), NULL, 0u);
-		break;								
-	case tre::SHADOW_M:						
+
 		_context->OMSetBlendState(_blendstate.transparency.Get(), NULL, 0xffffffff);
+		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithoutDepthT.Get(), 0);
+		_context->OMSetRenderTargets(1, &currRenderTargetView, nullptr);
+		break;								
+
+	case tre::SHADOW_M: // use normal draw func
+		_context->IASetInputLayout(_inputLayout.vertLayout.Get());
+		_context->VSSetShader(_vertexShader.pShader.Get(), NULL, 0u);
+
+		// use setShadowBufferDrawSection to select draw section
 		_context->RSSetState(_rasterizer.pShadowRasterizerState.Get());
-		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
+		
+		// unbind shadow buffer as a resource, so that we can write to it
 		_context->PSSetShader(nullptr, NULL, 0u);
+		_context->PSSetShaderResources(3, 1, nullSRV);
+		
+		_context->OMSetRenderTargets(0, nullptr, _depthbuffer.pShadowDepthStencilView.Get());
+		_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
+		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
 		break;
+
+	case tre::DEFERRED_OPAQUE_M: // use normal draw func
+		_context->IASetInputLayout(_inputLayout.vertLayout.Get());
+		_context->VSSetShader(_vertexShader.pShader.Get(), NULL, 0u);
+
+		_context->RSSetViewports(1, &_viewport.defaultViewport);
+		_context->RSSetState(_rasterizer.pRasterizerStateFCCW.Get());
+		
+		// unbind depth buffer as a shader resource, so that we can write to it
+		_context->OMSetRenderTargets(0, nullptr, nullptr);
+		_context->PSSetShader(_deferredShader.pShader.Get(), NULL, 0u);
+		_context->PSSetShaderResources(4, 1, nullSRV);
+		
+		_context->ClearDepthStencilView(_depthbuffer.pDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+		_context->ClearRenderTargetView(_gBuffer.pRenderTargetViewDeferredAlbedo.Get(), tre::BACKGROUND_BLACK);
+		_context->ClearRenderTargetView(_gBuffer.pRenderTargetViewDeferredNormal.Get(), tre::BACKGROUND_BLACK);
+		_context->OMSetRenderTargets(2, _gBuffer.rtvs, _depthbuffer.pDepthStencilView.Get());
+		_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
+		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
+		break;
+
+	case tre::DEFERRED_OPAQUE_LIGHTING_ENV_M:
+		_context->IASetInputLayout(nullptr);
+		_context->VSSetShader(_vertexShaderFullscreenQuad.pShader.Get(), NULL, 0u);
+
+		_context->RSSetViewports(1, &_viewport.defaultViewport);
+		_context->RSSetState(_rasterizer.pRasterizerStateFCCW.Get());
+
+		_context->OMSetRenderTargets(0, nullptr, nullptr);
+		_context->PSSetShader(_deferredShaderLightingEnv.pShader.Get(), NULL, 0u);
+		_context->PSSetShaderResources(0, 1, _gBuffer.pShaderResViewDeferredAlbedo.GetAddressOf()); // albedo
+		_context->PSSetShaderResources(1, 1, _gBuffer.pShaderResViewDeferredNormal.GetAddressOf()); // normal
+		_context->PSSetShaderResources(3, 1, _depthbuffer.pShadowShaderRescView.GetAddressOf()); // shadow
+		_context->PSSetShaderResources(4, 1, _depthbuffer.pDepthStencilShaderRescView.GetAddressOf()); //depth
+
+		_context->OMSetRenderTargets(1, &currRenderTargetView, nullptr);
+		_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
+		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
+		break;
+
+	case tre::DEFERRED_LIGHTING_LOCAL_M:
+		_context->IASetInputLayout(_inputLayout.vertLayout.Get());
+		_context->VSSetShader(_vertexShader.pShader.Get(), NULL, 0u);
+
+		_context->RSSetViewports(1, &_viewport.defaultViewport);
+		_context->RSSetState(_rasterizer.pRasterizerStateFCCW.Get()); // by default: render only front face
+
+		_context->OMSetRenderTargets(0, nullptr, nullptr);
+		_context->PSSetShader(_deferredShaderLightingLocal.pShader.Get(), NULL, 0u);
+		_context->PSSetShaderResources(0, 1, _gBuffer.pShaderResViewDeferredAlbedo.GetAddressOf()); // albedo
+		_context->PSSetShaderResources(1, 1, _gBuffer.pShaderResViewDeferredNormal.GetAddressOf()); // normal
+		_context->CopyResource(_depthbuffer.pDepthStencilReadOnlyTexture.Get(), _depthbuffer.pDepthStencilTexture.Get());
+		_context->PSSetShaderResources(4, 1, _depthbuffer.pDepthStencilReadOnlyShaderRescView.GetAddressOf()); //depth
+
+		_context->OMSetBlendState(_blendstate.lighting.Get(), NULL, 0xffffffff);
+		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0); // by default: read only depth test
+		_context->OMSetRenderTargets(1, &currRenderTargetView, _depthbuffer.pDepthStencilView.Get());
+		break;
+
 	}
 }
 
-void Renderer::draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MODE renderMode) {
+void Renderer::deferredLightingEnvDraw() {
+	configureStates(RENDER_MODE::DEFERRED_OPAQUE_LIGHTING_ENV_M);
+	_context->Draw(6, 0);
+}
 
-	configureStates(renderMode);
-	
+void Renderer::deferredLightingLocalDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, XMVECTOR cameraPos) {
+	configureStates(RENDER_MODE::DEFERRED_LIGHTING_LOCAL_M);
+
+	UINT vertexStride = sizeof(Vertex);
+	UINT offset = 0;
+
+	//Set vertex buffer
+	_context->IASetVertexBuffers(0, 1, objQ[0].second->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
+
+	//Set index buffer
+	_context->IASetIndexBuffer(objQ[0].second->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+
+	for (int i = 0; i < objQ.size(); i++) {
+
+		//Config and set const buffer
+		tre::ConstantBuffer::setObjConstBuffer(
+			_device, _context,
+			objQ[i].first->_transformationFinal,
+			objQ[i].second->material->baseColor,
+			0,
+			0
+		);
+
+		tre::ConstantBuffer::setLightingVolumeConstBuffer(_device, _context, i);
+
+		float distFromObjToCam = tre::Maths::distBetweentObjToCam(objQ[i].first->objPos, cameraPos);
+		
+		// if the camera is inside the light sphere
+		if (distFromObjToCam < objQ[i].first->objScale.x) {
+			_context->RSSetState(_rasterizer.pRasterizerStateFCW.Get()); // render only back face
+			_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithoutDepthT.Get(), 0); // all depth test pass to render the sphere
+		}
+
+		_context->DrawIndexed(objQ[i].second->indexSize, 0, 0);
+	}
+}
+
+
+void Renderer::draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MODE renderObjType) {
+
+	configureStates(renderObjType);
 	for (int i = 0; i < objQ.size(); i++) {
 
 		UINT vertexStride = sizeof(Vertex);
@@ -152,10 +284,9 @@ void Renderer::draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MO
 	}
 }
 
-void Renderer::debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh& mesh, BoundVolumeEnum typeOfBound, RENDER_MODE renderMode) {
+void Renderer::debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh& mesh, BoundVolumeEnum typeOfBound, RENDER_MODE renderObjType) {
 
-	configureStates(renderMode);
-
+	configureStates(renderObjType);
 	for (int i = 0; i < objQ.size(); i++) {
 
 		tre::Object* currObj = objQ[i].first;
@@ -163,12 +294,13 @@ void Renderer::debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh
 		UINT vertexStride = sizeof(Vertex);
 		UINT offset = 0;
 
-		for (int j = 0; j < currObj->pObjMeshes.size(); j++) {
-			//Set vertex buffer
-			_context->IASetVertexBuffers(0, 1, mesh.pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
+		//Set vertex buffer
+		_context->IASetVertexBuffers(0, 1, mesh.pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
 
-			//Set index buffer
-			_context->IASetIndexBuffer(mesh.pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+		//Set index buffer
+		_context->IASetIndexBuffer(mesh.pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+
+		for (int j = 0; j < currObj->pObjMeshes.size(); j++) {
 
 			//Update bounding volume
 			XMMATRIX transformM;
@@ -199,5 +331,7 @@ void Renderer::debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh
 		}
 	}
 }
+
+
 
 }

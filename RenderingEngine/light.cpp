@@ -62,18 +62,29 @@ void LightResource::updateBuffer(ID3D11Device* device, ID3D11DeviceContext* cont
 void LightResource::addPointLight() {
 
 	if (pointLights.size() < maxPointLightNum) {
-		PointLight newPl = {
-			XMFLOAT3(.0f, .0f, .0f), 
-			.0f, // pad
-			XMFLOAT3(tre::Utility::getRandomFloatRange(-20, 20), tre::Utility::getRandomFloatRange(-20, 20), tre::Utility::getRandomFloatRange(-20, 20)),
-			tre::Utility::getRandomFloat(120.0f),
-			XMFLOAT3(.0f, .2f, .0f), 
-			.0f, // pad2
-			XMFLOAT4(tre::Utility::getRandomFloat(1.0f), tre::Utility::getRandomFloat(1.0f), tre::Utility::getRandomFloat(1.0f), tre::Utility::getRandomFloat(1.0f)),
-			XMFLOAT4(tre::Utility::getRandomFloat(1.0f), tre::Utility::getRandomFloat(1.0f), tre::Utility::getRandomFloat(1.0f), tre::Utility::getRandomFloat(1.0f))
-		};
+		PointLight newPl = createPtLight(
+				XMFLOAT3(tre::Utility::getRandomFloatRange(-20, 20), tre::Utility::getRandomFloatRange(-20, 20), tre::Utility::getRandomFloatRange(-20, 20)), 
+				XMFLOAT3(1.f, .14f, .07f),
+				XMFLOAT4(tre::Utility::getRandomFloat(1.0f), tre::Utility::getRandomFloat(1.0f), tre::Utility::getRandomFloat(1.0f), tre::Utility::getRandomFloat(1.0f))
+		);
 
 		pointLights.push_back(newPl);
 	}
+}
+
+PointLight LightResource::createPtLight(XMFLOAT3 pos, XMFLOAT3 att, XMFLOAT4 diffuse) {
+
+	PointLight newPtLight;
+
+	newPtLight.pos = pos;
+	newPtLight.att = att;
+	newPtLight.diffuse = diffuse;
+	newPtLight.pad = .0f;
+	
+	float maxIntensity = std::max(std::max(diffuse.x, diffuse.y), diffuse.z);
+
+	newPtLight.range = (-att.y + sqrtf(att.y * att.y - 4 * att.z * (att.x - maxIntensity * (1 / defaultBrightnessThreshold)))) / (2 * att.z);
+
+	return newPtLight;
 }
 }

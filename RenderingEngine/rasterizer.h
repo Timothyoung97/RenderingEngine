@@ -11,6 +11,7 @@ class Rasterizer {
 
 public:
 
+	ComPtr<ID3D11RasterizerState> pRasterizerStateFCW;
 	ComPtr<ID3D11RasterizerState> pRasterizerStateFCCW;
 	ComPtr<ID3D11RasterizerState> pRasterizerStateNoCull;
 	ComPtr<ID3D11RasterizerState> pRasterizerStateWireFrame;

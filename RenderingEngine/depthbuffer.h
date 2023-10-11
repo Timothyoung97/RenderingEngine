@@ -11,7 +11,11 @@ class DepthBuffer {
 public:
 	ComPtr<ID3D11Texture2D> pDepthStencilTexture;
 	ComPtr<ID3D11DepthStencilView> pDepthStencilView;
-	
+	ComPtr<ID3D11ShaderResourceView> pDepthStencilShaderRescView;
+
+	ComPtr<ID3D11Texture2D> pDepthStencilReadOnlyTexture;
+	ComPtr<ID3D11ShaderResourceView> pDepthStencilReadOnlyShaderRescView;
+
 	ComPtr<ID3D11Texture2D> pShadowMapTexture;
 	ComPtr<ID3D11DepthStencilView> pShadowDepthStencilView;
 	ComPtr<ID3D11ShaderResourceView> pShadowShaderRescView;

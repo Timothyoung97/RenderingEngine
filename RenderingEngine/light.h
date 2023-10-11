@@ -19,13 +19,10 @@ struct Light {
 };
 
 struct PointLight {
-	XMFLOAT3 direction;
-	float pad1;
 	XMFLOAT3 pos;
 	float range;
 	XMFLOAT3 att;
-	float pad2;
-	XMFLOAT4 ambient;
+	float pad;
 	XMFLOAT4 diffuse;
 };
 
@@ -37,8 +34,11 @@ public:
 	std::vector<PointLight> pointLights;
 	int maxPointLightNum = 9;
 
+	float defaultBrightnessThreshold = .45f / 256.f;
+
 	void create(ID3D11Device* device);
 	void updateBuffer(ID3D11Device* device, ID3D11DeviceContext* context);
+	PointLight createPtLight(XMFLOAT3 pos, XMFLOAT3 att, XMFLOAT4 diffuse);
 	void addPointLight();
 };
 }

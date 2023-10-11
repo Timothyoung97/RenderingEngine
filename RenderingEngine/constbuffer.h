@@ -14,8 +14,11 @@ using Microsoft::WRL::ComPtr;
 namespace tre {
 
 struct constBufferShaderRescCam {
+	XMFLOAT2 viewportDimension;
+	XMFLOAT2 pad;
 	XMFLOAT4 camPos;
 	XMMATRIX viewProjection;
+	XMMATRIX invViewProjection;
 	XMMATRIX lightViewProjection[4];
 	XMFLOAT4 planeIntervals;
 	tre::Light light;
@@ -32,6 +35,11 @@ struct constBufferShaderRescModel {
 	UINT hasNormalMap;
 };
 
+struct constBufferDeferredLightingVolume {
+	UINT currPointLightIdx;
+	XMFLOAT3 pad;
+};
+
 class ConstantBuffer {
 public:
 	static void setCamConstBuffer(
@@ -45,7 +53,10 @@ public:
 		XMFLOAT2 shadowMapDimension,
 		int csmDebugSwitch
 	);
+	
 	static void setObjConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, XMMATRIX transformationLocal, XMFLOAT4 color, UINT isWithTexture, UINT hasNormalMap);
+
+	static void setLightingVolumeConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, int currPtLightIdx);
 };
 
 }

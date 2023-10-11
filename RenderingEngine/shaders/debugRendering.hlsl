@@ -1,13 +1,6 @@
-// Per Object
-cbuffer constBuffer2 : register(b1) {
-    matrix transformation;
-    matrix normalMatrix;
-    float4 color;
-    uint isWithTexture;
-    uint hasNormMap;
-};
+#include "forwardRendering.hlsl"
 
-void ps_main (
+void ps_debug (
     in float4 vOutPosition : SV_POSITION,
     in float4 vOutLocalPosition : TEXCOORD0,
     in float4 vOutNormal : TEXCOORD1,
