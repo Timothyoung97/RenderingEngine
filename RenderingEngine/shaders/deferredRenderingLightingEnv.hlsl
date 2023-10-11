@@ -56,6 +56,6 @@ void ps_lightingEnvPass (
         }
     }
 
-    outTarget = float4(pixelColor + pixelLightColor, sampleAlbedo.a); // RGB + Alpha Channel
+    outTarget = float4(pixelColor + pixelLightColor, 0); // RGB + Alpha Channel
 }
 

@@ -48,5 +48,5 @@ void ps_lightingLocalPass (
         localLight = localLight / (pointLights[currLightIdx].att.x + (pointLights[currLightIdx].att.y * d) + (pointLights[currLightIdx].att.z * (d*d))); // Light's falloff factor
     }
 
-    outTarget = float4(localLight, 1.f);
+    outTarget = float4(localLight, 0);
 }

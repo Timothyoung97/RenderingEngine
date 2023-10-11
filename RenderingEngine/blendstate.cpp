@@ -24,7 +24,7 @@ void BlendState::create(ID3D11Device* device) {
 	rtbd.SrcBlend = D3D11_BLEND_ONE;
 	rtbd.DestBlend = D3D11_BLEND_ONE;
 	rtbd.BlendOp = D3D11_BLEND_OP_ADD;
-	rtbd.SrcBlendAlpha = D3D11_BLEND_ONE;
+	rtbd.SrcBlendAlpha = D3D11_BLEND_ZERO;
 	rtbd.DestBlendAlpha = D3D11_BLEND_ONE;
 	rtbd.BlendOpAlpha = D3D11_BLEND_OP_ADD;
 	blendDesc.RenderTarget[0] = rtbd;
