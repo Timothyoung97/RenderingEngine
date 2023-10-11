@@ -26,4 +26,10 @@ public:
 	void create(std::wstring fPath, ID3D11Device* device);
 };
 
+class ComputeShader : public Shader {
+public:
+	ComPtr<ID3D11ComputeShader> pShader;
+	void create(std::wstring fPath, ID3D11Device* device);
+};
+
 }

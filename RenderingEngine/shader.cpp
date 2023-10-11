@@ -25,4 +25,14 @@ void PixelShader::create(std::wstring fPath, ID3D11Device* device) {
 	));
 }
 
+void ComputeShader::create(std::wstring fPath, ID3D11Device* device) {
+	CHECK_DX_ERROR(D3DReadFileToBlob(
+		fPath.c_str(), &pBlob
+	));
+
+	CHECK_DX_ERROR(device->CreateComputeShader(
+		pBlob->GetBufferPointer(), pBlob->GetBufferSize(), NULL, &pShader
+	));
+}
+
 }
