@@ -33,28 +33,30 @@ public:
 
 	ID3D11Device* _device;
 	ID3D11DeviceContext* _context;
-
 	Factory _factory;
 	Swapchain _swapchain;
-	BlendState _blendstate;
-	Rasterizer _rasterizer;
-	DepthBuffer _depthbuffer;
-	Sampler _sampler;
+
+	// Pipeline
 	Viewport _viewport;
-	
-	VertexShader _vertexShader;
+
 	InputLayout _inputLayout;
-	
+	VertexShader _vertexShader;
 	VertexShader _vertexShaderFullscreenQuad;
+
+	Rasterizer _rasterizer;
 
 	PixelShader _forwardShader;
 	PixelShader _deferredShader;
 	PixelShader _deferredShaderLightingEnv;
 	PixelShader _deferredShaderLightingLocal;
 	PixelShader _debugPixelShader;
+	Sampler _sampler;
 
-	GBuffer _gBuffer;
+	BlendState _blendstate;
+	DepthBuffer _depthbuffer;
 	
+	// Misc
+	GBuffer _gBuffer;
 	ID3D11RenderTargetView* currRenderTargetView = nullptr;
 
 	Renderer(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, HWND window);
