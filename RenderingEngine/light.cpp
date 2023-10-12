@@ -88,13 +88,13 @@ void LightResource::addRandPointLight() {
 		addPointLight(
 			XMFLOAT3(tre::Utility::getRandomFloatRange(-20, 20), tre::Utility::getRandomFloatRange(-20, 20), tre::Utility::getRandomFloatRange(-20, 20)), 
 			XMFLOAT3(1.f, .14f, .07f),
-			XMFLOAT4(tre::Utility::getRandomFloat(1.0f), tre::Utility::getRandomFloat(1.0f), tre::Utility::getRandomFloat(1.0f), tre::Utility::getRandomFloat(1.0f))
+			XMFLOAT4(tre::Utility::getRandomFloat(1.0f), tre::Utility::getRandomFloat(1.0f), tre::Utility::getRandomFloat(1.0f), tre::Utility::getRandomFloat(1.0f)),
+			XMFLOAT2(tre::Utility::getRandomFloatRange(0.f, 360.f), tre::Utility::getRandomFloatRange(0.f, 360.f))
 		);
 	}
-
 }
 
-PointLight LightResource::addPointLight(XMFLOAT3 pos, XMFLOAT3 att, XMFLOAT4 diffuse) {
+PointLight LightResource::addPointLight(XMFLOAT3 pos, XMFLOAT3 att, XMFLOAT4 diffuse, XMFLOAT2 yawPitch) {
 
 	PointLight newPtLight;
 
@@ -106,6 +106,8 @@ PointLight LightResource::addPointLight(XMFLOAT3 pos, XMFLOAT3 att, XMFLOAT4 dif
 	float maxIntensity = std::max(std::max(diffuse.x, diffuse.y), diffuse.z);
 
 	newPtLight.range = (-att.y + sqrtf(att.y * att.y - 4 * att.z * (att.x - maxIntensity * (1 / defaultBrightnessThreshold)))) / (2 * att.z);
+
+	newPtLight.yawPitch = yawPitch;
 
 	numOfLights++;
 	updateComputeShaderBuffer(newPtLight);

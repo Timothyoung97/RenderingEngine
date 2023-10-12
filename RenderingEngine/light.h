@@ -26,6 +26,8 @@ struct PointLight {
 	XMFLOAT3 att;
 	float pad;
 	XMFLOAT4 diffuse;
+	XMFLOAT2 yawPitch;
+	XMFLOAT2 pad2;
 };
 
 class LightResource {
@@ -50,7 +52,7 @@ public:
 
 	void create(ID3D11Device* device, ID3D11DeviceContext* context);
 
-	PointLight addPointLight(XMFLOAT3 pos, XMFLOAT3 att, XMFLOAT4 diffuse);
+	PointLight addPointLight(XMFLOAT3 pos, XMFLOAT3 att, XMFLOAT4 diffuse, XMFLOAT2 yawPitch);
 	void addRandPointLight();
 	void updateComputeShaderBuffer(PointLight newPointLight);
 	void updatePixelShaderBuffer();
