@@ -49,6 +49,7 @@ void ConstantBuffer::setCamConstBuffer(
 
 	context->VSSetConstantBuffers(0u, 1u, &pConstBuffer);
 	context->PSSetConstantBuffers(0u, 1u, &pConstBuffer);
+	context->CSSetConstantBuffers(0u, 1u, &pConstBuffer);
 }
 
 void ConstantBuffer::setObjConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, XMMATRIX transformationLocal, XMFLOAT4 color, UINT isWithTexture, UINT hasNormalMap) {
