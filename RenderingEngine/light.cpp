@@ -23,34 +23,14 @@ void LightResource::create(ID3D11Device* device, ID3D11DeviceContext* context) {
 		&lightBufferDescGPU, NULL, pLightBufferGPU.GetAddressOf()
 	));
 
+	std::wstring basePathWstr = tre::Utility::getBasePathWstr();
+	computeShaderPtLightMovement.create(basePathWstr + L"shaders\\compute_shader_ptLight_movement.bin", _device);
 }
 
-void LightResource::updateBufferForShaders() {
-	
-	// Create buffer on CPU side to update new light resource
-	D3D11_BUFFER_DESC lightBufferDescCPU;
-	lightBufferDescCPU.BindFlags = 0;
-	lightBufferDescCPU.Usage = D3D11_USAGE_STAGING;
-	lightBufferDescCPU.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE | D3D11_CPU_ACCESS_READ;
-	lightBufferDescCPU.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-	lightBufferDescCPU.ByteWidth = static_cast<UINT>(sizeof(tre::PointLight) * maxPointLightNum);
-	lightBufferDescCPU.StructureByteStride = static_cast<UINT>(sizeof(tre::PointLight));
-	
-	D3D11_SUBRESOURCE_DATA lightData = {};
-	lightData.pSysMem = pointLights.data();
-	
-	ID3D11Buffer* pLightBufferCPU;
-
-	CHECK_DX_ERROR(_device->CreateBuffer(
-		&lightBufferDescCPU, &lightData, &pLightBufferCPU
-	));
-
-	// Copy subresource from CPU to GPU
-	_context->CopyResource( pLightBufferGPU.Get(), pLightBufferCPU );
-
+void LightResource::updatePixelShaderBuffer() {
 	// update GPU on buffer
 	D3D11_BUFFER_SRV lightBufferSRV;
-	lightBufferSRV.NumElements = pointLights.size();
+	lightBufferSRV.NumElements = numOfLights;
 	lightBufferSRV.FirstElement = 0;
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC lightShaderResc;
@@ -63,20 +43,58 @@ void LightResource::updateBufferForShaders() {
 	));
 }
 
-void LightResource::addPointLight() {
+void LightResource::updateComputeShaderBuffer(PointLight newPointLight) {
 
-	if (pointLights.size() < maxPointLightNum) {
-		PointLight newPl = createPtLight(
-				XMFLOAT3(tre::Utility::getRandomFloatRange(-20, 20), tre::Utility::getRandomFloatRange(-20, 20), tre::Utility::getRandomFloatRange(-20, 20)), 
-				XMFLOAT3(1.f, .14f, .07f),
-				XMFLOAT4(tre::Utility::getRandomFloat(1.0f), tre::Utility::getRandomFloat(1.0f), tre::Utility::getRandomFloat(1.0f), tre::Utility::getRandomFloat(1.0f))
-		);
+	// Create buffer on CPU side to update new light resource
+	D3D11_BUFFER_DESC lightBufferDescCPU;
+	lightBufferDescCPU.BindFlags = 0;
+	lightBufferDescCPU.Usage = D3D11_USAGE_STAGING;
+	lightBufferDescCPU.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	lightBufferDescCPU.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+	lightBufferDescCPU.ByteWidth = static_cast<UINT>(sizeof(tre::PointLight));
+	lightBufferDescCPU.StructureByteStride = static_cast<UINT>(sizeof(tre::PointLight));
 
-		pointLights.push_back(newPl);
-	}
+	D3D11_SUBRESOURCE_DATA lightData = {};
+	lightData.pSysMem = &newPointLight;
+
+	ID3D11Buffer* pLightBufferCPU;
+
+	CHECK_DX_ERROR(_device->CreateBuffer(
+		&lightBufferDescCPU, &lightData, &pLightBufferCPU
+	));
+
+	// Copy subresource from CPU to GPU
+	_context->CopySubresourceRegion(pLightBufferGPU.Get(), 0, (numOfLights - 1) * static_cast<UINT>(sizeof(tre::PointLight)), 0, 0, pLightBufferCPU, 0, NULL);
+
+	// update GPU on buffer
+	D3D11_BUFFER_UAV lightBufferUAV;
+	lightBufferUAV.NumElements = numOfLights;
+	lightBufferUAV.FirstElement = 0;
+	lightBufferUAV.Flags = D3D11_BUFFER_UAV_FLAG_COUNTER;
+
+	D3D11_UNORDERED_ACCESS_VIEW_DESC lightUnorderAccessViewDesc;
+	lightUnorderAccessViewDesc.Format = DXGI_FORMAT_UNKNOWN;
+	lightUnorderAccessViewDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
+	lightUnorderAccessViewDesc.Buffer = lightBufferUAV;
+
+	CHECK_DX_ERROR(_device->CreateUnorderedAccessView(
+		pLightBufferGPU.Get(), &lightUnorderAccessViewDesc, pLightUnorderedAccessView.GetAddressOf()
+	));
 }
 
-PointLight LightResource::createPtLight(XMFLOAT3 pos, XMFLOAT3 att, XMFLOAT4 diffuse) {
+void LightResource::addRandPointLight() {
+
+	if (numOfLights < maxPointLightNum) {
+		addPointLight(
+			XMFLOAT3(tre::Utility::getRandomFloatRange(-20, 20), tre::Utility::getRandomFloatRange(-20, 20), tre::Utility::getRandomFloatRange(-20, 20)), 
+			XMFLOAT3(1.f, .14f, .07f),
+			XMFLOAT4(tre::Utility::getRandomFloat(1.0f), tre::Utility::getRandomFloat(1.0f), tre::Utility::getRandomFloat(1.0f), tre::Utility::getRandomFloat(1.0f))
+		);
+	}
+
+}
+
+PointLight LightResource::addPointLight(XMFLOAT3 pos, XMFLOAT3 att, XMFLOAT4 diffuse) {
 
 	PointLight newPtLight;
 
@@ -89,6 +107,42 @@ PointLight LightResource::createPtLight(XMFLOAT3 pos, XMFLOAT3 att, XMFLOAT4 dif
 
 	newPtLight.range = (-att.y + sqrtf(att.y * att.y - 4 * att.z * (att.x - maxIntensity * (1 / defaultBrightnessThreshold)))) / (2 * att.z);
 
+	numOfLights++;
+	updateComputeShaderBuffer(newPtLight);
+	updatePixelShaderBuffer();
+
 	return newPtLight;
+}
+
+void LightResource::updatePtLightCPU() {
+	// Create buffer on CPU side
+	D3D11_BUFFER_DESC lightBufferDescCPU;
+	lightBufferDescCPU.BindFlags = 0;
+	lightBufferDescCPU.Usage = D3D11_USAGE_STAGING;
+	lightBufferDescCPU.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+	lightBufferDescCPU.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+	lightBufferDescCPU.ByteWidth = static_cast<UINT>(sizeof(tre::PointLight)) * maxPointLightNum;
+	lightBufferDescCPU.StructureByteStride = static_cast<UINT>(sizeof(tre::PointLight));
+
+	ID3D11Buffer* pLightBufferCPU;
+
+	CHECK_DX_ERROR(_device->CreateBuffer(
+		&lightBufferDescCPU, NULL, &pLightBufferCPU
+	));
+
+	_context->CopyResource(pLightBufferCPU, pLightBufferGPU.Get());
+
+	D3D11_MAPPED_SUBRESOURCE data;
+	CHECK_DX_ERROR(_context->Map(pLightBufferCPU, 0, D3D11_MAP_READ, 0u, &data));
+
+	readOnlyPointLightQ.clear();
+
+	PointLight* pPtLight = (PointLight*)data.pData;
+
+	for (int i = 0; i < numOfLights; i++) {
+		readOnlyPointLightQ.push_back(pPtLight[i]);
+	}
+
+	_context->Unmap(pLightBufferCPU, 0);
 }
 }

@@ -33,6 +33,7 @@ public:
 
 	// Object Queue to store debug objects created in Scene
 	std::vector<tre::Object> _objQ;
+	std::vector<tre::Object> _pointLightObjQ;
 
 	// Object ptr queue
 	std::vector<tre::Object*> _pObjQ;

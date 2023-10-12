@@ -7,6 +7,8 @@
 // std
 #include <vector>
 
+#include "shader.h"
+
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;
 
@@ -32,19 +34,26 @@ public:
 	ID3D11Device* _device;
 	ID3D11DeviceContext* _context;
 	
+	ComputeShader computeShaderPtLightMovement;
+
 	ComPtr<ID3D11Buffer> pLightBufferGPU;
 	ComPtr<ID3D11ShaderResourceView> pLightShaderRescView;
 	ComPtr<ID3D11UnorderedAccessView> pLightUnorderedAccessView;
+	ID3D11UnorderedAccessView* nullUAV[1] = { nullptr };
 
-	std::vector<PointLight> pointLights;
+	int numOfLights = 0;
 	int maxPointLightNum = 9;
 
 	float defaultBrightnessThreshold = .45f / 256.f;
 
+	std::vector<PointLight> readOnlyPointLightQ;
+
 	void create(ID3D11Device* device, ID3D11DeviceContext* context);
-	void updatePtLightPosition();
-	void updateBufferForShaders();
-	PointLight createPtLight(XMFLOAT3 pos, XMFLOAT3 att, XMFLOAT4 diffuse);
-	void addPointLight();
+
+	PointLight addPointLight(XMFLOAT3 pos, XMFLOAT3 att, XMFLOAT4 diffuse);
+	void addRandPointLight();
+	void updateComputeShaderBuffer(PointLight newPointLight);
+	void updatePixelShaderBuffer();
+	void updatePtLightCPU();
 };
 }

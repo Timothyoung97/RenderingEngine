@@ -44,27 +44,10 @@ Scene::Scene(ID3D11Device* device, ID3D11DeviceContext* context) {
 
 	// Pt Lights
 	lightResc.create(device, context);
-	lightResc.pointLights = {
-		lightResc.createPtLight(XMFLOAT3(3.0f, 3.0f, 3.0f),    XMFLOAT3(1.f, .14f, .07f),  XMFLOAT4(.0f, 1.f, 1.f, .5f)),
-		lightResc.createPtLight(XMFLOAT3(-3.0f, -3.0f, -3.0f), XMFLOAT3(1.f, .35f, .44f), XMFLOAT4(.0f, 1.f, .0f, .5f)),
-		lightResc.createPtLight(XMFLOAT3(.0f, .0f, .0f),	   XMFLOAT3(1.f, .22f, .2f),  XMFLOAT4(.0f, .0f, 1.f, .5f)),
-		lightResc.createPtLight(XMFLOAT3(-1.0f, .0f, -1.0f),   XMFLOAT3(1.f, .22f, .27f), XMFLOAT4(1.f, 1.f, .0f, .5f))
-	};
-
-	for (int i = 0; i < 4; i++) {
-		tre::Object newLightObj;
-
-		newLightObj.pObjMeshes = { &_debugMeshes[1] }; // sphere
-		newLightObj.pObjMeshes[0]->material = &_debugMaterials[2];
-		newLightObj.objPos = lightResc.pointLights[i].pos;
-		newLightObj.objScale = XMFLOAT3(lightResc.pointLights[i].range, lightResc.pointLights[i].range, lightResc.pointLights[i].range);
-		newLightObj.objRotation = XMFLOAT3(.0f, .0f, .0f);
-		newLightObj._boundingVolumeColor = { XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) };
-		newLightObj._transformationFinal = tre::Maths::createTransformationMatrix(newLightObj.objScale, newLightObj.objRotation, newLightObj.objRotation);
-
-		_objQ.push_back(newLightObj);
-		_wireframeObjQ.push_back(std::make_pair(&_objQ.back(), _objQ.back().pObjMeshes[0]));
-	}
+	lightResc.addPointLight(XMFLOAT3(3.0f, 3.0f, 3.0f),    XMFLOAT3(1.f, .14f, .07f),  XMFLOAT4(.0f, 1.f, 1.f, .5f));
+	lightResc.addPointLight(XMFLOAT3(-3.0f, -3.0f, -3.0f), XMFLOAT3(1.f, .35f, .44f), XMFLOAT4(.0f, 1.f, .0f, .5f));
+	lightResc.addPointLight(XMFLOAT3(1.f, 1.f, 1.0f),	   XMFLOAT3(1.f, .22f, .2f),  XMFLOAT4(.0f, .0f, 1.f, .5f));
+	lightResc.addPointLight(XMFLOAT3(-1.0f, .0f, -1.0f),   XMFLOAT3(1.f, .22f, .27f), XMFLOAT4(1.f, 1.f, .0f, .5f));
 }
 	
 void Scene::createFloor() {
