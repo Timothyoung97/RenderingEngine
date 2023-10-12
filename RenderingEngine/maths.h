@@ -43,5 +43,6 @@ public:
 	static XMMATRIX createOrthoMatrixFromFrustumCorners(float zMult, const std::vector<XMVECTOR>& corners, const XMMATRIX& viewMatrix);
 	static XMFLOAT3 convertRotationMatrixToEuler(XMMATRIX rotationMatrix);
 	static Frustum createFrustumFromViewProjectionMatrix(XMMATRIX viewProjection);
+	static uint32_t divideAndRoundUp(uint32_t dividend, uint32_t divisor);
 };
 }
