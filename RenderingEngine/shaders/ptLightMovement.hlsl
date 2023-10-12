@@ -4,7 +4,7 @@ RWStructuredBuffer<PointLight> ptLights : register(u0);
 
 [numthreads(4, 1, 1)]
 void cs_updateLightPosition(uint3 dispatchThreadID : SV_DispatchThreadID) {
-    if (dispatchThreadID.x > numPtLights) {
+    if (dispatchThreadID.x >= numPtLights) {
         return;
     }
 
@@ -15,11 +15,11 @@ void cs_updateLightPosition(uint3 dispatchThreadID : SV_DispatchThreadID) {
     
     float currYaw = ptLights[dispatchThreadID.x].yawPitch.x;
     float currPitch = ptLights[dispatchThreadID.x].yawPitch.y;
-
-    currYaw += dispatchThreadID.x % 2;
+    
+    currYaw += dispatchThreadID.x;
     if (currYaw >= 360.f) currYaw = .0f;
     
-    currPitch += dispatchThreadID.x % 2;
+    currPitch += dispatchThreadID.x;
     if (currPitch >= 360.f) currPitch = .0f;
 
     float3 newPos;
