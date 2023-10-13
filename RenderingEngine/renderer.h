@@ -15,6 +15,8 @@
 #include "viewport.h"
 #include "inputlayout.h"
 #include "gbuffer.h"
+#include "ssao.h"
+
 
 namespace tre {
 
@@ -57,6 +59,8 @@ public:
 	
 	// Misc
 	GBuffer _gBuffer;
+	SSAO _ssao;
+
 	ID3D11RenderTargetView* currRenderTargetView = nullptr;
 
 	Renderer(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, HWND window);

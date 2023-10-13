@@ -56,7 +56,7 @@ void SSAO::create(ID3D11Device* device, ID3D11DeviceContext* context) {
 	bufferSRV.ElementWidth = static_cast<UINT>(sizeof(XMFLOAT3));
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC ssaoKernalSRVDesc;
-	ssaoKernalSRVDesc.Format = DXGI_FORMAT_UNKNOWN;
+	ssaoKernalSRVDesc.Format = DXGI_FORMAT_R32G32B32_FLOAT;
 	ssaoKernalSRVDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
 	ssaoKernalSRVDesc.Buffer = bufferSRV;
 

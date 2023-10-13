@@ -30,6 +30,7 @@ Renderer::Renderer(ID3D11Device* _device, ID3D11DeviceContext* _context, HWND wi
 	_debugPixelShader.create(basePathWstr + L"shaders\\pixel_shader_debug.bin", _device);
 
 	_gBuffer.create(_device);
+	_ssao.create(_device, _context);
 }
 
 void Renderer::reset() {
