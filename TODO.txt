@@ -37,6 +37,10 @@ Graphics Tasks:
     • Additively blend back to lighting RT
 
 Stretch Graphic Tasks:
+• Multi-Thread
+    • Use a thread pool library: https://github.com/taskflow/taskflow
+    • D3D11 required deferred contexts: https://learn.microsoft.com/en-gb/windows/win32/direct3d11/overviews-direct3d-11-render-multi-thread
+    • Multi-thread all Renderers
 • Shadows for Point Lights
 • Height-map based terrain rendering
     • Start with high detail CPU-generated mesh
