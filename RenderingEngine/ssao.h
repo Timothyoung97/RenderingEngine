@@ -13,8 +13,7 @@ public:
 	ID3D11Device* _device;
 	ID3D11DeviceContext* _context;
 
-	ComPtr<ID3D11Buffer> ssaoKernelBuffer;
-	ComPtr<ID3D11ShaderResourceView> ssaoKernelBufferSRV;
+	std::vector<XMFLOAT4> ssaoKernalSamples;
 
 	ComPtr<ID3D11Texture2D> ssaoNoiseTexture2d;
 	ComPtr<ID3D11ShaderResourceView> ssaoNoiseTexture2dSRV;
