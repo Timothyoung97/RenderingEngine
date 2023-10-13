@@ -17,10 +17,10 @@ public:
 	ID3D11DeviceContext* _context;
 
 	ComPtr<ID3D11Buffer> ssaoKernelBuffer;
-	ComPtr<ID3D11ShaderResourceView> ssaoKernelSRV;
+	ComPtr<ID3D11ShaderResourceView> ssaoKernelBufferSRV;
 
 	ComPtr<ID3D11Texture2D> ssaoNoiseTexture2D;
-	ComPtr<ID3D11ShaderResourceView> ssaoKernelSRV;
+	ComPtr<ID3D11ShaderResourceView> ssaoNoiseTexture2DSRV;
 
 	void create(ID3D11Device* device, ID3D11DeviceContext* context);
 
