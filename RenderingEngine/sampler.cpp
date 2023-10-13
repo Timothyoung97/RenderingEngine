@@ -39,5 +39,23 @@ void Sampler::create(ID3D11Device* device) {
 
 	CHECK_DX_ERROR(device->CreateSamplerState(&shadowSamplerDesc, pSamplerStateMipPtWhiteBorder.GetAddressOf()));
 
+	// Create sampler state for ssao
+	D3D11_SAMPLER_DESC shadowSamplerDesc;
+	ZeroMemory(&shadowSamplerDesc, sizeof(D3D11_SAMPLER_DESC));
+	shadowSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	shadowSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	shadowSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	shadowSamplerDesc.BorderColor[0] = 1.0f;
+	shadowSamplerDesc.BorderColor[1] = 1.0f;
+	shadowSamplerDesc.BorderColor[2] = 1.0f;
+	shadowSamplerDesc.BorderColor[3] = 1.0f;
+	shadowSamplerDesc.MinLOD = 0.f;
+	shadowSamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	shadowSamplerDesc.MipLODBias = 0.f;
+	shadowSamplerDesc.MaxAnisotropy = 0;
+	shadowSamplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	shadowSamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+
+	CHECK_DX_ERROR(device->CreateSamplerState(&shadowSamplerDesc, pSamplerStateMipPtWrap.GetAddressOf()));
 }
 }
