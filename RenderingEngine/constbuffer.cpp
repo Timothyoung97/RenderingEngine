@@ -114,4 +114,30 @@ void ConstantBuffer::setLightingVolumeConstBuffer(ID3D11Device* device, ID3D11De
 	context->PSSetConstantBuffers(2u, 1u, &pConstBuffer);
 }
 
+void ConstantBuffer::setSSAOKernalConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, const std::vector<XMFLOAT4>& kernalSamples) {
+	D3D11_BUFFER_DESC constantBufferDescModel;
+	constantBufferDescModel.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	constantBufferDescModel.Usage = D3D11_USAGE_DEFAULT;
+	constantBufferDescModel.CPUAccessFlags = 0u;
+	constantBufferDescModel.MiscFlags = 0u;
+	constantBufferDescModel.ByteWidth = sizeof(constBufferSSAOKernal);
+	constantBufferDescModel.StructureByteStride = 0u;
+
+	constBufferSSAOKernal constBufferSSAOKernal;
+	std::copy(kernalSamples.begin(), kernalSamples.end(), constBufferSSAOKernal.kernalSamples);
+
+	//map to data to subresouce
+	D3D11_SUBRESOURCE_DATA csd = {};
+	csd.pSysMem = &constBufferSSAOKernal;
+
+	ID3D11Buffer* pConstBuffer;
+
+	CHECK_DX_ERROR(device->CreateBuffer(
+		&constantBufferDescModel, &csd, &pConstBuffer
+	));
+
+	// to set const shader for ssao
+	//context->PSSetConstantBuffers(2u, 1u, &pConstBuffer);
+}
+
 }

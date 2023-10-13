@@ -8,9 +8,6 @@ using Microsoft::WRL::ComPtr;
 namespace tre {
 
 class SSAO {
-	
-	// todo: add noise texture
-	// todo: add hemisphere
 
 public:
 	ID3D11Device* _device;
