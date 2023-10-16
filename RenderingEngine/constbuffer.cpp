@@ -114,7 +114,7 @@ void ConstantBuffer::setLightingVolumeConstBuffer(ID3D11Device* device, ID3D11De
 	context->PSSetConstantBuffers(2u, 1u, &pConstBuffer);
 }
 
-void ConstantBuffer::setSSAOKernalConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, const std::vector<XMFLOAT4>& kernalSamples) {
+void ConstantBuffer::setSSAOKernalConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, const std::vector<XMFLOAT4>& kernalSamples, float sampleRadius, float sampleBias) {
 	D3D11_BUFFER_DESC constantBufferDescModel;
 	constantBufferDescModel.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	constantBufferDescModel.Usage = D3D11_USAGE_DEFAULT;
@@ -125,6 +125,8 @@ void ConstantBuffer::setSSAOKernalConstBuffer(ID3D11Device* device, ID3D11Device
 
 	constBufferSSAOKernal constBufferSSAOKernal;
 	std::copy(kernalSamples.begin(), kernalSamples.end(), constBufferSSAOKernal.kernalSamples);
+	constBufferSSAOKernal.sampleRadius = sampleRadius;
+	constBufferSSAOKernal.sampleBias = sampleBias;
 
 	//map to data to subresouce
 	D3D11_SUBRESOURCE_DATA csd = {};

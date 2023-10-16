@@ -111,6 +111,7 @@ int main()
 	tre::BoundVolumeEnum typeOfBound = tre::AABBBoundingBox;
 	int meshIdx = 0;
 	float fovY = 45.0f;
+	float ssaoSampleRadius = .5f, ssaoBias = .0f;
 	bool csmDebugSwitch = false;
 	int shadowCascadeOpaqueObjs[4] = { 0, 0, 0, 0 };
 	int opaqueMeshCount = 0, transparentMeshCount = 0, totalMeshCount = 0;
@@ -236,9 +237,11 @@ int main()
 
 			ImGui::Checkbox("Demo Window", &show_demo_window);
 
-			{
-				ImGui::SeparatorText("Graphics");
+			{	// SSAO
+				ImGui::SeparatorText("SSAO");
 				ImGui::Checkbox("SSAO Switch", &ssaoSwitch);
+				ImGui::SliderFloat("SSAO Sample Radius", &ssaoSampleRadius, .001f, 5.f);
+				ImGui::SliderFloat("SSAO Sample Bias", &ssaoBias, -.5f, .5f);
 			}
 
 			{	// Control for import models
@@ -434,7 +437,7 @@ int main()
 
 		// ssao pass
 		if (ssaoSwitch) {
-			tre::ConstantBuffer::setSSAOKernalConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), renderer._ssao.ssaoKernalSamples);
+			tre::ConstantBuffer::setSSAOKernalConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), renderer._ssao.ssaoKernalSamples, ssaoSampleRadius, ssaoBias);
 			renderer.fullscreenPass(tre::RENDER_MODE::SSAO_FULLSCREEN_PASS);
 			renderer.fullscreenPass(tre::RENDER_MODE::SSAO_BLURRING_PASS);
 		}
