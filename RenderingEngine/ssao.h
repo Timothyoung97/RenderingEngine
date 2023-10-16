@@ -2,7 +2,9 @@
 
 #include <d3d11.h>
 #include <wrl/client.h>
+#include <DirectXMath.h>
 
+using namespace DirectX;
 using Microsoft::WRL::ComPtr;
 
 namespace tre {
