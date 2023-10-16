@@ -1,4 +1,5 @@
 #include "forwardRendering.hlsl"
+#include "helper.hlsl"
 
 cbuffer constBufferSSAO : register(b3) {
     float4 kernalSamples[64];
@@ -6,10 +7,6 @@ cbuffer constBufferSSAO : register(b3) {
 
 Texture2D noiseTexture : register(t5);
 SamplerState wrapPointSampler : register(s2);
-
-float2 clipToScreenSpace(float2 xy) {
-    return xy * float2(0.5f, -0.5f) + float2(0.5f, 0.5f);
-}
 
 void ps_ssao(
     in float4 outPosition: SV_POSITION,
@@ -23,22 +20,21 @@ void ps_ssao(
     }
 
     // Convert screen space pos to world space pos
-    float x = 2.0f * outPosition.x / viewportDimension.x - 1;
-    float y = 1 - (2.0f * outPosition.y / viewportDimension.y);
+    float x = 2.0f * outPosition.x / viewportDimension.x - 1.0f;
+    float y = 1.0f - (2.0f * outPosition.y / viewportDimension.y);
     float4 clipPos = float4(x, y, depth.x, 1.0f);
     float4 worldPosH = mul(invViewProjection, clipPos); 
     float3 worldPos = worldPosH.xyz / worldPosH.w;
 
     // create TBN
-    float2 noiseScale = float2(viewportDimension.x / 4.0f, viewportDimension.y / 4.0f);
-
     float3 sampledNormal = ObjNormMap.Load(int3(outPosition.xy, 0)).xyz;
 
+    float2 noiseScale = float2(viewportDimension.x / 4.0f, viewportDimension.y / 4.0f);
     float3 noiseVec = noiseTexture.Sample(wrapPointSampler, outTexCoord * noiseScale).xyz;
 
     float3 tangent = normalize(noiseVec - sampledNormal * dot(noiseVec, sampledNormal));
 
-    float3 biTangent = -1.0f * cross(sampledNormal, tangent);
+    float3 biTangent = cross(sampledNormal, tangent);
     
     // TBN Matrix
     float4x4 TBNMatrix = {
@@ -54,16 +50,17 @@ void ps_ssao(
     [unroll]
     for (int i = 0; i < 64; i++) {
         // find world position of the sampling point
-        //float3 samplePos = mul(kernalSamples[i], TBNMatrix).xyz;
-        //samplePos = worldPos + samplePos * .5f;
+        float3 samplePos = mul(TBNMatrix, kernalSamples[i]).xyz;
+        samplePos = worldPos + samplePos * .5f;
 
-        float3 samplePos = worldPos + abs(kernalSamples[i].xyz * 10) * sampledNormal;
+        // float3 samplePos = worldPos + abs(kernalSamples[i].xyz * 10) * sampledNormal;
 
         // convert to screen space position
         float4 offset = float4(samplePos, 1.0f);
         offset = mul(viewProjection, offset);
         offset.xyz /= offset.w;
         offset.xy = clipToScreenSpace(offset.xy);
+
         // sample depth
         float4 sampleDepth = ObjDepthMap.Sample(wrapPointSampler, offset.xy);
 
@@ -71,5 +68,5 @@ void ps_ssao(
         occlusion += (sampleDepth.x < depth.x ? 1.f : 0.f);
     }
     
-    outTarget = float4(occlusion / 64.f, .0f, .0f, .0f);
+    outTarget = float4(1 - (occlusion / 64.f), .0f, .0f, .0f);
 }
