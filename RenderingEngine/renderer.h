@@ -27,7 +27,8 @@ enum RENDER_MODE {
 	DEFERRED_OPAQUE_M,
 	DEFERRED_OPAQUE_LIGHTING_ENV_M,
 	DEFERRED_LIGHTING_LOCAL_M,
-	SSAO_SCREEN_PASS
+	SSAO_FULLSCREEN_PASS,
+	SSAO_BLURRING_PASS
 };
 
 class Renderer {
@@ -52,6 +53,7 @@ public:
 	PixelShader _deferredShaderLightingEnv;
 	PixelShader _deferredShaderLightingLocal;
 	PixelShader _ssaoPixelShader;
+	PixelShader _textureBlurPixelShader;
 	PixelShader _debugPixelShader;
 	Sampler _sampler;
 

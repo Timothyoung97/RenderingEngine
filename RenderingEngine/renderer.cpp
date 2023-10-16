@@ -28,6 +28,7 @@ Renderer::Renderer(ID3D11Device* _device, ID3D11DeviceContext* _context, HWND wi
 	_deferredShaderLightingEnv.create(basePathWstr + L"shaders\\pixel_shader_deferred_lighting_env.bin", _device);
 	_deferredShaderLightingLocal.create(basePathWstr + L"shaders\\pixel_shader_deferred_lighting_local.bin", _device);
 	_ssaoPixelShader.create(basePathWstr + L"shaders\\pixel_shader_ssao_rendering.bin", _device);
+	_textureBlurPixelShader.create(basePathWstr + L"shaders\\pixel_shader_texture_blur.bin", _device);
 	_debugPixelShader.create(basePathWstr + L"shaders\\pixel_shader_debug.bin", _device);
 
 	_gBuffer.create(_device);
@@ -198,7 +199,7 @@ void Renderer::configureStates(RENDER_MODE renderObjType) {
 		_context->OMSetRenderTargets(1, &currRenderTargetView, _depthbuffer.pDepthStencilView.Get());
 		break;
 
-	case tre::SSAO_SCREEN_PASS:
+	case tre::SSAO_FULLSCREEN_PASS:
 		_context->IASetInputLayout(nullptr);
 		_context->VSSetShader(_vertexShaderFullscreenQuad.pShader.Get(), NULL, 0u);
 
@@ -215,6 +216,23 @@ void Renderer::configureStates(RENDER_MODE renderObjType) {
 		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0); // by default: read only depth test
 		_context->OMSetRenderTargets(1, _ssao.ssaoResultTexture2dRTV.GetAddressOf(), nullptr);
 		break;
+
+	case tre::SSAO_BLURRING_PASS:
+		_context->IASetInputLayout(nullptr);
+		_context->VSSetShader(_vertexShaderFullscreenQuad.pShader.Get(), NULL, 0u);
+
+		_context->RSSetViewports(1, &_viewport.defaultViewport);
+		_context->RSSetState(_rasterizer.pRasterizerStateFCCW.Get());
+
+		_context->OMSetRenderTargets(0, nullptr, nullptr);
+		_context->PSSetShader(_textureBlurPixelShader.pShader.Get(), NULL, 0u);
+		_context->PSSetShaderResources(6, 1, _ssao.ssaoResultTexture2dSRV.GetAddressOf()); // normal
+
+		_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
+		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0); // by default: read only depth test
+		_context->OMSetRenderTargets(1, _ssao.ssaoBlurredTexture2dRTV.GetAddressOf(), nullptr);
+		break;
+
 	}
 }
 

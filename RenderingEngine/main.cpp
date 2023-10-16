@@ -428,7 +428,8 @@ int main()
 
 		// ssao pass
 		tre::ConstantBuffer::setSSAOKernalConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), renderer._ssao.ssaoKernalSamples);
-		renderer.fullscreenPass(tre::RENDER_MODE::SSAO_SCREEN_PASS);
+		renderer.fullscreenPass(tre::RENDER_MODE::SSAO_FULLSCREEN_PASS);
+		renderer.fullscreenPass(tre::RENDER_MODE::SSAO_BLURRING_PASS);
 
 		// 2nd pass deferred lighting 
 		renderer.fullscreenPass(tre::RENDER_MODE::DEFERRED_OPAQUE_LIGHTING_ENV_M);

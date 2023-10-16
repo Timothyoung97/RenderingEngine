@@ -96,6 +96,10 @@ void SSAO::create(ID3D11Device* device, ID3D11DeviceContext* context) {
 		&ssaoResultTexture2dDesc, nullptr, ssaoResultTexture2d.GetAddressOf()
 	));
 
+	CHECK_DX_ERROR(_device->CreateTexture2D(
+		&ssaoResultTexture2dDesc, nullptr, ssaoBlurredTexture2d.GetAddressOf()
+	));
+
 	D3D11_SHADER_RESOURCE_VIEW_DESC ssaoResultTexture2dSRVDesc;
 	ssaoResultTexture2dSRVDesc.Format = DXGI_FORMAT_R8_UNORM;
 	ssaoResultTexture2dSRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
@@ -103,6 +107,10 @@ void SSAO::create(ID3D11Device* device, ID3D11DeviceContext* context) {
 
 	CHECK_DX_ERROR(_device->CreateShaderResourceView(
 		ssaoResultTexture2d.Get(), &ssaoResultTexture2dSRVDesc, ssaoResultTexture2dSRV.GetAddressOf()
+	));
+	
+	CHECK_DX_ERROR(_device->CreateShaderResourceView(
+		ssaoBlurredTexture2d.Get(), &ssaoResultTexture2dSRVDesc, ssaoBlurredTexture2dSRV.GetAddressOf()
 	));
 
 	D3D11_RENDER_TARGET_VIEW_DESC ssaoResultTexture2dRTVDesc;
@@ -113,6 +121,10 @@ void SSAO::create(ID3D11Device* device, ID3D11DeviceContext* context) {
 
 	CHECK_DX_ERROR(_device->CreateRenderTargetView(
 		ssaoResultTexture2d.Get(), &ssaoResultTexture2dRTVDesc, ssaoResultTexture2dRTV.GetAddressOf()
+	));
+
+	CHECK_DX_ERROR(_device->CreateRenderTargetView(
+		ssaoBlurredTexture2d.Get(), &ssaoResultTexture2dRTVDesc, ssaoBlurredTexture2dRTV.GetAddressOf()
 	));
 }
 }
