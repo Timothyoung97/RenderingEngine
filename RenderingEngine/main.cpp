@@ -426,8 +426,12 @@ int main()
 
 		renderer.clearSwapChainBuffer();
 
+		// ssao pass
+		tre::ConstantBuffer::setSSAOKernalConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), renderer._ssao.ssaoKernalSamples);
+		renderer.fullscreenPass(tre::RENDER_MODE::SSAO_SCREEN_PASS);
+
 		// 2nd pass deferred lighting 
-		renderer.deferredLightingEnvDraw();
+		renderer.fullscreenPass(tre::RENDER_MODE::DEFERRED_OPAQUE_LIGHTING_ENV_M);
 
 		// Draw all transparent objects
 		renderer.draw(scene._culledTransparentObjQ, tre::RENDER_MODE::TRANSPARENT_M);
