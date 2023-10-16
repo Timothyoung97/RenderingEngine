@@ -6,6 +6,7 @@
 #include "maths.h"
 #include "utility.h"
 #include "scene.h"
+#include "colors.h"
 
 namespace tre {
 
@@ -41,6 +42,9 @@ void Renderer::reset() {
 	_context->PSSetSamplers(1, 1, _sampler.pSamplerStateMipPtWhiteBorder.GetAddressOf());
 	_context->PSSetSamplers(2, 1, _sampler.pSamplerStateMipPtWrap.GetAddressOf());
 	_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	// clear ssao
+	_context->ClearRenderTargetView(_ssao.ssaoBlurredTexture2dRTV.Get(), Colors::Transparent);
 }
 
 void Renderer::setShadowBufferDrawSection(int idx) {
@@ -174,6 +178,7 @@ void Renderer::configureStates(RENDER_MODE renderObjType) {
 		_context->PSSetShaderResources(1, 1, _gBuffer.pShaderResViewDeferredNormal.GetAddressOf()); // normal
 		_context->PSSetShaderResources(3, 1, _depthbuffer.pShadowShaderRescView.GetAddressOf()); // shadow
 		_context->PSSetShaderResources(4, 1, _depthbuffer.pDepthStencilShaderRescView.GetAddressOf()); //depth
+		_context->PSSetShaderResources(7, 1, _ssao.ssaoBlurredTexture2dSRV.GetAddressOf()); // ssao
 
 		_context->OMSetRenderTargets(1, &currRenderTargetView, nullptr);
 		_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);

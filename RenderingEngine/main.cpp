@@ -107,6 +107,7 @@ int main()
 	bool show_demo_window = false;
 	bool showBoundingVolume = false;
 	bool pauseLight = false;
+	bool ssaoSwitch = false;
 	tre::BoundVolumeEnum typeOfBound = tre::AABBBoundingBox;
 	int meshIdx = 0;
 	float fovY = 45.0f;
@@ -234,6 +235,11 @@ int main()
 			ImGui::Begin("Debug");
 
 			ImGui::Checkbox("Demo Window", &show_demo_window);
+
+			{
+				ImGui::SeparatorText("Graphics");
+				ImGui::Checkbox("SSAO Switch", &ssaoSwitch);
+			}
 
 			{	// Control for import models
 
@@ -427,9 +433,11 @@ int main()
 		renderer.clearSwapChainBuffer();
 
 		// ssao pass
-		tre::ConstantBuffer::setSSAOKernalConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), renderer._ssao.ssaoKernalSamples);
-		renderer.fullscreenPass(tre::RENDER_MODE::SSAO_FULLSCREEN_PASS);
-		renderer.fullscreenPass(tre::RENDER_MODE::SSAO_BLURRING_PASS);
+		if (ssaoSwitch) {
+			tre::ConstantBuffer::setSSAOKernalConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), renderer._ssao.ssaoKernalSamples);
+			renderer.fullscreenPass(tre::RENDER_MODE::SSAO_FULLSCREEN_PASS);
+			renderer.fullscreenPass(tre::RENDER_MODE::SSAO_BLURRING_PASS);
+		}
 
 		// 2nd pass deferred lighting 
 		renderer.fullscreenPass(tre::RENDER_MODE::DEFERRED_OPAQUE_LIGHTING_ENV_M);
