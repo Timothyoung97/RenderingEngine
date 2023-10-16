@@ -48,7 +48,7 @@ void ps_ssao(
     float occlusion = .0f;
     
     float raidus = .5f;
-    float bias = .0001f;
+    float bias = -.0005f;
 
     [unroll]
     for (int i = 0; i < 64; i++) {
