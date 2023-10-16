@@ -51,9 +51,7 @@ void ps_ssao(
     for (int i = 0; i < 64; i++) {
         // find world position of the sampling point
         float3 samplePos = mul(TBNMatrix, kernalSamples[i]).xyz;
-        samplePos = worldPos + samplePos * .5f;
-
-        // float3 samplePos = worldPos + abs(kernalSamples[i].xyz * 10) * sampledNormal;
+        samplePos = worldPos + samplePos * .5f; // hardcoded radius
 
         // convert to screen space position
         float4 offset = float4(samplePos, 1.0f);
@@ -65,7 +63,7 @@ void ps_ssao(
         float4 sampleDepth = ObjDepthMap.Sample(wrapPointSampler, offset.xy);
 
         // occlusion contribution
-        occlusion += (sampleDepth.x < depth.x ? 1.f : 0.f);
+        occlusion += sampleDepth.x < depth.x + .0002f ? 1.f : 0.f; // hardcoded bias
     }
     
     outTarget = float4(1 - (occlusion / 64.f), .0f, .0f, .0f);
