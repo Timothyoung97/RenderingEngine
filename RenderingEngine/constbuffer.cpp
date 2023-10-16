@@ -137,7 +137,7 @@ void ConstantBuffer::setSSAOKernalConstBuffer(ID3D11Device* device, ID3D11Device
 	));
 
 	// to set const shader for ssao
-	//context->PSSetConstantBuffers(2u, 1u, &pConstBuffer);
+	context->PSSetConstantBuffers(3u, 1u, &pConstBuffer);
 }
 
 }
