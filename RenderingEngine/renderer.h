@@ -17,7 +17,6 @@
 #include "gbuffer.h"
 #include "ssao.h"
 
-
 namespace tre {
 
 enum RENDER_MODE {
@@ -27,7 +26,8 @@ enum RENDER_MODE {
 	SHADOW_M,
 	DEFERRED_OPAQUE_M,
 	DEFERRED_OPAQUE_LIGHTING_ENV_M,
-	DEFERRED_LIGHTING_LOCAL_M
+	DEFERRED_LIGHTING_LOCAL_M,
+	SSAO_SCREEN_PASS
 };
 
 class Renderer {
@@ -51,6 +51,7 @@ public:
 	PixelShader _deferredShader;
 	PixelShader _deferredShaderLightingEnv;
 	PixelShader _deferredShaderLightingLocal;
+	PixelShader _ssaoPixelShader;
 	PixelShader _debugPixelShader;
 	Sampler _sampler;
 
@@ -74,7 +75,7 @@ public:
 	void clearShadowBuffer();
 
 	void draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MODE renderMode);
-	void deferredLightingEnvDraw();
+	void fullscreenPass(tre::RENDER_MODE mode);
 	void deferredLightingLocalDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, XMVECTOR cameraPos);
 	void debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh& mesh, BoundVolumeEnum typeOfBound, RENDER_MODE renderMode);
 
