@@ -16,7 +16,7 @@ void SSAO::create(ID3D11Device* device, ID3D11DeviceContext* context) {
 	_device = device;
 	_context = context;
 
-	// create ssaoKernal
+	// create ssaoKernal, to be sent in as const buffer
 	for (int i = 0; i < 64; i++) {
 		XMVECTOR newSample{
 			tre::Utility::getRandomFloatRange(-1.f, 1.f),
@@ -35,12 +35,13 @@ void SSAO::create(ID3D11Device* device, ID3D11DeviceContext* context) {
 		ssaoKernalSamples.push_back(XMFLOAT4(sampleF.x, sampleF.y, sampleF.z, .0f));
 	}
 
-	// create ssaoNoise
-	std::vector<XMFLOAT3> ssaoNoise;
+	// create ssaoNoise, to be used as texture2D
+	std::vector<XMFLOAT4> ssaoNoise;
 	for (int i = 0; i < 16; i++) {
-		XMFLOAT3 newNoise = XMFLOAT3(
+		XMFLOAT4 newNoise = XMFLOAT4(
 			tre::Utility::getRandomFloatRange(0, 1.f),
 			tre::Utility::getRandomFloatRange(0, 1.f),
+			.0f,
 			.0f
 		);
 		ssaoNoise.push_back(newNoise);
@@ -61,7 +62,7 @@ void SSAO::create(ID3D11Device* device, ID3D11DeviceContext* context) {
 
 	D3D11_SUBRESOURCE_DATA ssaoNoiseTextureData = {};
 	ssaoNoiseTextureData.pSysMem = ssaoNoise.data();
-	ssaoNoiseTextureData.SysMemPitch = static_cast<UINT>(4 * sizeof(XMFLOAT3));
+	ssaoNoiseTextureData.SysMemPitch = static_cast<UINT>(4 * sizeof(XMFLOAT4));
 	ssaoNoiseTextureData.SysMemSlicePitch = 0u;
 
 	CHECK_DX_ERROR(_device->CreateTexture2D(
@@ -77,7 +78,7 @@ void SSAO::create(ID3D11Device* device, ID3D11DeviceContext* context) {
 		ssaoNoiseTexture2d.Get(), &ssaoNoiseSRVDesc, ssaoNoiseTexture2dSRV.GetAddressOf()
 	));
 
-	// create ssaoResultTexture2d
+	// create ssaoResultTexture2d, to be used as render result
 	D3D11_TEXTURE2D_DESC ssaoResultTexture2dDesc;
 	ssaoResultTexture2dDesc.Width = SCREEN_WIDTH;
 	ssaoResultTexture2dDesc.Height = SCREEN_HEIGHT;
