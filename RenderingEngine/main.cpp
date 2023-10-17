@@ -240,8 +240,8 @@ int main()
 			{	// SSAO
 				ImGui::SeparatorText("SSAO");
 				ImGui::Checkbox("SSAO Switch", &ssaoSwitch);
-				ImGui::SliderFloat("SSAO Sample Radius", &ssaoSampleRadius, .001f, 5.f);
-				ImGui::SliderFloat("SSAO Sample Bias", &ssaoBias, -.5f, .5f);
+				ImGui::SliderFloat("SSAO Sample Radius", &ssaoSampleRadius, .000f, 2.f, "%.6f");
+				ImGui::SliderFloat("SSAO Sample Bias", &ssaoBias, -.1f, .1f, "%.6f");
 			}
 
 			{	// Control for import models
