@@ -1,5 +1,4 @@
 #include "forwardRendering.hlsl"
-#include "helper.hlsl"
 
 Texture2D ssaoBlurredTexture : register(t7);
 

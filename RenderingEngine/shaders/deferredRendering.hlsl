@@ -1,5 +1,4 @@
 #include "forwardRendering.hlsl"
-#include "helper.hlsl"
 
 // 1st deferred draw: Draw for normal and opaque
 void ps_deferred_gbuffer (

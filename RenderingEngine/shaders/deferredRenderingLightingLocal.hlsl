@@ -1,5 +1,4 @@
 #include "forwardRendering.hlsl"
-#include "helper.hlsl"
 
 cbuffer constBufferLight : register(b2) {
     uint currLightIdx;

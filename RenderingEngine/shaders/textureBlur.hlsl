@@ -1,4 +1,3 @@
-#include "helper.hlsl"
 #include "forwardRendering.hlsl"
 
 Texture2D targetTexture : register(t6);

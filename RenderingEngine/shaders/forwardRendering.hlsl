@@ -1,3 +1,5 @@
+#include "helper.hlsl"
+
 struct Light {
     float3 dir;
     float pad;
@@ -138,7 +140,7 @@ float4 sampleTexture(float2 textureCoord) {
 float4 sampleNormal(float2 textureCoord, float4 normal, float4 tangent) {
     normal = normalize(normal);
     if (hasNormMap) {
-        float4 normalMap = decodeNormal(ObjNormMap.Sample(ObjSamplerStateLinear, textureCoord)); // change from [0, 1] to [-1, 1]
+        float3 normalMap = decodeNormal(ObjNormMap.Sample(ObjSamplerStateLinear, textureCoord).xyz); // change from [0, 1] to [-1, 1]
 
         // Bitangent TODO: Should be cross(N, T)
         float3 biTangent = normalize(-1.0f * cross(normal.xyz, tangent.xyz)); // create biTangent
@@ -151,7 +153,7 @@ float4 sampleNormal(float2 textureCoord, float4 normal, float4 tangent) {
             float4(.0f, .0f, .0f, 1.0f)
         };
 
-        normal = normalize(mul(normalMap, texSpace)); // convert normal from normal map to texture space
+        normal = normalize(mul(float4(normalMap, .0f), texSpace)); // convert normal from normal map to texture space
     }
 
     return normal;
