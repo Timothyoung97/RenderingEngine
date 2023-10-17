@@ -6,6 +6,16 @@ static float2 screenToClipSpace(float2 xy, float2 viewportDimension) {
     return (xy / viewportDimension) * float2(2.0f, -2.0) + float2(-1, 1);
 }
 
+static float3 encodeNormal(float3 srcNormal)
+{
+    return srcNormal * .5f + .5f;
+}
+
+static float3 decodeNormal(float3 srcNormal)
+{
+    return srcNormal * 2.0f - 1.0f;
+}
+
 static float3x3 CalculateTBN(float3 p, float3 n, float2 tex) {
     float3 dp1 = ddx(p);
     float3 dp2 = ddy(p);
