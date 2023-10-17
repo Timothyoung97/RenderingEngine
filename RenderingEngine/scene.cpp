@@ -53,7 +53,7 @@ Scene::Scene(ID3D11Device* device, ID3D11DeviceContext* context) {
 void Scene::createFloor() {
 	_floor.pObjMeshes = { &_debugMeshes[3] };
 	_floor.pObjMeshes[0]->material = &_debugMaterials[2];
-	_floor.objPos = XMFLOAT3(.0f, .0f, .0f);
+	_floor.objPos = XMFLOAT3(.0f, -1.f, .0f);
 	_floor.objScale = XMFLOAT3(100.f, 0.01f, 100.f);
 	_floor.objRotation = XMFLOAT3(.0f, .0f, .0f);
 	_floor.aabb = { _floor.pObjMeshes[0]->aabb };
