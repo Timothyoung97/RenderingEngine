@@ -32,24 +32,17 @@ void ps_ssao(
     // create TBN
     float3 sampledNormal = decodeNormal(ObjNormMap.Load(int3(outPosition.xy, 0)).xyz);
     float3x3 TBNMatrix = CalculateTBN(worldPos, sampledNormal, outTexCoord); // all component normalized
-    float3 tangentAxis = TBNMatrix[0];
-    float3 bitangentAxis = TBNMatrix[1];
-    float3 normalAxis = TBNMatrix[2];
     
-    float angles[2] = {radians(45.f), radians(-45.f)};
+    float3 axis[2] = {TBNMatrix[0], TBNMatrix[2]};
 
     // calculate occlusion
     float occlusion = .0f;
     
     [unroll]
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 64; i++) {
         // find world position of the sampling point
         float3 samplePos = worldPos;
-        if (i < 2) {
-            samplePos += normalize(mul(AngleAxis3x3(angles[i % 2], bitangentAxis), sampledNormal)) * sampleRadius;
-        } else {
-            samplePos += normalize(mul(AngleAxis3x3(angles[i % 2], normalAxis), sampledNormal)) * sampleRadius;
-        }
+        samplePos += normalize(mul(AngleAxis3x3(kernalSamples[i].x, axis[i % 2]), sampledNormal)) * sampleRadius;
 
         // convert to screen space position
         float4 offset = float4(samplePos, 1.0f);
@@ -61,11 +54,11 @@ void ps_ssao(
         float4 sampleDepth = ObjDepthMap.Sample(wrapPointSampler, offset.xy);
 
         // Range check
-        float rangeCheck = smoothstep(.0f, 1.f, sampleRadius / (abs(depth.x - sampleDepth.x) * 1000.f)); // 1000.f is dist between near and far plane of camera projection matrix 
+        float rangeCheck = smoothstep(.0f, 1.f, sampleRadius / (abs(depth.x - sampleDepth.x) * 10.f)); // 1000.f is dist between near and far plane of camera projection matrix 
 
         // occlusion contribution
-        occlusion += (sampleDepth.x < depth.x + sampleBias ? 1.f : 0.f); //* rangeCheck; // hardcoded bias
+        occlusion += (sampleDepth.x < depth.x + sampleBias ? 1.f : 0.f) * rangeCheck; // hardcoded bias
     }
     
-    outTarget = float4(1 - (occlusion / 4.f), .0f, .0f, .0f);
+    outTarget = float4(1 - (occlusion / 64.f), .0f, .0f, .0f);
 }

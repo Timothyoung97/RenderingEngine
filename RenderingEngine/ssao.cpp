@@ -18,21 +18,7 @@ void SSAO::create(ID3D11Device* device, ID3D11DeviceContext* context) {
 
 	// create ssaoKernal, to be sent in as const buffer
 	for (int i = 0; i < 64; i++) {
-		XMVECTOR newSample{
-			tre::Utility::getRandomFloat(2.f) - 1.0f,
-			tre::Utility::getRandomFloat(2.f) - 1.0f,
-			tre::Utility::getRandomFloat(1.f)
-		};
-
-		newSample = XMVector3Normalize(newSample);
-
-		float scale = (float)i / 64.0f;
-		scale = tre::Maths::lerp(.1f, .1f, scale * scale);
-
-		XMFLOAT3 sampleF;
-		XMStoreFloat3(&sampleF, newSample * scale);
-
-		ssaoKernalSamples.push_back(XMFLOAT4(sampleF.x, sampleF.y, sampleF.z, .0f));
+		ssaoKernalSamples.push_back(XMFLOAT4(tre::Utility::getRandomFloatRange(0.f, 180.f), .0f, .0f, .0f));
 	}
 
 	// create ssaoNoise, to be used as texture2D
