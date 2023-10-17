@@ -19,9 +19,9 @@ void SSAO::create(ID3D11Device* device, ID3D11DeviceContext* context) {
 	// create ssaoKernal, to be sent in as const buffer
 	for (int i = 0; i < 64; i++) {
 		XMVECTOR newSample{
-			tre::Utility::getRandomFloatRange(-1.f, 1.f),
-			tre::Utility::getRandomFloatRange(-1.f, 1.f),
-			tre::Utility::getRandomFloatRange( 0.f, 1.f)
+			tre::Utility::getRandomFloat(2.f) - 1.0f,
+			tre::Utility::getRandomFloat(2.f) - 1.0f,
+			tre::Utility::getRandomFloat(1.f)
 		};
 
 		newSample = XMVector3Normalize(newSample);
@@ -39,8 +39,8 @@ void SSAO::create(ID3D11Device* device, ID3D11DeviceContext* context) {
 	std::vector<XMFLOAT4> ssaoNoise;
 	for (int i = 0; i < 16; i++) {
 		XMFLOAT4 newNoise = XMFLOAT4(
-			tre::Utility::getRandomFloatRange(0, 1.f),
-			tre::Utility::getRandomFloatRange(0, 1.f),
+			tre::Utility::getRandomFloat(1.f),
+			tre::Utility::getRandomFloat(1.f),
 			.0f,
 			.0f
 		);
