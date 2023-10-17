@@ -138,10 +138,8 @@ float4 sampleTexture(float2 textureCoord) {
 float4 sampleNormal(float2 textureCoord, float4 normal, float4 tangent) {
     normal = normalize(normal);
     if (hasNormMap) {
-        float4 normalMap = ObjNormMap.Sample(ObjSamplerStateLinear, textureCoord);
+        float4 normalMap = decodeNormal(ObjNormMap.Sample(ObjSamplerStateLinear, textureCoord)); // change from [0, 1] to [-1, 1]
 
-        normalMap = (2.0f * normalMap) - 1.0f; // change from [0, 1] to [-1, 1]
-        
         // Bitangent TODO: Should be cross(N, T)
         float3 biTangent = normalize(-1.0f * cross(normal.xyz, tangent.xyz)); // create biTangent
 

@@ -1,4 +1,5 @@
 #include "forwardRendering.hlsl"
+#include "helper.hlsl"
 
 cbuffer constBufferLight : register(b2) {
     uint currLightIdx;
@@ -32,7 +33,7 @@ void ps_lightingLocalPass (
     float3 worldPos = worldPosH.xyz / worldPosH.w;
 
     float4 sampledAlbedo = ObjTexture.Load(int3(vOutPosition.xy, 0));
-    float3 sampledNormal = ObjNormMap.Load(int3(vOutPosition.xy, 0)).xyz;
+    float3 sampledNormal = decodeNormal(ObjNormMap.Load(int3(vOutPosition.xy, 0)).xyz);
 
     // vector between light pos and pixel pos
     float3 pixelToLightV = pointLights[currLightIdx].pos - worldPos.xyz;

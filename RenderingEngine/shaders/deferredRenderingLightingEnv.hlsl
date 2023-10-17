@@ -1,4 +1,5 @@
 #include "forwardRendering.hlsl"
+#include "helper.hlsl"
 
 Texture2D ssaoBlurredTexture : register(t7);
 
@@ -28,7 +29,7 @@ void ps_lightingEnvPass (
 
     // Sampling gbuffer textures
     float4 sampleAlbedo = ObjTexture.Load(int3(outPosition.xy, 0));
-    float3 sampleNormal = ObjNormMap.Load(int3(outPosition.xy, 0)).xyz;
+    float3 sampleNormal = decodeNormal(ObjNormMap.Load(int3(outPosition.xy, 0)).xyz);
     float4 sampleSSAO = ssaoBlurredTexture.Load(int3(outPosition.xy, 0));
 
     float3 pixelColor = sampleAlbedo.xyz * .3f; // hardcoded ambient
