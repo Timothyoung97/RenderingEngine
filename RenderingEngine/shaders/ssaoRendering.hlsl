@@ -1,5 +1,4 @@
 #include "forwardRendering.hlsl"
-#include "helper.hlsl"
 
 cbuffer constBufferSSAO : register(b3) {
     float4 kernalSamples[64];
@@ -31,31 +30,26 @@ void ps_ssao(
     float3 worldPos = worldPosH.xyz / worldPosH.w;
 
     // create TBN
-    float3 sampledNormal = ObjNormMap.Load(int3(outPosition.xy, 0)).xyz;
-
-    float2 noiseScale = float2(viewportDimension.x / 4.0f, viewportDimension.y / 4.0f);
-    float3 noiseVec = noiseTexture.Sample(wrapPointSampler, outTexCoord * noiseScale).xyz;
-
-    float3 tangent = normalize(noiseVec - sampledNormal * dot(noiseVec, sampledNormal));
-
-    float3 biTangent = cross(sampledNormal, tangent);
+    float3 sampledNormal = decodeNormal(ObjNormMap.Load(int3(outPosition.xy, 0)).xyz);
+    float3x3 TBNMatrix = CalculateTBN(worldPos, sampledNormal, outTexCoord); // all component normalized
+    float3 tangentAxis = TBNMatrix[0];
+    float3 bitangentAxis = TBNMatrix[1];
+    float3 normalAxis = TBNMatrix[2];
     
-    // TBN Matrix
-    float4x4 TBNMatrix = {
-        float4(tangent,         0.f),
-        float4(biTangent,       0.f),
-        float4(sampledNormal,   0.f),
-        float4(.0f, .0f, .0f,   1.0f)
-    };
+    float angles[2] = {radians(45.f), radians(-45.f)};
 
     // calculate occlusion
     float occlusion = .0f;
-
+    
     [unroll]
-    for (int i = 0; i < 64; i++) {
+    for (int i = 0; i < 4; i++) {
         // find world position of the sampling point
-        float3 samplePos = mul(TBNMatrix, kernalSamples[i]).xyz;
-        samplePos = worldPos + samplePos * sampleRadius;
+        float3 samplePos = worldPos;
+        if (i < 2) {
+            samplePos += normalize(mul(AngleAxis3x3(angles[i % 2], bitangentAxis), sampledNormal)) * sampleRadius;
+        } else {
+            samplePos += normalize(mul(AngleAxis3x3(angles[i % 2], normalAxis), sampledNormal)) * sampleRadius;
+        }
 
         // convert to screen space position
         float4 offset = float4(samplePos, 1.0f);
@@ -70,8 +64,8 @@ void ps_ssao(
         float rangeCheck = smoothstep(.0f, 1.f, sampleRadius / (abs(depth.x - sampleDepth.x) * 1000.f)); // 1000.f is dist between near and far plane of camera projection matrix 
 
         // occlusion contribution
-        occlusion += (sampleDepth.x < depth.x + sampleBias ? 1.f : 0.f) * rangeCheck; // hardcoded bias
+        occlusion += (sampleDepth.x < depth.x + sampleBias ? 1.f : 0.f); //* rangeCheck; // hardcoded bias
     }
     
-    outTarget = float4(1 - (occlusion / 64.f), .0f, .0f, .0f);
+    outTarget = float4(1 - (occlusion / 4.f), .0f, .0f, .0f);
 }
