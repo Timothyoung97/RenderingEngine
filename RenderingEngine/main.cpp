@@ -111,7 +111,7 @@ int main()
 	tre::BoundVolumeEnum typeOfBound = tre::AABBBoundingBox;
 	int meshIdx = 0;
 	float fovY = 45.0f;
-	float ssaoSampleRadius = .015f, ssaoBias = .0001f;
+	float ssaoSampleRadius = .1f, ssaoBias = .0f;
 	bool csmDebugSwitch = false;
 	int shadowCascadeOpaqueObjs[4] = { 0, 0, 0, 0 };
 	int opaqueMeshCount = 0, transparentMeshCount = 0, totalMeshCount = 0;
