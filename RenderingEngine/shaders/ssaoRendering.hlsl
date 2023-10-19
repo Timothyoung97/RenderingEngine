@@ -26,8 +26,7 @@ void ps_ssao(
     // Convert screen space pos to world space pos
     float x = 2.0f * outPosition.x / viewportDimension.x - 1.0f;
     float y = 1.0f - (2.0f * outPosition.y / viewportDimension.y);
-    float z = 2.0f * depth.x - 1.0f;
-    float4 clipPos = float4(x, y, z, 1.0f);
+    float4 clipPos = float4(x, y, depth.x, 1.0f);
     float4 worldPosH = mul(invViewProjection, clipPos); 
     float3 worldPos = worldPosH.xyz / worldPosH.w;
 
@@ -57,18 +56,15 @@ void ps_ssao(
 
         // sample depth
         float4 sampleDepth = ObjDepthMap.Sample(clampPointSampler, offset.xy);
-
-        float sampleClipZ = 2.0f * sampleDepth.x - 1.0f;
-
-        float4 sampleClipPos = float4(sampleClipXY, sampleClipZ, 1.0f);
+        float4 sampleClipPos = float4(sampleClipXY, sampleDepth.x, 1.0f);
         float4 sampleWorldPosH = mul(invViewProjection, sampleClipPos); 
         float3 sampleWorldPos = sampleWorldPosH.xyz / sampleWorldPosH.w;
 
         // Range check
-        float rangeCheck = smoothstep(.0f, 1.f, sampleRadius / abs(worldPos.z - sampleWorldPos.z)); // 1000.f is dist between near and far plane of camera projection matrix 
+        float rangeCheck = smoothstep(.0f, 1.f, sampleRadius / length(worldPos - sampleWorldPos));
 
         // occlusion contribution
-        occlusion += (sampleDepth.x < depth.x + sampleBias ? 1.f : 0.f) * rangeCheck; // hardcoded bias
+        occlusion += (length(sampleWorldPos - camPos.xyz) < length(worldPos - camPos.xyz) ? 1.f : 0.f) * rangeCheck; // hardcoded bias
     }
     
     outTarget = float4(1 - (occlusion / 64.f), .0f, .0f, .0f);
