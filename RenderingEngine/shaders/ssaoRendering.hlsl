@@ -34,16 +34,23 @@ void ps_ssao(
     float3 sampledNormal = decodeNormal(ObjNormMap.Load(int3(outPosition.xy, 0)).xyz);
     float3x3 TBNMatrix = CalculateTBN(worldPos, sampledNormal, outTexCoord); // all component normalized
     
-    float3 axis[2] = {TBNMatrix[0], TBNMatrix[2]};
+    float3 axis[2] = {TBNMatrix[0], TBNMatrix[1]};
+    float multipler[2] = {-1.0f, 1.0f};
 
     // calculate occlusion
     float occlusion = .0f;
+
+    uint ran_state = 1337;
+    ran_state = Random(ran_state);
     
     [unroll]
     for (int i = 0; i < 64; i++) {
         // find world position of the sampling point
         float3 samplePos = worldPos;
-        samplePos += mul(AngleAxis3x3(radians(kernalSamples[i].x), axis[i % 2]), sampledNormal) * sampleRadius;
+        float3 firstRotate = rodriguesRotate(sampledNormal, axis[int(Random01(ran_state) * 10) % 2], multipler[int(Random01(ran_state) * 10) % 2] * Random01(ran_state) * 90.f);
+        samplePos += rodriguesRotate(firstRotate, axis[int(Random01(ran_state) * 10) % 2], multipler[int(Random01(ran_state) * 10) % 2] * Random01(ran_state) * 90.f) * sampleRadius * max(.001, Random01(ran_state));
+        // samplePos += rodriguesRotate(sampledNormal, TBNMatrix[0], radians(sampleBias)) * sampleRadius;
+        // samplePos += float3(Random01(ran_state) * 2.0f - 1.0f, Random01(ran_state) * 2.0f - 1.0f, Random01(ran_state) * 2.0f - 1.0f) * sampleRadius; // debug line
 
         // convert to screen space position
         float4 offset = float4(samplePos, 1.0f);
@@ -54,6 +61,8 @@ void ps_ssao(
 
         offset.xy = clipToScreenSpace(offset.xy);
 
+        offset.z = offset.z * .5f + .5f;
+
         // sample depth
         float4 sampleDepth = ObjDepthMap.Sample(clampPointSampler, offset.xy);
         float4 sampleClipPos = float4(sampleClipXY, sampleDepth.x, 1.0f);
@@ -62,10 +71,14 @@ void ps_ssao(
 
         // Range check
         float rangeCheck = smoothstep(.0f, 1.f, sampleRadius / length(worldPos - sampleWorldPos));
+        // float rangeCheck = length(worldPos - sampleWorldPos) < sampleRadius ? 1 : 0;
 
         // occlusion contribution
-        occlusion += (length(sampleWorldPos - camPos.xyz) < length(worldPos - camPos.xyz) ? 1.f : 0.f) * rangeCheck; // hardcoded bias
+        // occlusion += (length(sampleWorldPos - camPos.xyz) < length(worldPos - camPos.xyz) ? 1.f : 0.f) * rangeCheck; // hardcoded bias
+        // occlusion += (sampleDepth.x < offset.z ? 1.f : 0.f) * rangeCheck; // hardcoded bias
+        occlusion += (sampleDepth.x < depth.x + sampleBias ? 1.f : 0.f) * rangeCheck; // hardcoded bias
     }
     
+    // outTarget = float4(occlusion / 64.f, .0f, .0f, .0f);
     outTarget = float4(1 - (occlusion / 64.f), .0f, .0f, .0f);
 }
