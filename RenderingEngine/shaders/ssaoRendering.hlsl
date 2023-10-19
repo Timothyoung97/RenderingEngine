@@ -44,7 +44,7 @@ void ps_ssao(
     ran_state = Random(ran_state);
     
     [unroll]
-    for (int i = 0; i < 128; i++) {
+    for (int i = 0; i < 64; i++) {
         // find world position of the sampling point
         float3 samplePos = worldPos;
         int axisSelector = int(Random01(ran_state) * 11) % 2;
@@ -76,9 +76,9 @@ void ps_ssao(
 
         // occlusion contribution
         //occlusion += (length(sampleWorldPos - camPos.xyz) < length(worldPos - camPos.xyz) ? 1.f : 0.f) * rangeCheck; // hardcoded bias
-        occlusion += (sampleDepth.x < depth.x ? 1.f : 0.f) * rangeCheck; // hardcoded bias
+        occlusion += (sampleDepth.x + sampleBias < depth.x ? 1.f : 0.f) * rangeCheck; // hardcoded bias
     }
     
     // outTarget = float4(occlusion / 64.f, .0f, .0f, .0f);
-    outTarget = float4(1 - (occlusion / 128.f), .0f, .0f, .0f);
+    outTarget = float4(1 - (occlusion / 64.f), .0f, .0f, .0f);
 }
