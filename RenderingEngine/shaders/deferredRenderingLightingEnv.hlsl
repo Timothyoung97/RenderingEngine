@@ -14,13 +14,13 @@ void ps_lightingEnvPass (
 
     // getting depth from depth buffer
     float4 depth = ObjDepthMap.Load(int3(outPosition.xy, 0));
-
+    float z = 2.0f * depth.x - 1.0f;
     if (depth.x == 1.f) { // background
         outTarget = float4(.0f, .0f, .0f, .0f);
         return;
     }
 
-    float4 clipPos = float4(x, y, depth.x, 1.0f);
+    float4 clipPos = float4(x, y, z, 1.0f);
     
     float4 worldPosH = mul(invViewProjection, clipPos); 
 
@@ -31,9 +31,11 @@ void ps_lightingEnvPass (
     float3 sampleNormal = decodeNormal(ObjNormMap.Load(int3(outPosition.xy, 0)).xyz);
     float4 sampleSSAO = ssaoBlurredTexture.Load(int3(outPosition.xy, 0));
 
-    float3 pixelColor = sampleAlbedo.xyz * .3f; // hardcoded ambient
+    float3 pixelColor = sampleAlbedo.xyz * .5f; // hardcoded ambient
     if (sampleSSAO.x != 0) {
         pixelColor *= sampleSSAO.x;
+        outTarget = float4(sampleSSAO.x, sampleSSAO.x, sampleSSAO.x, 0); // RGB + Alpha Channel
+        return;
     }
 
     // get dist of pixel from camera
@@ -43,7 +45,7 @@ void ps_lightingEnvPass (
     // calculate shadow
     float shadow = ShadowCalculation(float4(worldPos, 1.0f), dist);
 
-    pixelColor += (1.0f - shadow) * saturate(dot(dirLight.dir, sampleNormal.xyz)) * dirLight.diffuse.xyz * sampleAlbedo.xyz;
+    // pixelColor += (1.0f - shadow) * saturate(dot(dirLight.dir, sampleNormal.xyz)) * dirLight.diffuse.xyz * sampleAlbedo.xyz;
 
     float3 pixelLightColor = float3(.0f, .0f, .0f);
 

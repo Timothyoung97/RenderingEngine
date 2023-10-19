@@ -26,7 +26,8 @@ void ps_ssao(
     // Convert screen space pos to world space pos
     float x = 2.0f * outPosition.x / viewportDimension.x - 1.0f;
     float y = 1.0f - (2.0f * outPosition.y / viewportDimension.y);
-    float4 clipPos = float4(x, y, depth.x, 1.0f);
+    float z = 2.0f * depth.x - 1.0f;
+    float4 clipPos = float4(x, y, z, 1.0f);
     float4 worldPosH = mul(invViewProjection, clipPos); 
     float3 worldPos = worldPosH.xyz / worldPosH.w;
 
