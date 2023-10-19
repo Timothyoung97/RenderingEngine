@@ -31,7 +31,7 @@ void ps_ssao(
     float3 worldPos = worldPosH.xyz / worldPosH.w;
 
     // create TBN
-    float3 sampledNormal = decodeNormal(ObjNormMap.Load(int3(outPosition.xy, 0)).xyz);
+    float3 sampledNormal = normalize(decodeNormal(ObjNormMap.Load(int3(outPosition.xy, 0)).xyz));
     float3x3 TBNMatrix = CalculateTBN(worldPos, sampledNormal, outTexCoord); // all component normalized
     
     float3 axis[2] = {TBNMatrix[0], TBNMatrix[1]};
@@ -44,11 +44,12 @@ void ps_ssao(
     ran_state = Random(ran_state);
     
     [unroll]
-    for (int i = 0; i < 64; i++) {
+    for (int i = 0; i < 128; i++) {
         // find world position of the sampling point
         float3 samplePos = worldPos;
-        float3 firstRotate = rodriguesRotate(sampledNormal, axis[int(Random01(ran_state) * 10) % 2], multipler[int(Random01(ran_state) * 10) % 2] * Random01(ran_state) * 90.f);
-        samplePos += rodriguesRotate(firstRotate, axis[int(Random01(ran_state) * 10) % 2], multipler[int(Random01(ran_state) * 10) % 2] * Random01(ran_state) * 90.f) * sampleRadius * max(.001, Random01(ran_state));
+        int axisSelector = int(Random01(ran_state) * 11) % 2;
+        float3 firstRotate = rodriguesRotate(sampledNormal, axis[axisSelector], (Random01(ran_state) * 2 - 1.0f) * 90.f);
+        samplePos += rodriguesRotate(firstRotate, axis[axisSelector ^ 1], (Random01(ran_state) * 2 - 1.0f) * 90.f) * sampleRadius * Random01(ran_state);
         // samplePos += rodriguesRotate(sampledNormal, TBNMatrix[0], radians(sampleBias)) * sampleRadius;
         // samplePos += float3(Random01(ran_state) * 2.0f - 1.0f, Random01(ran_state) * 2.0f - 1.0f, Random01(ran_state) * 2.0f - 1.0f) * sampleRadius; // debug line
 
@@ -74,11 +75,10 @@ void ps_ssao(
         // float rangeCheck = length(worldPos - sampleWorldPos) < sampleRadius ? 1 : 0;
 
         // occlusion contribution
-        // occlusion += (length(sampleWorldPos - camPos.xyz) < length(worldPos - camPos.xyz) ? 1.f : 0.f) * rangeCheck; // hardcoded bias
-        // occlusion += (sampleDepth.x < offset.z ? 1.f : 0.f) * rangeCheck; // hardcoded bias
-        occlusion += (sampleDepth.x < depth.x + sampleBias ? 1.f : 0.f) * rangeCheck; // hardcoded bias
+        //occlusion += (length(sampleWorldPos - camPos.xyz) < length(worldPos - camPos.xyz) ? 1.f : 0.f) * rangeCheck; // hardcoded bias
+        occlusion += (sampleDepth.x < depth.x ? 1.f : 0.f) * rangeCheck; // hardcoded bias
     }
     
     // outTarget = float4(occlusion / 64.f, .0f, .0f, .0f);
-    outTarget = float4(1 - (occlusion / 64.f), .0f, .0f, .0f);
+    outTarget = float4(1 - (occlusion / 128.f), .0f, .0f, .0f);
 }
