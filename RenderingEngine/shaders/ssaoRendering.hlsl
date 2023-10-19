@@ -50,13 +50,22 @@ void ps_ssao(
         float4 offset = float4(samplePos, 1.0f);
         offset = mul(viewProjection, offset);
         offset.xyz /= offset.w;
+
+        float2 sampleClipXY = offset.xy;
+
         offset.xy = clipToScreenSpace(offset.xy);
 
         // sample depth
         float4 sampleDepth = ObjDepthMap.Sample(clampPointSampler, offset.xy);
 
+        float sampleClipZ = 2.0f * sampleDepth.x - 1.0f;
+
+        float4 sampleClipPos = float4(sampleClipXY, sampleClipZ, 1.0f);
+        float4 sampleWorldPosH = mul(invViewProjection, sampleClipPos); 
+        float3 sampleWorldPos = sampleWorldPosH.xyz / sampleWorldPosH.w;
+
         // Range check
-        float rangeCheck = smoothstep(.0f, 1.f, sampleRadius / abs(depth.x - sampleDepth.x)); // 1000.f is dist between near and far plane of camera projection matrix 
+        float rangeCheck = smoothstep(.0f, 1.f, sampleRadius / abs(worldPos.z - sampleWorldPos.z)); // 1000.f is dist between near and far plane of camera projection matrix 
 
         // occlusion contribution
         occlusion += (sampleDepth.x < depth.x + sampleBias ? 1.f : 0.f) * rangeCheck; // hardcoded bias
