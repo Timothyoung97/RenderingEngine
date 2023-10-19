@@ -18,7 +18,7 @@ void SSAO::create(ID3D11Device* device, ID3D11DeviceContext* context) {
 
 	// create ssaoKernal, to be sent in as const buffer
 	for (int i = 0; i < 64; i++) {
-		ssaoKernalSamples.push_back(XMFLOAT4(tre::Utility::getRandomFloatRange(0.f, 180.f), .0f, .0f, .0f));
+		ssaoKernalSamples.push_back(XMFLOAT4(tre::Utility::getRandomFloatRange(-75.f, 75.f), .0f, .0f, .0f));
 	}
 
 	// create ssaoNoise, to be used as texture2D
