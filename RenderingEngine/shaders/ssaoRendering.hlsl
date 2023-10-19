@@ -10,6 +10,7 @@ cbuffer constBufferSSAO : register(b3) {
 
 Texture2D noiseTexture : register(t5);
 SamplerState wrapPointSampler : register(s2);
+SamplerState clampPointSampler : register(s3);
 
 void ps_ssao(
     in float4 outPosition: SV_POSITION,
@@ -42,7 +43,7 @@ void ps_ssao(
     for (int i = 0; i < 64; i++) {
         // find world position of the sampling point
         float3 samplePos = worldPos;
-        samplePos += normalize(mul(AngleAxis3x3(kernalSamples[i].x, axis[i % 2]), sampledNormal)) * sampleRadius;
+        samplePos += mul(AngleAxis3x3(radians(kernalSamples[i].x), axis[i % 2]), sampledNormal) * sampleRadius;
 
         // convert to screen space position
         float4 offset = float4(samplePos, 1.0f);
@@ -51,10 +52,10 @@ void ps_ssao(
         offset.xy = clipToScreenSpace(offset.xy);
 
         // sample depth
-        float4 sampleDepth = ObjDepthMap.Sample(wrapPointSampler, offset.xy);
+        float4 sampleDepth = ObjDepthMap.Sample(clampPointSampler, offset.xy);
 
         // Range check
-        float rangeCheck = smoothstep(.0f, 1.f, sampleRadius / (abs(depth.x - sampleDepth.x) * 10.f)); // 1000.f is dist between near and far plane of camera projection matrix 
+        float rangeCheck = smoothstep(.0f, 1.f, sampleRadius / abs(depth.x - sampleDepth.x)); // 1000.f is dist between near and far plane of camera projection matrix 
 
         // occlusion contribution
         occlusion += (sampleDepth.x < depth.x + sampleBias ? 1.f : 0.f) * rangeCheck; // hardcoded bias
