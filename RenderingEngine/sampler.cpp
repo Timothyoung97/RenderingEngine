@@ -58,13 +58,13 @@ void Sampler::create(ID3D11Device* device) {
 
 	CHECK_DX_ERROR(device->CreateSamplerState(&ssaoSamplerDesc, pSamplerStateMipPtWrap.GetAddressOf()));
 
-	ssaoSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	ssaoSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	ssaoSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	ssaoSamplerDesc.BorderColor[0] = .0f;
-	ssaoSamplerDesc.BorderColor[1] = .0f;
-	ssaoSamplerDesc.BorderColor[2] = .0f;
-	ssaoSamplerDesc.BorderColor[3] = .0f;
+	ssaoSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	ssaoSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	ssaoSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	ssaoSamplerDesc.BorderColor[0] = 1.0f;
+	ssaoSamplerDesc.BorderColor[1] = 1.0f;
+	ssaoSamplerDesc.BorderColor[2] = 1.0f;
+	ssaoSamplerDesc.BorderColor[3] = 1.0f;
 
 	CHECK_DX_ERROR(device->CreateSamplerState(&ssaoSamplerDesc, pSamplerStateMipPtClamp.GetAddressOf()));
 }
