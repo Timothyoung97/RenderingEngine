@@ -351,7 +351,7 @@ int main()
 		renderer.reset();
 
 		// Update Camera
-		cam.camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovY), static_cast<float>(tre::SCREEN_WIDTH) / tre::SCREEN_HEIGHT, .1f, 75.f);
+		cam.camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovY), static_cast<float>(tre::SCREEN_WIDTH) / tre::SCREEN_HEIGHT, .1f, 100.f);
 		cam.updateCamera();
 
 		// Update Bounding volume for all objects once
