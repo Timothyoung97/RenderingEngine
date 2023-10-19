@@ -46,3 +46,28 @@ float3x3 AngleAxis3x3(float angle, float3 axis)
         t * x * z - s * y,  t * y * z + s * x,  t * z * z + c
     );
 }
+
+float3 rodriguesRotate (float3 v, float3 n, float a) {
+	return v * cos(a) + cross(n, v) * sin(a) + n * dot(n, v) * (1. - cos(a));
+}
+
+float nrand(float2 uv)
+{
+    return frac(sin(dot(uv, float2(12.9898, 78.233))) * 43758.5453);
+}
+
+// Generate a random 32-bit integer
+uint Random(inout uint state)
+{
+    // Xorshift algorithm from George Marsaglia's paper.
+    state ^= (state << 13);
+    state ^= (state >> 17);
+    state ^= (state << 5);
+    return state;
+}
+
+// Generate a random float in the range [0.0f, 1.0f)
+float Random01(inout uint state)
+{
+    return asfloat(0x3f800000 | Random(state) >> 9) - 1.0;
+}
