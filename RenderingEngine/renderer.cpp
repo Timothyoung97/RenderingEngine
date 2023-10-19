@@ -41,6 +41,7 @@ void Renderer::reset() {
 	_context->PSSetSamplers(0, 1, _sampler.pSamplerStateLinear.GetAddressOf());
 	_context->PSSetSamplers(1, 1, _sampler.pSamplerStateMipPtWhiteBorder.GetAddressOf());
 	_context->PSSetSamplers(2, 1, _sampler.pSamplerStateMipPtWrap.GetAddressOf());
+	_context->PSSetSamplers(3, 1, _sampler.pSamplerStateMipPtClamp.GetAddressOf());
 	_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	// clear ssao

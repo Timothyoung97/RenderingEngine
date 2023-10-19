@@ -57,5 +57,15 @@ void Sampler::create(ID3D11Device* device) {
 	ssaoSamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
 
 	CHECK_DX_ERROR(device->CreateSamplerState(&ssaoSamplerDesc, pSamplerStateMipPtWrap.GetAddressOf()));
+
+	ssaoSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	ssaoSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	ssaoSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	ssaoSamplerDesc.BorderColor[0] = .0f;
+	ssaoSamplerDesc.BorderColor[1] = .0f;
+	ssaoSamplerDesc.BorderColor[2] = .0f;
+	ssaoSamplerDesc.BorderColor[3] = .0f;
+
+	CHECK_DX_ERROR(device->CreateSamplerState(&ssaoSamplerDesc, pSamplerStateMipPtClamp.GetAddressOf()));
 }
 }
