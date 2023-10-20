@@ -1,13 +1,4 @@
 Graphics Tasks:
-• Deferred Shading Renderer
-    • 2 GBuffers to start: Albedo & Normal
-    • Full screen pass (Quad or Triangle) for lighting
-        • Reconstruct world position from depth buffer
-    • Transparent draw calls continue to use Forward Shading code path
-    • Optimize local lights: utilize light volumes for point lights
-    • Implement deferred lighting using CS (directional light only)
-• Update point lights positions using CS
-• SSAO
 • Performance Profiler
     • https://github.com/jonasmr/microprofile
     • https://github.com/bombomby/optick
@@ -119,6 +110,15 @@ Done:
         • NOTE: .obj files only support bump maps, not normal maps. convert them to normal maps manually offline or in Pixel Shader
     • Goal: successfully import & render the "Crytek Sponza", "Rungholt", "Amazon Lumberyard Bistro" in succession
 • Culling before shadow
+• Deferred Shading Renderer
+    • 2 GBuffers to start: Albedo & Normal
+    • Full screen pass (Quad or Triangle) for lighting
+        • Reconstruct world position from depth buffer
+    • Transparent draw calls continue to use Forward Shading code path
+    • Optimize local lights: utilize light volumes for point lights
+    • Implement deferred lighting using CS (directional light only)
+• Update point lights positions using CS
+• SSAO
 
 //////////////////////////////////////////////////////////////////////////////
 
