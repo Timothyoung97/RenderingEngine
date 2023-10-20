@@ -7,6 +7,8 @@
 #include "spdlog/spdlog.h"
 #include "portable-file-dialogs.h"
 
+#include "microprofile.h"
+
 #include "imgui.h"
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_dx11.h"
@@ -153,6 +155,9 @@ int main()
 	while (!input.shouldQuit())
 	{
 		tre::Timer timer;
+
+		MICROPROFILE_SCOPEI("", "Frame", MP_YELLOW);
+		MicroProfileFlip(nullptr);
 
 		// Update keyboard event
 		input.updateInputEvent();
