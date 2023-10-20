@@ -44,5 +44,6 @@ public:
 	static XMFLOAT3 convertRotationMatrixToEuler(XMMATRIX rotationMatrix);
 	static Frustum createFrustumFromViewProjectionMatrix(XMMATRIX viewProjection);
 	static uint32_t divideAndRoundUp(uint32_t dividend, uint32_t divisor);
+	static float lerp(float a, float b, float f);
 };
 }

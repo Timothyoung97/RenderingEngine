@@ -15,5 +15,5 @@ void ps_deferred_gbuffer (
     outTargetAlbedo = sampleTexture(vOutTexCoord);
 
     // Normal
-    outTargetNormal = sampleNormal(vOutTexCoord, vOutNormal, vOutTangent).xyz;
+    outTargetNormal = encodeNormal(sampleNormal(vOutTexCoord, vOutNormal, vOutTangent).xyz);
 }

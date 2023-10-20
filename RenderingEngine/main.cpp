@@ -107,9 +107,11 @@ int main()
 	bool show_demo_window = false;
 	bool showBoundingVolume = false;
 	bool pauseLight = false;
+	bool ssaoSwitch = false;
 	tre::BoundVolumeEnum typeOfBound = tre::AABBBoundingBox;
 	int meshIdx = 0;
 	float fovY = 45.0f;
+	float ssaoSampleRadius = .1f, ssaoBias = .0f;
 	bool csmDebugSwitch = false;
 	int shadowCascadeOpaqueObjs[4] = { 0, 0, 0, 0 };
 	int opaqueMeshCount = 0, transparentMeshCount = 0, totalMeshCount = 0;
@@ -235,6 +237,13 @@ int main()
 
 			ImGui::Checkbox("Demo Window", &show_demo_window);
 
+			{	// SSAO
+				ImGui::SeparatorText("SSAO");
+				ImGui::Checkbox("SSAO Switch", &ssaoSwitch);
+				ImGui::SliderFloat("SSAO Sample Radius", &ssaoSampleRadius, .000f, 2.f, "%.6f");
+				ImGui::SliderFloat("SSAO Sample Bias", &ssaoBias, -.1f, .1f, "%.6f");
+			}
+
 			{	// Control for import models
 
 				ImGui::SeparatorText("Test Object Control");
@@ -342,7 +351,7 @@ int main()
 		renderer.reset();
 
 		// Update Camera
-		cam.camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovY), static_cast<float>(tre::SCREEN_WIDTH) / tre::SCREEN_HEIGHT, 1.0f, 1000000000.0f);
+		cam.camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovY), static_cast<float>(tre::SCREEN_WIDTH) / tre::SCREEN_HEIGHT, .1f, 100.f);
 		cam.updateCamera();
 
 		// Update Bounding volume for all objects once
@@ -376,7 +385,7 @@ int main()
 			renderer.setShadowBufferDrawSection(i);
 
 			// set const buffer from the light pov 
-			tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, lightViewProjs[i], lightViewProjs, planeIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), csmDebugSwitch);
+			tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, lightViewProjs[i], lightViewProjs, planeIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), csmDebugSwitch, ssaoSwitch);
 
 			tre::Frustum lightFrustum = tre::Maths::createFrustumFromViewProjectionMatrix(lightViewProjs[i]);
 
@@ -392,7 +401,7 @@ int main()
 		scene.updateTransparentQ(cam);
 
 		// set const buffer for camera
-		tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, cam.camViewProjection, lightViewProjs, planeIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), csmDebugSwitch);
+		tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, cam.camViewProjection, lightViewProjs, planeIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), csmDebugSwitch, ssaoSwitch);
 
 		// using compute shader update lights
 		deviceAndContext.context.Get()->CSSetShader(scene.lightResc.computeShaderPtLightMovement.pShader.Get(), NULL, 0u);
@@ -426,8 +435,15 @@ int main()
 
 		renderer.clearSwapChainBuffer();
 
+		// ssao pass
+		if (ssaoSwitch) {
+			tre::ConstantBuffer::setSSAOKernalConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), renderer._ssao.ssaoKernalSamples, ssaoSampleRadius, ssaoBias);
+			renderer.fullscreenPass(tre::RENDER_MODE::SSAO_FULLSCREEN_PASS);
+			renderer.fullscreenPass(tre::RENDER_MODE::SSAO_BLURRING_PASS);
+		}
+
 		// 2nd pass deferred lighting 
-		renderer.deferredLightingEnvDraw();
+		renderer.fullscreenPass(tre::RENDER_MODE::DEFERRED_OPAQUE_LIGHTING_ENV_M);
 
 		// Draw all transparent objects
 		renderer.draw(scene._culledTransparentObjQ, tre::RENDER_MODE::TRANSPARENT_M);

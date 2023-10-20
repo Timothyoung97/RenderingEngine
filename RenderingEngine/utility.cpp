@@ -3,6 +3,7 @@
 #include <codecvt>
 #include <locale>
 #include <regex>
+#include <random>
 
 #include "utility.h"
 
@@ -54,6 +55,9 @@ float Utility::getRandomFloat(float maxValue) {
 
 float Utility::getRandomFloatRange(float minValue, float maxValue) {
 	assert(maxValue > minValue);
-	return minValue + static_cast<float>(rand()) * static_cast<float>(maxValue - minValue) / RAND_MAX;;
+	std::random_device rd;
+	std::default_random_engine gen(rd());
+	std::uniform_real_distribution<float> dis (minValue, maxValue);
+	return dis(gen);
 }
 }

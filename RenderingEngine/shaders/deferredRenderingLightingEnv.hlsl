@@ -1,5 +1,7 @@
 #include "forwardRendering.hlsl"
 
+Texture2D ssaoBlurredTexture : register(t7);
+
 void ps_lightingEnvPass (
     in float4 outPosition: SV_POSITION,
     in float2 outTexCoord: TEXCOORD0,
@@ -12,7 +14,6 @@ void ps_lightingEnvPass (
 
     // getting depth from depth buffer
     float4 depth = ObjDepthMap.Load(int3(outPosition.xy, 0));
-
     if (depth.x == 1.f) { // background
         outTarget = float4(.0f, .0f, .0f, .0f);
         return;
@@ -26,9 +27,13 @@ void ps_lightingEnvPass (
 
     // Sampling gbuffer textures
     float4 sampleAlbedo = ObjTexture.Load(int3(outPosition.xy, 0));
-    float3 sampleNormal = ObjNormMap.Load(int3(outPosition.xy, 0)).xyz;
-
-    float3 pixelColor = sampleAlbedo.xyz * .1f; // hardcoded ambient
+    float3 sampleNormal = decodeNormal(ObjNormMap.Load(int3(outPosition.xy, 0)).xyz);
+    float4 sampleSSAO = ssaoBlurredTexture.Load(int3(outPosition.xy, 0));
+    
+    float3 pixelColor = sampleAlbedo.xyz * .5f; // hardcoded ambient
+    if (ssaoSwitch) {
+        pixelColor *= saturate(sampleSSAO.x + .5f);
+    }
 
     // get dist of pixel from camera
     float3 diff = worldPos.xyz - camPos.xyz;

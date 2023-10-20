@@ -238,4 +238,7 @@ uint32_t Maths::divideAndRoundUp(uint32_t dividend, uint32_t divisor) {
 	return (dividend + divisor - 1) / divisor;
 }
 
+float Maths::lerp(float a, float b, float f) {
+	return a + f * (b - a);
+}
 }

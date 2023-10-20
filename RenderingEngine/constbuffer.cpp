@@ -14,7 +14,8 @@ void ConstantBuffer::setCamConstBuffer(
 	const tre::Light& dirLight, 
 	int numOfPointLight, 
 	XMFLOAT2 shadowMapDimension, 
-	int csmDebugSwitch) {
+	int csmDebugSwitch,
+	int ssaoSwtich) {
 
 	D3D11_BUFFER_DESC constantBufferDescCam;
 	constantBufferDescCam.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
@@ -37,6 +38,7 @@ void ConstantBuffer::setCamConstBuffer(
 	constBufferRescCam.numOfPointLight = (UINT) numOfPointLight;
 	constBufferRescCam.csmDebugSwitch = csmDebugSwitch;
 	constBufferRescCam.shadowMapDimension = shadowMapDimension;
+	constBufferRescCam.ssaoSwitch = ssaoSwtich;
 
 	D3D11_SUBRESOURCE_DATA csd = {};
 	csd.pSysMem = &constBufferRescCam;
@@ -112,6 +114,34 @@ void ConstantBuffer::setLightingVolumeConstBuffer(ID3D11Device* device, ID3D11De
 
 	//Set const buffer for pixel shader
 	context->PSSetConstantBuffers(2u, 1u, &pConstBuffer);
+}
+
+void ConstantBuffer::setSSAOKernalConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, const std::vector<XMFLOAT4>& kernalSamples, float sampleRadius, float sampleBias) {
+	D3D11_BUFFER_DESC constantBufferDescModel;
+	constantBufferDescModel.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	constantBufferDescModel.Usage = D3D11_USAGE_DEFAULT;
+	constantBufferDescModel.CPUAccessFlags = 0u;
+	constantBufferDescModel.MiscFlags = 0u;
+	constantBufferDescModel.ByteWidth = sizeof(constBufferSSAOKernal);
+	constantBufferDescModel.StructureByteStride = 0u;
+
+	constBufferSSAOKernal constBufferSSAOKernal;
+	std::copy(kernalSamples.begin(), kernalSamples.end(), constBufferSSAOKernal.kernalSamples);
+	constBufferSSAOKernal.sampleRadius = sampleRadius;
+	constBufferSSAOKernal.sampleBias = sampleBias;
+
+	//map to data to subresouce
+	D3D11_SUBRESOURCE_DATA csd = {};
+	csd.pSysMem = &constBufferSSAOKernal;
+
+	ID3D11Buffer* pConstBuffer;
+
+	CHECK_DX_ERROR(device->CreateBuffer(
+		&constantBufferDescModel, &csd, &pConstBuffer
+	));
+
+	// to set const shader for ssao
+	context->PSSetConstantBuffers(3u, 1u, &pConstBuffer);
 }
 
 }
