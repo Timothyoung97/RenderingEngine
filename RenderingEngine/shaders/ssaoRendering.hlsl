@@ -4,8 +4,7 @@ cbuffer constBufferSSAO : register(b3) {
     float4 kernalSamples[64];
     float sampleRadius;
     float sampleBias;
-    float ssaoSwitch;
-    float ssaoPad;
+    float2 ssaoPad;
 };
 
 Texture2D noiseTexture : register(t5);
@@ -47,11 +46,11 @@ void ps_ssao(
     for (int i = 0; i < 64; i++) {
         // find world position of the sampling point
         float3 samplePos = worldPos;
-        int axisSelector = int(Random01(ran_state) * 11) % 2;
-        float3 firstRotate = rodriguesRotate(sampledNormal, axis[axisSelector], (Random01(ran_state) * 2 - 1.0f) * 90.f);
-        samplePos += rodriguesRotate(firstRotate, axis[axisSelector ^ 1], (Random01(ran_state) * 2 - 1.0f) * 90.f) * sampleRadius * Random01(ran_state);
+        // int axisSelector = int(Random01(ran_state) * 11) % 2;
+        // float3 firstRotate = rodriguesRotate(sampledNormal, axis[axisSelector], (Random01(ran_state) * 2 - 1.0f) * 90.f);
+        // samplePos += rodriguesRotate(firstRotate, axis[axisSelector ^ 1], (Random01(ran_state) * 2 - 1.0f) * 90.f) * sampleRadius * Random01(ran_state);
         // samplePos += rodriguesRotate(sampledNormal, TBNMatrix[0], radians(sampleBias)) * sampleRadius;
-        // samplePos += float3(Random01(ran_state) * 2.0f - 1.0f, Random01(ran_state) * 2.0f - 1.0f, Random01(ran_state) * 2.0f - 1.0f) * sampleRadius; // debug line
+        samplePos += float3(Random01(ran_state) * 2.0f - 1.0f, Random01(ran_state) * 2.0f - 1.0f, Random01(ran_state) * 2.0f - 1.0f) * sampleRadius; // debug line
 
         // convert to screen space position
         float4 offset = float4(samplePos, 1.0f);
