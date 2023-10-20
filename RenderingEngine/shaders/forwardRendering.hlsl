@@ -30,6 +30,7 @@ cbuffer constBuffer : register(b0) {
     uint numPtLights;
     float2 shadowMapDimension;
     int csmDebugSwitch;
+    int ssaoSwitch;
 };
 
 // Per Object

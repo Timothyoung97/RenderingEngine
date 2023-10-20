@@ -385,7 +385,7 @@ int main()
 			renderer.setShadowBufferDrawSection(i);
 
 			// set const buffer from the light pov 
-			tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, lightViewProjs[i], lightViewProjs, planeIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), csmDebugSwitch);
+			tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, lightViewProjs[i], lightViewProjs, planeIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), csmDebugSwitch, ssaoSwitch);
 
 			tre::Frustum lightFrustum = tre::Maths::createFrustumFromViewProjectionMatrix(lightViewProjs[i]);
 
@@ -401,7 +401,7 @@ int main()
 		scene.updateTransparentQ(cam);
 
 		// set const buffer for camera
-		tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, cam.camViewProjection, lightViewProjs, planeIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), csmDebugSwitch);
+		tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, cam.camViewProjection, lightViewProjs, planeIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), csmDebugSwitch, ssaoSwitch);
 
 		// using compute shader update lights
 		deviceAndContext.context.Get()->CSSetShader(scene.lightResc.computeShaderPtLightMovement.pShader.Get(), NULL, 0u);

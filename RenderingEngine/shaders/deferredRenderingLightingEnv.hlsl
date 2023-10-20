@@ -29,11 +29,10 @@ void ps_lightingEnvPass (
     float4 sampleAlbedo = ObjTexture.Load(int3(outPosition.xy, 0));
     float3 sampleNormal = decodeNormal(ObjNormMap.Load(int3(outPosition.xy, 0)).xyz);
     float4 sampleSSAO = ssaoBlurredTexture.Load(int3(outPosition.xy, 0));
-
-    float3 pixelColor = sampleAlbedo.xyz * .5f; // hardcoded ambient
     
-    if (sampleSSAO.x != 0) {
-        pixelColor *= sampleSSAO.x;
+    float3 pixelColor = sampleAlbedo.xyz * .5f; // hardcoded ambient
+    if (ssaoSwitch) {
+        pixelColor *= saturate(sampleSSAO.x + .5f);
     }
 
     // get dist of pixel from camera

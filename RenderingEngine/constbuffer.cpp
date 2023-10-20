@@ -14,7 +14,8 @@ void ConstantBuffer::setCamConstBuffer(
 	const tre::Light& dirLight, 
 	int numOfPointLight, 
 	XMFLOAT2 shadowMapDimension, 
-	int csmDebugSwitch) {
+	int csmDebugSwitch,
+	int ssaoSwtich) {
 
 	D3D11_BUFFER_DESC constantBufferDescCam;
 	constantBufferDescCam.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
@@ -37,6 +38,7 @@ void ConstantBuffer::setCamConstBuffer(
 	constBufferRescCam.numOfPointLight = (UINT) numOfPointLight;
 	constBufferRescCam.csmDebugSwitch = csmDebugSwitch;
 	constBufferRescCam.shadowMapDimension = shadowMapDimension;
+	constBufferRescCam.ssaoSwitch = ssaoSwtich;
 
 	D3D11_SUBRESOURCE_DATA csd = {};
 	csd.pSysMem = &constBufferRescCam;
