@@ -31,6 +31,22 @@ enum RENDER_MODE {
 	SSAO_BLURRING_PASS
 };
 
+struct RendererSetting {
+	bool showBoundingVolume = false;
+	bool pauseLight = false;
+	bool ssaoSwitch = false;
+	tre::BoundVolumeEnum typeOfBound = tre::AABBBoundingBox; // default
+	int meshIdx = 0; // 
+	float ssaoSampleRadius = .1f, ssaoBias = .0f;
+	bool csmDebugSwitch = false;
+	int shadowCascadeOpaqueObjs[4] = { 0, 0, 0, 0 };
+};
+
+struct RendererStats {
+	int shadowCascadeOpaqueObjs[4] = { 0, 0, 0, 0 };
+	int opaqueMeshCount = 0, transparentMeshCount = 0, totalMeshCount = 0;
+};
+
 class Renderer {
 public:
 
@@ -63,6 +79,8 @@ public:
 	// Misc
 	GBuffer _gBuffer;
 	SSAO _ssao;
+	RendererSetting setting;
+	RendererStats stats;
 
 	ID3D11RenderTargetView* currRenderTargetView = nullptr;
 

@@ -107,26 +107,16 @@ int main()
 
 	// imgui setting
 	bool show_demo_window = false;
-	bool showBoundingVolume = false;
-	bool pauseLight = false;
-	bool ssaoSwitch = false;
-	tre::BoundVolumeEnum typeOfBound = tre::AABBBoundingBox;
-	int meshIdx = 0;
-	float fovY = 45.0f;
-	float ssaoSampleRadius = .1f, ssaoBias = .0f;
-	bool csmDebugSwitch = false;
-	int shadowCascadeOpaqueObjs[4] = { 0, 0, 0, 0 };
-	int opaqueMeshCount = 0, transparentMeshCount = 0, totalMeshCount = 0;
 
 	for (int i = 0; i < scene._pObjQ.size(); i++) {
 		for (int j = 0; j < scene._pObjQ[i]->pObjMeshes.size(); j++) {
-			totalMeshCount++;
+			renderer.stats.totalMeshCount++;
 			tre::Mesh* pMesh = scene._pObjQ[i]->pObjMeshes[j];
 			if ((pMesh->material->objTexture != nullptr && pMesh->material->objTexture->hasAlphaChannel)
 				|| (pMesh->material->objTexture == nullptr && pMesh->material->baseColor.w < 1.0f)) {
-				transparentMeshCount++;
+				renderer.stats.transparentMeshCount++;
 			} else {
-				opaqueMeshCount++;
+				renderer.stats.opaqueMeshCount++;
 			}
 		}
 	}
@@ -215,13 +205,13 @@ int main()
 			scene._objQ.push_back(newObj);
 			scene._pObjQ.push_back(&scene._objQ.back());
 
-			totalMeshCount++;
+			renderer.stats.totalMeshCount++;
 			if ((newObj.pObjMeshes[0]->material->objTexture != nullptr && newObj.pObjMeshes[0]->material->objTexture->hasAlphaChannel)
 				|| (newObj.pObjMeshes[0]->material->objTexture == nullptr && newObj.pObjMeshes[0]->material->baseColor.w < 1.0f)) {
-				transparentMeshCount++;
+				renderer.stats.transparentMeshCount++;
 			}
 			else {
-				opaqueMeshCount++;
+				renderer.stats.opaqueMeshCount++;
 			}
 		}
 
@@ -244,9 +234,9 @@ int main()
 
 			{	// SSAO
 				ImGui::SeparatorText("SSAO");
-				ImGui::Checkbox("SSAO Switch", &ssaoSwitch);
-				ImGui::SliderFloat("SSAO Sample Radius", &ssaoSampleRadius, .000f, 2.f, "%.6f");
-				ImGui::SliderFloat("SSAO Sample Bias", &ssaoBias, -.1f, .1f, "%.6f");
+				ImGui::Checkbox("SSAO Switch", &renderer.setting.ssaoSwitch);
+				ImGui::SliderFloat("SSAO Sample Radius", &renderer.setting.ssaoSampleRadius, .000f, 2.f, "%.6f");
+				ImGui::SliderFloat("SSAO Sample Bias", &renderer.setting.ssaoBias, -.1f, .1f, "%.6f");
 			}
 
 			{	// Control for import models
@@ -269,13 +259,13 @@ int main()
 
 			{	// Camera Setting
 				ImGui::SeparatorText("Camera");
-				ImGui::SliderFloat("Camera FOV Y", &fovY, 1.0f, 179.0f);
+				ImGui::SliderFloat("Camera FOV Y", &cam.fovY, 1.0f, 179.0f);
 				ImGui::SliderFloat("Camera Speed", &cam.cameraMoveSpeed, .0f, 1.0f);
 			}
 
 			{	// Bounding Type Selection
 				ImGui::SeparatorText("Bounding Volume");
-				ImGui::Checkbox("Show Bounding Volume", &showBoundingVolume);
+				ImGui::Checkbox("Show Bounding Volume", &renderer.setting.showBoundingVolume);
 				static int selectedIdx = 0;
 				const char* names[] = { "AABB", "Ritter Sphere", "Naive Sphere" };
 
@@ -291,16 +281,16 @@ int main()
 							selectedIdx = i;
 							switch (selectedIdx) {
 							case 0:
-								typeOfBound = tre::AABBBoundingBox;
-								meshIdx = 0;
+								renderer.setting.typeOfBound = tre::AABBBoundingBox;
+								renderer.setting.meshIdx = 0;
 								break;
 							case 1:
-								typeOfBound = tre::RitterBoundingSphere;
-								meshIdx = 1;
+								renderer.setting.typeOfBound = tre::RitterBoundingSphere;
+								renderer.setting.meshIdx = 1;
 								break;
 							case 2:
-								typeOfBound = tre::NaiveBoundingSphere;
-								meshIdx = 1;
+								renderer.setting.typeOfBound = tre::NaiveBoundingSphere;
+								renderer.setting.meshIdx = 1;
 								break;
 							}
 						}
@@ -310,7 +300,7 @@ int main()
 
 			{	// light 
 				ImGui::SeparatorText("Lights");
-				ImGui::Checkbox("Pause Light", &pauseLight);
+				ImGui::Checkbox("Pause Light", &renderer.setting.pauseLight);
 				if (scene.lightResc.numOfLights < scene.lightResc.maxPointLightNum) {
 					if (ImGui::Button("Add Pt Light")) {
 						scene.lightResc.addRandPointLight();
@@ -328,16 +318,16 @@ int main()
 
 			{	// farplane intervals
 				ImGui::SeparatorText("Cascaded Shadow");
-				ImGui::Text("Total Opaque Mesh: %d; Total Transparent Mesh: %d; All Mesh: %d;", opaqueMeshCount, transparentMeshCount, totalMeshCount);
+				ImGui::Text("Total Opaque Mesh: %d; Total Transparent Mesh: %d; All Mesh: %d;", renderer.stats.opaqueMeshCount, renderer.stats.transparentMeshCount, renderer.stats.totalMeshCount);
 				ImGui::Text("");
-				ImGui::Checkbox("CSM Debug", &csmDebugSwitch);
-				ImGui::Text("Opaque Draw in Shadow Cascade 0: %d / %d", shadowCascadeOpaqueObjs[0], opaqueMeshCount);
+				ImGui::Checkbox("CSM Debug", &renderer.setting.csmDebugSwitch);
+				ImGui::Text("Opaque Draw in Shadow Cascade 0: %d / %d", renderer.stats.shadowCascadeOpaqueObjs[0], renderer.stats.opaqueMeshCount);
 				ImGui::SliderFloat("Far Plane 0", &planeIntervalsF.x, planeIntervals[0], planeIntervals[2]);
-				ImGui::Text("Opaque Draw in Shadow Cascade 1: %d / %d", shadowCascadeOpaqueObjs[1], opaqueMeshCount);
+				ImGui::Text("Opaque Draw in Shadow Cascade 1: %d / %d", renderer.stats.shadowCascadeOpaqueObjs[1], renderer.stats.opaqueMeshCount);
 				ImGui::SliderFloat("Far Plane 1", &planeIntervalsF.y, planeIntervals[1], planeIntervals[3]);
-				ImGui::Text("Opaque Draw in Shadow Cascade 2: %d / %d", shadowCascadeOpaqueObjs[2], opaqueMeshCount);
+				ImGui::Text("Opaque Draw in Shadow Cascade 2: %d / %d", renderer.stats.shadowCascadeOpaqueObjs[2], renderer.stats.opaqueMeshCount);
 				ImGui::SliderFloat("Far Plane 2", &planeIntervalsF.z, planeIntervals[2], planeIntervals[4]);
-				ImGui::Text("Opaque Draw in Shadow Cascade 3: %d / %d", shadowCascadeOpaqueObjs[3], opaqueMeshCount);
+				ImGui::Text("Opaque Draw in Shadow Cascade 3: %d / %d", renderer.stats.shadowCascadeOpaqueObjs[3], renderer.stats.opaqueMeshCount);
 				ImGui::SliderFloat("Far Plane 3", &planeIntervalsF.w, planeIntervals[3], 1000.0f);
 
 				planeIntervals[1] = planeIntervalsF.x, planeIntervals[2] = planeIntervalsF.y, planeIntervals[3] = planeIntervalsF.z, planeIntervals[4] = planeIntervalsF.w;
@@ -356,11 +346,11 @@ int main()
 		renderer.reset();
 
 		// Update Camera
-		cam.camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovY), static_cast<float>(tre::SCREEN_WIDTH) / tre::SCREEN_HEIGHT, .1f, 100.f);
+		cam.camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(cam.fovY), static_cast<float>(tre::SCREEN_WIDTH) / tre::SCREEN_HEIGHT, .1f, 100.f);
 		cam.updateCamera();
 
 		// Update Bounding volume for all objects once
-		scene.updateBoundingVolume(typeOfBound);
+		scene.updateBoundingVolume(renderer.setting.typeOfBound);
 
 		renderer.clearShadowBuffer();
 
@@ -390,23 +380,23 @@ int main()
 			renderer.setShadowBufferDrawSection(i);
 
 			// set const buffer from the light pov 
-			tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, lightViewProjs[i], lightViewProjs, planeIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), csmDebugSwitch, ssaoSwitch);
+			tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, lightViewProjs[i], lightViewProjs, planeIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), renderer.setting.csmDebugSwitch, renderer.setting.ssaoSwitch);
 
 			tre::Frustum lightFrustum = tre::Maths::createFrustumFromViewProjectionMatrix(lightViewProjs[i]);
 
-			scene.cullObject(lightFrustum, typeOfBound);
-			shadowCascadeOpaqueObjs[i] = scene._culledOpaqueObjQ.size();
+			scene.cullObject(lightFrustum, renderer.setting.typeOfBound);
+			renderer.stats.shadowCascadeOpaqueObjs[i] = scene._culledOpaqueObjQ.size();
 
 			// draw shadow only for opaque objects
 			renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_MODE::SHADOW_M);
 		}
 
 		// culling for scene draw
-		scene.cullObject(cam.cameraFrustum, typeOfBound);
+		scene.cullObject(cam.cameraFrustum, renderer.setting.typeOfBound);
 		scene.updateTransparentQ(cam);
 
 		// set const buffer for camera
-		tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, cam.camViewProjection, lightViewProjs, planeIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), csmDebugSwitch, ssaoSwitch);
+		tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, cam.camViewProjection, lightViewProjs, planeIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), renderer.setting.csmDebugSwitch, renderer.setting.ssaoSwitch);
 
 		// using compute shader update lights
 		deviceAndContext.context.Get()->CSSetShader(scene.lightResc.computeShaderPtLightMovement.pShader.Get(), NULL, 0u);
@@ -441,8 +431,8 @@ int main()
 		renderer.clearSwapChainBuffer();
 
 		// ssao pass
-		if (ssaoSwitch) {
-			tre::ConstantBuffer::setSSAOKernalConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), renderer._ssao.ssaoKernalSamples, ssaoSampleRadius, ssaoBias);
+		if (renderer.setting.ssaoSwitch) {
+			tre::ConstantBuffer::setSSAOKernalConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), renderer._ssao.ssaoKernalSamples, renderer.setting.ssaoSampleRadius, renderer.setting.ssaoBias);
 			renderer.fullscreenPass(tre::RENDER_MODE::SSAO_FULLSCREEN_PASS);
 			renderer.fullscreenPass(tre::RENDER_MODE::SSAO_BLURRING_PASS);
 		}
@@ -457,10 +447,10 @@ int main()
 		renderer.deferredLightingLocalDraw(scene._wireframeObjQ, cam.camPositionV);
 
 		// Draw debug
-		if (showBoundingVolume) {
+		if (renderer.setting.showBoundingVolume) {
 			renderer.draw(scene._wireframeObjQ, tre::RENDER_MODE::WIREFRAME_M);
-			renderer.debugDraw(scene._culledOpaqueObjQ, scene._debugMeshes[meshIdx], typeOfBound, tre::RENDER_MODE::WIREFRAME_M);
-			renderer.debugDraw(scene._culledTransparentObjQ, scene._debugMeshes[meshIdx], typeOfBound, tre::RENDER_MODE::WIREFRAME_M);
+			renderer.debugDraw(scene._culledOpaqueObjQ, scene._debugMeshes[renderer.setting.meshIdx], renderer.setting.typeOfBound, tre::RENDER_MODE::WIREFRAME_M);
+			renderer.debugDraw(scene._culledTransparentObjQ, scene._debugMeshes[renderer.setting.meshIdx], renderer.setting.typeOfBound, tre::RENDER_MODE::WIREFRAME_M);
 		}
 
 		ImGui::Render();

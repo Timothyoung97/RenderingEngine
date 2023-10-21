@@ -29,6 +29,8 @@ public:
 
 	Frustum cameraFrustum;
 
+	float fovY = 45.0f; // default
+
 	Camera(float width, float height);
 
 	void updateCamera();

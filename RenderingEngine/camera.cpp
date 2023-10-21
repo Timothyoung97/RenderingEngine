@@ -28,7 +28,7 @@ Camera::Camera(float width, float height) {
 	camView = XMMatrixLookAtLH(camPositionV, camPositionV + directionV, camUpV);
 
 	// Projection Matrix
-	camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0f), static_cast<float>(width) / height, .1f, 100.f);
+	camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovY), static_cast<float>(width) / height, .1f, 100.f);
 
 	camViewProjection = XMMatrixMultiply(camView, camProjection);
 
