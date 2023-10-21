@@ -225,9 +225,6 @@ int main()
 
 		if (true)
 		{
-			static float f = 0.0f;
-			static int counter = 0;
-
 			ImGui::Begin("Debug");
 
 			ImGui::Checkbox("Demo Window", &show_demo_window);
