@@ -39,7 +39,8 @@ struct RendererSetting {
 	int meshIdx = 0; // 
 	float ssaoSampleRadius = .1f, ssaoBias = .0f;
 	bool csmDebugSwitch = false;
-	int shadowCascadeOpaqueObjs[4] = { 0, 0, 0, 0 };
+	float csmPlaneIntervals[5] = { 1.0f, 20.f, 100.f, 250.f, 500.f };
+	XMFLOAT4 csmPlaneIntervalsF = { csmPlaneIntervals[1], csmPlaneIntervals[2], csmPlaneIntervals[3], csmPlaneIntervals[4] };
 };
 
 struct RendererStats {

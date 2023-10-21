@@ -9,10 +9,6 @@
 
 #include "microprofile.h"
 
-#include "imgui.h"
-#include "imgui_impl_sdl2.h"
-#include "imgui_impl_dx11.h"
-
 #include <algorithm>
 #include <functional>
 #include <array>
@@ -36,6 +32,7 @@
 #include "maths.h"
 #include "scene.h"
 #include "modelloader.h"
+#include "imguihelper.h"
 
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;
@@ -91,23 +88,6 @@ int main()
 	//Delta Time between frame
 	float deltaTime = 0;
 
-	// Setup Dear ImGui context
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO(); (void)io;
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-
-	// Setup Dear ImGui style
-	ImGui::StyleColorsDark();
-
-	// Setup Platform/Renderer backends
-	ImGui_ImplSDL2_InitForD3D(window.window);
-	ImGui_ImplDX11_Init(deviceAndContext.device.Get(), deviceAndContext.context.Get());
-
-	// imgui setting
-	bool show_demo_window = false;
-
 	for (int i = 0; i < scene._pObjQ.size(); i++) {
 		for (int j = 0; j < scene._pObjQ[i]->pObjMeshes.size(); j++) {
 			renderer.stats.totalMeshCount++;
@@ -120,9 +100,6 @@ int main()
 			}
 		}
 	}
-
-	float planeIntervals[5] = {1.0f, 20.f, 100.f, 250.f, 500.f};
-	XMFLOAT4 planeIntervalsF = { planeIntervals[1], planeIntervals[2], planeIntervals[3], planeIntervals[4]};
 
 	// Testing Obj
 	tre::Object debugModel;
@@ -140,6 +117,18 @@ int main()
 	scene._pObjQ.push_back(&scene._objQ.back());
 
 	tre::Object* pDebugModel = scene._pObjQ.back();
+
+	// create imgui
+	ImguiHelper imguiHelper(
+		deviceAndContext.device.Get(),
+		deviceAndContext.context.Get(),
+		&window,
+		&scene,
+		&renderer.setting,
+		&renderer.stats,
+		&cam,
+		pDebugModel
+	);
 
 	// main loop
 	while (!input.shouldQuit())
@@ -215,130 +204,6 @@ int main()
 			}
 		}
 
-		// Start the Dear ImGui frame
-		ImGui_ImplDX11_NewFrame();
-		ImGui_ImplSDL2_NewFrame();
-		ImGui::NewFrame();
-
-		if (show_demo_window)
-			ImGui::ShowDemoWindow(&show_demo_window);
-
-		if (true)
-		{
-			ImGui::Begin("Debug");
-
-			ImGui::Checkbox("Demo Window", &show_demo_window);
-
-			{	// SSAO
-				ImGui::SeparatorText("SSAO");
-				ImGui::Checkbox("SSAO Switch", &renderer.setting.ssaoSwitch);
-				ImGui::SliderFloat("SSAO Sample Radius", &renderer.setting.ssaoSampleRadius, .000f, 2.f, "%.6f");
-				ImGui::SliderFloat("SSAO Sample Bias", &renderer.setting.ssaoBias, -.1f, .1f, "%.6f");
-			}
-
-			{	// Control for import models
-
-				ImGui::SeparatorText("Test Object Control");
-				
-				float translation[3] = { pDebugModel->objPos.x, pDebugModel->objPos.y,  pDebugModel->objPos.z };
-				ImGui::SliderFloat3("Translation", translation, .0f, 20.f);
-				pDebugModel->objPos = XMFLOAT3(translation);
-
-				float rotationXYZ[3] = { pDebugModel->objRotation.x, pDebugModel->objRotation.y, pDebugModel->objRotation.z};
-				ImGui::SliderFloat3("Rotation", rotationXYZ, .0f, 360.f);
-				pDebugModel->objRotation = XMFLOAT3(rotationXYZ);
-
-				float scaleXYZ = pDebugModel->objScale.x;
-				ImGui::SliderFloat("Scale", &scaleXYZ, .1f, 3.f);
-				pDebugModel->objScale = XMFLOAT3(scaleXYZ, scaleXYZ, scaleXYZ);
-				pDebugModel->_transformationFinal = tre::Maths::createTransformationMatrix(pDebugModel->objScale, pDebugModel->objRotation, pDebugModel->objPos);
-			}
-
-			{	// Camera Setting
-				ImGui::SeparatorText("Camera");
-				ImGui::SliderFloat("Camera FOV Y", &cam.fovY, 1.0f, 179.0f);
-				ImGui::SliderFloat("Camera Speed", &cam.cameraMoveSpeed, .0f, 1.0f);
-			}
-
-			{	// Bounding Type Selection
-				ImGui::SeparatorText("Bounding Volume");
-				ImGui::Checkbox("Show Bounding Volume", &renderer.setting.showBoundingVolume);
-				static int selectedIdx = 0;
-				const char* names[] = { "AABB", "Ritter Sphere", "Naive Sphere" };
-
-				if (ImGui::Button("Bounding Volume Type")) {
-					ImGui::OpenPopup("boundVType");
-				}
-				ImGui::SameLine();
-				ImGui::TextUnformatted(names[selectedIdx]);
-				if (ImGui::BeginPopup("boundVType")) {
-					ImGui::SeparatorText("Bounding Type");
-					for (int i = 0; i < IM_ARRAYSIZE(names); i++)
-						if (ImGui::Selectable(names[i])) {
-							selectedIdx = i;
-							switch (selectedIdx) {
-							case 0:
-								renderer.setting.typeOfBound = tre::AABBBoundingBox;
-								renderer.setting.meshIdx = 0;
-								break;
-							case 1:
-								renderer.setting.typeOfBound = tre::RitterBoundingSphere;
-								renderer.setting.meshIdx = 1;
-								break;
-							case 2:
-								renderer.setting.typeOfBound = tre::NaiveBoundingSphere;
-								renderer.setting.meshIdx = 1;
-								break;
-							}
-						}
-					ImGui::EndPopup();
-				}
-			}
-
-			{	// light 
-				ImGui::SeparatorText("Lights");
-				ImGui::Checkbox("Pause Light", &renderer.setting.pauseLight);
-				if (scene.lightResc.numOfLights < scene.lightResc.maxPointLightNum) {
-					if (ImGui::Button("Add Pt Light")) {
-						scene.lightResc.addRandPointLight();
-					}
-					ImGui::SameLine();
-					ImGui::Text("Current Light Count: %d/%d", scene.lightResc.numOfLights, scene.lightResc.maxPointLightNum);
-				} else {
-					ImGui::Text("Max Light Count: %d/%d", scene.lightResc.numOfLights, scene.lightResc.maxPointLightNum);
-				}
-
-				ImGui::BulletText("Dir Light");
-				ImGui::SliderFloat("Yaw", &scene.dirlightYaw, .0f, 360.f);
-				ImGui::SliderFloat("Pitch", &scene.dirlightPitch, .0f, 89.f);
-			}
-
-			{	// farplane intervals
-				ImGui::SeparatorText("Cascaded Shadow");
-				ImGui::Text("Total Opaque Mesh: %d; Total Transparent Mesh: %d; All Mesh: %d;", renderer.stats.opaqueMeshCount, renderer.stats.transparentMeshCount, renderer.stats.totalMeshCount);
-				ImGui::Text("");
-				ImGui::Checkbox("CSM Debug", &renderer.setting.csmDebugSwitch);
-				ImGui::Text("Opaque Draw in Shadow Cascade 0: %d / %d", renderer.stats.shadowCascadeOpaqueObjs[0], renderer.stats.opaqueMeshCount);
-				ImGui::SliderFloat("Far Plane 0", &planeIntervalsF.x, planeIntervals[0], planeIntervals[2]);
-				ImGui::Text("Opaque Draw in Shadow Cascade 1: %d / %d", renderer.stats.shadowCascadeOpaqueObjs[1], renderer.stats.opaqueMeshCount);
-				ImGui::SliderFloat("Far Plane 1", &planeIntervalsF.y, planeIntervals[1], planeIntervals[3]);
-				ImGui::Text("Opaque Draw in Shadow Cascade 2: %d / %d", renderer.stats.shadowCascadeOpaqueObjs[2], renderer.stats.opaqueMeshCount);
-				ImGui::SliderFloat("Far Plane 2", &planeIntervalsF.z, planeIntervals[2], planeIntervals[4]);
-				ImGui::Text("Opaque Draw in Shadow Cascade 3: %d / %d", renderer.stats.shadowCascadeOpaqueObjs[3], renderer.stats.opaqueMeshCount);
-				ImGui::SliderFloat("Far Plane 3", &planeIntervalsF.w, planeIntervals[3], 1000.0f);
-
-				planeIntervals[1] = planeIntervalsF.x, planeIntervals[2] = planeIntervalsF.y, planeIntervals[3] = planeIntervalsF.z, planeIntervals[4] = planeIntervalsF.w;
-			}
-
-			{	// Stats
-				ImGui::SeparatorText("Debug Info");
-				ImGui::Text("Within Frustcum/Total: %d / %d", scene._culledOpaqueObjQ.size() + scene._culledTransparentObjQ.size(), scene._pObjQ.size());
-				ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-			}
-
-			ImGui::End();
-		}
-
 		// render clear context
 		renderer.reset();
 
@@ -358,7 +223,7 @@ int main()
 		for (int i = 0; i < 4; i++) { // for 4 quads
 
 			// projection matrix of camera with specific near and far plane
-			XMMATRIX projMatrix = XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0f), static_cast<float>(tre::SCREEN_WIDTH) / tre::SCREEN_HEIGHT, planeIntervals[i], planeIntervals[i + 1]);
+			XMMATRIX projMatrix = XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0f), static_cast<float>(tre::SCREEN_WIDTH) / tre::SCREEN_HEIGHT, renderer.setting.csmPlaneIntervals[i], renderer.setting.csmPlaneIntervals[i + 1]);
 
 			std::vector<XMVECTOR> corners = tre::Maths::getFrustumCornersWorldSpace(XMMatrixMultiply(cam.camView, projMatrix));
 
@@ -377,7 +242,7 @@ int main()
 			renderer.setShadowBufferDrawSection(i);
 
 			// set const buffer from the light pov 
-			tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, lightViewProjs[i], lightViewProjs, planeIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), renderer.setting.csmDebugSwitch, renderer.setting.ssaoSwitch);
+			tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, lightViewProjs[i], lightViewProjs, renderer.setting.csmPlaneIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), renderer.setting.csmDebugSwitch, renderer.setting.ssaoSwitch);
 
 			tre::Frustum lightFrustum = tre::Maths::createFrustumFromViewProjectionMatrix(lightViewProjs[i]);
 
@@ -393,7 +258,7 @@ int main()
 		scene.updateTransparentQ(cam);
 
 		// set const buffer for camera
-		tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, cam.camViewProjection, lightViewProjs, planeIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), renderer.setting.csmDebugSwitch, renderer.setting.ssaoSwitch);
+		tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, cam.camViewProjection, lightViewProjs, renderer.setting.csmPlaneIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), renderer.setting.csmDebugSwitch, renderer.setting.ssaoSwitch);
 
 		// using compute shader update lights
 		deviceAndContext.context.Get()->CSSetShader(scene.lightResc.computeShaderPtLightMovement.pShader.Get(), NULL, 0u);
@@ -450,8 +315,7 @@ int main()
 			renderer.debugDraw(scene._culledTransparentObjQ, scene._debugMeshes[renderer.setting.meshIdx], renderer.setting.typeOfBound, tre::RENDER_MODE::WIREFRAME_M);
 		}
 
-		ImGui::Render();
-		ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+		imguiHelper.render();
 
 		CHECK_DX_ERROR(renderer._swapchain.mainSwapchain->Present( 0, 0) );
 
@@ -463,10 +327,7 @@ int main()
 		deltaTime = timer.getDeltaTime();
 	}
 
-	//Cleanup
-	ImGui_ImplDX11_Shutdown();
-	ImGui_ImplSDL2_Shutdown();
-	ImGui::DestroyContext();
+	imguiHelper.cleanup();
 
 	return 0;
 }
