@@ -46,11 +46,12 @@ void ps_ssao(
     for (int i = 0; i < 64; i++) {
         // find world position of the sampling point
         float3 samplePos = worldPos;
-        // int axisSelector = int(Random01(ran_state) * 11) % 2;
-        // float3 firstRotate = rodriguesRotate(sampledNormal, axis[axisSelector], (Random01(ran_state) * 2 - 1.0f) * 90.f);
-        // samplePos += rodriguesRotate(firstRotate, axis[axisSelector ^ 1], (Random01(ran_state) * 2 - 1.0f) * 90.f) * sampleRadius * Random01(ran_state);
-        // samplePos += rodriguesRotate(sampledNormal, TBNMatrix[0], radians(sampleBias)) * sampleRadius;
-        samplePos += float3(Random01(ran_state) * 2.0f - 1.0f, Random01(ran_state) * 2.0f - 1.0f, Random01(ran_state) * 2.0f - 1.0f) * sampleRadius; // debug line
+
+        // random rotate to form a hemisphere
+        int axisSelector = int(Random01(ran_state) * 11) % 2;
+        float3 firstRotate = rodriguesRotate(sampledNormal, axis[axisSelector], (Random01(ran_state) * 2 - 1.0f) * 90.f);
+        samplePos += rodriguesRotate(firstRotate, axis[axisSelector ^ 1], (Random01(ran_state) * 2 - 1.0f) * 90.f) * sampleRadius * Random01(ran_state);
+        // samplePos += float3(Random01(ran_state) * 2.0f - 1.0f, Random01(ran_state) * 2.0f - 1.0f, Random01(ran_state) * 2.0f - 1.0f) * sampleRadius; // debug line
 
         // convert to screen space position
         float4 offset = float4(samplePos, 1.0f);
@@ -71,13 +72,12 @@ void ps_ssao(
 
         // Range check
         float rangeCheck = smoothstep(.0f, 1.f, sampleRadius / length(worldPos - sampleWorldPos));
-        // float rangeCheck = length(worldPos - sampleWorldPos) < sampleRadius ? 1 : 0;
+        // float rangeCheck = length(worldPos - sampleWorldPos) < sampleRadius ? 1 : 0; // debug line
 
         // occlusion contribution
-        //occlusion += (length(sampleWorldPos - camPos.xyz) < length(worldPos - camPos.xyz) ? 1.f : 0.f) * rangeCheck; // hardcoded bias
+        //occlusion += (length(sampleWorldPos - camPos.xyz) < length(worldPos - camPos.xyz) ? 1.f : 0.f) * rangeCheck; // debug line
         occlusion += (sampleDepth.x + sampleBias < depth.x ? 1.f : 0.f) * rangeCheck; // hardcoded bias
     }
     
-    // outTarget = float4(occlusion / 64.f, .0f, .0f, .0f);
     outTarget = float4(1 - (occlusion / 64.f), .0f, .0f, .0f);
 }
