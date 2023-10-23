@@ -223,7 +223,7 @@ int main()
 		renderer.reset();
 
 		// Update Camera
-		cam.camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(cam.fovY), static_cast<float>(tre::SCREEN_WIDTH) / tre::SCREEN_HEIGHT, .1f, 100.f);
+		cam.camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(cam.fovY), static_cast<float>(tre::SCREEN_WIDTH) / tre::SCREEN_HEIGHT, .1f, 250.f);
 		cam.updateCamera();
 
 		{	// Update Bounding volume for all objects once
@@ -329,7 +329,7 @@ int main()
 
 		// ssao pass
 		if (renderer.setting.ssaoSwitch) {
-			tre::ConstantBuffer::setSSAOKernalConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), renderer._ssao.ssaoKernalSamples, renderer.setting.ssaoSampleRadius, renderer.setting.ssaoBias);
+			tre::ConstantBuffer::setSSAOKernalConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), renderer._ssao.ssaoKernalSamples, renderer.setting.ssaoSampleRadius);
 			MICROPROFILE_SCOPEGPUI("SSAO Pass", MP_MIDNIGHTBLUE);
 			renderer.fullscreenPass(tre::RENDER_MODE::SSAO_FULLSCREEN_PASS);
 			renderer.fullscreenPass(tre::RENDER_MODE::SSAO_BLURRING_PASS);

@@ -3,8 +3,7 @@
 cbuffer constBufferSSAO : register(b3) {
     float4 kernalSamples[64];
     float sampleRadius;
-    float sampleBias;
-    float2 ssaoPad;
+    float3 ssaoPad;
 };
 
 Texture2D noiseTexture : register(t5);

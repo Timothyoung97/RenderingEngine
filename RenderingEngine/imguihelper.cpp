@@ -42,7 +42,6 @@ void ImguiHelper::render() {
 		ImGui::SeparatorText("SSAO");
 		ImGui::Checkbox("SSAO Switch", &pRendererSetting->ssaoSwitch);
 		ImGui::SliderFloat("SSAO Sample Radius", &pRendererSetting->ssaoSampleRadius, .000f, 2.f, "%.6f");
-		ImGui::SliderFloat("SSAO Sample Bias", &pRendererSetting->ssaoBias, -.1f, .1f, "%.6f");
 	}
 
 	{	// Control for import models
