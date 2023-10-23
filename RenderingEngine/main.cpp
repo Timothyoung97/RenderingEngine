@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <functional>
 #include <array>
+#include <format>
 
 //Custom Header
 #include "timer.h"
@@ -41,6 +42,12 @@ int main()
 {
 	// set random seed
 	srand((uint32_t)time(NULL));
+
+	{
+		MicroProfileOnThreadCreate("Main");
+		MicroProfileSetEnableAllGroups(true);
+		MicroProfileSetForceMetaCounters(true);
+	}
 
 	//Create Window
 	tre::Window window("RenderingEngine", tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);
@@ -130,13 +137,14 @@ int main()
 		pDebugModel
 	);
 
+	bool toDumpFile = false;
+
 	// main loop
 	while (!input.shouldQuit())
 	{
 		tre::Timer timer;
 
-		MICROPROFILE_SCOPEI("", "Frame", MP_YELLOW);
-		MicroProfileFlip(nullptr);
+		MICROPROFILE_SCOPE_CSTR("Frame");
 
 		// Update keyboard event
 		input.updateInputEvent();
@@ -203,6 +211,9 @@ int main()
 				renderer.stats.opaqueMeshCount++;
 			}
 		}
+		else if (input._keyState[SDL_SCANCODE_K]) {
+			toDumpFile = true;
+		}
 
 		// render clear context
 		renderer.reset();
@@ -211,17 +222,21 @@ int main()
 		cam.camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(cam.fovY), static_cast<float>(tre::SCREEN_WIDTH) / tre::SCREEN_HEIGHT, .1f, 100.f);
 		cam.updateCamera();
 
-		// Update Bounding volume for all objects once
-		scene.updateBoundingVolume(renderer.setting.typeOfBound);
+		{	// Update Bounding volume for all objects once
+			MICROPROFILE_SCOPE_CSTR("Update Bounding Volume");
+			scene.updateBoundingVolume(renderer.setting.typeOfBound);
+		}
 
 		renderer.clearShadowBuffer();
 
 		renderer.configureStates(tre::RENDER_MODE::SHADOW_M);
 
-		// shadow draw
+		// Shadow Draw
 		std::vector<XMMATRIX> lightViewProjs;
 		for (int i = 0; i < 4; i++) { // for 4 quads
-
+			
+			MICROPROFILE_SCOPE_CSTR("CSM View Projection Matrix");
+			
 			// projection matrix of camera with specific near and far plane
 			XMMATRIX projMatrix = XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0f), static_cast<float>(tre::SCREEN_WIDTH) / tre::SCREEN_HEIGHT, renderer.setting.csmPlaneIntervals[i], renderer.setting.csmPlaneIntervals[i + 1]);
 
@@ -239,13 +254,16 @@ int main()
 		}
 
 		for (int i = 0; i < 4; i++) {
+
+			MICROPROFILE_SCOPE_CSTR("CSM Quad Draw");
+
 			renderer.setShadowBufferDrawSection(i);
 
 			// set const buffer from the light pov 
 			tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, lightViewProjs[i], lightViewProjs, renderer.setting.csmPlaneIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), renderer.setting.csmDebugSwitch, renderer.setting.ssaoSwitch);
 
 			tre::Frustum lightFrustum = tre::Maths::createFrustumFromViewProjectionMatrix(lightViewProjs[i]);
-
+			
 			scene.cullObject(lightFrustum, renderer.setting.typeOfBound);
 			renderer.stats.shadowCascadeOpaqueObjs[i] = scene._culledOpaqueObjQ.size();
 
@@ -269,6 +287,7 @@ int main()
 		scene.lightResc.updatePtLightCPU();
 		scene._pointLightObjQ.clear();
 		scene._wireframeObjQ.clear();
+
 		for (int i = 0; i < scene.lightResc.readOnlyPointLightQ.size(); i++) {
 			tre::Object newLightObj;
 
@@ -321,12 +340,25 @@ int main()
 
 		scene.updateDirLight();
 
-		while (timer.getDeltaTime() < 1000.0 / 60) {
+		if (toDumpFile) {
+			MicroProfileDumpFileImmediately("profile.html", nullptr, nullptr);
+			toDumpFile = false;
+		}
+
+		{
+			MICROPROFILE_SCOPEI("", "Spin Wait", MP_RED4);
+			// framerate control
+			while (timer.getDeltaTime() < 1000.0 / 60) {
+			}
 		}
 
 		deltaTime = timer.getDeltaTime();
+
+		// record each frame
+		MicroProfileFlip(nullptr);
 	}
 
+	MicroProfileShutdown();
 	imguiHelper.cleanup();
 
 	return 0;

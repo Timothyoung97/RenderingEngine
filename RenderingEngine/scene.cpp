@@ -1,5 +1,7 @@
 #include "scene.h"
 
+#include <format>
+
 #include "microprofile.h"
 #include "colors.h"
 #include "utility.h"
@@ -78,6 +80,9 @@ void Scene::updateDirLight() {
 }
 
 void Scene::updateBoundingVolume(BoundVolumeEnum typeOfBound) {
+	const char* name = ToString(typeOfBound);
+	MICROPROFILE_SCOPE_CSTR(name);
+
 	for (int i = 0; i < _pObjQ.size(); i++) {
 		Object* pObj = _pObjQ[i];
 		for (int j = 0; j < pObj->pObjMeshes.size(); j++) {
@@ -116,6 +121,9 @@ void Scene::updateTransparentQ(Camera& cam) {
 }
 
 void Scene::cullObject(Frustum& frustum, BoundVolumeEnum typeOfBound) {
+
+	MICROPROFILE_SCOPE_CSTR("cullObject");
+
 	// clear render queue
 	_culledOpaqueObjQ.clear();
 	_culledTransparentObjQ.clear();
