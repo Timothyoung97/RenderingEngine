@@ -239,7 +239,7 @@ int main()
 		std::vector<XMMATRIX> lightViewProjs;
 		for (int i = 0; i < 4; i++) { // for 4 quads
 			
-			MICROPROFILE_SCOPE_CSTR("CSM View Projection Matrix");
+			MICROPROFILE_SCOPE_CSTR("Build CSM View Projection Matrix");
 			
 			// projection matrix of camera with specific near and far plane
 			XMMATRIX projMatrix = XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0f), static_cast<float>(tre::SCREEN_WIDTH) / tre::SCREEN_HEIGHT, renderer.setting.csmPlaneIntervals[i], renderer.setting.csmPlaneIntervals[i + 1]);
@@ -262,26 +262,30 @@ int main()
 
 			for (int i = 0; i < 4; i++) {
 
-				MICROPROFILE_SCOPE_CSTR("CSM Quad Draw");
+				{	// Culling based on pointlight's view projection matrix
+					MICROPROFILE_SCOPE_CSTR("CSM Quad Obj Culling");
 
-				renderer.setShadowBufferDrawSection(i);
+					renderer.setShadowBufferDrawSection(i);
 
-				// set const buffer from the light pov 
-				tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, lightViewProjs[i], lightViewProjs, renderer.setting.csmPlaneIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), renderer.setting.csmDebugSwitch, renderer.setting.ssaoSwitch);
+					// set const buffer from the light pov 
+					tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, lightViewProjs[i], lightViewProjs, renderer.setting.csmPlaneIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), renderer.setting.csmDebugSwitch, renderer.setting.ssaoSwitch);
 
-				tre::Frustum lightFrustum = tre::Maths::createFrustumFromViewProjectionMatrix(lightViewProjs[i]);
+					tre::Frustum lightFrustum = tre::Maths::createFrustumFromViewProjectionMatrix(lightViewProjs[i]);
 			
-				scene.cullObject(lightFrustum, renderer.setting.typeOfBound);
-				renderer.stats.shadowCascadeOpaqueObjs[i] = scene._culledOpaqueObjQ.size();
+					scene.cullObject(lightFrustum, renderer.setting.typeOfBound);
+					renderer.stats.shadowCascadeOpaqueObjs[i] = scene._culledOpaqueObjQ.size();
+				}
 
 				// draw shadow only for opaque objects
 				renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_MODE::SHADOW_M);
 			}
 		}
 
-		// culling for scene draw
-		scene.cullObject(cam.cameraFrustum, renderer.setting.typeOfBound);
-		scene.updateTransparentQ(cam);
+		{	// culling for scene draw
+			MICROPROFILE_SCOPE_CSTR("Scene Obj Culling");
+			scene.cullObject(cam.cameraFrustum, renderer.setting.typeOfBound);
+			scene.updateTransparentQ(cam);
+		}
 
 		// set const buffer for camera
 		tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, cam.camViewProjection, lightViewProjs, renderer.setting.csmPlaneIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), renderer.setting.csmDebugSwitch, renderer.setting.ssaoSwitch);
