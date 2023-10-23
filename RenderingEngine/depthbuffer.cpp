@@ -54,15 +54,18 @@ void DepthBuffer::create(ID3D11Device* device, int screenW, int screenH) {
 	depthStencilDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_DEPTH_STENCIL;
 	depthStencilDesc.Height = static_cast<UINT>(4096);
 	depthStencilDesc.Width = static_cast<UINT>(4096);
+	depthStencilDesc.Format = DXGI_FORMAT_R32_TYPELESS;
 
 	CHECK_DX_ERROR(device->CreateTexture2D(
 		&depthStencilDesc, nullptr, pShadowMapTexture.GetAddressOf()
 	));
 
+	depthStencilViewDesc.Format = DXGI_FORMAT_D32_FLOAT;
 	CHECK_DX_ERROR(device->CreateDepthStencilView(
 		pShadowMapTexture.Get(), &depthStencilViewDesc, pShadowDepthStencilView.GetAddressOf()
 	));
 
+	shaderResourceViewDesc.Format = DXGI_FORMAT_R32_FLOAT;
 	CHECK_DX_ERROR(device->CreateShaderResourceView(
 		pShadowMapTexture.Get(), &shaderResourceViewDesc, pShadowShaderRescView.GetAddressOf()
 	));
