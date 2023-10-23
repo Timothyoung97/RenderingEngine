@@ -75,7 +75,7 @@ void ps_ssao(
 
         // occlusion contribution
         //occlusion += (length(sampleWorldPos - camPos.xyz) < length(worldPos - camPos.xyz) ? 1.f : 0.f) * rangeCheck; // debug line
-        occlusion += (sampleDepth.x + sampleBias < depth.x ? 1.f : 0.f) * rangeCheck; // hardcoded bias
+        occlusion += (sampleDepth.x < depth.x ? 1.f : 0.f) * rangeCheck; // hardcoded bias
     }
     
     outTarget = float4(1 - (occlusion / 64.f), .0f, .0f, .0f);
