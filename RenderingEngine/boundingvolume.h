@@ -1,8 +1,10 @@
 #pragma once
 
 #include <vector>
+#include <string>
 
 #include "maths.h"
+
 
 using namespace DirectX;
 
@@ -13,6 +15,17 @@ enum BoundVolumeEnum {
 	NaiveBoundingSphere,
 	AABBBoundingBox
 };
+
+inline const char* ToString(BoundVolumeEnum bv)
+{
+	switch (bv)
+	{
+	case RitterBoundingSphere:	return "Ritter Sphere";
+	case NaiveBoundingSphere:	return "Naive Sphere";
+	case AABBBoundingBox:		return "AABB";
+	default:					return "[Unknown Bounding Mode]";
+	}
+}
 
 struct BoundingSphere {
 	XMFLOAT3 center{ .0f, .0f, .0f };
