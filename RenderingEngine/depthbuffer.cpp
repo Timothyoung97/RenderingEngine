@@ -79,18 +79,6 @@ void DepthBuffer::create(ID3D11Device* device, int screenW, int screenH) {
 	ddsd.StencilReadMask = 0xFF;
 	ddsd.StencilWriteMask = 0xFF;
 
-	// stencil operations if pixel is front-facing
-	ddsd.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-	ddsd.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-	ddsd.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-	ddsd.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;	
-	
-	// stencil operations if pixel is back-facing
-	ddsd.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-	ddsd.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-	ddsd.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-	ddsd.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
-
 	CHECK_DX_ERROR(device->CreateDepthStencilState(
 		&ddsd, pDSStateWithoutDepthT.GetAddressOf()
 	));
