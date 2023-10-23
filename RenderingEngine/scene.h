@@ -52,7 +52,6 @@ public:
 
 	void createFloor();
 	void updateDirLight();
-	void updateTransformation(); // for wireframe obj for now
 	void updateBoundingVolume(BoundVolumeEnum typeOfBound);
 	void cullObject(Frustum& frustum, BoundVolumeEnum typeOfBound);
 	void updateTransparentQ(Camera& cam);

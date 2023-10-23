@@ -1,5 +1,6 @@
 #include "scene.h"
 
+#include "microprofile.h"
 #include "colors.h"
 #include "utility.h"
 
@@ -114,14 +115,7 @@ void Scene::updateTransparentQ(Camera& cam) {
 	}
 }
 
-void Scene::updateTransformation() {
-	for (int i = 0; i < _wireframeObjQ.size(); i++) {
-		_wireframeObjQ[i].first->_transformationFinal = tre::Maths::createTransformationMatrix(_wireframeObjQ[i].first->objScale, _wireframeObjQ[i].first->objRotation, _wireframeObjQ[i].first->objPos);
-	}
-}
-
 void Scene::cullObject(Frustum& frustum, BoundVolumeEnum typeOfBound) {
-
 	// clear render queue
 	_culledOpaqueObjQ.clear();
 	_culledTransparentObjQ.clear();
