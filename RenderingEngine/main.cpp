@@ -6,7 +6,6 @@
 #include <wrl/client.h>
 #include "spdlog/spdlog.h"
 #include "portable-file-dialogs.h"
-
 #include "microprofile.h"
 
 #include <algorithm>
@@ -43,17 +42,22 @@ int main()
 	// set random seed
 	srand((uint32_t)time(NULL));
 
-	{
-		MicroProfileOnThreadCreate("Main");
-		MicroProfileSetEnableAllGroups(true);
-		MicroProfileSetForceMetaCounters(true);
-	}
 
 	//Create Window
 	tre::Window window("RenderingEngine", tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);
 
 	//Create Device 
 	tre::Device deviceAndContext;
+
+	{	// microprofile setting
+		MicroProfileOnThreadCreate("Main");
+		MicroProfileSetEnableAllGroups(true);
+		MicroProfileSetForceMetaCounters(true);
+
+		MicroProfileGpuInitD3D11(deviceAndContext.device.Get(), deviceAndContext.context.Get());
+		MICROPROFILE_GPU_SET_CONTEXT(deviceAndContext.context.Get(), MicroProfileGetGlobalGpuThreadLog());
+		MicroProfileStartContextSwitchTrace();
+	}
 
 	// Scene
 	tre::Scene scene(deviceAndContext.device.Get(), deviceAndContext.context.Get());
@@ -253,22 +257,26 @@ int main()
 			lightViewProjs.push_back(lightViewProj);
 		}
 
-		for (int i = 0; i < 4; i++) {
+		{
+			MICROPROFILE_SCOPEGPUI("CSM Quad Draw", MP_STEELBLUE);
 
-			MICROPROFILE_SCOPE_CSTR("CSM Quad Draw");
+			for (int i = 0; i < 4; i++) {
 
-			renderer.setShadowBufferDrawSection(i);
+				MICROPROFILE_SCOPE_CSTR("CSM Quad Draw");
 
-			// set const buffer from the light pov 
-			tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, lightViewProjs[i], lightViewProjs, renderer.setting.csmPlaneIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), renderer.setting.csmDebugSwitch, renderer.setting.ssaoSwitch);
+				renderer.setShadowBufferDrawSection(i);
 
-			tre::Frustum lightFrustum = tre::Maths::createFrustumFromViewProjectionMatrix(lightViewProjs[i]);
+				// set const buffer from the light pov 
+				tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, lightViewProjs[i], lightViewProjs, renderer.setting.csmPlaneIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), renderer.setting.csmDebugSwitch, renderer.setting.ssaoSwitch);
+
+				tre::Frustum lightFrustum = tre::Maths::createFrustumFromViewProjectionMatrix(lightViewProjs[i]);
 			
-			scene.cullObject(lightFrustum, renderer.setting.typeOfBound);
-			renderer.stats.shadowCascadeOpaqueObjs[i] = scene._culledOpaqueObjQ.size();
+				scene.cullObject(lightFrustum, renderer.setting.typeOfBound);
+				renderer.stats.shadowCascadeOpaqueObjs[i] = scene._culledOpaqueObjQ.size();
 
-			// draw shadow only for opaque objects
-			renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_MODE::SHADOW_M);
+				// draw shadow only for opaque objects
+				renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_MODE::SHADOW_M);
+			}
 		}
 
 		// culling for scene draw
@@ -281,54 +289,73 @@ int main()
 		// using compute shader update lights
 		deviceAndContext.context.Get()->CSSetShader(scene.lightResc.computeShaderPtLightMovement.pShader.Get(), NULL, 0u);
 		deviceAndContext.context.Get()->CSSetUnorderedAccessViews(0, 1, scene.lightResc.pLightUnorderedAccessView.GetAddressOf(), nullptr);
-		deviceAndContext.context.Get()->Dispatch(tre::Maths::divideAndRoundUp(scene.lightResc.numOfLights, 4u), 1u, 1u);
+		{
+			MICROPROFILE_SCOPEGPUI("Compute Shader", MP_DODGERBLUE);
+			deviceAndContext.context.Get()->Dispatch(tre::Maths::divideAndRoundUp(scene.lightResc.numOfLights, 4u), 1u, 1u);
+		}
 		deviceAndContext.context.Get()->CSSetUnorderedAccessViews(0, 1, scene.lightResc.nullUAV, nullptr);
 
-		scene.lightResc.updatePtLightCPU();
-		scene._pointLightObjQ.clear();
-		scene._wireframeObjQ.clear();
+		{
+			MICROPROFILE_SCOPE_CSTR("CPU Point Light Update");
+			scene.lightResc.updatePtLightCPU();
+			scene._pointLightObjQ.clear();
+			scene._wireframeObjQ.clear();
 
-		for (int i = 0; i < scene.lightResc.readOnlyPointLightQ.size(); i++) {
-			tre::Object newLightObj;
+			for (int i = 0; i < scene.lightResc.readOnlyPointLightQ.size(); i++) {
+				tre::Object newLightObj;
 
-			newLightObj.pObjMeshes = { &scene._debugMeshes[1] }; // sphere
-			newLightObj.pObjMeshes[0]->material = &scene._debugMaterials[2];
-			newLightObj.objPos = scene.lightResc.readOnlyPointLightQ[i].pos;
-			newLightObj.objScale = XMFLOAT3(scene.lightResc.readOnlyPointLightQ[i].range, scene.lightResc.readOnlyPointLightQ[i].range, scene.lightResc.readOnlyPointLightQ[i].range);
-			newLightObj.objRotation = XMFLOAT3(.0f, .0f, .0f);
-			newLightObj._boundingVolumeColor = { tre::colorF(Colors::White) };
-			newLightObj._transformationFinal = tre::Maths::createTransformationMatrix(newLightObj.objScale, newLightObj.objRotation, newLightObj.objPos);
+				newLightObj.pObjMeshes = { &scene._debugMeshes[1] }; // sphere
+				newLightObj.pObjMeshes[0]->material = &scene._debugMaterials[2];
+				newLightObj.objPos = scene.lightResc.readOnlyPointLightQ[i].pos;
+				newLightObj.objScale = XMFLOAT3(scene.lightResc.readOnlyPointLightQ[i].range, scene.lightResc.readOnlyPointLightQ[i].range, scene.lightResc.readOnlyPointLightQ[i].range);
+				newLightObj.objRotation = XMFLOAT3(.0f, .0f, .0f);
+				newLightObj._boundingVolumeColor = { tre::colorF(Colors::White) };
+				newLightObj._transformationFinal = tre::Maths::createTransformationMatrix(newLightObj.objScale, newLightObj.objRotation, newLightObj.objPos);
 
-			scene._pointLightObjQ.push_back(newLightObj);
-			scene._wireframeObjQ.push_back(std::make_pair(&scene._pointLightObjQ.back(), scene._pointLightObjQ.back().pObjMeshes[0]));
+				scene._pointLightObjQ.push_back(newLightObj);
+				scene._wireframeObjQ.push_back(std::make_pair(&scene._pointLightObjQ.back(), scene._pointLightObjQ.back().pObjMeshes[0]));
+			}
+			deviceAndContext.context.Get()->PSSetShaderResources(2, 1, scene.lightResc.pLightShaderRescView.GetAddressOf());
 		}
-
-		deviceAndContext.context.Get()->PSSetShaderResources(2, 1, scene.lightResc.pLightShaderRescView.GetAddressOf());
 
 		// 1st pass deferred normal & albedo
 		renderer.configureStates(tre::RENDER_MODE::DEFERRED_OPAQUE_M);
-		renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_MODE::DEFERRED_OPAQUE_M);
+		{
+			MICROPROFILE_SCOPEGPUI("G-Buffer", MP_POWDERBLUE);
+			renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_MODE::DEFERRED_OPAQUE_M);
+		}
 
 		renderer.clearSwapChainBuffer();
 
 		// ssao pass
 		if (renderer.setting.ssaoSwitch) {
 			tre::ConstantBuffer::setSSAOKernalConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), renderer._ssao.ssaoKernalSamples, renderer.setting.ssaoSampleRadius, renderer.setting.ssaoBias);
+			MICROPROFILE_SCOPEGPUI("SSAO Pass", MP_MIDNIGHTBLUE);
 			renderer.fullscreenPass(tre::RENDER_MODE::SSAO_FULLSCREEN_PASS);
 			renderer.fullscreenPass(tre::RENDER_MODE::SSAO_BLURRING_PASS);
 		}
 
-		// 2nd pass deferred lighting 
-		renderer.fullscreenPass(tre::RENDER_MODE::DEFERRED_OPAQUE_LIGHTING_ENV_M);
+		// 2nd pass deferred lighting
+		{
+			MICROPROFILE_SCOPEGPUI("Environmental Lighting", MP_PALEVIOLETRED4);
+			renderer.fullscreenPass(tre::RENDER_MODE::DEFERRED_OPAQUE_LIGHTING_ENV_M);
+		}
 
 		// Draw all transparent objects
-		renderer.draw(scene._culledTransparentObjQ, tre::RENDER_MODE::TRANSPARENT_M);
+		{
+			MICROPROFILE_SCOPEGPUI("Transparent Obj", MP_YELLOWGREEN);
+			renderer.draw(scene._culledTransparentObjQ, tre::RENDER_MODE::TRANSPARENT_M);
+		}
 
 		// Draw all deferred lighting volume
-		renderer.deferredLightingLocalDraw(scene._wireframeObjQ, cam.camPositionV);
+		{
+			MICROPROFILE_SCOPEGPUI("Local Lighting", MP_PALETURQUOISE);
+			renderer.deferredLightingLocalDraw(scene._wireframeObjQ, cam.camPositionV);
+		}
 
 		// Draw debug
 		if (renderer.setting.showBoundingVolume) {
+			MICROPROFILE_SCOPEGPUI("Bounding Volume Wireframe", MP_ORANGE3);
 			renderer.draw(scene._wireframeObjQ, tre::RENDER_MODE::WIREFRAME_M);
 			renderer.debugDraw(scene._culledOpaqueObjQ, scene._debugMeshes[renderer.setting.meshIdx], renderer.setting.typeOfBound, tre::RENDER_MODE::WIREFRAME_M);
 			renderer.debugDraw(scene._culledTransparentObjQ, scene._debugMeshes[renderer.setting.meshIdx], renderer.setting.typeOfBound, tre::RENDER_MODE::WIREFRAME_M);
@@ -341,12 +368,12 @@ int main()
 		scene.updateDirLight();
 
 		if (toDumpFile) {
-			MicroProfileDumpFileImmediately("profile.html", nullptr, nullptr);
+			MicroProfileDumpFileImmediately("profile.html", nullptr, deviceAndContext.context.Get());
 			toDumpFile = false;
 		}
 
 		{
-			MICROPROFILE_SCOPEI("", "Spin Wait", MP_RED4);
+			MICROPROFILE_SCOPE_CSTR("Spin Wait");
 			// framerate control
 			while (timer.getDeltaTime() < 1000.0 / 60) {
 			}
@@ -355,9 +382,10 @@ int main()
 		deltaTime = timer.getDeltaTime();
 
 		// record each frame
-		MicroProfileFlip(nullptr);
+		MicroProfileFlip(deviceAndContext.context.Get());
 	}
 
+	MicroProfileGpuShutdown();
 	MicroProfileShutdown();
 	imguiHelper.cleanup();
 

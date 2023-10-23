@@ -249,6 +249,7 @@ void Renderer::fullscreenPass(tre::RENDER_MODE mode) {
 
 	const char* name = ToString(mode);
 	MICROPROFILE_SCOPE_CSTR(name);
+	MICROPROFILE_SCOPEGPUI("Fullscreen Pass", MP_ROYALBLUE);
 
 	_context->Draw(6, 0);
 }
@@ -258,6 +259,7 @@ void Renderer::deferredLightingLocalDraw(const std::vector<std::pair<Object*, Me
 
 	const char* name = ToString(DEFERRED_LIGHTING_LOCAL_M);
 	MICROPROFILE_SCOPE_CSTR(name);
+	MICROPROFILE_SCOPEGPUI("Deferred Local Light Draw", MP_LIGHTSLATEBLUE);
 
 	UINT vertexStride = sizeof(Vertex);
 	UINT offset = 0;
@@ -295,11 +297,11 @@ void Renderer::deferredLightingLocalDraw(const std::vector<std::pair<Object*, Me
 
 
 void Renderer::draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MODE renderObjType) {
-
 	configureStates(renderObjType);
 
 	const char* name = ToString(renderObjType);
 	MICROPROFILE_SCOPE_CSTR(name);
+	MICROPROFILE_SCOPEGPUI("Forward Draw", MP_LIGHTBLUE);
 
 	for (int i = 0; i < objQ.size(); i++) {
 
@@ -347,6 +349,7 @@ void Renderer::debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh
 
 	const char* name = ToString(renderObjType);
 	MICROPROFILE_SCOPE_CSTR(name);
+	MICROPROFILE_SCOPEGPUI("Debug Draw", MP_DEEPSKYBLUE);
 
 	for (int i = 0; i < objQ.size(); i++) {
 
