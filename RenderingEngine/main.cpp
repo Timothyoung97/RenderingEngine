@@ -368,6 +368,7 @@ int main()
 		scene.updateDirLight();
 
 		if (toDumpFile) {
+			spdlog::info("Profiling");
 			MicroProfileDumpFileImmediately("profile.html", nullptr, deviceAndContext.context.Get());
 			toDumpFile = false;
 		}
