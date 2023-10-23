@@ -1,3 +1,5 @@
+#include "microprofile.h"
+
 #include "renderer.h"
 #include "window.h"
 #include "mesh.h"
@@ -244,11 +246,18 @@ void Renderer::configureStates(RENDER_MODE renderObjType) {
 
 void Renderer::fullscreenPass(tre::RENDER_MODE mode) {
 	configureStates(mode);
+
+	const char* name = ToString(mode);
+	MICROPROFILE_SCOPE_CSTR(name);
+
 	_context->Draw(6, 0);
 }
 
 void Renderer::deferredLightingLocalDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, XMVECTOR cameraPos) {
 	configureStates(RENDER_MODE::DEFERRED_LIGHTING_LOCAL_M);
+
+	const char* name = ToString(DEFERRED_LIGHTING_LOCAL_M);
+	MICROPROFILE_SCOPE_CSTR(name);
 
 	UINT vertexStride = sizeof(Vertex);
 	UINT offset = 0;
@@ -288,6 +297,10 @@ void Renderer::deferredLightingLocalDraw(const std::vector<std::pair<Object*, Me
 void Renderer::draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MODE renderObjType) {
 
 	configureStates(renderObjType);
+
+	const char* name = ToString(renderObjType);
+	MICROPROFILE_SCOPE_CSTR(name);
+
 	for (int i = 0; i < objQ.size(); i++) {
 
 		UINT vertexStride = sizeof(Vertex);
@@ -331,6 +344,10 @@ void Renderer::draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MO
 void Renderer::debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh& mesh, BoundVolumeEnum typeOfBound, RENDER_MODE renderObjType) {
 
 	configureStates(renderObjType);
+
+	const char* name = ToString(renderObjType);
+	MICROPROFILE_SCOPE_CSTR(name);
+
 	for (int i = 0; i < objQ.size(); i++) {
 
 		tre::Object* currObj = objQ[i].first;
@@ -375,7 +392,5 @@ void Renderer::debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh
 		}
 	}
 }
-
-
 
 }
