@@ -60,6 +60,10 @@ void Camera::updateCamera() {
 	camUpV = XMVector3Normalize(XMVector3Cross(camRightV, directionV));
 	camView = XMMatrixLookAtLH(camPositionV, camPositionV + directionV, camUpV);
 	camViewProjection = XMMatrixMultiply(camView, camProjection);
+	//{	// debug line
+	//	XMMATRIX debugCamViewProjection = XMMatrixMultiply(camView, XMMatrixPerspectiveFovLH(XMConvertToRadians(10.f), static_cast<float>(1920.f) / 1080.f , .1f, 250.f)); 
+	//	cameraFrustum = Maths::createFrustumFromViewProjectionMatrix(debugCamViewProjection); 
+	//}
 	cameraFrustum = Maths::createFrustumFromViewProjectionMatrix(camViewProjection);
 }
 

@@ -153,6 +153,7 @@ void Scene::cullObject(Frustum& frustum, BoundVolumeEnum typeOfBound) {
 				}
 				else {
 					pObj->_boundingVolumeColor[j] = tre::colorF(Colors::Red);
+					//addToQ = 1; //debug
 				}
 
 				break;
@@ -168,6 +169,7 @@ void Scene::cullObject(Frustum& frustum, BoundVolumeEnum typeOfBound) {
 				}
 				else {
 					pObj->_boundingVolumeColor[j] = tre::colorF(Colors::Red);
+					//addToQ = 1; //debug
 				}
 
 				break;
@@ -183,6 +185,7 @@ void Scene::cullObject(Frustum& frustum, BoundVolumeEnum typeOfBound) {
 				}
 				else {
 					pObj->_boundingVolumeColor[j] = tre::colorF(Colors::Red);
+					//addToQ = 1; //debug
 				}
 
 				break;
