@@ -31,6 +31,23 @@ enum RENDER_MODE {
 	SSAO_BLURRING_PASS
 };
 
+inline const char* ToString(RENDER_MODE rm)
+{
+	switch (rm)
+	{
+	case TRANSPARENT_M:						return "Transparent";
+	case OPAQUE_M:							return "Opaque";
+	case WIREFRAME_M:						return "Wireframe";
+	case SHADOW_M:							return "Shadow";
+	case DEFERRED_OPAQUE_M:					return "G-Buffer";
+	case DEFERRED_OPAQUE_LIGHTING_ENV_M:	return "Environment Lighting";
+	case DEFERRED_LIGHTING_LOCAL_M:			return "Local Lighting";
+	case SSAO_FULLSCREEN_PASS:				return "SSAO";
+	case SSAO_BLURRING_PASS:				return "SSAO Blur";
+	default:								return "[Unknown Rendering Mode]";
+	}
+}
+
 struct RendererSetting {
 	bool showBoundingVolume = false;
 	bool pauseLight = false;
