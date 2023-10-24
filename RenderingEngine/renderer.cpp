@@ -32,6 +32,7 @@ Renderer::Renderer(ID3D11Device* _device, ID3D11DeviceContext* _context, HWND wi
 	_deferredShaderLightingLocal.create(basePathWstr + L"shaders\\pixel_shader_deferred_lighting_local.bin", _device);
 	_ssaoPixelShader.create(basePathWstr + L"shaders\\pixel_shader_ssao_rendering.bin", _device);
 	_textureBlurPixelShader.create(basePathWstr + L"shaders\\pixel_shader_texture_blur.bin", _device);
+	_hdrPixelShader.create(basePathWstr + L"shaders\\pixel_shader_hdr_rendering.bin", _device);
 	_debugPixelShader.create(basePathWstr + L"shaders\\pixel_shader_debug.bin", _device);
 
 	_gBuffer.create(_device);
@@ -47,8 +48,14 @@ void Renderer::reset() {
 	_context->PSSetSamplers(3, 1, _sampler.pSamplerStateMipPtClamp.GetAddressOf());
 	_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	// clear ssao
 	_context->ClearRenderTargetView(_ssao.ssaoBlurredTexture2dRTV.Get(), Colors::Transparent);
+	_context->ClearRenderTargetView(_gBuffer.pRenderTargetViewDeferredAlbedo.Get(), tre::BACKGROUND_BLACK);
+	_context->ClearRenderTargetView(_gBuffer.pRenderTargetViewDeferredNormal.Get(), tre::BACKGROUND_BLACK);
+	_context->ClearRenderTargetView(_hdrBuffer.pRenderTargetViewHdrTexture.Get(), Colors::Transparent);
+	_context->ClearDepthStencilView(_depthbuffer.pDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+	this->clearSwapChainBuffer();
+	this->clearShadowBuffer();
 }
 
 void Renderer::setShadowBufferDrawSection(int idx) {
@@ -100,7 +107,7 @@ void Renderer::configureStates(RENDER_MODE renderObjType) {
 
 		_context->OMSetBlendState(_blendstate.transparency.Get(), NULL, 0xffffffff);
 		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0);
-		_context->OMSetRenderTargets(1, &currRenderTargetView, _depthbuffer.pDepthStencilView.Get());
+		_context->OMSetRenderTargets(1, _hdrBuffer.pRenderTargetViewHdrTexture.GetAddressOf(), _depthbuffer.pDepthStencilView.Get());
 		break;		
 
 	case tre::OPAQUE_M:
@@ -161,9 +168,6 @@ void Renderer::configureStates(RENDER_MODE renderObjType) {
 		_context->PSSetShader(_deferredShader.pShader.Get(), NULL, 0u);
 		_context->PSSetShaderResources(4, 1, nullSRV);
 		
-		_context->ClearDepthStencilView(_depthbuffer.pDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-		_context->ClearRenderTargetView(_gBuffer.pRenderTargetViewDeferredAlbedo.Get(), tre::BACKGROUND_BLACK);
-		_context->ClearRenderTargetView(_gBuffer.pRenderTargetViewDeferredNormal.Get(), tre::BACKGROUND_BLACK);
 		_context->OMSetRenderTargets(2, _gBuffer.rtvs, _depthbuffer.pDepthStencilView.Get());
 		_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
 		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
@@ -184,7 +188,7 @@ void Renderer::configureStates(RENDER_MODE renderObjType) {
 		_context->PSSetShaderResources(4, 1, _depthbuffer.pDepthStencilShaderRescView.GetAddressOf()); //depth
 		_context->PSSetShaderResources(7, 1, _ssao.ssaoBlurredTexture2dSRV.GetAddressOf()); // ssao
 
-		_context->OMSetRenderTargets(1, &currRenderTargetView, nullptr);
+		_context->OMSetRenderTargets(1, _hdrBuffer.pRenderTargetViewHdrTexture.GetAddressOf(), nullptr);
 		_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
 		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
 		break;
@@ -205,7 +209,6 @@ void Renderer::configureStates(RENDER_MODE renderObjType) {
 
 		_context->OMSetBlendState(_blendstate.lighting.Get(), NULL, 0xffffffff);
 		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0); // by default: read only depth test
-		//_context->OMSetRenderTargets(1, &currRenderTargetView, _depthbuffer.pDepthStencilView.Get());
 		_context->OMSetRenderTargets(1, _hdrBuffer.pRenderTargetViewHdrTexture.GetAddressOf(), _depthbuffer.pDepthStencilView.Get()); // draw to HDR floating point buffer
 		break;
 
@@ -243,20 +246,37 @@ void Renderer::configureStates(RENDER_MODE renderObjType) {
 		_context->OMSetRenderTargets(1, _ssao.ssaoBlurredTexture2dRTV.GetAddressOf(), nullptr);
 		break;
 
+	case tre::TONE_MAPPING_PASS: 
+		_context->IASetInputLayout(nullptr);
+		_context->VSSetShader(_vertexShaderFullscreenQuad.pShader.Get(), NULL, 0u);
+
+		_context->RSSetViewports(1, &_viewport.defaultViewport);
+		_context->RSSetState(_rasterizer.pRasterizerStateFCCW.Get());
+
+		_context->OMSetRenderTargets(0, nullptr, nullptr);
+		_context->PSSetShader(_hdrPixelShader.pShader.Get(), NULL, 0u);
+		_context->PSSetShaderResources(8, 1, _hdrBuffer.pShaderResViewHdrTexture.GetAddressOf()); // normal
+
+		_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
+		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0); // by default: read only depth test
+		_context->OMSetRenderTargets(1, &currRenderTargetView, nullptr);
+		break;
 	}
 }
 
 void Renderer::fullscreenPass(tre::RENDER_MODE mode) {
-	configureStates(mode);
 
 	const char* name = ToString(mode);
 	MICROPROFILE_SCOPE_CSTR(name);
 	PROFILE_GPU_SCOPED("Fullscreen Pass");
 
+	configureStates(mode);
+
 	_context->Draw(6, 0);
 }
 
 void Renderer::deferredLightingLocalDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, XMVECTOR cameraPos) {
+	if (objQ.size() == 0) return;
 
 	const char* name = ToString(DEFERRED_LIGHTING_LOCAL_M);
 	MICROPROFILE_SCOPE_CSTR(name);
@@ -300,6 +320,7 @@ void Renderer::deferredLightingLocalDraw(const std::vector<std::pair<Object*, Me
 
 
 void Renderer::draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MODE renderObjType) {
+	if (objQ.size() == 0) return;
 
 	const char* name = ToString(renderObjType);
 	MICROPROFILE_SCOPE_CSTR(name);
@@ -348,6 +369,7 @@ void Renderer::draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MO
 }
 
 void Renderer::debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh& mesh, BoundVolumeEnum typeOfBound, RENDER_MODE renderObjType) {
+	if (objQ.size() == 0) return;
 
 	const char* name = ToString(renderObjType);
 	MICROPROFILE_SCOPE_CSTR(name);

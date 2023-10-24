@@ -232,16 +232,14 @@ int main()
 			scene.updateBoundingVolume(renderer.setting.typeOfBound);
 		}
 
-		renderer.clearShadowBuffer();
-
 		renderer.configureStates(tre::RENDER_MODE::SHADOW_M);
 
 		// Shadow Draw
 		std::vector<XMMATRIX> lightViewProjs;
 		for (int i = 0; i < 4; i++) { // for 4 quads
-			
+
 			MICROPROFILE_SCOPE_CSTR("Build CSM View Projection Matrix");
-			
+
 			// projection matrix of camera with specific near and far plane
 			XMMATRIX projMatrix = XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0f), static_cast<float>(tre::SCREEN_WIDTH) / tre::SCREEN_HEIGHT, renderer.setting.csmPlaneIntervals[i], renderer.setting.csmPlaneIntervals[i + 1]);
 
@@ -272,7 +270,7 @@ int main()
 					tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, lightViewProjs[i], lightViewProjs, renderer.setting.csmPlaneIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), renderer.setting.csmDebugSwitch, renderer.setting.ssaoSwitch);
 
 					tre::Frustum lightFrustum = tre::Maths::createFrustumFromViewProjectionMatrix(lightViewProjs[i]);
-			
+
 					scene.cullObject(lightFrustum, renderer.setting.typeOfBound);
 					renderer.stats.shadowCascadeOpaqueObjs[i] = scene._culledOpaqueObjQ.size();
 				}
@@ -331,8 +329,6 @@ int main()
 			renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_MODE::DEFERRED_OPAQUE_M);
 		}
 
-		renderer.clearSwapChainBuffer();
-
 		// ssao pass
 		if (renderer.setting.ssaoSwitch) {
 			tre::ConstantBuffer::setSSAOKernalConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), renderer._ssao.ssaoKernalSamples, renderer.setting.ssaoSampleRadius);
@@ -354,10 +350,15 @@ int main()
 		}
 
 		// Draw all deferred lighting volume
-		if (!scene._wireframeObjQ.empty())
 		{
 			PROFILE_GPU_SCOPED("Local Lighting");
 			renderer.deferredLightingLocalDraw(scene._wireframeObjQ, cam.camPositionV);
+		}
+
+		// HDR
+		{
+			PROFILE_GPU_SCOPED("HDR");
+			renderer.fullscreenPass(tre::RENDER_MODE::TONE_MAPPING_PASS);
 		}
 
 		// Draw debug
