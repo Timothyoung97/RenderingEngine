@@ -16,6 +16,7 @@
 #include "inputlayout.h"
 #include "gbuffer.h"
 #include "ssao.h"
+#include "hdr.h"
 
 namespace tre {
 
@@ -28,7 +29,8 @@ enum RENDER_MODE {
 	DEFERRED_OPAQUE_LIGHTING_ENV_M,
 	DEFERRED_LIGHTING_LOCAL_M,
 	SSAO_FULLSCREEN_PASS,
-	SSAO_BLURRING_PASS
+	SSAO_BLURRING_PASS,
+	TONE_MAPPING_PASS
 };
 
 inline const char* ToString(RENDER_MODE rm)
@@ -94,9 +96,12 @@ public:
 	BlendState _blendstate;
 	DepthBuffer _depthbuffer;
 	
-	// Misc
+	// Buffers
 	GBuffer _gBuffer;
 	SSAO _ssao;
+	HdrBuffer _hdrBuffer;
+
+	// Misc
 	RendererSetting setting;
 	RendererStats stats;
 

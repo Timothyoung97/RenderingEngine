@@ -36,6 +36,7 @@ Renderer::Renderer(ID3D11Device* _device, ID3D11DeviceContext* _context, HWND wi
 
 	_gBuffer.create(_device);
 	_ssao.create(_device, _context);
+	_hdrBuffer.create(_device);
 }
 
 void Renderer::reset() {
@@ -204,7 +205,8 @@ void Renderer::configureStates(RENDER_MODE renderObjType) {
 
 		_context->OMSetBlendState(_blendstate.lighting.Get(), NULL, 0xffffffff);
 		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0); // by default: read only depth test
-		_context->OMSetRenderTargets(1, &currRenderTargetView, _depthbuffer.pDepthStencilView.Get());
+		//_context->OMSetRenderTargets(1, &currRenderTargetView, _depthbuffer.pDepthStencilView.Get());
+		_context->OMSetRenderTargets(1, _hdrBuffer.pRenderTargetViewHdrTexture.GetAddressOf(), _depthbuffer.pDepthStencilView.Get()); // draw to HDR floating point buffer
 		break;
 
 	case tre::SSAO_FULLSCREEN_PASS:
