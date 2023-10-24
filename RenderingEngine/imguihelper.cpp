@@ -44,6 +44,11 @@ void ImguiHelper::render() {
 		ImGui::SliderFloat("SSAO Sample Radius", &pRendererSetting->ssaoSampleRadius, .000f, 2.f, "%.6f");
 	}
 
+	{	// HDR
+		ImGui::SeparatorText("HDR");
+		ImGui::SliderFloat("HDR Exposure", &pRendererSetting->exposure, .000f, 10.f, "%.3f");
+	}
+
 	{	// Control for import models
 
 		ImGui::SeparatorText("Test Object Control");
@@ -120,6 +125,7 @@ void ImguiHelper::render() {
 		ImGui::BulletText("Dir Light");
 		ImGui::SliderFloat("Yaw", &pScene->dirlightYaw, .0f, 360.f);
 		ImGui::SliderFloat("Pitch", &pScene->dirlightPitch, .0f, 89.f);
+		ImGui::SliderFloat("Diffuse", &pScene->dirLightDiffuse, .0f, 100.f);
 	}
 
 	{	// farplane intervals
