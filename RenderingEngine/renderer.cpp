@@ -255,11 +255,12 @@ void Renderer::fullscreenPass(tre::RENDER_MODE mode) {
 }
 
 void Renderer::deferredLightingLocalDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, XMVECTOR cameraPos) {
-	configureStates(RENDER_MODE::DEFERRED_LIGHTING_LOCAL_M);
 
 	const char* name = ToString(DEFERRED_LIGHTING_LOCAL_M);
 	MICROPROFILE_SCOPE_CSTR(name);
 	PROFILE_GPU_SCOPED("Deferred Local Light Draw");
+
+	configureStates(RENDER_MODE::DEFERRED_LIGHTING_LOCAL_M);
 
 	UINT vertexStride = sizeof(Vertex);
 	UINT offset = 0;
@@ -297,11 +298,12 @@ void Renderer::deferredLightingLocalDraw(const std::vector<std::pair<Object*, Me
 
 
 void Renderer::draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MODE renderObjType) {
-	configureStates(renderObjType);
 
 	const char* name = ToString(renderObjType);
 	MICROPROFILE_SCOPE_CSTR(name);
 	PROFILE_GPU_SCOPED("Forward Draw");
+	
+	configureStates(renderObjType);
 
 	for (int i = 0; i < objQ.size(); i++) {
 
@@ -345,11 +347,11 @@ void Renderer::draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MO
 
 void Renderer::debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh& mesh, BoundVolumeEnum typeOfBound, RENDER_MODE renderObjType) {
 
-	configureStates(renderObjType);
-
 	const char* name = ToString(renderObjType);
 	MICROPROFILE_SCOPE_CSTR(name);
 	PROFILE_GPU_SCOPED("Debug Draw");
+
+	configureStates(renderObjType);
 
 	for (int i = 0; i < objQ.size(); i++) {
 

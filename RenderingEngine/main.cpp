@@ -326,7 +326,6 @@ int main()
 		}
 
 		// 1st pass deferred normal & albedo
-		renderer.configureStates(tre::RENDER_MODE::DEFERRED_OPAQUE_M);
 		{
 			PROFILE_GPU_SCOPED("G-Buffer");
 			renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_MODE::DEFERRED_OPAQUE_M);
