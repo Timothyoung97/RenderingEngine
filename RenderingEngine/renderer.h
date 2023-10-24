@@ -59,6 +59,7 @@ struct RendererSetting {
 	float ssaoSampleRadius = .1f;
 	bool csmDebugSwitch = false;
 	float csmPlaneIntervals[5] = { 1.0f, 20.f, 100.f, 250.f, 500.f };
+	float exposure = 1.0f;
 	XMFLOAT4 csmPlaneIntervalsF = { csmPlaneIntervals[1], csmPlaneIntervals[2], csmPlaneIntervals[3], csmPlaneIntervals[4] };
 };
 

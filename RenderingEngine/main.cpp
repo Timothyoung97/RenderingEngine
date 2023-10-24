@@ -42,7 +42,6 @@ int main()
 	// set random seed
 	srand((uint32_t)time(NULL));
 
-
 	//Create Window
 	tre::Window window("RenderingEngine", tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);
 
@@ -355,6 +354,7 @@ int main()
 			renderer.deferredLightingLocalDraw(scene._wireframeObjQ, cam.camPositionV);
 		}
 
+		tre::ConstantBuffer::setHDRConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), renderer.setting.exposure);
 		// HDR
 		{
 			PROFILE_GPU_SCOPED("HDR");

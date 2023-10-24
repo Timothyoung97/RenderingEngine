@@ -47,6 +47,11 @@ struct constBufferSSAOKernal {
 	XMFLOAT3 pad;
 };
 
+struct constBufferHDR {
+	float exposure;
+	XMFLOAT3 pad;
+};
+
 class ConstantBuffer {
 public:
 	static void setCamConstBuffer(
@@ -67,6 +72,8 @@ public:
 	static void setLightingVolumeConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, int currPtLightIdx);
 
 	static void setSSAOKernalConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, const std::vector<XMFLOAT4>& kernalSamples, float sampleRadius);
+
+	static void setHDRConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, float exposure);
 };
 
 }
