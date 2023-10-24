@@ -10,6 +10,9 @@ void LightResource::create(ID3D11Device* device, ID3D11DeviceContext* context) {
 	_device = device;
 	_context = context;
 
+	std::wstring basePathWstr = tre::Utility::getBasePathWstr();
+	computeShaderPtLightMovement.create(basePathWstr + L"shaders\\compute_shader_ptLight_movement.bin", _device);
+	
 	// persistent
 	D3D11_BUFFER_DESC lightBufferDescGPU;
 	lightBufferDescGPU.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE;
@@ -23,8 +26,26 @@ void LightResource::create(ID3D11Device* device, ID3D11DeviceContext* context) {
 		&lightBufferDescGPU, NULL, pLightBufferGPU.GetAddressOf()
 	));
 
-	std::wstring basePathWstr = tre::Utility::getBasePathWstr();
-	computeShaderPtLightMovement.create(basePathWstr + L"shaders\\compute_shader_ptLight_movement.bin", _device);
+	// Create buffer on CPU side
+	D3D11_BUFFER_DESC lightBufferDescCPU;
+	lightBufferDescCPU.BindFlags = 0;
+	lightBufferDescCPU.Usage = D3D11_USAGE_STAGING;
+	lightBufferDescCPU.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+	lightBufferDescCPU.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+	lightBufferDescCPU.ByteWidth = static_cast<UINT>(sizeof(tre::PointLight)) * maxPointLightNum;
+	lightBufferDescCPU.StructureByteStride = static_cast<UINT>(sizeof(tre::PointLight));
+
+	ID3D11Buffer* pLightBufferCPU0;
+	CHECK_DX_ERROR(_device->CreateBuffer(
+		&lightBufferDescCPU, NULL, &pLightBufferCPU0
+	));
+	doubleBuffer[0] = pLightBufferCPU0;
+
+	ID3D11Buffer* pLightBufferCPU1;
+	CHECK_DX_ERROR(_device->CreateBuffer(
+		&lightBufferDescCPU, NULL, &pLightBufferCPU1
+	));
+	doubleBuffer[1] = pLightBufferCPU1;
 }
 
 void LightResource::updatePixelShaderBuffer() {
@@ -117,25 +138,11 @@ PointLight LightResource::addPointLight(XMFLOAT3 pos, XMFLOAT3 att, XMFLOAT4 dif
 }
 
 void LightResource::updatePtLightCPU() {
-	// Create buffer on CPU side
-	D3D11_BUFFER_DESC lightBufferDescCPU;
-	lightBufferDescCPU.BindFlags = 0;
-	lightBufferDescCPU.Usage = D3D11_USAGE_STAGING;
-	lightBufferDescCPU.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
-	lightBufferDescCPU.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-	lightBufferDescCPU.ByteWidth = static_cast<UINT>(sizeof(tre::PointLight)) * maxPointLightNum;
-	lightBufferDescCPU.StructureByteStride = static_cast<UINT>(sizeof(tre::PointLight));
 
-	ID3D11Buffer* pLightBufferCPU;
-
-	CHECK_DX_ERROR(_device->CreateBuffer(
-		&lightBufferDescCPU, NULL, &pLightBufferCPU
-	));
-
-	_context->CopyResource(pLightBufferCPU, pLightBufferGPU.Get());
+	_context->CopyResource(doubleBuffer[writeIndex], pLightBufferGPU.Get());
 
 	D3D11_MAPPED_SUBRESOURCE data;
-	CHECK_DX_ERROR(_context->Map(pLightBufferCPU, 0, D3D11_MAP_READ, 0u, &data));
+	CHECK_DX_ERROR(_context->Map(doubleBuffer[readIndex], 0, D3D11_MAP_READ, 0u, &data));
 
 	readOnlyPointLightQ.clear();
 
@@ -145,6 +152,9 @@ void LightResource::updatePtLightCPU() {
 		readOnlyPointLightQ.push_back(pPtLight[i]);
 	}
 
-	_context->Unmap(pLightBufferCPU, 0);
+	_context->Unmap(doubleBuffer[readIndex], 0);
+
+	readIndex ^= 1;
+	writeIndex ^= 1;
 }
 }

@@ -43,6 +43,10 @@ public:
 	ComPtr<ID3D11UnorderedAccessView> pLightUnorderedAccessView;
 	ID3D11UnorderedAccessView* nullUAV[1] = { nullptr };
 
+	int readIndex = 0;
+	int writeIndex = readIndex ^ 1;
+	ID3D11Buffer* doubleBuffer[2] = { nullptr, nullptr };
+
 	int numOfLights = 0;
 	int maxPointLightNum = 9;
 
