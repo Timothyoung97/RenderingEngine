@@ -78,7 +78,8 @@ int main()
 			"All Files", "*" ,
 			"glTF Files (.gltf)", "*.gltf",
 			"obj Files (.obj)", "*.obj",
-		}
+		},
+		pfd::opt::force_path
 	);
 
 	if (f.result().size()) {
@@ -258,7 +259,7 @@ int main()
 		}
 
 		{
-			MICROPROFILE_SCOPEGPUI("CSM Quad Draw", MP_STEELBLUE);
+			PROFILE_GPU_SCOPED("CSM Quad Draw");
 
 			for (int i = 0; i < 4; i++) {
 
@@ -294,13 +295,15 @@ int main()
 		deviceAndContext.context.Get()->CSSetShader(scene.lightResc.computeShaderPtLightMovement.pShader.Get(), NULL, 0u);
 		deviceAndContext.context.Get()->CSSetUnorderedAccessViews(0, 1, scene.lightResc.pLightUnorderedAccessView.GetAddressOf(), nullptr);
 		{
-			MICROPROFILE_SCOPEGPUI("Compute Shader", MP_DODGERBLUE);
+			PROFILE_GPU_SCOPED("Compute Shader");
 			deviceAndContext.context.Get()->Dispatch(tre::Maths::divideAndRoundUp(scene.lightResc.numOfLights, 4u), 1u, 1u);
 		}
 		deviceAndContext.context.Get()->CSSetUnorderedAccessViews(0, 1, scene.lightResc.nullUAV, nullptr);
 
 		{
 			MICROPROFILE_SCOPE_CSTR("CPU Point Light Update");
+			PROFILE_GPU_SCOPED("CPU Point Light Update");
+
 			scene.lightResc.updatePtLightCPU();
 			scene._pointLightObjQ.clear();
 			scene._wireframeObjQ.clear();
@@ -325,7 +328,7 @@ int main()
 		// 1st pass deferred normal & albedo
 		renderer.configureStates(tre::RENDER_MODE::DEFERRED_OPAQUE_M);
 		{
-			MICROPROFILE_SCOPEGPUI("G-Buffer", MP_POWDERBLUE);
+			PROFILE_GPU_SCOPED("G-Buffer");
 			renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_MODE::DEFERRED_OPAQUE_M);
 		}
 
@@ -334,40 +337,54 @@ int main()
 		// ssao pass
 		if (renderer.setting.ssaoSwitch) {
 			tre::ConstantBuffer::setSSAOKernalConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), renderer._ssao.ssaoKernalSamples, renderer.setting.ssaoSampleRadius);
-			MICROPROFILE_SCOPEGPUI("SSAO Pass", MP_MIDNIGHTBLUE);
+			PROFILE_GPU_SCOPED("SSAO Pass");
 			renderer.fullscreenPass(tre::RENDER_MODE::SSAO_FULLSCREEN_PASS);
 			renderer.fullscreenPass(tre::RENDER_MODE::SSAO_BLURRING_PASS);
 		}
 
 		// 2nd pass deferred lighting
 		{
-			MICROPROFILE_SCOPEGPUI("Environmental Lighting", MP_PALEVIOLETRED4);
+			PROFILE_GPU_SCOPED("Environmental Lighting");
 			renderer.fullscreenPass(tre::RENDER_MODE::DEFERRED_OPAQUE_LIGHTING_ENV_M);
 		}
 
 		// Draw all transparent objects
 		{
-			MICROPROFILE_SCOPEGPUI("Transparent Obj", MP_YELLOWGREEN);
+			PROFILE_GPU_SCOPED("Transparent Obj");
 			renderer.draw(scene._culledTransparentObjQ, tre::RENDER_MODE::TRANSPARENT_M);
 		}
 
 		// Draw all deferred lighting volume
+		if (!scene._wireframeObjQ.empty())
 		{
-			MICROPROFILE_SCOPEGPUI("Local Lighting", MP_PALETURQUOISE);
+			PROFILE_GPU_SCOPED("Local Lighting");
 			renderer.deferredLightingLocalDraw(scene._wireframeObjQ, cam.camPositionV);
 		}
 
 		// Draw debug
 		if (renderer.setting.showBoundingVolume) {
-			MICROPROFILE_SCOPEGPUI("Bounding Volume Wireframe", MP_ORANGE3);
+			PROFILE_GPU_SCOPED("Bounding Volume Wireframe");
 			renderer.draw(scene._wireframeObjQ, tre::RENDER_MODE::WIREFRAME_M);
 			renderer.debugDraw(scene._culledOpaqueObjQ, scene._debugMeshes[renderer.setting.meshIdx], renderer.setting.typeOfBound, tre::RENDER_MODE::WIREFRAME_M);
 			renderer.debugDraw(scene._culledTransparentObjQ, scene._debugMeshes[renderer.setting.meshIdx], renderer.setting.typeOfBound, tre::RENDER_MODE::WIREFRAME_M);
 		}
 
-		imguiHelper.render();
+		{
+			MICROPROFILE_SCOPE_CSTR("IMGUI");
+			PROFILE_GPU_SCOPED("IMGUI");
+			imguiHelper.render();
+		}
 
-		CHECK_DX_ERROR(renderer._swapchain.mainSwapchain->Present( 0, 0) );
+		{
+			MICROPROFILE_SCOPE_CSTR("Swap Chain Present");
+
+			const UINT kSyncInterval = 0; // Need to sync CPU frame to this function if we want V-SYNC
+
+			// When using sync interval 0, it is recommended to always pass the tearing flag when it is supported.
+			const UINT presentFlags = (kSyncInterval == 0 && renderer._swapchain.m_bTearingSupported) ? DXGI_PRESENT_ALLOW_TEARING : 0;
+
+			CHECK_DX_ERROR(renderer._swapchain.mainSwapchain->Present(kSyncInterval, presentFlags));
+		}
 
 		scene.updateDirLight();
 

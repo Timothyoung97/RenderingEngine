@@ -1,8 +1,7 @@
 #pragma once
 
 #include <dxgi.h>
-#include <dxgi1_2.h>
-#include <dxgi1_3.h>
+#include <dxgi1_6.h>
 #include <dxgidebug.h>
 #include <wrl/client.h>
 
@@ -17,9 +16,8 @@ class Factory {
 const GUID dxgi_debug_all = { 0xe48ae283, 0xda80, 0x490b, { 0x87, 0xe6, 0x43, 0xe9, 0xa9, 0xcf, 0xda, 0x8 } };
 
 public:
-	ComPtr<IDXGIFactory2> dxgiFactory2;
+	ComPtr<IDXGIFactory6> dxgiFactory6;
 
 	void create();
-
 };
 }

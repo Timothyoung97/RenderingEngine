@@ -6,7 +6,11 @@ using Microsoft::WRL::ComPtr;
 
 namespace tre {
 
-void Swapchain::create(ComPtr<IDXGIFactory2> dxgiFactory, ComPtr<ID3D11Device> device, HWND window) {
+void Swapchain::create(ComPtr<IDXGIFactory6> dxgiFactory, ComPtr<ID3D11Device> device, HWND window) {
+
+	BOOL tearingSupported{};
+	CHECK_DX_ERROR(dxgiFactory->CheckFeatureSupport(DXGI_FEATURE_PRESENT_ALLOW_TEARING, &tearingSupported, sizeof(tearingSupported)));
+	m_bTearingSupported = tearingSupported;
 
 	DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
 	swapChainDesc.Width = tre::SCREEN_WIDTH;
@@ -19,7 +23,7 @@ void Swapchain::create(ComPtr<IDXGIFactory2> dxgiFactory, ComPtr<ID3D11Device> d
 	swapChainDesc.Scaling = DXGI_SCALING_NONE;
 	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 	swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
-	swapChainDesc.Flags = 0;
+	swapChainDesc.Flags = m_bTearingSupported ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0;
 
 	CHECK_DX_ERROR(dxgiFactory->CreateSwapChainForHwnd(
 		device.Get(), window, &swapChainDesc, NULL, NULL, tempSwapchain.GetAddressOf()));

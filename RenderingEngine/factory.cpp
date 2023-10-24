@@ -6,7 +6,7 @@ void Factory::create() {
 
 	//Create dxgiFactory
 	CHECK_DX_ERROR(CreateDXGIFactory2(
-		DXGI_CREATE_FACTORY_DEBUG, __uuidof(IDXGIFactory2), &dxgiFactory2
+		DXGI_CREATE_FACTORY_DEBUG, __uuidof(IDXGIFactory6), &dxgiFactory6
 	));
 
 	//Create DXGI debug layer

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <d3d11.h>
-#include <dxgi1_4.h>
+#include <dxgi1_6.h>
 #include <wrl/client.h>
 
 using Microsoft::WRL::ComPtr;
@@ -14,9 +14,11 @@ public:
 	ComPtr<IDXGISwapChain3> mainSwapchain;
 
 	void create(
-		ComPtr<IDXGIFactory2> dxgiFactory,
+		ComPtr<IDXGIFactory6> dxgiFactory,
 		ComPtr<ID3D11Device> device,
 		HWND window
 	);
+
+	bool m_bTearingSupported = false;
 };
 }

@@ -14,7 +14,7 @@ namespace tre {
 
 Renderer::Renderer(ID3D11Device* _device, ID3D11DeviceContext* _context, HWND window) : _device(_device), _context(_context) {
 	_factory.create();
-	_swapchain.create(_factory.dxgiFactory2, _device, window);
+	_swapchain.create(_factory.dxgiFactory6, _device, window);
 	_blendstate.create(_device);
 	_rasterizer.create(_device);
 	_depthbuffer.create(_device, tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);
@@ -249,7 +249,7 @@ void Renderer::fullscreenPass(tre::RENDER_MODE mode) {
 
 	const char* name = ToString(mode);
 	MICROPROFILE_SCOPE_CSTR(name);
-	MICROPROFILE_SCOPEGPUI("Fullscreen Pass", MP_ROYALBLUE);
+	PROFILE_GPU_SCOPED("Fullscreen Pass");
 
 	_context->Draw(6, 0);
 }
@@ -259,7 +259,7 @@ void Renderer::deferredLightingLocalDraw(const std::vector<std::pair<Object*, Me
 
 	const char* name = ToString(DEFERRED_LIGHTING_LOCAL_M);
 	MICROPROFILE_SCOPE_CSTR(name);
-	MICROPROFILE_SCOPEGPUI("Deferred Local Light Draw", MP_LIGHTSLATEBLUE);
+	PROFILE_GPU_SCOPED("Deferred Local Light Draw");
 
 	UINT vertexStride = sizeof(Vertex);
 	UINT offset = 0;
@@ -301,7 +301,7 @@ void Renderer::draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MO
 
 	const char* name = ToString(renderObjType);
 	MICROPROFILE_SCOPE_CSTR(name);
-	MICROPROFILE_SCOPEGPUI("Forward Draw", MP_LIGHTBLUE);
+	PROFILE_GPU_SCOPED("Forward Draw");
 
 	for (int i = 0; i < objQ.size(); i++) {
 
@@ -349,7 +349,7 @@ void Renderer::debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh
 
 	const char* name = ToString(renderObjType);
 	MICROPROFILE_SCOPE_CSTR(name);
-	MICROPROFILE_SCOPEGPUI("Debug Draw", MP_DEEPSKYBLUE);
+	PROFILE_GPU_SCOPED("Debug Draw");
 
 	for (int i = 0; i < objQ.size(); i++) {
 
