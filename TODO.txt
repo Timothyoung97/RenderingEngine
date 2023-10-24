@@ -1,7 +1,4 @@
 Graphics Tasks:
-• Performance Profiler
-    • https://github.com/jonasmr/microprofile
-    • https://github.com/bombomby/optick
 • Instanced Rendering
     • Draw multiple primitives in single Draw Calls
     • Batch primitives with similar Textures & Meshes
@@ -119,6 +116,9 @@ Done:
     • Implement deferred lighting using CS (directional light only)
 • Update point lights positions using CS
 • SSAO
+• Performance Profiler
+    • https://github.com/jonasmr/microprofile
+    • https://github.com/bombomby/optick
 
 //////////////////////////////////////////////////////////////////////////////
 
