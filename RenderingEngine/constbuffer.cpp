@@ -143,7 +143,7 @@ void ConstantBuffer::setSSAOKernalConstBuffer(ID3D11Device* device, ID3D11Device
 	context->PSSetConstantBuffers(3u, 1u, &pConstBuffer);
 }
 
-void ConstantBuffer::setHDRConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, float exposure) {
+void ConstantBuffer::setHDRConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, float middleGrey) {
 	D3D11_BUFFER_DESC constantBufferDescModel;
 	constantBufferDescModel.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	constantBufferDescModel.Usage = D3D11_USAGE_DEFAULT;
@@ -153,7 +153,7 @@ void ConstantBuffer::setHDRConstBuffer(ID3D11Device* device, ID3D11DeviceContext
 	constantBufferDescModel.StructureByteStride = 0u;
 
 	constBufferHDR constBufferHDR;
-	constBufferHDR.middleGrey = exposure;
+	constBufferHDR.middleGrey = middleGrey;
 
 	//map to data to subresouce
 	D3D11_SUBRESOURCE_DATA csd = {};
@@ -167,6 +167,34 @@ void ConstantBuffer::setHDRConstBuffer(ID3D11Device* device, ID3D11DeviceContext
 
 	// to set const shader for ssao
 	context->PSSetConstantBuffers(4u, 1u, &pConstBuffer);
+}
+
+void ConstantBuffer::setLuminaceConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, XMFLOAT2 luminance, float timeCoeff) {
+	D3D11_BUFFER_DESC constantBufferDescModel;
+	constantBufferDescModel.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	constantBufferDescModel.Usage = D3D11_USAGE_DEFAULT;
+	constantBufferDescModel.CPUAccessFlags = 0u;
+	constantBufferDescModel.MiscFlags = 0u;
+	constantBufferDescModel.ByteWidth = sizeof(constBufferHDR);
+	constantBufferDescModel.StructureByteStride = 0u;
+
+	constBufferLuminance constBufferLumin;
+	constBufferLumin.luminance = luminance;
+	constBufferLumin.timeCoeff = timeCoeff;
+	constBufferLumin.numPixel = SCREEN_HEIGHT * SCREEN_WIDTH;
+	constBufferLumin.viewportDimension = XMINT2(SCREEN_WIDTH, SCREEN_HEIGHT);
+
+	//map to data to subresouce
+	D3D11_SUBRESOURCE_DATA csd = {};
+	csd.pSysMem = &constBufferLumin;
+
+	ID3D11Buffer* pConstBuffer;
+
+	CHECK_DX_ERROR(device->CreateBuffer(
+		&constantBufferDescModel, &csd, &pConstBuffer
+	));
+
+	context->CSSetConstantBuffers(0u, 1u, &pConstBuffer);
 }
 
 }
