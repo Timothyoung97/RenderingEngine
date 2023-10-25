@@ -3,6 +3,8 @@
 #include <d3d11.h>
 #include <wrl/client.h>
 
+#include "shader.h"
+
 using Microsoft::WRL::ComPtr;
 
 namespace tre {
@@ -10,8 +12,13 @@ namespace tre {
 class HdrBuffer {
 
 public:
-	ID3D11Device* _deivce;
+	ID3D11Device* _device;
 	ID3D11DeviceContext* _context;
+
+	ComputeShader computeShaderLuminancehistogram;
+	ComputeShader computeShaderLuminanceAverage;
+
+	ID3D11UnorderedAccessView* nullUAV[1] = { nullptr };
 
 	ComPtr<ID3D11Texture2D> pHdrBufferTexture;
 	ComPtr<ID3D11ShaderResourceView> pShaderResViewHdrTexture;
@@ -25,5 +32,8 @@ public:
 	ComPtr<ID3D11UnorderedAccessView> pLuminAvgUAV;
 
 	void create(ID3D11Device* device, ID3D11DeviceContext* context);
+
+	void dispatchHistogram();
+	void dispatchAverage();
 };
 }

@@ -2,14 +2,20 @@
 
 #include "window.h"
 #include "dxdebug.h"
+#include "utility.h"
+#include "maths.h"
 
 namespace tre {
 
 void HdrBuffer::create(ID3D11Device* device, ID3D11DeviceContext* context) {
 
-	_deivce = device;
+	_device = device;
 	_context = context;
 
+	std::wstring basePathWstr = tre::Utility::getBasePathWstr();
+	computeShaderLuminancehistogram.create(basePathWstr + L"shaders\\compute_shader_lumin_histogram.bin", _device);
+	computeShaderLuminanceAverage.create(basePathWstr + L"shaders\\compute_shader_lumin_average.bin", _device);
+	
 	// HDR Texture to be rendered
 	D3D11_TEXTURE2D_DESC hdrBufferDesc;
 	hdrBufferDesc.Width = SCREEN_WIDTH;
@@ -24,7 +30,7 @@ void HdrBuffer::create(ID3D11Device* device, ID3D11DeviceContext* context) {
 	hdrBufferDesc.CPUAccessFlags = 0u;
 	hdrBufferDesc.MiscFlags = 0;
 	
-	CHECK_DX_ERROR(device->CreateTexture2D(
+	CHECK_DX_ERROR(_device->CreateTexture2D(
 		&hdrBufferDesc, nullptr, pHdrBufferTexture.GetAddressOf()
 	));
 
@@ -33,7 +39,7 @@ void HdrBuffer::create(ID3D11Device* device, ID3D11DeviceContext* context) {
 	shaderResViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	shaderResViewDesc.Texture2D = D3D11_TEX2D_SRV(0, 1);
 	
-	CHECK_DX_ERROR(device->CreateShaderResourceView(
+	CHECK_DX_ERROR(_device->CreateShaderResourceView(
 		pHdrBufferTexture.Get(), &shaderResViewDesc, pShaderResViewHdrTexture.GetAddressOf()
 	));
 
@@ -43,7 +49,7 @@ void HdrBuffer::create(ID3D11Device* device, ID3D11DeviceContext* context) {
 	rtvd.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 	rtvd.Texture2D.MipSlice = 0;
 	
-	CHECK_DX_ERROR(device->CreateRenderTargetView(
+	CHECK_DX_ERROR(_device->CreateRenderTargetView(
 		pHdrBufferTexture.Get(), &rtvd, pRenderTargetViewHdrTexture.GetAddressOf()
 	));
 
@@ -60,21 +66,21 @@ void HdrBuffer::create(ID3D11Device* device, ID3D11DeviceContext* context) {
 	D3D11_SUBRESOURCE_DATA histogramData;
 	histogramData.pSysMem = &defaultHistogramValue;
 
-	CHECK_DX_ERROR(device->CreateBuffer(
+	CHECK_DX_ERROR(_device->CreateBuffer(
 		&pLuminHistogramBufferDesc, &histogramData, pLuminHistogram.GetAddressOf()
 	));
 
 	D3D11_BUFFER_UAV pLuminHistogramBufferUAV;
 	pLuminHistogramBufferUAV.NumElements = 256;
 	pLuminHistogramBufferUAV.FirstElement = 0;
-	pLuminHistogramBufferUAV.Flags = D3D11_BUFFER_UAV_FLAG_RAW;
+	pLuminHistogramBufferUAV.Flags = 0u;
 
 	D3D11_UNORDERED_ACCESS_VIEW_DESC pLuminHistogramUAVDesc;
-	pLuminHistogramUAVDesc.Format = DXGI_FORMAT_R16_TYPELESS;
+	pLuminHistogramUAVDesc.Format = DXGI_FORMAT_R32_UINT;
 	pLuminHistogramUAVDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
 	pLuminHistogramUAVDesc.Buffer = pLuminHistogramBufferUAV;
 
-	CHECK_DX_ERROR(device->CreateUnorderedAccessView(
+	CHECK_DX_ERROR(_device->CreateUnorderedAccessView(
 		pLuminHistogram.Get(), &pLuminHistogramUAVDesc, pLuminHistogramUAV.GetAddressOf()
 	));
 
@@ -91,7 +97,7 @@ void HdrBuffer::create(ID3D11Device* device, ID3D11DeviceContext* context) {
 	D3D11_SUBRESOURCE_DATA luminAvgData;
 	luminAvgData.pSysMem = &defaultLuminAvg;
 
-	CHECK_DX_ERROR(device->CreateBuffer(
+	CHECK_DX_ERROR(_device->CreateBuffer(
 		&pLuminAvgBufferDesc, &luminAvgData, pLuminAvg.GetAddressOf()
 	));
 
@@ -104,22 +110,45 @@ void HdrBuffer::create(ID3D11Device* device, ID3D11DeviceContext* context) {
 	pLuminAvgSRVResc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
 	pLuminAvgSRVResc.Buffer = pLuminAvgBufferSRV;
 
-	CHECK_DX_ERROR(device->CreateShaderResourceView(
+	CHECK_DX_ERROR(_device->CreateShaderResourceView(
 		pLuminAvg.Get(), &pLuminAvgSRVResc, pLuminAvgSRV.GetAddressOf()
 	));
 
 	D3D11_BUFFER_UAV pLuminAvgBufferUAV;
 	pLuminAvgBufferUAV.NumElements = 1;
 	pLuminAvgBufferUAV.FirstElement = 0;
-	pLuminAvgBufferUAV.Flags = D3D11_BUFFER_UAV_FLAG_RAW;
+	pLuminAvgBufferUAV.Flags = 0u;
 
 	D3D11_UNORDERED_ACCESS_VIEW_DESC pLuminAvgUAVDesc;
-	pLuminAvgUAVDesc.Format = DXGI_FORMAT_R16_TYPELESS;
+	pLuminAvgUAVDesc.Format = DXGI_FORMAT_R32_FLOAT;
 	pLuminAvgUAVDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
 	pLuminAvgUAVDesc.Buffer = pLuminAvgBufferUAV;
 
-	CHECK_DX_ERROR(device->CreateUnorderedAccessView(
+	CHECK_DX_ERROR(_device->CreateUnorderedAccessView(
 		pLuminAvg.Get(), &pLuminAvgUAVDesc, pLuminAvgUAV.GetAddressOf()
 	));
+}
+
+void HdrBuffer::dispatchHistogram() {
+	_context->CSSetShader(computeShaderLuminancehistogram.pShader.Get(), NULL, 0u);
+	_context->CSGetShaderResources(0u, 1u, pShaderResViewHdrTexture.GetAddressOf());
+	_context->CSSetUnorderedAccessViews(0, 1, pLuminHistogramUAV.GetAddressOf(), nullptr);
+	{
+		PROFILE_GPU_SCOPED("Compute Shader Luminace Histogram");
+		_context->Dispatch(tre::Maths::divideAndRoundUp(SCREEN_WIDTH, 16u), tre::Maths::divideAndRoundUp(SCREEN_HEIGHT, 16u), 1u);
+	}
+	_context->CSSetUnorderedAccessViews(0, 1, nullUAV, nullptr);
+}
+
+void HdrBuffer::dispatchAverage() {
+	_context->CSSetShader(computeShaderLuminanceAverage.pShader.Get(), NULL, 0u);
+	_context->CSSetUnorderedAccessViews(0u, 1, pLuminHistogramUAV.GetAddressOf(), nullptr);
+	_context->CSSetUnorderedAccessViews(1u, 1, pLuminAvgUAV.GetAddressOf(), nullptr);
+	{
+		PROFILE_GPU_SCOPED("Compute Shader Luminace Average");
+		_context->Dispatch(1u, 1u, 1u);
+	}
+	_context->CSSetUnorderedAccessViews(0u, 1, nullUAV, nullptr);
+	_context->CSSetUnorderedAccessViews(1u, 1, nullUAV, nullptr);
 }
 }
