@@ -67,10 +67,10 @@ void HdrBuffer::create(ID3D11Device* device, ID3D11DeviceContext* context) {
 	D3D11_BUFFER_UAV pLuminHistogramBufferUAV;
 	pLuminHistogramBufferUAV.NumElements = 256;
 	pLuminHistogramBufferUAV.FirstElement = 0;
-	pLuminHistogramBufferUAV.Flags = D3D11_BUFFER_UAV_FLAG_COUNTER;
+	pLuminHistogramBufferUAV.Flags = D3D11_BUFFER_UAV_FLAG_RAW;
 
 	D3D11_UNORDERED_ACCESS_VIEW_DESC pLuminHistogramUAVDesc;
-	pLuminHistogramUAVDesc.Format = DXGI_FORMAT_UNKNOWN;
+	pLuminHistogramUAVDesc.Format = DXGI_FORMAT_R32_TYPELESS;
 	pLuminHistogramUAVDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
 	pLuminHistogramUAVDesc.Buffer = pLuminHistogramBufferUAV;
 
@@ -80,7 +80,7 @@ void HdrBuffer::create(ID3D11Device* device, ID3D11DeviceContext* context) {
 
 	// Luminance Average
 	D3D11_BUFFER_DESC pLuminAvgBufferDesc;
-	pLuminAvgBufferDesc.BindFlags = D3D11_BIND_UNORDERED_ACCESS;
+	pLuminAvgBufferDesc.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE;
 	pLuminAvgBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	pLuminAvgBufferDesc.CPUAccessFlags = 0u;
 	pLuminAvgBufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_ALLOW_RAW_VIEWS;
@@ -100,7 +100,7 @@ void HdrBuffer::create(ID3D11Device* device, ID3D11DeviceContext* context) {
 	pLuminAvgBufferSRV.FirstElement = 0;
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC pLuminAvgSRVResc;
-	pLuminAvgSRVResc.Format = DXGI_FORMAT_UNKNOWN;
+	pLuminAvgSRVResc.Format = DXGI_FORMAT_R32_FLOAT;
 	pLuminAvgSRVResc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
 	pLuminAvgSRVResc.Buffer = pLuminAvgBufferSRV;
 
@@ -109,12 +109,12 @@ void HdrBuffer::create(ID3D11Device* device, ID3D11DeviceContext* context) {
 	));
 
 	D3D11_BUFFER_UAV pLuminAvgBufferUAV;
-	pLuminAvgBufferUAV.NumElements = 256;
+	pLuminAvgBufferUAV.NumElements = 1;
 	pLuminAvgBufferUAV.FirstElement = 0;
-	pLuminAvgBufferUAV.Flags = D3D11_BUFFER_UAV_FLAG_COUNTER;
+	pLuminAvgBufferUAV.Flags = D3D11_BUFFER_UAV_FLAG_RAW;
 
 	D3D11_UNORDERED_ACCESS_VIEW_DESC pLuminAvgUAVDesc;
-	pLuminAvgUAVDesc.Format = DXGI_FORMAT_UNKNOWN;
+	pLuminAvgUAVDesc.Format = DXGI_FORMAT_R32_TYPELESS;
 	pLuminAvgUAVDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
 	pLuminAvgUAVDesc.Buffer = pLuminAvgBufferUAV;
 
