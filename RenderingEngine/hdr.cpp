@@ -70,7 +70,7 @@ void HdrBuffer::create(ID3D11Device* device, ID3D11DeviceContext* context) {
 	pLuminHistogramBufferUAV.Flags = D3D11_BUFFER_UAV_FLAG_RAW;
 
 	D3D11_UNORDERED_ACCESS_VIEW_DESC pLuminHistogramUAVDesc;
-	pLuminHistogramUAVDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+	pLuminHistogramUAVDesc.Format = DXGI_FORMAT_R16_TYPELESS;
 	pLuminHistogramUAVDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
 	pLuminHistogramUAVDesc.Buffer = pLuminHistogramBufferUAV;
 
@@ -100,7 +100,7 @@ void HdrBuffer::create(ID3D11Device* device, ID3D11DeviceContext* context) {
 	pLuminAvgBufferSRV.FirstElement = 0;
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC pLuminAvgSRVResc;
-	pLuminAvgSRVResc.Format = DXGI_FORMAT_R32_FLOAT;
+	pLuminAvgSRVResc.Format = DXGI_FORMAT_R16_FLOAT;
 	pLuminAvgSRVResc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
 	pLuminAvgSRVResc.Buffer = pLuminAvgBufferSRV;
 
@@ -114,7 +114,7 @@ void HdrBuffer::create(ID3D11Device* device, ID3D11DeviceContext* context) {
 	pLuminAvgBufferUAV.Flags = D3D11_BUFFER_UAV_FLAG_RAW;
 
 	D3D11_UNORDERED_ACCESS_VIEW_DESC pLuminAvgUAVDesc;
-	pLuminAvgUAVDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+	pLuminAvgUAVDesc.Format = DXGI_FORMAT_R16_TYPELESS;
 	pLuminAvgUAVDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
 	pLuminAvgUAVDesc.Buffer = pLuminAvgBufferUAV;
 
