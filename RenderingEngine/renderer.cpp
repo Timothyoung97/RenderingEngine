@@ -37,7 +37,7 @@ Renderer::Renderer(ID3D11Device* _device, ID3D11DeviceContext* _context, HWND wi
 
 	_gBuffer.create(_device);
 	_ssao.create(_device, _context);
-	_hdrBuffer.create(_device);
+	_hdrBuffer.create(_device, _context);
 }
 
 void Renderer::reset() {
