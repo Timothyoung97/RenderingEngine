@@ -3,6 +3,7 @@ struct LuminanceConfig {
     float timeCoeff;
     int numPixels;
     uint2 viewportDimension;
+    uint2 pad;
 };
 
 cbuffer constBufferLuminConfig : register(b0) {

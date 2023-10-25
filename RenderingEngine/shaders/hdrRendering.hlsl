@@ -1,7 +1,7 @@
 #include "tonemappers.hlsl"
 
 Texture2D hdrTexture : register(t8);
-RWBuffer<float> luminAvg : register(u1);
+Buffer<float> luminAvg : register(t1);
 
 cbuffer constBufferHDR : register(b4) {
     float middleGrey;
