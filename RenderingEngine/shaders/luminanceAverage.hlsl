@@ -1,7 +1,7 @@
 struct LuminanceConfig {
     float2 luminance; // x = min, y = max
     float timeCoeff;
-    float numPixels;
+    int numPixels;
     uint2 viewportDimension;
 };
 
