@@ -1,6 +1,8 @@
 #pragma once
 
 #include <DirectXMath.h>
+#include <microprofile.h>
+#define PROFILE_GPU_SCOPED(NAME) MICROPROFILE_SCOPEGPUI(NAME, tre::Utility::getRandomInt(INT_MAX))
 
 #include <string>
 
