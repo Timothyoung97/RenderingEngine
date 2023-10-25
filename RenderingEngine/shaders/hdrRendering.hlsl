@@ -1,9 +1,10 @@
 #include "tonemappers.hlsl"
 
 Texture2D hdrTexture : register(t8);
+RWBuffer<float> luminAvg : register(u1);
 
 cbuffer constBufferHDR : register(b4) {
-    float exposure;
+    float middleGrey;
     float3 pad_hdr;
 };
 
@@ -17,7 +18,9 @@ void ps_hdr_tonedown(
 
     float4 currColor = hdrTexture.Load(int3(outPosition.xy, 0));
 
-    float4 tonemappedRes = float4(ACESFilm(currColor.xyz * exposure), 0);
+    float fLumScale = middleGrey / luminAvg[0];
+
+    float4 tonemappedRes = float4(ACESFilm(currColor.xyz * fLumScale), 0);
 
     tonemappedRes = pow(tonemappedRes, float(1.0f / gamma));
 
