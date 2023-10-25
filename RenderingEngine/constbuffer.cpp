@@ -175,7 +175,7 @@ void ConstantBuffer::setLuminaceConstBuffer(ID3D11Device* device, ID3D11DeviceCo
 	constantBufferDescModel.Usage = D3D11_USAGE_DEFAULT;
 	constantBufferDescModel.CPUAccessFlags = 0u;
 	constantBufferDescModel.MiscFlags = 0u;
-	constantBufferDescModel.ByteWidth = sizeof(constBufferHDR);
+	constantBufferDescModel.ByteWidth = sizeof(constBufferLuminance);
 	constantBufferDescModel.StructureByteStride = 0u;
 
 	constBufferLuminance constBufferLumin;

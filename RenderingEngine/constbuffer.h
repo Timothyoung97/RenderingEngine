@@ -57,6 +57,7 @@ struct constBufferLuminance {
 	float timeCoeff;
 	int numPixel;
 	XMINT2 viewportDimension;
+	XMINT2 pad;
 };
 
 class ConstantBuffer {
