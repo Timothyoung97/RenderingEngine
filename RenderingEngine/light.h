@@ -61,5 +61,7 @@ public:
 	void updateComputeShaderBuffer(PointLight newPointLight);
 	void updatePixelShaderBuffer();
 	void updatePtLightCPU();
+
+	void dispatch();
 };
 }

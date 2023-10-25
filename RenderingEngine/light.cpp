@@ -157,4 +157,15 @@ void LightResource::updatePtLightCPU() {
 	readIndex ^= 1;
 	writeIndex ^= 1;
 }
+
+void LightResource::dispatch() {
+	// using compute shader update lights
+	_context->CSSetShader(computeShaderPtLightMovement.pShader.Get(), NULL, 0u);
+	_context->CSSetUnorderedAccessViews(0, 1, pLightUnorderedAccessView.GetAddressOf(), nullptr);
+	{
+		PROFILE_GPU_SCOPED("Compute Shader");
+		_context->Dispatch(tre::Maths::divideAndRoundUp(numOfLights, 4u), 1u, 1u);
+	}
+	_context->CSSetUnorderedAccessViews(0, 1, nullUAV, nullptr);
+}
 }

@@ -6,7 +6,6 @@
 #include <wrl/client.h>
 #include "spdlog/spdlog.h"
 #include "portable-file-dialogs.h"
-#include "microprofile.h"
 
 #include <algorithm>
 #include <functional>
@@ -289,13 +288,7 @@ int main()
 		tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, cam.camViewProjection, lightViewProjs, renderer.setting.csmPlaneIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), renderer.setting.csmDebugSwitch, renderer.setting.ssaoSwitch);
 
 		// using compute shader update lights
-		deviceAndContext.context.Get()->CSSetShader(scene.lightResc.computeShaderPtLightMovement.pShader.Get(), NULL, 0u);
-		deviceAndContext.context.Get()->CSSetUnorderedAccessViews(0, 1, scene.lightResc.pLightUnorderedAccessView.GetAddressOf(), nullptr);
-		{
-			PROFILE_GPU_SCOPED("Compute Shader");
-			deviceAndContext.context.Get()->Dispatch(tre::Maths::divideAndRoundUp(scene.lightResc.numOfLights, 4u), 1u, 1u);
-		}
-		deviceAndContext.context.Get()->CSSetUnorderedAccessViews(0, 1, scene.lightResc.nullUAV, nullptr);
+		scene.lightResc.dispatch();
 
 		{
 			MICROPROFILE_SCOPE_CSTR("CPU Point Light Update");
