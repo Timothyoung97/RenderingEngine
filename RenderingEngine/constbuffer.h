@@ -48,7 +48,7 @@ struct constBufferSSAOKernal {
 };
 
 struct constBufferHDR {
-	float exposure;
+	float middleGrey;
 	XMFLOAT3 pad;
 };
 
@@ -73,7 +73,7 @@ public:
 
 	static void setSSAOKernalConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, const std::vector<XMFLOAT4>& kernalSamples, float sampleRadius);
 
-	static void setHDRConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, float exposure);
+	static void setHDRConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, float middleGrey);
 };
 
 }

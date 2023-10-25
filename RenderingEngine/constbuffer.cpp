@@ -153,7 +153,7 @@ void ConstantBuffer::setHDRConstBuffer(ID3D11Device* device, ID3D11DeviceContext
 	constantBufferDescModel.StructureByteStride = 0u;
 
 	constBufferHDR constBufferHDR;
-	constBufferHDR.exposure = exposure;
+	constBufferHDR.middleGrey = exposure;
 
 	//map to data to subresouce
 	D3D11_SUBRESOURCE_DATA csd = {};
