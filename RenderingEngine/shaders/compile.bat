@@ -13,4 +13,5 @@ del *.bin
 "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\fxc.exe" /nologo /E ps_texture_blur /T ps_5_0 /Fo pixel_shader_texture_blur.bin textureBlur.hlsl
 "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\fxc.exe" /nologo /E ps_hdr_tonedown /T ps_5_0 /Fo pixel_shader_hdr_rendering.bin hdrRendering.hlsl
 "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\fxc.exe" /nologo /E cs_updateLightPosition /T cs_5_0 /Fo compute_shader_ptLight_movement.bin ptLightMovement.hlsl
+"C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\fxc.exe" /nologo /E cs_genHistogram /T cs_5_0 /Fo compute_shader_hdr_histogram.bin luminanceHistogram.hlsl
  
