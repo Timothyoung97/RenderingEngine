@@ -347,6 +347,17 @@ int main()
 			renderer.deferredLightingLocalDraw(scene._wireframeObjQ, cam.camPositionV);
 		}
 
+		deviceAndContext.context.Get()->OMSetRenderTargets(0, nullptr, nullptr);
+		deviceAndContext.context.Get()->CSSetShaderResources(8, 1, renderer._hdrBuffer.pShaderResViewHdrTexture.GetAddressOf()); // normal
+
+		tre::ConstantBuffer::setLuminaceConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), XMFLOAT2(1.0f, 20.f), 1.5f);
+
+		renderer._hdrBuffer.dispatchHistogram();
+
+		renderer._hdrBuffer.dispatchAverage();
+
+		deviceAndContext.context.Get()->PSSetShaderResources(8, 1, renderer._hdrBuffer.pShaderResViewHdrTexture.GetAddressOf()); // normal
+
 		tre::ConstantBuffer::setHDRConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), renderer.setting.exposure);
 		// HDR
 		{
