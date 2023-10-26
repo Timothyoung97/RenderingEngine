@@ -120,7 +120,7 @@ void HdrBuffer::create(ID3D11Device* device, ID3D11DeviceContext* context) {
 	pLuminAvgBufferUAV.Flags = 0u;
 
 	D3D11_UNORDERED_ACCESS_VIEW_DESC pLuminAvgUAVDesc;
-	pLuminAvgUAVDesc.Format = DXGI_FORMAT_R32_FLOAT;
+	pLuminAvgUAVDesc.Format = DXGI_FORMAT_R16_FLOAT;
 	pLuminAvgUAVDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
 	pLuminAvgUAVDesc.Buffer = pLuminAvgBufferUAV;
 
