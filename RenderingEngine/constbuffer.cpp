@@ -5,7 +5,7 @@
 
 namespace tre {
 
-void ConstantBuffer::setCamConstBuffer(
+ID3D11Buffer* ConstantBuffer::setCamConstBuffer(
 	ID3D11Device* device, ID3D11DeviceContext* context, 
 	XMVECTOR camPos, 
 	XMMATRIX viewProjection, 
@@ -52,9 +52,11 @@ void ConstantBuffer::setCamConstBuffer(
 	context->VSSetConstantBuffers(0u, 1u, &pConstBuffer);
 	context->PSSetConstantBuffers(0u, 1u, &pConstBuffer);
 	context->CSSetConstantBuffers(0u, 1u, &pConstBuffer);
+
+	return pConstBuffer;
 }
 
-void ConstantBuffer::setObjConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, XMMATRIX transformationLocal, XMFLOAT4 color, UINT isWithTexture, UINT hasNormalMap) {
+ID3D11Buffer* ConstantBuffer::setObjConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, XMMATRIX transformationLocal, XMFLOAT4 color, UINT isWithTexture, UINT hasNormalMap) {
 	D3D11_BUFFER_DESC constantBufferDescModel;
 	constantBufferDescModel.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	constantBufferDescModel.Usage = D3D11_USAGE_DYNAMIC;
@@ -88,9 +90,11 @@ void ConstantBuffer::setObjConstBuffer(ID3D11Device* device, ID3D11DeviceContext
 	//Set const buffer for pixel and vertex shader
 	context->VSSetConstantBuffers(1u, 1u, &pConstBuffer);
 	context->PSSetConstantBuffers(1u, 1u, &pConstBuffer);
+
+	return pConstBuffer;
 }
 
-void ConstantBuffer::setLightingVolumeConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, int currPtLightIdx) {
+ID3D11Buffer* ConstantBuffer::setLightingVolumeConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, int currPtLightIdx) {
 	D3D11_BUFFER_DESC constantBufferDescModel;
 	constantBufferDescModel.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	constantBufferDescModel.Usage = D3D11_USAGE_DYNAMIC;
@@ -114,9 +118,11 @@ void ConstantBuffer::setLightingVolumeConstBuffer(ID3D11Device* device, ID3D11De
 
 	//Set const buffer for pixel shader
 	context->PSSetConstantBuffers(2u, 1u, &pConstBuffer);
+
+	return pConstBuffer;
 }
 
-void ConstantBuffer::setSSAOKernalConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, const std::vector<XMFLOAT4>& kernalSamples, float sampleRadius) {
+ID3D11Buffer* ConstantBuffer::setSSAOKernalConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, const std::vector<XMFLOAT4>& kernalSamples, float sampleRadius) {
 	D3D11_BUFFER_DESC constantBufferDescModel;
 	constantBufferDescModel.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	constantBufferDescModel.Usage = D3D11_USAGE_DEFAULT;
@@ -141,9 +147,11 @@ void ConstantBuffer::setSSAOKernalConstBuffer(ID3D11Device* device, ID3D11Device
 
 	// to set const shader for ssao
 	context->PSSetConstantBuffers(3u, 1u, &pConstBuffer);
+
+	return pConstBuffer;
 }
 
-void ConstantBuffer::setHDRConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, float middleGrey) {
+ID3D11Buffer* ConstantBuffer::setHDRConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, float middleGrey) {
 	D3D11_BUFFER_DESC constantBufferDescModel;
 	constantBufferDescModel.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	constantBufferDescModel.Usage = D3D11_USAGE_DEFAULT;
@@ -167,9 +175,11 @@ void ConstantBuffer::setHDRConstBuffer(ID3D11Device* device, ID3D11DeviceContext
 
 	// to set const shader for ssao
 	context->PSSetConstantBuffers(4u, 1u, &pConstBuffer);
+	
+	return pConstBuffer;
 }
 
-void ConstantBuffer::setLuminaceConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, XMFLOAT2 luminance, float timeCoeff) {
+ID3D11Buffer* ConstantBuffer::setLuminaceConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, XMFLOAT2 luminance, float timeCoeff) {
 	D3D11_BUFFER_DESC constantBufferDescModel;
 	constantBufferDescModel.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	constantBufferDescModel.Usage = D3D11_USAGE_DEFAULT;
@@ -195,9 +205,11 @@ void ConstantBuffer::setLuminaceConstBuffer(ID3D11Device* device, ID3D11DeviceCo
 	));
 
 	context->CSSetConstantBuffers(0u, 1u, &pConstBuffer);
+	
+	return pConstBuffer;
 }
 
-void ConstantBuffer::setLightViewProjectionConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, XMMATRIX viewProjection) {
+ID3D11Buffer* ConstantBuffer::setLightViewProjectionConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, XMMATRIX viewProjection) {
 	D3D11_BUFFER_DESC constantBufferDescModel;
 	constantBufferDescModel.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	constantBufferDescModel.Usage = D3D11_USAGE_DEFAULT;
@@ -220,6 +232,8 @@ void ConstantBuffer::setLightViewProjectionConstBuffer(ID3D11Device* device, ID3
 	));
 
 	context->VSSetConstantBuffers(0u, 1u, &pConstBuffer);
+
+	return pConstBuffer;
 }
 
 }
