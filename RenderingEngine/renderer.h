@@ -83,6 +83,7 @@ public:
 
 	InputLayout _inputLayout;
 	VertexShader _vertexShader;
+	VertexShader _shadowCastShader;
 	VertexShader _vertexShaderFullscreenQuad;
 
 	Rasterizer _rasterizer;

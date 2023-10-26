@@ -4,6 +4,7 @@ del /s /q bin\*.bin
 
 "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\fxc.exe" /nologo /E vs_main /T vs_5_0 /Fo ./bin/vertex_shader.bin forwardRendering.hlsl
 "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\fxc.exe" /nologo /E vs_fullscreen /T vs_5_0 /Fo ./bin/vertex_shader_fullscreen.bin vs_fullscreenRendering.hlsl
+"C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\fxc.exe" /nologo /E vs_shadowCast /T vs_5_0 /Fo ./bin/vertex_shader_csmShadowCast.bin vs_csmShadowCast.hlsl
 "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\fxc.exe" /nologo /E ps_main /T ps_5_0 /Fo ./bin/pixel_shader_forward.bin forwardRendering.hlsl
 "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\fxc.exe" /nologo /E ps_debug /T ps_5_0 /Fo ./bin/pixel_shader_debug.bin ps_debugRendering.hlsl
 "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\fxc.exe" /nologo /E ps_deferred_gbuffer /T ps_5_0 /Fo ./bin/pixel_shader_deferred.bin ps_deferredRendering.hlsl

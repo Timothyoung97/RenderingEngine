@@ -197,4 +197,29 @@ void ConstantBuffer::setLuminaceConstBuffer(ID3D11Device* device, ID3D11DeviceCo
 	context->CSSetConstantBuffers(0u, 1u, &pConstBuffer);
 }
 
+void ConstantBuffer::setLightViewProjectionConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, XMMATRIX viewProjection) {
+	D3D11_BUFFER_DESC constantBufferDescModel;
+	constantBufferDescModel.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	constantBufferDescModel.Usage = D3D11_USAGE_DEFAULT;
+	constantBufferDescModel.CPUAccessFlags = 0u;
+	constantBufferDescModel.MiscFlags = 0u;
+	constantBufferDescModel.ByteWidth = sizeof(constBufferDirLightViewProjection);
+	constantBufferDescModel.StructureByteStride = 0u;
+
+	constBufferDirLightViewProjection constBufferDirLightViewProj;
+	constBufferDirLightViewProj.csmViewProjection = viewProjection;
+
+	//map to data to subresouce
+	D3D11_SUBRESOURCE_DATA csd = {};
+	csd.pSysMem = &constBufferDirLightViewProj;
+
+	ID3D11Buffer* pConstBuffer;
+
+	CHECK_DX_ERROR(device->CreateBuffer(
+		&constantBufferDescModel, &csd, &pConstBuffer
+	));
+
+	context->VSSetConstantBuffers(0u, 1u, &pConstBuffer);
+}
+
 }

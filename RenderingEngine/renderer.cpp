@@ -27,6 +27,7 @@ Renderer::Renderer(ID3D11Device* _device, ID3D11DeviceContext* _context, HWND wi
 	_inputLayout.create(_device, &_vertexShader);
 
 	_forwardShader.create(basePathWstr + L"shaders\\bin\\pixel_shader_forward.bin", _device);
+	_shadowCastShader.create(basePathWstr + L"shaders\\bin\\vertex_shader_csmShadowCast.bin", _device);
 	_deferredShader.create(basePathWstr + L"shaders\\bin\\pixel_shader_deferred.bin", _device);
 	_deferredShaderLightingEnv.create(basePathWstr + L"shaders\\bin\\pixel_shader_deferred_lighting_env.bin", _device);
 	_deferredShaderLightingLocal.create(basePathWstr + L"shaders\\bin\\pixel_shader_deferred_lighting_local.bin", _device);
@@ -142,7 +143,7 @@ void Renderer::configureStates(RENDER_MODE renderObjType) {
 
 	case tre::SHADOW_M: // use normal draw func
 		_context->IASetInputLayout(_inputLayout.vertLayout.Get());
-		_context->VSSetShader(_vertexShader.pShader.Get(), NULL, 0u);
+		_context->VSSetShader(_shadowCastShader.pShader.Get(), NULL, 0u);
 
 		// use setShadowBufferDrawSection to select draw section
 		_context->RSSetState(_rasterizer.pShadowRasterizerState.Get());
@@ -151,9 +152,9 @@ void Renderer::configureStates(RENDER_MODE renderObjType) {
 		_context->PSSetShader(nullptr, NULL, 0u);
 		_context->PSSetShaderResources(3, 1, nullSRV);
 		
-		_context->OMSetRenderTargets(0, nullptr, _depthbuffer.pShadowDepthStencilView.Get());
 		_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
 		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
+		_context->OMSetRenderTargets(0, nullptr, _depthbuffer.pShadowDepthStencilView.Get());
 		break;
 
 	case tre::DEFERRED_OPAQUE_M: // use normal draw func

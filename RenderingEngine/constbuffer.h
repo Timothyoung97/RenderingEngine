@@ -28,6 +28,10 @@ struct constBufferShaderRescCam {
 	int ssaoSwitch;
 };
 
+struct constBufferDirLightViewProjection {
+	XMMATRIX csmViewProjection;
+};
+
 struct constBufferShaderRescModel {
 	XMMATRIX transformationLocal;
 	XMMATRIX normalMatrix;
@@ -84,6 +88,8 @@ public:
 	static void setHDRConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, float middleGrey);
 
 	static void setLuminaceConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, XMFLOAT2 luminance, float timeCoeff);
+
+	static void setLightViewProjectionConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, XMMATRIX viewProjection);
 };
 
 }

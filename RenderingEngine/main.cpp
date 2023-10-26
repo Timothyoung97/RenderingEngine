@@ -265,7 +265,7 @@ int main()
 					renderer.setShadowBufferDrawSection(i);
 
 					// set const buffer from the light pov 
-					tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, lightViewProjs[i], lightViewProjs, renderer.setting.csmPlaneIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), renderer.setting.csmDebugSwitch, renderer.setting.ssaoSwitch);
+					tre::ConstantBuffer::setLightViewProjectionConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), lightViewProjs[i]);
 
 					tre::Frustum lightFrustum = tre::Maths::createFrustumFromViewProjectionMatrix(lightViewProjs[i]);
 
