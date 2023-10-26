@@ -379,41 +379,25 @@ void Renderer::debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh
 
 	configureStates(renderObjType);
 
+	UINT vertexStride = sizeof(Vertex);
+	UINT offset = 0;
+	
+	//Set vertex buffer
+	_context->IASetVertexBuffers(0, 1, mesh.pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
+
+	//Set index buffer
+	_context->IASetIndexBuffer(mesh.pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+
 	for (int i = 0; i < objQ.size(); i++) {
 
 		tre::Object* currObj = objQ[i].first;
 
-		UINT vertexStride = sizeof(Vertex);
-		UINT offset = 0;
-
-		//Set vertex buffer
-		_context->IASetVertexBuffers(0, 1, mesh.pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
-
-		//Set index buffer
-		_context->IASetIndexBuffer(mesh.pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-
 		for (int j = 0; j < currObj->pObjMeshes.size(); j++) {
-
-			//Update bounding volume
-			XMMATRIX transformM;
-			switch (typeOfBound) {
-			case RitterBoundingSphere:
-				transformM = tre::BoundingVolume::updateBoundingSphere(currObj->pObjMeshes[j]->ritterSphere, currObj->ritterBs[j], currObj->_transformationFinal);
-				break;
-
-			case NaiveBoundingSphere:
-				transformM = tre::BoundingVolume::updateBoundingSphere(currObj->pObjMeshes[j]->naiveSphere, currObj->naiveBs[j], currObj->_transformationFinal);
-				break;
-
-			case AABBBoundingBox:
-				transformM = tre::BoundingVolume::updateAABB(currObj->pObjMeshes[j]->aabb, currObj->aabb[j], currObj->_transformationFinal);
-				break;
-			}
 
 			//Config and set const buffer
 			tre::ConstantBuffer::setObjConstBuffer(
 				_device, _context,
-				transformM,
+				currObj->_boundingVolumeTransformation,
 				currObj->_boundingVolumeColor[j],
 				0, // bounding volume has no texture
 				0 // bounding volume has no normal

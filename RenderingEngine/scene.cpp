@@ -88,13 +88,13 @@ void Scene::updateBoundingVolume(BoundVolumeEnum typeOfBound) {
 		for (int j = 0; j < pObj->pObjMeshes.size(); j++) {
 			switch (typeOfBound) {
 			case tre::AABBBoundingBox:
-				tre::BoundingVolume::updateAABB(pObj->pObjMeshes[j]->aabb, pObj->aabb[j], pObj->_transformationFinal);
+				pObj->_boundingVolumeTransformation = tre::BoundingVolume::updateAABB(pObj->pObjMeshes[j]->aabb, pObj->aabb[j], pObj->_transformationFinal);
 				break;
 			case tre::RitterBoundingSphere:
-				tre::BoundingVolume::updateBoundingSphere(pObj->pObjMeshes[j]->ritterSphere, pObj->ritterBs[j], pObj->_transformationFinal);
+				pObj->_boundingVolumeTransformation = tre::BoundingVolume::updateBoundingSphere(pObj->pObjMeshes[j]->ritterSphere, pObj->ritterBs[j], pObj->_transformationFinal);
 				break;
 			case tre::NaiveBoundingSphere:
-				tre::BoundingVolume::updateBoundingSphere(pObj->pObjMeshes[j]->naiveSphere, pObj->naiveBs[j], pObj->_transformationFinal);
+				pObj->_boundingVolumeTransformation = tre::BoundingVolume::updateBoundingSphere(pObj->pObjMeshes[j]->naiveSphere, pObj->naiveBs[j], pObj->_transformationFinal);
 				break;
 			}
 		}

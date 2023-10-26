@@ -23,6 +23,7 @@ struct Object {
 	std::vector<BoundingSphere> naiveBs;
 	std::vector<AABB> aabb;
 	std::vector<XMFLOAT4> _boundingVolumeColor;
+	XMMATRIX _boundingVolumeTransformation;
 
 	XMFLOAT3 objPos;
 	XMFLOAT3 objScale;
