@@ -131,13 +131,14 @@ void HdrBuffer::create(ID3D11Device* device, ID3D11DeviceContext* context) {
 
 void HdrBuffer::dispatchHistogram() {
 	_context->CSSetShader(computeShaderLuminancehistogram.pShader.Get(), NULL, 0u);
-	_context->CSSetShaderResources(8u, 1u, pShaderResViewHdrTexture.GetAddressOf());
-	_context->CSSetUnorderedAccessViews(0, 1, pLuminHistogramUAV.GetAddressOf(), nullptr);
+	_context->CSSetShaderResources(0u, 1u, pShaderResViewHdrTexture.GetAddressOf());
+	_context->CSSetUnorderedAccessViews(0u, 1u, pLuminHistogramUAV.GetAddressOf(), nullptr);
 	{
 		PROFILE_GPU_SCOPED("Compute Shader Luminace Histogram");
 		_context->Dispatch(tre::Maths::divideAndRoundUp(SCREEN_WIDTH, 16u), tre::Maths::divideAndRoundUp(SCREEN_HEIGHT, 16u), 1u);
 	}
-	_context->CSSetUnorderedAccessViews(0, 1, nullUAV, nullptr);
+	_context->CSSetShaderResources(0u, 1u, nullSRV);
+	_context->CSSetUnorderedAccessViews(0u, 1u, nullUAV, nullptr);
 }
 
 void HdrBuffer::dispatchAverage() {

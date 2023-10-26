@@ -19,6 +19,7 @@ public:
 	ComputeShader computeShaderLuminanceAverage;
 
 	ID3D11UnorderedAccessView* nullUAV[1] = { nullptr };
+	ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
 
 	ComPtr<ID3D11Texture2D> pHdrBufferTexture;
 	ComPtr<ID3D11ShaderResourceView> pShaderResViewHdrTexture;

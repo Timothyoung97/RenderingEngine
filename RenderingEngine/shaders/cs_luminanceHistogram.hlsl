@@ -13,7 +13,7 @@ cbuffer constBufferLuminConfig : register(b0) {
     LuminanceConfig luminConfig;
 };
 
-Texture2D hdrTexture : register(t8); // 1920 x 1080
+Texture2D hdrTexture : register(t0); // 1920 x 1080
 RWBuffer<uint> histogram : register(u0); // 256 buckets: 0 ~ 255 
 
 groupshared uint localGroupHistogram[256];
