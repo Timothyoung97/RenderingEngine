@@ -22,18 +22,18 @@ Renderer::Renderer(ID3D11Device* _device, ID3D11DeviceContext* _context, HWND wi
 	_viewport.create(tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);
 	
 	std::wstring basePathWstr = tre::Utility::getBasePathWstr();
-	_vertexShader.create(basePathWstr + L"shaders\\vertex_shader.bin", _device);
-	_vertexShaderFullscreenQuad.create(basePathWstr + L"shaders\\vertex_shader_fullscreen.bin", _device);
+	_vertexShader.create(basePathWstr + L"shaders\\bin\\vertex_shader.bin", _device);
+	_vertexShaderFullscreenQuad.create(basePathWstr + L"shaders\\bin\\vertex_shader_fullscreen.bin", _device);
 	_inputLayout.create(_device, &_vertexShader);
 
-	_forwardShader.create(basePathWstr + L"shaders\\pixel_shader_forward.bin", _device);
-	_deferredShader.create(basePathWstr + L"shaders\\pixel_shader_deferred.bin", _device);
-	_deferredShaderLightingEnv.create(basePathWstr + L"shaders\\pixel_shader_deferred_lighting_env.bin", _device);
-	_deferredShaderLightingLocal.create(basePathWstr + L"shaders\\pixel_shader_deferred_lighting_local.bin", _device);
-	_ssaoPixelShader.create(basePathWstr + L"shaders\\pixel_shader_ssao_rendering.bin", _device);
-	_textureBlurPixelShader.create(basePathWstr + L"shaders\\pixel_shader_texture_blur.bin", _device);
-	_hdrPixelShader.create(basePathWstr + L"shaders\\pixel_shader_hdr_rendering.bin", _device);
-	_debugPixelShader.create(basePathWstr + L"shaders\\pixel_shader_debug.bin", _device);
+	_forwardShader.create(basePathWstr + L"shaders\\bin\\pixel_shader_forward.bin", _device);
+	_deferredShader.create(basePathWstr + L"shaders\\bin\\pixel_shader_deferred.bin", _device);
+	_deferredShaderLightingEnv.create(basePathWstr + L"shaders\\bin\\pixel_shader_deferred_lighting_env.bin", _device);
+	_deferredShaderLightingLocal.create(basePathWstr + L"shaders\\bin\\pixel_shader_deferred_lighting_local.bin", _device);
+	_ssaoPixelShader.create(basePathWstr + L"shaders\\bin\\pixel_shader_ssao_rendering.bin", _device);
+	_textureBlurPixelShader.create(basePathWstr + L"shaders\\bin\\pixel_shader_texture_blur.bin", _device);
+	_hdrPixelShader.create(basePathWstr + L"shaders\\bin\\pixel_shader_hdr_rendering.bin", _device);
+	_debugPixelShader.create(basePathWstr + L"shaders\\bin\\pixel_shader_debug.bin", _device);
 
 	_gBuffer.create(_device);
 	_ssao.create(_device, _context);

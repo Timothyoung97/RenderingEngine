@@ -13,8 +13,8 @@ void HdrBuffer::create(ID3D11Device* device, ID3D11DeviceContext* context) {
 	_context = context;
 
 	std::wstring basePathWstr = tre::Utility::getBasePathWstr();
-	computeShaderLuminancehistogram.create(basePathWstr + L"shaders\\compute_shader_lumin_histogram.bin", _device);
-	computeShaderLuminanceAverage.create(basePathWstr + L"shaders\\compute_shader_lumin_average.bin", _device);
+	computeShaderLuminancehistogram.create(basePathWstr + L"shaders\\bin\\compute_shader_lumin_histogram.bin", _device);
+	computeShaderLuminanceAverage.create(basePathWstr + L"shaders\\bin\\compute_shader_lumin_average.bin", _device);
 	
 	// HDR Texture to be rendered
 	D3D11_TEXTURE2D_DESC hdrBufferDesc;
