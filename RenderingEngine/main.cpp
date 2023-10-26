@@ -185,29 +185,11 @@ int main()
 		}
 		else if (input._keyState[SDL_SCANCODE_SPACE]) {
 			// Create new obj
-			tre::Object newObj;
-
-			float scaleVal = tre::Utility::getRandomFloat(3);
-			int textureIdx = tre::Utility::getRandomInt(1);
-
-			int selectIdx = tre::Utility::getRandomInt(1);
-			newObj.pObjMeshes = { &scene._debugMeshes[5 + selectIdx] };
-			newObj.pObjMeshes[0]->material = &scene._debugMaterials[selectIdx];
-			newObj.objPos = XMFLOAT3(tre::Utility::getRandomFloatRange(-20, 20), tre::Utility::getRandomFloatRange(-20, 20), tre::Utility::getRandomFloatRange(-20, 20));
-			newObj.objScale = XMFLOAT3(scaleVal, scaleVal, scaleVal);
-			newObj.objRotation = XMFLOAT3(tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360));
-			newObj._boundingVolumeColor = { tre::colorF(Colors::Green) };
-			newObj.ritterBs = { newObj.pObjMeshes[0]->ritterSphere };
-			newObj.naiveBs = { newObj.pObjMeshes[0]->naiveSphere };
-			newObj.aabb = { newObj.pObjMeshes[0]->aabb };
-			newObj._transformationFinal = tre::Maths::createTransformationMatrix(newObj.objScale, newObj.objRotation, newObj.objPos);
-
-			scene._objQ.push_back(newObj);
-			scene._pObjQ.push_back(&scene._objQ.back());
+			tre::Object* pNewObj = scene.addRandomObj();
 
 			renderer.stats.totalMeshCount++;
-			if ((newObj.pObjMeshes[0]->material->objTexture != nullptr && newObj.pObjMeshes[0]->material->objTexture->hasAlphaChannel)
-				|| (newObj.pObjMeshes[0]->material->objTexture == nullptr && newObj.pObjMeshes[0]->material->baseColor.w < 1.0f)) {
+			if ((pNewObj->pObjMeshes[0]->material->objTexture != nullptr && pNewObj->pObjMeshes[0]->material->objTexture->hasAlphaChannel)
+				|| (pNewObj->pObjMeshes[0]->material->objTexture == nullptr && pNewObj->pObjMeshes[0]->material->baseColor.w < 1.0f)) {
 				renderer.stats.transparentMeshCount++;
 			}
 			else {

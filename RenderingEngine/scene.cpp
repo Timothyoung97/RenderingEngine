@@ -206,4 +206,29 @@ void Scene::cullObject(Frustum& frustum, BoundVolumeEnum typeOfBound) {
 	}
 }
 
+tre::Object* Scene::addRandomObj() {
+	// Create new obj
+	tre::Object newObj;
+
+	float scaleVal = tre::Utility::getRandomFloat(3);
+	int textureIdx = tre::Utility::getRandomInt(1);
+
+	int selectIdx = tre::Utility::getRandomInt(1);
+	newObj.pObjMeshes = { &_debugMeshes[5 + selectIdx] };
+	newObj.pObjMeshes[0]->material = &_debugMaterials[selectIdx];
+	newObj.objPos = XMFLOAT3(tre::Utility::getRandomFloatRange(-20, 20), tre::Utility::getRandomFloatRange(-20, 20), tre::Utility::getRandomFloatRange(-20, 20));
+	newObj.objScale = XMFLOAT3(scaleVal, scaleVal, scaleVal);
+	newObj.objRotation = XMFLOAT3(tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360));
+	newObj._boundingVolumeColor = { tre::colorF(Colors::Green) };
+	newObj.ritterBs = { newObj.pObjMeshes[0]->ritterSphere };
+	newObj.naiveBs = { newObj.pObjMeshes[0]->naiveSphere };
+	newObj.aabb = { newObj.pObjMeshes[0]->aabb };
+	newObj._transformationFinal = tre::Maths::createTransformationMatrix(newObj.objScale, newObj.objRotation, newObj.objPos);
+
+	_objQ.push_back(newObj);
+	_pObjQ.push_back(&_objQ.back());
+
+	return _pObjQ.back();
+}
+
 }

@@ -56,5 +56,7 @@ public:
 	void updateBoundingVolume(BoundVolumeEnum typeOfBound);
 	void cullObject(Frustum& frustum, BoundVolumeEnum typeOfBound);
 	void updateTransparentQ(Camera& cam);
+
+	tre::Object* addRandomObj();
 };
 }
