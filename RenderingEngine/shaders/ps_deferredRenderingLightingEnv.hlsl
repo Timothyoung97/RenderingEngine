@@ -32,7 +32,7 @@ void ps_lightingEnvPass (
     
     float3 pixelColor = sampleAlbedo.xyz * .5f; // hardcoded ambient
     if (ssaoSwitch) {
-        pixelColor *= saturate(sampleSSAO.x + .5f);
+        pixelColor *= saturate(sampleSSAO.x + .1f);
     }
 
     // get dist of pixel from camera
