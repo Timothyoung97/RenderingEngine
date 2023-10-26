@@ -44,7 +44,7 @@ void cs_genHistogram(
     if (dispatchThreadID.x < luminConfig.viewportDimension.x || dispatchThreadID.y < luminConfig.viewportDimension.y) {
 
         float4 hdrColor = hdrTexture.Load(int3(dispatchThreadID.xy, 0));
-        uint bucketIdx = colorToBucket(hdrColor.xyz, log2(luminConfig.luminance.x), 1.f / log2(luminConfig.luminance.y - luminConfig.luminance.x));
+        uint bucketIdx = colorToBucket(hdrColor.xyz, log2(luminConfig.luminance.x), 1.f / (log2(luminConfig.luminance.y) - log2(luminConfig.luminance.x)));
         InterlockedAdd(localGroupHistogram[bucketIdx], 1);
     }
 

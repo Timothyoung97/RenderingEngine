@@ -38,7 +38,7 @@ void cs_luminAverage(
     if (dispatchThreadID.x == 0) {
         float weightedLogAverage = (localGroupHistogram[0] / max(luminConfig.numPixels - float(bucketValue), 1.0f)) - 1.0f;
 
-        float weightedAvgLum = exp2(((weightedLogAverage / 254.f) * log2(luminConfig.luminance.y - luminConfig.luminance.x)) + log2(luminConfig.luminance.x));
+        float weightedAvgLum = exp2(((weightedLogAverage / 254.f) * (log2(luminConfig.luminance.y) - log2(luminConfig.luminance.x))) + log2(luminConfig.luminance.x));
 
         float lumLastFrame = luminAvg[0];
         
