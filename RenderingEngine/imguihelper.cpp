@@ -46,7 +46,10 @@ void ImguiHelper::render() {
 
 	{	// HDR
 		ImGui::SeparatorText("HDR");
-		ImGui::SliderFloat("HDR Exposure", &pRendererSetting->exposure, .000f, 10.f, "%.3f");
+		ImGui::SliderFloat("HDR Exposure", &pRendererSetting->middleGrey, .000f, 10.f, "%.3f");
+		ImGui::SliderFloat("Luminance Min", &pRendererSetting->luminaceMin, .001f, 10.f, "%.3f");
+		ImGui::SliderFloat("Luminance Max", &pRendererSetting->luminanceMax, pRendererSetting->luminaceMin, 100.f, "%.3f");
+		ImGui::SliderFloat("TimeCoeff", &pRendererSetting->timeCoeff, .001f, 10.f, "%.3f");
 	}
 
 	{	// Control for import models

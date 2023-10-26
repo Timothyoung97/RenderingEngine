@@ -350,7 +350,7 @@ int main()
 
 		deviceAndContext.context.Get()->OMSetRenderTargets(0, nullptr, nullptr);
 
-		tre::ConstantBuffer::setLuminaceConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), XMFLOAT2(1.0f, 20.f), 1.5f);
+		tre::ConstantBuffer::setLuminaceConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), XMFLOAT2(renderer.setting.luminaceMin, renderer.setting.luminanceMax), renderer.setting.timeCoeff);
 
 		renderer._hdrBuffer.dispatchHistogram();
 
@@ -358,7 +358,7 @@ int main()
 
 		deviceAndContext.context.Get()->PSSetShaderResources(8, 1, renderer._hdrBuffer.pShaderResViewHdrTexture.GetAddressOf()); // normal
 
-		tre::ConstantBuffer::setHDRConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), renderer.setting.exposure);
+		tre::ConstantBuffer::setHDRConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), renderer.setting.middleGrey);
 		// HDR
 		{
 			PROFILE_GPU_SCOPED("HDR");
