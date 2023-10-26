@@ -21,6 +21,7 @@ public:
 	tre::Light dirlight;
 	float dirlightYaw = .0f;
 	float dirlightPitch = 45.f;
+	float dirLightDiffuse = .5f;
 	
 	//Pt Light
 	tre::LightResource lightResc;

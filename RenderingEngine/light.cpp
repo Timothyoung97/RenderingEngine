@@ -11,7 +11,7 @@ void LightResource::create(ID3D11Device* device, ID3D11DeviceContext* context) {
 	_context = context;
 
 	std::wstring basePathWstr = tre::Utility::getBasePathWstr();
-	computeShaderPtLightMovement.create(basePathWstr + L"shaders\\compute_shader_ptLight_movement.bin", _device);
+	computeShaderPtLightMovement.create(basePathWstr + L"shaders\\bin\\compute_shader_ptLight_movement.bin", _device);
 	
 	// persistent
 	D3D11_BUFFER_DESC lightBufferDescGPU;
@@ -156,5 +156,16 @@ void LightResource::updatePtLightCPU() {
 
 	readIndex ^= 1;
 	writeIndex ^= 1;
+}
+
+void LightResource::dispatch() {
+	// using compute shader update lights
+	_context->CSSetShader(computeShaderPtLightMovement.pShader.Get(), NULL, 0u);
+	_context->CSSetUnorderedAccessViews(0, 1, pLightUnorderedAccessView.GetAddressOf(), nullptr);
+	{
+		PROFILE_GPU_SCOPED("Compute Shader");
+		_context->Dispatch(tre::Maths::divideAndRoundUp(numOfLights, 4u), 1u, 1u);
+	}
+	_context->CSSetUnorderedAccessViews(0, 1, nullUAV, nullptr);
 }
 }

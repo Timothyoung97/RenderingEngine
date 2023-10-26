@@ -47,10 +47,10 @@ Scene::Scene(ID3D11Device* device, ID3D11DeviceContext* context) {
 
 	// Pt Lights
 	lightResc.create(device, context);
-	lightResc.addPointLight(XMFLOAT3(3.0f, 3.0f, 3.0f),    XMFLOAT3(1.f, .14f, .07f),  XMFLOAT4(.0f, 1.f, 1.f, .5f), XMFLOAT2(.0f, .0f));
-	lightResc.addPointLight(XMFLOAT3(-3.0f, -3.0f, -3.0f), XMFLOAT3(1.f, .35f, .44f), XMFLOAT4(.0f, 1.f, .0f, .5f), XMFLOAT2(.0f, .0f));
-	lightResc.addPointLight(XMFLOAT3(1.f, 1.f, 1.0f),	   XMFLOAT3(1.f, .22f, .2f),  XMFLOAT4(.0f, .0f, 1.f, .5f), XMFLOAT2(.0f, .0f));
-	lightResc.addPointLight(XMFLOAT3(-1.0f, .0f, -1.0f),   XMFLOAT3(1.f, .22f, .27f), XMFLOAT4(1.f, 1.f, .0f, .5f), XMFLOAT2(.0f, .0f));
+	lightResc.addPointLight(XMFLOAT3(3.0f, 3.0f, 3.0f),    XMFLOAT3(1.f, .14f, .07f),  XMFLOAT4(.0f, 10.f, 10.f, .5f), XMFLOAT2(.0f, .0f));
+	//lightResc.addPointLight(XMFLOAT3(-3.0f, -3.0f, -3.0f), XMFLOAT3(1.f, .35f, .44f), XMFLOAT4(.0f, 1.f, .0f, .5f), XMFLOAT2(.0f, .0f));
+	//lightResc.addPointLight(XMFLOAT3(1.f, 1.f, 1.0f),	   XMFLOAT3(1.f, .22f, .2f),  XMFLOAT4(.0f, .0f, 1.f, .5f), XMFLOAT2(.0f, .0f));
+	//lightResc.addPointLight(XMFLOAT3(-1.0f, .0f, -1.0f),   XMFLOAT3(1.f, .22f, .27f), XMFLOAT4(1.f, 1.f, .0f, .5f), XMFLOAT2(.0f, .0f));
 }
 	
 void Scene::createFloor() {
@@ -75,7 +75,7 @@ void Scene::updateDirLight() {
 	XMStoreFloat3(&dirF, XMVector3Normalize(dirV));
 
 	dirlight = {
-		dirF, .0f, XMFLOAT4(.5f, .5f, .5f, 1.0f), XMFLOAT4(.5f, .5f, .5f, .5f)
+		dirF, .0f, XMFLOAT4(.5f, .5f, .5f, 1.0f), XMFLOAT4(dirLightDiffuse, dirLightDiffuse, dirLightDiffuse, .0f)
 	};
 }
 

@@ -6,7 +6,6 @@
 #include <wrl/client.h>
 #include "spdlog/spdlog.h"
 #include "portable-file-dialogs.h"
-#include "microprofile.h"
 
 #include <algorithm>
 #include <functional>
@@ -41,7 +40,6 @@ int main()
 {
 	// set random seed
 	srand((uint32_t)time(NULL));
-
 
 	//Create Window
 	tre::Window window("RenderingEngine", tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);
@@ -232,16 +230,14 @@ int main()
 			scene.updateBoundingVolume(renderer.setting.typeOfBound);
 		}
 
-		renderer.clearShadowBuffer();
-
 		renderer.configureStates(tre::RENDER_MODE::SHADOW_M);
 
 		// Shadow Draw
 		std::vector<XMMATRIX> lightViewProjs;
 		for (int i = 0; i < 4; i++) { // for 4 quads
-			
+
 			MICROPROFILE_SCOPE_CSTR("Build CSM View Projection Matrix");
-			
+
 			// projection matrix of camera with specific near and far plane
 			XMMATRIX projMatrix = XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0f), static_cast<float>(tre::SCREEN_WIDTH) / tre::SCREEN_HEIGHT, renderer.setting.csmPlaneIntervals[i], renderer.setting.csmPlaneIntervals[i + 1]);
 
@@ -272,7 +268,7 @@ int main()
 					tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, lightViewProjs[i], lightViewProjs, renderer.setting.csmPlaneIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), renderer.setting.csmDebugSwitch, renderer.setting.ssaoSwitch);
 
 					tre::Frustum lightFrustum = tre::Maths::createFrustumFromViewProjectionMatrix(lightViewProjs[i]);
-			
+
 					scene.cullObject(lightFrustum, renderer.setting.typeOfBound);
 					renderer.stats.shadowCascadeOpaqueObjs[i] = scene._culledOpaqueObjQ.size();
 				}
@@ -292,13 +288,7 @@ int main()
 		tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, cam.camViewProjection, lightViewProjs, renderer.setting.csmPlaneIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), renderer.setting.csmDebugSwitch, renderer.setting.ssaoSwitch);
 
 		// using compute shader update lights
-		deviceAndContext.context.Get()->CSSetShader(scene.lightResc.computeShaderPtLightMovement.pShader.Get(), NULL, 0u);
-		deviceAndContext.context.Get()->CSSetUnorderedAccessViews(0, 1, scene.lightResc.pLightUnorderedAccessView.GetAddressOf(), nullptr);
-		{
-			PROFILE_GPU_SCOPED("Compute Shader");
-			deviceAndContext.context.Get()->Dispatch(tre::Maths::divideAndRoundUp(scene.lightResc.numOfLights, 4u), 1u, 1u);
-		}
-		deviceAndContext.context.Get()->CSSetUnorderedAccessViews(0, 1, scene.lightResc.nullUAV, nullptr);
+		scene.lightResc.dispatch();
 
 		{
 			MICROPROFILE_SCOPE_CSTR("CPU Point Light Update");
@@ -331,8 +321,6 @@ int main()
 			renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_MODE::DEFERRED_OPAQUE_M);
 		}
 
-		renderer.clearSwapChainBuffer();
-
 		// ssao pass
 		if (renderer.setting.ssaoSwitch) {
 			tre::ConstantBuffer::setSSAOKernalConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), renderer._ssao.ssaoKernalSamples, renderer.setting.ssaoSampleRadius);
@@ -354,10 +342,27 @@ int main()
 		}
 
 		// Draw all deferred lighting volume
-		if (!scene._wireframeObjQ.empty())
 		{
+			deviceAndContext.context.Get()->PSGetShaderResources(2u, 1u, scene.lightResc.pLightShaderRescView.GetAddressOf());
 			PROFILE_GPU_SCOPED("Local Lighting");
 			renderer.deferredLightingLocalDraw(scene._wireframeObjQ, cam.camPositionV);
+		}
+
+		deviceAndContext.context.Get()->OMSetRenderTargets(0, nullptr, nullptr);
+
+		tre::ConstantBuffer::setLuminaceConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), XMFLOAT2(renderer.setting.luminaceMin, renderer.setting.luminanceMax), renderer.setting.timeCoeff);
+
+		renderer._hdrBuffer.dispatchHistogram();
+
+		renderer._hdrBuffer.dispatchAverage();
+
+		deviceAndContext.context.Get()->PSSetShaderResources(8, 1, renderer._hdrBuffer.pShaderResViewHdrTexture.GetAddressOf()); // normal
+
+		tre::ConstantBuffer::setHDRConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), renderer.setting.middleGrey);
+		// HDR
+		{
+			PROFILE_GPU_SCOPED("HDR");
+			renderer.fullscreenPass(tre::RENDER_MODE::TONE_MAPPING_PASS);
 		}
 
 		// Draw debug

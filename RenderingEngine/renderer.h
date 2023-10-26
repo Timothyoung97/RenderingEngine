@@ -16,6 +16,7 @@
 #include "inputlayout.h"
 #include "gbuffer.h"
 #include "ssao.h"
+#include "hdr.h"
 
 namespace tre {
 
@@ -28,7 +29,8 @@ enum RENDER_MODE {
 	DEFERRED_OPAQUE_LIGHTING_ENV_M,
 	DEFERRED_LIGHTING_LOCAL_M,
 	SSAO_FULLSCREEN_PASS,
-	SSAO_BLURRING_PASS
+	SSAO_BLURRING_PASS,
+	TONE_MAPPING_PASS
 };
 
 inline const char* ToString(RENDER_MODE rm)
@@ -57,6 +59,9 @@ struct RendererSetting {
 	float ssaoSampleRadius = .1f;
 	bool csmDebugSwitch = false;
 	float csmPlaneIntervals[5] = { 1.0f, 20.f, 100.f, 250.f, 500.f };
+	float middleGrey = .05;
+	float luminaceMin = 1.f / 256.f, luminanceMax = powf(2.f, 3.5f);
+	float timeCoeff = 0.05f;
 	XMFLOAT4 csmPlaneIntervalsF = { csmPlaneIntervals[1], csmPlaneIntervals[2], csmPlaneIntervals[3], csmPlaneIntervals[4] };
 };
 
@@ -88,15 +93,19 @@ public:
 	PixelShader _deferredShaderLightingLocal;
 	PixelShader _ssaoPixelShader;
 	PixelShader _textureBlurPixelShader;
+	PixelShader _hdrPixelShader;
 	PixelShader _debugPixelShader;
 	Sampler _sampler;
 
 	BlendState _blendstate;
 	DepthBuffer _depthbuffer;
 	
-	// Misc
+	// Buffers
 	GBuffer _gBuffer;
 	SSAO _ssao;
+	HdrBuffer _hdrBuffer;
+
+	// Misc
 	RendererSetting setting;
 	RendererStats stats;
 
@@ -119,5 +128,3 @@ public:
 
 };
 }
-
-#define PROFILE_GPU_SCOPED(NAME) MICROPROFILE_SCOPEGPUI(NAME, tre::Utility::getRandomInt(INT_MAX))
