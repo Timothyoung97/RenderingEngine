@@ -230,8 +230,6 @@ int main()
 			scene.updateBoundingVolume(renderer.setting.typeOfBound);
 		}
 
-		renderer.configureStates(tre::RENDER_MODE::SHADOW_M);
-
 		// Shadow Draw
 		std::vector<XMMATRIX> lightViewProjs;
 		for (int i = 0; i < 4; i++) { // for 4 quads
