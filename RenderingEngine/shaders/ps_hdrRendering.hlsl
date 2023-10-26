@@ -1,4 +1,4 @@
-#include "tonemappers.hlsl"
+#include "utility_tonemappers.hlsl"
 
 Texture2D hdrTexture : register(t8);
 Buffer<float> luminAvg : register(t1);
