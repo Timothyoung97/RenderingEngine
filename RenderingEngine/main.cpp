@@ -343,12 +343,12 @@ int main()
 
 		// Draw all deferred lighting volume
 		{
+			deviceAndContext.context.Get()->PSGetShaderResources(2u, 1u, scene.lightResc.pLightShaderRescView.GetAddressOf());
 			PROFILE_GPU_SCOPED("Local Lighting");
 			renderer.deferredLightingLocalDraw(scene._wireframeObjQ, cam.camPositionV);
 		}
 
 		deviceAndContext.context.Get()->OMSetRenderTargets(0, nullptr, nullptr);
-		deviceAndContext.context.Get()->CSSetShaderResources(8, 1, renderer._hdrBuffer.pShaderResViewHdrTexture.GetAddressOf()); // normal
 
 		tre::ConstantBuffer::setLuminaceConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), XMFLOAT2(1.0f, 20.f), 1.5f);
 
