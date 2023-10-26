@@ -356,8 +356,6 @@ int main()
 
 		renderer._hdrBuffer.dispatchAverage();
 
-		deviceAndContext.context.Get()->PSSetShaderResources(8, 1, renderer._hdrBuffer.pShaderResViewHdrTexture.GetAddressOf()); // normal
-
 		tre::ConstantBuffer::setHDRConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), renderer.setting.middleGrey);
 		// HDR
 		{
