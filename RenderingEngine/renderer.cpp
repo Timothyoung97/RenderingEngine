@@ -255,8 +255,8 @@ void Renderer::configureStates(RENDER_MODE renderObjType) {
 
 		_context->OMSetRenderTargets(0, nullptr, nullptr);
 		_context->PSSetShader(_hdrPixelShader.pShader.Get(), NULL, 0u);
+		_context->PSSetShaderResources(0u, 1u, _hdrBuffer.pShaderResViewHdrTexture.GetAddressOf()); // hdr texture
 		_context->PSSetShaderResources(1u, 1u, _hdrBuffer.pLuminAvgSRV.GetAddressOf());
-		_context->PSSetShaderResources(8u, 1, _hdrBuffer.pShaderResViewHdrTexture.GetAddressOf()); // hdr texture
 
 		_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
 		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0); // by default: read only depth test

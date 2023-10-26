@@ -1,6 +1,6 @@
 #include "utility_tonemappers.hlsl"
 
-Texture2D hdrTexture : register(t8);
+Texture2D hdrTexture : register(t0);
 Buffer<float> luminAvg : register(t1);
 
 cbuffer constBufferHDR : register(b4) {
