@@ -240,7 +240,7 @@ void Scene::updateCulledOpaqueQ() {
 			} else if (obj1.second > obj2.second) {
 				return false;
 			} else {
-				return obj1.second->pMaterial < obj2.second->pMaterial;
+				return obj1.second->pMaterial->objTexture < obj2.second->pMaterial->objTexture;
 			}
 		}
 	);
