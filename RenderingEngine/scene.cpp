@@ -232,6 +232,49 @@ tre::Object* Scene::addRandomObj() {
 	return _pObjQ.back();
 }
 
+/*
+	To update instance container
+	- Input: objects that are already being culled with the respective frustum
+*/
+void Scene::updateInstanceContainer(bool toUpdateTransparenctInstance) {
 
+	_opaqueInstanceContainer.clear();
+	for (int i = 0; i < _culledOpaqueObjQ.size(); i++) {
+		tre::Object* pObj = _culledOpaqueObjQ[i].first;
+		tre::Mesh* pMesh = _culledOpaqueObjQ[i].second;
+
+		if (!_opaqueInstanceContainer.contains(pMesh)) {
+			std::unordered_map<tre::Material*, std::vector<tre::Object*>> newInstanceGroup;
+			_opaqueInstanceContainer.insert(std::make_pair(pMesh, newInstanceGroup));
+		}
+
+		if (!_opaqueInstanceContainer[pMesh].contains(pMesh->pMaterial)) {
+			std::vector<tre::Object*> newSubInstanceQ = {};
+			_opaqueInstanceContainer[pMesh].insert(std::make_pair(pMesh->pMaterial, newSubInstanceQ));
+		}
+
+		_opaqueInstanceContainer[pMesh][pMesh->pMaterial].push_back(pObj);
+	}
+
+	if (!toUpdateTransparenctInstance) return;
+
+	_transparentInstanceContainer.clear();
+	for (int i = 0; i < _culledOpaqueObjQ.size(); i++) {
+		tre::Object* pObj = _culledOpaqueObjQ[i].first;
+		tre::Mesh* pMesh = _culledOpaqueObjQ[i].second;
+
+		if (!_transparentInstanceContainer.contains(pMesh)) {
+			std::unordered_map<tre::Material*, std::vector<tre::Object*>> newInstanceGroup;
+			_transparentInstanceContainer.insert(std::make_pair(pMesh, newInstanceGroup));
+		}
+
+		if (!_transparentInstanceContainer[pMesh].contains(pMesh->pMaterial)) {
+			std::vector<tre::Object*> newSubInstanceQ = {};
+			_transparentInstanceContainer[pMesh].insert(std::make_pair(pMesh->pMaterial, newSubInstanceQ));
+		}
+
+		_transparentInstanceContainer[pMesh][pMesh->pMaterial].push_back(pObj);
+	}
+}
 
 }
