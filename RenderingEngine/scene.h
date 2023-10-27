@@ -9,6 +9,7 @@
 #include "camera.h"
 
 #include <vector>
+#include <unordered_map>
 
 namespace tre {
 
@@ -44,6 +45,9 @@ public:
 	std::vector<std::pair<tre::Object*, tre::Mesh*>> _culledTransparentObjQ;
 	std::vector<std::pair<tre::Object*, tre::Mesh*>> _wireframeObjQ;
 
+	// Instance container
+	std::unordered_map<tre::Mesh*, std::unordered_map<tre::Material*, std::vector<tre::Object*>>> instanceContainer;
+
 	bool _toSortTransparentQ = false;
 	bool _toRecalDistFromCam = true; // when scene is init, to calculate distance from camera
 
@@ -56,7 +60,9 @@ public:
 	void updateBoundingVolume(BoundVolumeEnum typeOfBound);
 	void cullObject(Frustum& frustum, BoundVolumeEnum typeOfBound);
 	void updateTransparentQ(Camera& cam);
-
+	
 	tre::Object* addRandomObj();
+
+	void updateInstanceContainer();
 };
 }

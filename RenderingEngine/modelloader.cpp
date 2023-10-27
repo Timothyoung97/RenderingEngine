@@ -54,11 +54,11 @@ void ModelLoader::loadResource(ID3D11Device* device, const aiScene* scene) {
 	// second pass: load in all textures via iterating through all materials, using filename as key
 	spdlog::info("Begin Texture Loading");
 	for (int i = 0; i < scene->mNumMaterials; i++) {
-		aiMaterial* material = scene->mMaterials[i];
+		aiMaterial* pMaterial = scene->mMaterials[i];
 
 		aiString diffuseTexName;
 
-		material->GetTexture(aiTextureType_DIFFUSE, 0, &diffuseTexName);
+		pMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &diffuseTexName);
 		if (diffuseTexName.length && !_textures.contains(diffuseTexName.C_Str())) {
 			spdlog::info("Loading diffuse texture {}", diffuseTexName.C_Str());
 			std::string fullFilepath = this->_directoryPath + tre::Utility::uriDecode(std::string(diffuseTexName.C_Str()));
@@ -66,7 +66,7 @@ void ModelLoader::loadResource(ID3D11Device* device, const aiScene* scene) {
 		}
 
 		aiString normalMapName;
-		material->GetTexture(aiTextureType_NORMALS, 0, &normalMapName);
+		pMaterial->GetTexture(aiTextureType_NORMALS, 0, &normalMapName);
 		if (normalMapName.length && !_textures.contains(normalMapName.C_Str())) {
 			spdlog::info("Loading normal texture {}", normalMapName.C_Str());
 			std::string fullFilepath = this->_directoryPath + tre::Utility::uriDecode(std::string(normalMapName.C_Str()));
@@ -77,24 +77,24 @@ void ModelLoader::loadResource(ID3D11Device* device, const aiScene* scene) {
 	// assign respective materials with its textures
 	spdlog::info("Assigning textures to materials");
 	for (int i = 0; i < scene->mNumMaterials; i++) {
-		aiMaterial* material = scene->mMaterials[i];
+		aiMaterial* pMaterial = scene->mMaterials[i];
 		if (!_materials.contains(i)) {
 			Material newMaterial{ nullptr, nullptr, tre::colorF(Colors::Black)};
 			
 			aiColor4D baseColor;
-			material->Get(AI_MATKEY_BASE_COLOR, baseColor);
+			pMaterial->Get(AI_MATKEY_BASE_COLOR, baseColor);
 			if (!baseColor.IsBlack()) {
 				newMaterial.baseColor = XMFLOAT4(baseColor.r, baseColor.g, baseColor.b, baseColor.a);
 			}
 
 			aiString diffuseTexName;
-			material->GetTexture(aiTextureType_DIFFUSE, 0, &diffuseTexName);
+			pMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &diffuseTexName);
 			if (diffuseTexName.length != 0) {
 				newMaterial.objTexture = &_textures[diffuseTexName.C_Str()];
 			}
 
 			aiString normalMapName;
-			material->GetTexture(aiTextureType_NORMALS, 0, &normalMapName);
+			pMaterial->GetTexture(aiTextureType_NORMALS, 0, &normalMapName);
 			if (normalMapName.length != 0) {
 				newMaterial.objNormalMap = &_textures[normalMapName.C_Str()];
 			}
@@ -106,7 +106,7 @@ void ModelLoader::loadResource(ID3D11Device* device, const aiScene* scene) {
 	// assign materials to apply on mashes
 	spdlog::info("Assigning materials to meshes");
 	for (int i = 0; i < scene->mNumMeshes; i++) {
-		_meshes[i].material = &_materials[scene->mMeshes[i]->mMaterialIndex];
+		_meshes[i].pMaterial = &_materials[scene->mMeshes[i]->mMaterialIndex];
 	}
 }
 

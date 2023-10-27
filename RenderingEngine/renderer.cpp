@@ -301,7 +301,7 @@ void Renderer::deferredLightingLocalDraw(const std::vector<std::pair<Object*, Me
 		tre::ConstantBuffer::setObjConstBuffer(
 			_device, _context,
 			objQ[i].first->_transformationFinal,
-			objQ[i].second->material->baseColor,
+			objQ[i].second->pMaterial->baseColor,
 			0,
 			0
 		);
@@ -344,15 +344,15 @@ void Renderer::draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MO
 		//set shader resc view and sampler
 		bool hasTexture = 0;
 		bool hasNormal = 0;
-		if (objQ[i].second->material != nullptr) {
-			if (objQ[i].second->material->objTexture != nullptr) {
-				_context->PSSetShaderResources(0, 1, objQ[i].second->material->objTexture->pShaderResView.GetAddressOf());
+		if (objQ[i].second->pMaterial != nullptr) {
+			if (objQ[i].second->pMaterial->objTexture != nullptr) {
+				_context->PSSetShaderResources(0, 1, objQ[i].second->pMaterial->objTexture->pShaderResView.GetAddressOf());
 				hasTexture = 1;
 			}
 
 			// set normal map
-			if (objQ[i].second->material->objNormalMap != nullptr) {
-				_context->PSSetShaderResources(1, 1, objQ[i].second->material->objNormalMap->pShaderResView.GetAddressOf());
+			if (objQ[i].second->pMaterial->objNormalMap != nullptr) {
+				_context->PSSetShaderResources(1, 1, objQ[i].second->pMaterial->objNormalMap->pShaderResView.GetAddressOf());
 				hasNormal = 1;
 			}
 		}
@@ -361,7 +361,7 @@ void Renderer::draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MO
 		tre::ConstantBuffer::setObjConstBuffer(
 			_device, _context,
 			objQ[i].first->_transformationFinal,
-			objQ[i].second->material->baseColor,
+			objQ[i].second->pMaterial->baseColor,
 			hasTexture,
 			hasNormal
 		);

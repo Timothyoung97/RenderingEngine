@@ -55,7 +55,7 @@ Scene::Scene(ID3D11Device* device, ID3D11DeviceContext* context) {
 	
 void Scene::createFloor() {
 	_floor.pObjMeshes = { &_debugMeshes[3] };
-	_floor.pObjMeshes[0]->material = &_debugMaterials[2];
+	_floor.pObjMeshes[0]->pMaterial = &_debugMaterials[2];
 	_floor.objPos = XMFLOAT3(.0f, -1.f, .0f);
 	_floor.objScale = XMFLOAT3(100.f, 0.01f, 100.f);
 	_floor.objRotation = XMFLOAT3(.0f, .0f, .0f);
@@ -134,8 +134,8 @@ void Scene::cullObject(Frustum& frustum, BoundVolumeEnum typeOfBound) {
 			Mesh* pMesh = pObj->pObjMeshes[j];
 
 			int isTransparent = 0;
-			if ((pMesh->material->objTexture != nullptr && pMesh->material->objTexture->hasAlphaChannel)
-				|| (pMesh->material->objTexture == nullptr && pMesh->material->baseColor.w < 1.0f)) {
+			if ((pMesh->pMaterial->objTexture != nullptr && pMesh->pMaterial->objTexture->hasAlphaChannel)
+				|| (pMesh->pMaterial->objTexture == nullptr && pMesh->pMaterial->baseColor.w < 1.0f)) {
 
 				isTransparent = 1;
 			}
@@ -206,6 +206,7 @@ void Scene::cullObject(Frustum& frustum, BoundVolumeEnum typeOfBound) {
 	}
 }
 
+// Add random object with random transformations, meshes and textures
 tre::Object* Scene::addRandomObj() {
 	// Create new obj
 	tre::Object newObj;
@@ -215,7 +216,7 @@ tre::Object* Scene::addRandomObj() {
 
 	int selectIdx = tre::Utility::getRandomInt(1);
 	newObj.pObjMeshes = { &_debugMeshes[5 + selectIdx] };
-	newObj.pObjMeshes[0]->material = &_debugMaterials[selectIdx];
+	newObj.pObjMeshes[0]->pMaterial = &_debugMaterials[selectIdx];
 	newObj.objPos = XMFLOAT3(tre::Utility::getRandomFloatRange(-20, 20), tre::Utility::getRandomFloatRange(-20, 20), tre::Utility::getRandomFloatRange(-20, 20));
 	newObj.objScale = XMFLOAT3(scaleVal, scaleVal, scaleVal);
 	newObj.objRotation = XMFLOAT3(tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360));
@@ -230,5 +231,7 @@ tre::Object* Scene::addRandomObj() {
 
 	return _pObjQ.back();
 }
+
+
 
 }

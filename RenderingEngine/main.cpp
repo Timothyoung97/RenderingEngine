@@ -102,8 +102,8 @@ int main()
 		for (int j = 0; j < scene._pObjQ[i]->pObjMeshes.size(); j++) {
 			renderer.stats.totalMeshCount++;
 			tre::Mesh* pMesh = scene._pObjQ[i]->pObjMeshes[j];
-			if ((pMesh->material->objTexture != nullptr && pMesh->material->objTexture->hasAlphaChannel)
-				|| (pMesh->material->objTexture == nullptr && pMesh->material->baseColor.w < 1.0f)) {
+			if ((pMesh->pMaterial->objTexture != nullptr && pMesh->pMaterial->objTexture->hasAlphaChannel)
+				|| (pMesh->pMaterial->objTexture == nullptr && pMesh->pMaterial->baseColor.w < 1.0f)) {
 				renderer.stats.transparentMeshCount++;
 			} else {
 				renderer.stats.opaqueMeshCount++;
@@ -115,7 +115,7 @@ int main()
 	tre::Object debugModel;
 
 	debugModel.pObjMeshes = { &scene._debugMeshes[4] };
-	debugModel.pObjMeshes[0]->material = &scene._debugMaterials[3];
+	debugModel.pObjMeshes[0]->pMaterial = &scene._debugMaterials[3];
 	debugModel.objPos = XMFLOAT3(.0f, .5f, .0f);
 	debugModel.objScale = XMFLOAT3(1.f, 1.f, 1.f);
 	debugModel.objRotation = XMFLOAT3(.0f, .0f, .0f);
@@ -188,8 +188,8 @@ int main()
 			tre::Object* pNewObj = scene.addRandomObj();
 
 			renderer.stats.totalMeshCount++;
-			if ((pNewObj->pObjMeshes[0]->material->objTexture != nullptr && pNewObj->pObjMeshes[0]->material->objTexture->hasAlphaChannel)
-				|| (pNewObj->pObjMeshes[0]->material->objTexture == nullptr && pNewObj->pObjMeshes[0]->material->baseColor.w < 1.0f)) {
+			if ((pNewObj->pObjMeshes[0]->pMaterial->objTexture != nullptr && pNewObj->pObjMeshes[0]->pMaterial->objTexture->hasAlphaChannel)
+				|| (pNewObj->pObjMeshes[0]->pMaterial->objTexture == nullptr && pNewObj->pObjMeshes[0]->pMaterial->baseColor.w < 1.0f)) {
 				renderer.stats.transparentMeshCount++;
 			}
 			else {
@@ -282,7 +282,7 @@ int main()
 				tre::Object newLightObj;
 
 				newLightObj.pObjMeshes = { &scene._debugMeshes[1] }; // sphere
-				newLightObj.pObjMeshes[0]->material = &scene._debugMaterials[2];
+				newLightObj.pObjMeshes[0]->pMaterial = &scene._debugMaterials[2];
 				newLightObj.objPos = scene.lightResc.readOnlyPointLightQ[i].pos;
 				newLightObj.objScale = XMFLOAT3(scene.lightResc.readOnlyPointLightQ[i].range, scene.lightResc.readOnlyPointLightQ[i].range, scene.lightResc.readOnlyPointLightQ[i].range);
 				newLightObj.objRotation = XMFLOAT3(.0f, .0f, .0f);
@@ -298,7 +298,7 @@ int main()
 		// 1st pass deferred normal & albedo
 		{
 			PROFILE_GPU_SCOPED("G-Buffer");
-			renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_MODE::DEFERRED_OPAQUE_M);
+			renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_MODE::DEFERRED_OPAQUE_M); // here can draw instanced
 		}
 
 		// ssao pass
@@ -318,7 +318,7 @@ int main()
 		// Draw all transparent objects
 		{
 			PROFILE_GPU_SCOPED("Transparent Obj");
-			renderer.draw(scene._culledTransparentObjQ, tre::RENDER_MODE::TRANSPARENT_M);
+			renderer.draw(scene._culledTransparentObjQ, tre::RENDER_MODE::TRANSPARENT_M); // here can draw instanced
 		}
 
 		// Draw all deferred lighting volume
