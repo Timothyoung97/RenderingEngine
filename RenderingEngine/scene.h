@@ -61,7 +61,8 @@ public:
 	void updateDirLight();
 	void updateBoundingVolume(BoundVolumeEnum typeOfBound);
 	void cullObject(Frustum& frustum, BoundVolumeEnum typeOfBound);
-	void updateTransparentQ(Camera& cam);
+	void updateCulledTransparentQ(Camera& cam);
+	void updateCulledOpaqueQ();
 	
 	tre::Object* addRandomObj();
 

@@ -101,7 +101,7 @@ void Scene::updateBoundingVolume(BoundVolumeEnum typeOfBound) {
 	}
 }
 
-void Scene::updateTransparentQ(Camera& cam) {
+void Scene::updateCulledTransparentQ(Camera& cam) {
 	if (_toRecalDistFromCam) {
 		for (int i = 0; i < _culledTransparentObjQ.size(); i++) {
 			Object* pObj = _culledTransparentObjQ[i].first;
