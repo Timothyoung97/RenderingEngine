@@ -250,7 +250,10 @@ int main()
 					tre::Frustum lightFrustum = tre::Maths::createFrustumFromViewProjectionMatrix(lightViewProjs[i]);
 
 					scene.cullObject(lightFrustum, renderer.setting.typeOfBound);
-					scene.updateInstanceContainer(false); // only need to update for opaque objects
+					{
+						MICROPROFILE_SCOPE_CSTR("Grouping instances (Opaque only)");
+						scene.updateInstanceContainer(false); // only need to update for opaque objects
+					}
 
 					renderer.stats.shadowCascadeOpaqueObjs[i] = scene._culledOpaqueObjQ.size();
 				}
@@ -264,7 +267,10 @@ int main()
 			MICROPROFILE_SCOPE_CSTR("Scene Obj Culling");
 			scene.cullObject(cam.cameraFrustum, renderer.setting.typeOfBound);
 			scene.updateTransparentQ(cam);
-			scene.updateInstanceContainer(true); // update both opaque and transparent obj
+			{
+				MICROPROFILE_SCOPE_CSTR("Grouping instances (Opaque + Transparent)");
+				scene.updateInstanceContainer(true); // update both opaque and transparent obj
+			}
 		}
 
 		// set const buffer for camera
