@@ -236,4 +236,30 @@ ID3D11Buffer* ConstantBuffer::setLightViewProjectionConstBuffer(ID3D11Device* de
 	return pConstBuffer;
 }
 
+ID3D11Buffer* ConstantBuffer::setBatchInfoConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, int batchOffset) {
+	D3D11_BUFFER_DESC constantBufferDescModel;
+	constantBufferDescModel.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	constantBufferDescModel.Usage = D3D11_USAGE_DEFAULT;
+	constantBufferDescModel.CPUAccessFlags = 0u;
+	constantBufferDescModel.MiscFlags = 0u;
+	constantBufferDescModel.ByteWidth = sizeof(constBufferDirLightViewProjection);
+	constantBufferDescModel.StructureByteStride = 0u;
+
+	constBufferBatchInformation constBufferBatchInformation;
+	constBufferBatchInformation.batchOffset = (UINT)batchOffset;
+
+	//map to data to subresouce
+	D3D11_SUBRESOURCE_DATA csd = {};
+	csd.pSysMem = &constBufferBatchInformation;
+
+	ID3D11Buffer* pConstBuffer;
+
+	CHECK_DX_ERROR(device->CreateBuffer(
+		&constantBufferDescModel, &csd, &pConstBuffer
+	));
+
+	return pConstBuffer;
+}
+
+
 }
