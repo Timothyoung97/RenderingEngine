@@ -252,7 +252,7 @@ int main()
 					scene.cullObject(lightFrustum, renderer.setting.typeOfBound);
 					{
 						MICROPROFILE_SCOPE_CSTR("Grouping instances (Opaque only)");
-						scene.updateInstanceContainer(false); // only need to update for opaque objects
+						scene.updateCulledOpaqueQ();
 					}
 
 					renderer.stats.shadowCascadeOpaqueObjs[i] = scene._culledOpaqueObjQ.size();
@@ -266,10 +266,10 @@ int main()
 		{	// culling for scene draw
 			MICROPROFILE_SCOPE_CSTR("Scene Obj Culling");
 			scene.cullObject(cam.cameraFrustum, renderer.setting.typeOfBound);
-			scene.updateTransparentQ(cam);
 			{
 				MICROPROFILE_SCOPE_CSTR("Grouping instances (Opaque + Transparent)");
-				scene.updateInstanceContainer(true); // update both opaque and transparent obj
+				scene.updateCulledOpaqueQ();
+				scene.updateCulledTransparentQ(cam);
 			}
 		}
 

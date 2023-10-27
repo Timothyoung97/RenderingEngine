@@ -45,11 +45,6 @@ public:
 	std::vector<std::pair<tre::Object*, tre::Mesh*>> _culledTransparentObjQ;
 	std::vector<std::pair<tre::Object*, tre::Mesh*>> _wireframeObjQ;
 
-	// Instance container [pMesh > pMaterial > pObj]
-	// Only need the pObj's final transformation when sending into the buffer
-	std::unordered_map<tre::Mesh*, std::unordered_map<tre::Material*, std::vector<tre::Object*>>> _opaqueInstanceContainer;
-	std::unordered_map<tre::Mesh*, std::unordered_map<tre::Material*, std::vector<tre::Object*>>> _transparentInstanceContainer;
-
 	bool _toSortTransparentQ = false;
 	bool _toRecalDistFromCam = true; // when scene is init, to calculate distance from camera
 
@@ -66,6 +61,5 @@ public:
 	
 	tre::Object* addRandomObj();
 
-	void updateInstanceContainer(bool toUpdateTransparenctInstance);
 };
 }
