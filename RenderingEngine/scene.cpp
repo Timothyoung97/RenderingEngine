@@ -104,7 +104,7 @@ void Scene::updateBoundingVolume(BoundVolumeEnum typeOfBound) {
 void Scene::updateTransparentQ(Camera& cam) {
 	if (_toRecalDistFromCam) {
 		for (int i = 0; i < _culledTransparentObjQ.size(); i++) {
-			Object* pObj = _culledOpaqueObjQ[i].first;
+			Object* pObj = _culledTransparentObjQ[i].first;
 			// find its distance from cam
 			pObj->distFromCam = tre::Maths::distBetweentObjToCam(pObj->objPos, cam.camPositionV);
 		}
