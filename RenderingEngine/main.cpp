@@ -259,7 +259,8 @@ int main()
 				}
 
 				// draw shadow only for opaque objects
-				renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_MODE::SHADOW_M);
+				//renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_MODE::SHADOW_M); // non instanced
+				renderer.instancedDraw(scene._culledOpaqueObjQ, tre::RENDER_MODE::INSTANCED_SHADOW_M); // instanced
 			}
 		}
 
@@ -271,6 +272,14 @@ int main()
 				scene.updateCulledOpaqueQ();
 				scene.updateCulledTransparentQ(cam);
 			}
+		}
+
+		// 1st pass deferred normal & albedo
+		{
+			PROFILE_GPU_SCOPED("G-Buffer");
+			//renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_MODE::DEFERRED_OPAQUE_M); // non instanced
+			tre::ConstantBuffer::setLightViewProjectionConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camViewProjection); // instanced
+			renderer.instancedDraw(scene._culledOpaqueObjQ, tre::RENDER_MODE::INSTANCED_DEFERRED_OPAQUE_M);
 		}
 
 		// set const buffer for camera
@@ -302,12 +311,6 @@ int main()
 				scene._wireframeObjQ.push_back(std::make_pair(&scene._pointLightObjQ.back(), scene._pointLightObjQ.back().pObjMeshes[0]));
 			}
 			deviceAndContext.context.Get()->PSSetShaderResources(2, 1, scene.lightResc.pLightShaderRescView.GetAddressOf());
-		}
-
-		// 1st pass deferred normal & albedo
-		{
-			PROFILE_GPU_SCOPED("G-Buffer");
-			renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_MODE::DEFERRED_OPAQUE_M); // here can draw instanced
 		}
 
 		// ssao pass
