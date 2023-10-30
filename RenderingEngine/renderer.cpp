@@ -469,8 +469,18 @@ void Renderer::instancedDraw(const std::vector<std::pair<Object*, Mesh*>>& objQ,
 					_context->PSSetShaderResources(1u, 1u, objQ[i].second->pMaterial->objNormalMap->pShaderResView.GetAddressOf());
 				}
 			}
+
+			//Set vertex buffer
+			_context->IASetVertexBuffers(0, 1, objQ[i].second->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
+
+			//Set index buffer
+			_context->IASetIndexBuffer(objQ[i].second->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 		}
 	}
+
+	tre::ConstantBuffer::setBatchInfoConstBuffer(_device, _context, batchStartIdx);
+
+	_context->DrawIndexedInstanced(pCurrMesh->indexSize, objQ.size() + 1 - batchStartIdx, 0u, 0u, 0u);
 }
 
 void Renderer::debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh& mesh, BoundVolumeEnum typeOfBound, RENDER_MODE renderObjType) {
