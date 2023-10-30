@@ -10,7 +10,7 @@ namespace tre {
 
 Scene::Scene(ID3D11Device* device, ID3D11DeviceContext* context) {
 
-	this->_objQ.reserve(1000); // hardcoded capacity
+	this->_objQ.reserve(1000000); // hardcoded capacity
 
 	_debugMeshes = {
 		tre::CubeMesh(device), // Bounding WireMesh
@@ -217,7 +217,10 @@ tre::Object* Scene::addRandomObj() {
 	int selectIdx = tre::Utility::getRandomInt(1);
 	newObj.pObjMeshes = { &_debugMeshes[5 + selectIdx] };
 	newObj.pObjMeshes[0]->pMaterial = &_debugMaterials[selectIdx];
-	newObj.objPos = XMFLOAT3(tre::Utility::getRandomFloatRange(-20, 20), tre::Utility::getRandomFloatRange(-20, 20), tre::Utility::getRandomFloatRange(-20, 20));
+
+	XMFLOAT3 objPos = tre::Maths::getRotatePosition(XMFLOAT3(.0f, .0f, .0f), .0f, tre::Utility::getRandomFloat(360.f), tre::Utility::getRandomFloat(100.f));
+
+	newObj.objPos = objPos;
 	newObj.objScale = XMFLOAT3(scaleVal, scaleVal, scaleVal);
 	newObj.objRotation = XMFLOAT3(tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360));
 	newObj._boundingVolumeColor = { tre::colorF(Colors::Green) };

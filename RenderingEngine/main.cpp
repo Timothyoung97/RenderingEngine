@@ -184,16 +184,18 @@ int main()
 			cam.turnCamera(input._deltaDisplacement.x, input._deltaDisplacement.y);
 		}
 		else if (input._keyState[SDL_SCANCODE_SPACE]) {
-			// Create new obj
-			tre::Object* pNewObj = scene.addRandomObj();
+			for (int i = 0; i < 100; i++) {
+				// Create new obj
+				tre::Object* pNewObj = scene.addRandomObj();
 
-			renderer.stats.totalMeshCount++;
-			if ((pNewObj->pObjMeshes[0]->pMaterial->objTexture != nullptr && pNewObj->pObjMeshes[0]->pMaterial->objTexture->hasAlphaChannel)
-				|| (pNewObj->pObjMeshes[0]->pMaterial->objTexture == nullptr && pNewObj->pObjMeshes[0]->pMaterial->baseColor.w < 1.0f)) {
-				renderer.stats.transparentMeshCount++;
-			}
-			else {
-				renderer.stats.opaqueMeshCount++;
+				renderer.stats.totalMeshCount++;
+				if ((pNewObj->pObjMeshes[0]->pMaterial->objTexture != nullptr && pNewObj->pObjMeshes[0]->pMaterial->objTexture->hasAlphaChannel)
+					|| (pNewObj->pObjMeshes[0]->pMaterial->objTexture == nullptr && pNewObj->pObjMeshes[0]->pMaterial->baseColor.w < 1.0f)) {
+					renderer.stats.transparentMeshCount++;
+				}
+				else {
+					renderer.stats.opaqueMeshCount++;
+				}
 			}
 		}
 		else if (input._keyState[SDL_SCANCODE_K]) {
