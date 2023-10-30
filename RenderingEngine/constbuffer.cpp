@@ -258,6 +258,8 @@ ID3D11Buffer* ConstantBuffer::setBatchInfoConstBuffer(ID3D11Device* device, ID3D
 		&constantBufferDescModel, &csd, &pConstBuffer
 	));
 
+	context->VSSetConstantBuffers(1u, 1u, &pConstBuffer);
+
 	return pConstBuffer;
 }
 
