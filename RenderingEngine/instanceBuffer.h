@@ -20,6 +20,7 @@ struct InstanceInfo {
 	XMFLOAT4 color;
 	UINT isWithTexture;
 	UINT hasNormMap;
+	XMINT2 pad;
 };
 
 class InstanceBuffer {
@@ -36,6 +37,8 @@ public:
 	void createBuffer(ID3D11Device* _device, ID3D11DeviceContext* _context);
 
 	// to be called per frame before opaque draw calls
-	void updateBuffer(const std::vector<InstanceInfo>& infoQ);
+	void updateBuffer(const std::vector<std::pair<Object*, Mesh*>>& objQ);
+
+	InstanceInfo createInstanceInfo(XMMATRIX transformationLocal, XMFLOAT4 color, UINT isWithTexture, UINT hasNormalMap);
 };
 }
