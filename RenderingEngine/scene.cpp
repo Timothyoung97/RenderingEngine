@@ -19,7 +19,7 @@ Scene::Scene(ID3D11Device* device, ID3D11DeviceContext* context) {
 		tre::CubeMesh(device), // floor
 		tre::CubeMesh(device), // transparent cube
 		tre::CubeMesh(device), // testing cube
-		tre::SphereMesh(device, 20, 20) // testing sphere
+		tre::SphereMesh(device, 6, 6) // testing sphere
 	};
 	
 	// Create testing texture
