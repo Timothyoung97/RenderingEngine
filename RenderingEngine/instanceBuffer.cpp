@@ -30,25 +30,47 @@ InstanceInfo InstanceBuffer::createInstanceInfo(XMMATRIX transformationLocal, XM
 void InstanceBuffer::updateBuffer(const std::vector<std::pair<Object*, Mesh*>>& objQ) {
 	
 	std::vector<InstanceInfo> instanceInfoQ;
-	for (int i = 0; i < objQ.size(); i++) {
-		Object* pObj = objQ[i].first;
-		Mesh* pMesh = objQ[i].second;
+	instanceBatchQueue.clear();
 
-		bool hasTexture = 0;
-		bool hasNormal = 0;
-		if (pMesh->pMaterial != nullptr) {
-			if (pMesh->pMaterial->objTexture != nullptr) {
-				hasTexture = 1;
-			}
+	int batchStartIdx = 0;
+	Mesh* pBatchMesh = objQ[0].second;
+	Texture* pBatchTexture = objQ[0].second->pMaterial->objTexture;
+	Texture* pBatchNormalMap = objQ[0].second->pMaterial->objNormalMap;
+	
+	for (int i = 0; i < objQ.size() + 1; i++) {
 
-			// set normal map
-			if (pMesh->pMaterial->objNormalMap != nullptr) {
-				hasNormal = 1;
-			}
+		if (i == objQ.size()) {
+			InstanceBatchInfo newBatchInfo = { 
+				batchStartIdx, i - batchStartIdx,
+				pBatchTexture != nullptr ? 1 : 0, pBatchNormalMap != nullptr ? 1 : 0, 
+				pBatchMesh, pBatchTexture, pBatchNormalMap 
+			};
+			instanceBatchQueue.push_back(newBatchInfo);
+			break;
 		}
 
-		InstanceInfo newInstInfo = this->createInstanceInfo(pObj->_transformationFinal, pMesh->pMaterial->baseColor, hasTexture, hasNormal);
+		Object* pObj = objQ[i].first;
+		Mesh* pMesh = objQ[i].second;
+		Texture* pTexture = pMesh->pMaterial->objTexture;
+		Texture* pNormalMap = pMesh->pMaterial->objNormalMap;
+
+		InstanceInfo newInstInfo = this->createInstanceInfo(pObj->_transformationFinal, pMesh->pMaterial->baseColor, pTexture != nullptr ? 1 : 0, pNormalMap != nullptr ? 1 : 0);
 		instanceInfoQ.push_back(newInstInfo);
+
+		if (pMesh != pBatchMesh || pTexture != pBatchTexture) {
+			InstanceBatchInfo newBatchInfo = { 
+				batchStartIdx, i - batchStartIdx, 
+				pBatchTexture != nullptr ? 1 : 0, pBatchNormalMap != nullptr ? 1 : 0, 
+				pBatchMesh, pBatchTexture, pBatchNormalMap 
+			};
+			instanceBatchQueue.push_back(newBatchInfo);
+
+			pBatchMesh = pMesh;
+			pBatchTexture = pTexture;
+			pBatchNormalMap = pBatchNormalMap;
+			batchStartIdx = i;
+		}
+
 	}
 
 	D3D11_BUFFER_DESC pInstanceBufferDesc;

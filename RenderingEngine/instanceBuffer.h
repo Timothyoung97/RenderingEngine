@@ -23,6 +23,16 @@ struct InstanceInfo {
 	XMINT2 pad;
 };
 
+struct InstanceBatchInfo {
+	int batchStartIdx;
+	int quantity;
+	int isWithTexture;
+	int hasNormMap;
+	Mesh* pBatchMesh;
+	Texture* pBatchTexture;
+	Texture* pBatchNormalMap;
+};
+
 class InstanceBuffer {
 
 public:
@@ -33,6 +43,8 @@ public:
 	ComPtr<ID3D11ShaderResourceView> pInstanceBufferSRV;
 
 	int lastBufferSize = 100; // hardcoded initial buffer size
+
+	std::vector<InstanceBatchInfo> instanceBatchQueue;
 
 	void createBuffer(ID3D11Device* _device, ID3D11DeviceContext* _context);
 
