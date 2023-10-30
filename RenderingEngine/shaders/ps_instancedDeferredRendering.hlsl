@@ -24,7 +24,6 @@ void ps_instanced_deferred_gbuffer (
         outTargetAlbedo = ObjTexture.Sample(ObjSamplerStateLinear, outTexCoord);
     }
 
-    
     outTargetNormal = encodeNormal(normalize(outNormal).xyz);
     if (outTextuerInfo.y) { // check if have normal texture
         float3 normalMap = decodeNormal(ObjNormMap.Sample(ObjSamplerStateLinear, outTexCoord).xyz); // change from [0, 1] to [-1, 1]

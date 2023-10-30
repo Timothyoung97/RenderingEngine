@@ -2,18 +2,7 @@
 
 // Global 
 cbuffer constBuffer : register(b0) {
-    float2 viewportDimension; // (width, height)
-    float2 pad;
-    float4 camPos;
     matrix viewProjection;
-    matrix invViewProjection;
-    matrix lightviewProjection[4];
-    float4 planeIntervals;
-    Light dirLight;
-    uint numPtLights;
-    float2 shadowMapDimension;
-    int csmDebugSwitch;
-    int ssaoSwitch;
 };
 
 // Batch offset
@@ -27,13 +16,13 @@ struct InstanceInfo {
     float4 color;
     uint isWithTexture;
     uint hasNormMap;
+    uint2 pad;
 };
 
 StructuredBuffer<InstanceInfo> instanceInfoQueue : register(t0);
 
 // Vertex Shader
 void vs_instancedRendering (
-    uint instanceID : SV_InstanceID,
     in float3 inPosition : POSITION,
     in float3 inNormal : NORMAL,
     in float3 inTangent : TANGENT,
@@ -44,7 +33,8 @@ void vs_instancedRendering (
     out float4 outTangent : TEXCOORD2,
     out float2 outTexCoord : TEXCOORD3,
     out float4 outColor : TEXCOORD4,
-    out float4 outTextuerInfo : TEXCOORD5
+    out float4 outTextuerInfo : TEXCOORD5,
+    uint instanceID : SV_InstanceID
 ) 
 {   
 
