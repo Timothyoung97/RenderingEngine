@@ -382,17 +382,15 @@ void Renderer::draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MO
 		//set shader resc view and sampler
 		bool hasTexture = 0;
 		bool hasNormal = 0;
-		if (objQ[i].second->pMaterial != nullptr) {
-			if (objQ[i].second->pMaterial->objTexture != nullptr) {
-				_context->PSSetShaderResources(0, 1, objQ[i].second->pMaterial->objTexture->pShaderResView.GetAddressOf());
-				hasTexture = 1;
-			}
+		if (objQ[i].second->pMaterial->objTexture != nullptr) {
+			_context->PSSetShaderResources(0, 1, objQ[i].second->pMaterial->objTexture->pShaderResView.GetAddressOf());
+			hasTexture = 1;
+		}
 
-			// set normal map
-			if (objQ[i].second->pMaterial->objNormalMap != nullptr) {
-				_context->PSSetShaderResources(1, 1, objQ[i].second->pMaterial->objNormalMap->pShaderResView.GetAddressOf());
-				hasNormal = 1;
-			}
+		// set normal map
+		if (objQ[i].second->pMaterial->objNormalMap != nullptr) {
+			_context->PSSetShaderResources(1, 1, objQ[i].second->pMaterial->objNormalMap->pShaderResView.GetAddressOf());
+			hasNormal = 1;
 		}
 
 		//Config and set const buffer
@@ -408,6 +406,7 @@ void Renderer::draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MO
 	}
 }
 
+
 void Renderer::instancedDraw(const std::vector<std::pair<Object*, Mesh*>>& objQ, RENDER_MODE renderMode) {
 	if (objQ.size() == 0) return;
 
@@ -419,62 +418,52 @@ void Renderer::instancedDraw(const std::vector<std::pair<Object*, Mesh*>>& objQ,
 
 	configureStates(renderMode);
 
+	// Init Config
+	int batchStartIdx = 0;
 	UINT vertexStride = sizeof(Vertex);
 	UINT offset = 0;
 
-	//Set vertex buffer
-	_context->IASetVertexBuffers(0, 1, objQ[0].second->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
-
-	//Set index buffer
-	_context->IASetIndexBuffer(objQ[0].second->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-
+	// Vertex Shader Config
 	Mesh* pCurrMesh = objQ[0].second;
+	_context->IASetVertexBuffers(0, 1, pCurrMesh->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
+	_context->IASetIndexBuffer(pCurrMesh->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+
+	// Pixel Shader Config
 	Texture* pCurrTexture = nullptr;
 	Texture* pCurrNormTexture = nullptr;
+	if (objQ[0].second->pMaterial->objTexture != nullptr) {
+		pCurrTexture = objQ[0].second->pMaterial->objTexture;
+		_context->PSSetShaderResources(0u, 1u, objQ[0].second->pMaterial->objTexture->pShaderResView.GetAddressOf());
+	}
 
-	if (objQ[0].second->pMaterial != nullptr) {
-		if (objQ[0].second->pMaterial->objTexture != nullptr) {
-			pCurrTexture = objQ[0].second->pMaterial->objTexture;
-			_context->PSSetShaderResources(0u, 1u, objQ[0].second->pMaterial->objTexture->pShaderResView.GetAddressOf());
+	if (objQ[0].second->pMaterial->objNormalMap != nullptr) {
+		pCurrNormTexture = objQ[0].second->pMaterial->objNormalMap;
+		_context->PSSetShaderResources(1u, 1u, objQ[0].second->pMaterial->objNormalMap->pShaderResView.GetAddressOf());
+	}
+
+	for (int i = 1; i < objQ.size(); i++) {
+
+		if (pCurrMesh == objQ[i].second && pCurrTexture == objQ[i].second->pMaterial->objTexture) continue;
+
+		tre::ConstantBuffer::setBatchInfoConstBuffer(_device, _context, batchStartIdx);
+
+		_context->DrawIndexedInstanced(pCurrMesh->indexSize, i - batchStartIdx, 0u, 0u, 0u);
+
+		// update new batch info
+		batchStartIdx = i;
+		pCurrMesh = objQ[i].second;
+		_context->IASetVertexBuffers(0, 1, objQ[i].second->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
+		_context->IASetIndexBuffer(objQ[i].second->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+
+		if (objQ[i].second->pMaterial->objTexture != nullptr) {
+			pCurrTexture = objQ[i].second->pMaterial->objTexture;
+			_context->PSSetShaderResources(0u, 1u, objQ[i].second->pMaterial->objTexture->pShaderResView.GetAddressOf());
 		}
 
 		// set normal map
-		if (objQ[0].second->pMaterial->objNormalMap != nullptr) {
-			pCurrNormTexture = objQ[0].second->pMaterial->objNormalMap;
-			_context->PSSetShaderResources(1u, 1u, objQ[0].second->pMaterial->objNormalMap->pShaderResView.GetAddressOf());
-		}
-	}
-
-	int batchStartIdx = 0;
-
-	for (int i = 0; i < objQ.size(); i++) {
-		if (pCurrMesh != objQ[i].second && pCurrTexture != objQ[i].second->pMaterial->objTexture) {
-			tre::ConstantBuffer::setBatchInfoConstBuffer(_device, _context, batchStartIdx);
-
-			_context->DrawIndexedInstanced(pCurrMesh->indexSize, i - batchStartIdx, 0u, 0u, 0u);
-
-			// update new batch info
-			batchStartIdx = i;
-			pCurrMesh = objQ[i].second;
-
-			if (objQ[i].second->pMaterial != nullptr) {
-				if (objQ[i].second->pMaterial->objTexture != nullptr) {
-					pCurrTexture = objQ[i].second->pMaterial->objTexture;
-					_context->PSSetShaderResources(0u, 1u, objQ[i].second->pMaterial->objTexture->pShaderResView.GetAddressOf());
-				}
-
-				// set normal map
-				if (objQ[i].second->pMaterial->objNormalMap != nullptr) {
-					pCurrNormTexture = objQ[i].second->pMaterial->objNormalMap;
-					_context->PSSetShaderResources(1u, 1u, objQ[i].second->pMaterial->objNormalMap->pShaderResView.GetAddressOf());
-				}
-			}
-
-			//Set vertex buffer
-			_context->IASetVertexBuffers(0, 1, objQ[i].second->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
-
-			//Set index buffer
-			_context->IASetIndexBuffer(objQ[i].second->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+		if (objQ[i].second->pMaterial->objNormalMap != nullptr) {
+			pCurrNormTexture = objQ[i].second->pMaterial->objNormalMap;
+			_context->PSSetShaderResources(1u, 1u, objQ[i].second->pMaterial->objNormalMap->pShaderResView.GetAddressOf());
 		}
 	}
 
