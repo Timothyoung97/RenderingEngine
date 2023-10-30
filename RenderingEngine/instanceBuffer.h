@@ -29,7 +29,7 @@ public:
 	ID3D11DeviceContext* _context;
 
 	ComPtr<ID3D11Buffer> pInstanceBuffer;
-	ComPtr<ID3D11ShaderResourceView> instanceBufferSRV;
+	ComPtr<ID3D11ShaderResourceView> pInstanceBufferSRV;
 
 	int lastBufferSize = 100; // hardcoded initial buffer size
 
