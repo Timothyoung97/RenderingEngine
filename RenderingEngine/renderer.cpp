@@ -24,6 +24,7 @@ Renderer::Renderer(ID3D11Device* _device, ID3D11DeviceContext* _context, HWND wi
 	std::wstring basePathWstr = tre::Utility::getBasePathWstr();
 	_vertexShader.create(basePathWstr + L"shaders\\bin\\vertex_shader.bin", _device);
 	_vertexShaderFullscreenQuad.create(basePathWstr + L"shaders\\bin\\vertex_shader_fullscreen.bin", _device);
+	_vertexShaderInstanced.create(basePathWstr + L"shaders\\bin\\vertex_shader_instancedRendering.bin", _device);
 	_inputLayout.create(_device, &_vertexShader);
 
 	_forwardShader.create(basePathWstr + L"shaders\\bin\\pixel_shader_forward.bin", _device);
@@ -34,11 +35,13 @@ Renderer::Renderer(ID3D11Device* _device, ID3D11DeviceContext* _context, HWND wi
 	_ssaoPixelShader.create(basePathWstr + L"shaders\\bin\\pixel_shader_ssao_rendering.bin", _device);
 	_textureBlurPixelShader.create(basePathWstr + L"shaders\\bin\\pixel_shader_texture_blur.bin", _device);
 	_hdrPixelShader.create(basePathWstr + L"shaders\\bin\\pixel_shader_hdr_rendering.bin", _device);
+	_instancedPixelShader.create(basePathWstr + L"shaders\\bin\\pixel_shader_instanced_gbuffer.bin", _device);
 	_debugPixelShader.create(basePathWstr + L"shaders\\bin\\pixel_shader_debug.bin", _device);
 
 	_gBuffer.create(_device);
 	_ssao.create(_device, _context);
 	_hdrBuffer.create(_device, _context);
+	_instanceBuffer.createBuffer(_device, _context);
 }
 
 void Renderer::reset() {
@@ -157,6 +160,23 @@ void Renderer::configureStates(RENDER_MODE renderObjType) {
 		_context->OMSetRenderTargets(0, nullptr, _depthbuffer.pShadowDepthStencilView.Get());
 		break;
 
+	case tre::INSTANCED_SHADOW_M: // use normal draw func
+		_context->IASetInputLayout(_inputLayout.vertLayout.Get());
+		_context->VSSetShader(_vertexShaderInstanced.pShader.Get(), NULL, 0u);
+		_context->VSSetShaderResources(0u, 1, _instanceBuffer.pInstanceBufferSRV.GetAddressOf());
+
+		// use setShadowBufferDrawSection to select draw section
+		_context->RSSetState(_rasterizer.pShadowRasterizerState.Get());
+		
+		// unbind shadow buffer as a resource, so that we can write to it
+		_context->PSSetShader(nullptr, NULL, 0u);
+		_context->PSSetShaderResources(3, 1, nullSRV);
+		
+		_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
+		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
+		_context->OMSetRenderTargets(0, nullptr, _depthbuffer.pShadowDepthStencilView.Get());
+		break;
+
 	case tre::DEFERRED_OPAQUE_M: // use normal draw func
 		_context->IASetInputLayout(_inputLayout.vertLayout.Get());
 		_context->VSSetShader(_vertexShader.pShader.Get(), NULL, 0u);
@@ -169,9 +189,27 @@ void Renderer::configureStates(RENDER_MODE renderObjType) {
 		_context->PSSetShader(_deferredShader.pShader.Get(), NULL, 0u);
 		_context->PSSetShaderResources(4, 1, nullSRV);
 		
-		_context->OMSetRenderTargets(2, _gBuffer.rtvs, _depthbuffer.pDepthStencilView.Get());
 		_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
 		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
+		_context->OMSetRenderTargets(2, _gBuffer.rtvs, _depthbuffer.pDepthStencilView.Get());
+		break;
+
+	case tre::INSTANCED_DEFERRED_OPAQUE_M: // use normal draw func
+		_context->IASetInputLayout(_inputLayout.vertLayout.Get());
+		_context->VSSetShader(_vertexShaderInstanced.pShader.Get(), NULL, 0u);
+		_context->VSSetShaderResources(0u, 1, _instanceBuffer.pInstanceBufferSRV.GetAddressOf());
+
+		_context->RSSetViewports(1, &_viewport.defaultViewport);
+		_context->RSSetState(_rasterizer.pRasterizerStateFCCW.Get());
+		
+		// unbind depth buffer as a shader resource, so that we can write to it
+		_context->OMSetRenderTargets(0, nullptr, nullptr);
+		_context->PSSetShader(_instancedPixelShader.pShader.Get(), NULL, 0u);
+		_context->PSSetShaderResources(4, 1, nullSRV);
+		
+		_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
+		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
+		_context->OMSetRenderTargets(2, _gBuffer.rtvs, _depthbuffer.pDepthStencilView.Get());
 		break;
 
 	case tre::DEFERRED_OPAQUE_LIGHTING_ENV_M:
@@ -370,6 +408,71 @@ void Renderer::draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MO
 	}
 }
 
+void Renderer::instancedDraw(const std::vector<std::pair<Object*, Mesh*>>& objQ, RENDER_MODE renderMode) {
+	if (objQ.size() == 0) return;
+
+	const char* name = ToString(renderMode);
+	MICROPROFILE_SCOPE_CSTR(name);
+	PROFILE_GPU_SCOPED("Instanced Draw");
+
+	_instanceBuffer.updateBuffer(objQ);
+
+	configureStates(renderMode);
+
+	UINT vertexStride = sizeof(Vertex);
+	UINT offset = 0;
+
+	//Set vertex buffer
+	_context->IASetVertexBuffers(0, 1, objQ[0].second->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
+
+	//Set index buffer
+	_context->IASetIndexBuffer(objQ[0].second->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+
+	Mesh* pCurrMesh = objQ[0].second;
+	Texture* pCurrTexture = nullptr;
+	Texture* pCurrNormTexture = nullptr;
+
+	if (objQ[0].second->pMaterial != nullptr) {
+		if (objQ[0].second->pMaterial->objTexture != nullptr) {
+			pCurrTexture = objQ[0].second->pMaterial->objTexture;
+			_context->PSSetShaderResources(0u, 1u, objQ[0].second->pMaterial->objTexture->pShaderResView.GetAddressOf());
+		}
+
+		// set normal map
+		if (objQ[0].second->pMaterial->objNormalMap != nullptr) {
+			pCurrNormTexture = objQ[0].second->pMaterial->objNormalMap;
+			_context->PSSetShaderResources(1u, 1u, objQ[0].second->pMaterial->objNormalMap->pShaderResView.GetAddressOf());
+		}
+	}
+
+	int batchStartIdx = 0;
+
+	for (int i = 0; i < objQ.size(); i++) {
+		if (pCurrMesh != objQ[i].second && pCurrTexture != objQ[i].second->pMaterial->objTexture) {
+			tre::ConstantBuffer::setBatchInfoConstBuffer(_device, _context, batchStartIdx);
+
+			_context->DrawIndexedInstanced(pCurrMesh->indexSize, i - batchStartIdx, 0u, 0u, 0u);
+
+			// update new batch info
+			batchStartIdx = i;
+			pCurrMesh = objQ[i].second;
+
+			if (objQ[i].second->pMaterial != nullptr) {
+				if (objQ[i].second->pMaterial->objTexture != nullptr) {
+					pCurrTexture = objQ[i].second->pMaterial->objTexture;
+					_context->PSSetShaderResources(0u, 1u, objQ[i].second->pMaterial->objTexture->pShaderResView.GetAddressOf());
+				}
+
+				// set normal map
+				if (objQ[i].second->pMaterial->objNormalMap != nullptr) {
+					pCurrNormTexture = objQ[i].second->pMaterial->objNormalMap;
+					_context->PSSetShaderResources(1u, 1u, objQ[i].second->pMaterial->objNormalMap->pShaderResView.GetAddressOf());
+				}
+			}
+		}
+	}
+}
+
 void Renderer::debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh& mesh, BoundVolumeEnum typeOfBound, RENDER_MODE renderObjType) {
 	if (objQ.size() == 0) return;
 
@@ -407,5 +510,4 @@ void Renderer::debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh
 		}
 	}
 }
-
 }

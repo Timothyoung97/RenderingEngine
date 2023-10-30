@@ -17,6 +17,7 @@
 #include "gbuffer.h"
 #include "ssao.h"
 #include "hdr.h"
+#include "instanceBuffer.h"
 
 namespace tre {
 
@@ -25,7 +26,9 @@ enum RENDER_MODE {
 	OPAQUE_M,
 	WIREFRAME_M,
 	SHADOW_M,
+	INSTANCED_SHADOW_M,
 	DEFERRED_OPAQUE_M,
+	INSTANCED_DEFERRED_OPAQUE_M,
 	DEFERRED_OPAQUE_LIGHTING_ENV_M,
 	DEFERRED_LIGHTING_LOCAL_M,
 	SSAO_FULLSCREEN_PASS,
@@ -41,11 +44,14 @@ inline const char* ToString(RENDER_MODE rm)
 	case OPAQUE_M:							return "Opaque";
 	case WIREFRAME_M:						return "Wireframe";
 	case SHADOW_M:							return "Shadow";
+	case INSTANCED_SHADOW_M:				return "Instanced Shadow";
 	case DEFERRED_OPAQUE_M:					return "G-Buffer";
+	case INSTANCED_DEFERRED_OPAQUE_M:		return "Instanced G-Buffer";
 	case DEFERRED_OPAQUE_LIGHTING_ENV_M:	return "Environment Lighting";
 	case DEFERRED_LIGHTING_LOCAL_M:			return "Local Lighting";
 	case SSAO_FULLSCREEN_PASS:				return "SSAO";
 	case SSAO_BLURRING_PASS:				return "SSAO Blur";
+	case TONE_MAPPING_PASS:					return "Tone mapping";
 	default:								return "[Unknown Rendering Mode]";
 	}
 }
@@ -85,6 +91,7 @@ public:
 	VertexShader _vertexShader;
 	VertexShader _shadowCastShader;
 	VertexShader _vertexShaderFullscreenQuad;
+	VertexShader _vertexShaderInstanced;
 
 	Rasterizer _rasterizer;
 
@@ -96,6 +103,8 @@ public:
 	PixelShader _textureBlurPixelShader;
 	PixelShader _hdrPixelShader;
 	PixelShader _debugPixelShader;
+	PixelShader _instancedPixelShader;
+
 	Sampler _sampler;
 
 	BlendState _blendstate;
@@ -105,6 +114,7 @@ public:
 	GBuffer _gBuffer;
 	SSAO _ssao;
 	HdrBuffer _hdrBuffer;
+	InstanceBuffer _instanceBuffer;
 
 	// Misc
 	RendererSetting setting;
@@ -125,6 +135,7 @@ public:
 	void draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MODE renderMode);
 	void fullscreenPass(tre::RENDER_MODE mode);
 	void deferredLightingLocalDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, XMVECTOR cameraPos);
+	void instancedDraw(const std::vector<std::pair<Object*, Mesh*>>& objQ, RENDER_MODE renderMode);
 	void debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh& mesh, BoundVolumeEnum typeOfBound, RENDER_MODE renderMode);
 
 };
