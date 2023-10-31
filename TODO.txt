@@ -1,14 +1,4 @@
 Graphics Tasks:
-• Instanced Rendering
-    • Draw multiple primitives in single Draw Calls
-    • Batch primitives with similar Textures & Meshes
-    • Build Instance Constants in a Buffer to be accessed in VS/PS
-    • DrawIndexedInstanced
-• HDR Pipeline
-    • floating point RT format for lighting
-    • tonemap to LDR RGB8 format, with manual camera exposure control
-    • Gamma Correction
-    • improve with auto-exposure via luminance histogram
 • Space Partitioning
     • Quad/Oct tree scene partitioning
     • Initial Support for static objects only
@@ -119,6 +109,16 @@ Done:
 • Performance Profiler
     • https://github.com/jonasmr/microprofile
     • https://github.com/bombomby/optick
+• Instanced Rendering
+    • Draw multiple primitives in single Draw Calls
+    • Batch primitives with similar Textures & Meshes
+    • Build Instance Constants in a Buffer to be accessed in VS/PS
+    • DrawIndexedInstanced
+• HDR Pipeline
+    • floating point RT format for lighting
+    • tonemap to LDR RGB8 format, with manual camera exposure control
+    • Gamma Correction
+    • improve with auto-exposure via luminance histogram
 
 //////////////////////////////////////////////////////////////////////////////
 
