@@ -38,15 +38,14 @@ void ConstantBuffer::updateConstBufferData(ID3D11DeviceContext* pContext, ID3D11
 	pContext->Unmap(pConstBuffer, 0u);
 }
 
-// Creates a GlobalInfoStruct
 GlobalInfoStruct ConstantBuffer::createGlobalInfoStruct(
-	XMVECTOR camPos,
-	XMMATRIX viewProjection,
+	const XMVECTOR& camPos,
+	const XMMATRIX& viewProjection,
 	const std::vector<XMMATRIX>& lightViewProjection,
-	XMFLOAT4 planeIntervals,
+	const XMFLOAT4& planeIntervals,
 	const tre::Light& dirLight,
 	int numOfPointLight,
-	XMFLOAT2 shadowMapDimension,
+	const XMFLOAT2& shadowMapDimension,
 	int csmDebugSwitch,
 	int ssaoSwtich
 ) {
@@ -69,12 +68,28 @@ GlobalInfoStruct ConstantBuffer::createGlobalInfoStruct(
 };
 
 CSMViewProjectionStruct ConstantBuffer::createCSMViewProjectionStruct(const XMMATRIX& viewProjection) {
-	CSMViewProjectionStruct constBufferDirLightViewProj;
-	constBufferDirLightViewProj.csmViewProjection = viewProjection;
-	return constBufferDirLightViewProj;
+	CSMViewProjectionStruct csmViewProj;
+	csmViewProj.csmViewProjection = viewProjection;
+	return csmViewProj;
 }
 
-// deprecated
+ModelInfoStruct ConstantBuffer::createModelInfoStruct(const XMMATRIX& transformationLocal, const XMFLOAT4& color, UINT isWithTexture, UINT hasNormalMap) {
+	ModelInfoStruct modelInfoStruct;
+	modelInfoStruct.transformationLocal = transformationLocal;
+
+	XMMATRIX normalMatrix = XMMatrixTranspose(XMMatrixInverse(nullptr, modelInfoStruct.transformationLocal));
+	XMFLOAT3X3 normalFloat3x3;
+	XMStoreFloat3x3(&normalFloat3x3, normalMatrix);
+	modelInfoStruct.normalMatrix = XMLoadFloat3x3(&normalFloat3x3);
+
+	modelInfoStruct.isWithTexture = isWithTexture;
+	modelInfoStruct.hasNormalMap = hasNormalMap;
+	modelInfoStruct.color = color;
+
+	return modelInfoStruct;
+}
+
+// deprecated //
 ID3D11Buffer* ConstantBuffer::setCamConstBuffer(
 	ID3D11Device* device, ID3D11DeviceContext* context, 
 	XMVECTOR camPos, 

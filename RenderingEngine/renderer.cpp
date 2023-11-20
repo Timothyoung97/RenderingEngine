@@ -333,16 +333,18 @@ void Renderer::deferredLightingLocalDraw(const std::vector<std::pair<Object*, Me
 	//Set index buffer
 	_context->IASetIndexBuffer(objQ[0].second->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
+	// Create empty const buffer and pre bind the constant buffer
+	ID3D11Buffer* constBufferModelInfo = tre::ConstantBuffer::createConstBuffer(_device, sizeof(tre::ModelInfoStruct));
+	_context->VSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
+	_context->PSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
+
 	for (int i = 0; i < objQ.size(); i++) {
 
-		//Config and set const buffer
-		tre::ConstantBuffer::setObjConstBuffer(
-			_device, _context,
-			objQ[i].first->_transformationFinal,
-			objQ[i].second->pMaterial->baseColor,
-			0,
-			0
-		);
+		// Submit each object's data to const buffer
+		{
+			tre::ModelInfoStruct modelInfoStruct = tre::ConstantBuffer::createModelInfoStruct(objQ[i].first->_transformationFinal, objQ[i].second->pMaterial->baseColor, 0u, 0u);
+			tre::ConstantBuffer::updateConstBufferData(_context, constBufferModelInfo, &modelInfoStruct, sizeof(tre::ModelInfoStruct));
+		}
 
 		tre::ConstantBuffer::setLightingVolumeConstBuffer(_device, _context, i);
 
@@ -356,6 +358,11 @@ void Renderer::deferredLightingLocalDraw(const std::vector<std::pair<Object*, Me
 
 		_context->DrawIndexed(objQ[i].second->indexSize, 0, 0);
 	}
+
+	// clean up
+	{
+		constBufferModelInfo->Release();
+	}
 }
 
 
@@ -367,6 +374,11 @@ void Renderer::draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MO
 	PROFILE_GPU_SCOPED("Forward Draw");
 	
 	configureStates(renderObjType);
+
+	// Create empty const buffer and pre bind the constant buffer
+	ID3D11Buffer* constBufferModelInfo = tre::ConstantBuffer::createConstBuffer(_device, sizeof(tre::ModelInfoStruct));
+	_context->VSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
+	_context->PSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
 
 	for (int i = 0; i < objQ.size(); i++) {
 
@@ -393,16 +405,18 @@ void Renderer::draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MO
 			hasNormal = 1;
 		}
 
-		//Config and set const buffer
-		tre::ConstantBuffer::setObjConstBuffer(
-			_device, _context,
-			objQ[i].first->_transformationFinal,
-			objQ[i].second->pMaterial->baseColor,
-			hasTexture,
-			hasNormal
-		);
+		// Submit each object's data to const buffer
+		{
+			tre::ModelInfoStruct modelInfoStruct = tre::ConstantBuffer::createModelInfoStruct(objQ[i].first->_transformationFinal, objQ[i].second->pMaterial->baseColor, hasTexture, hasNormal);
+			tre::ConstantBuffer::updateConstBufferData(_context, constBufferModelInfo, &modelInfoStruct, sizeof(tre::ModelInfoStruct));
+		}
 
 		_context->DrawIndexed(objQ[i].second->indexSize, 0, 0);
+	}
+
+	// clean up
+	{
+		constBufferModelInfo->Release();
 	}
 }
 
@@ -469,23 +483,30 @@ void Renderer::debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh
 	//Set index buffer
 	_context->IASetIndexBuffer(mesh.pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
+	// Create empty const buffer and pre bind the constant buffer
+	ID3D11Buffer* constBufferModelInfo = tre::ConstantBuffer::createConstBuffer(_device, sizeof(tre::ModelInfoStruct));
+	_context->VSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
+	_context->PSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
+
 	for (int i = 0; i < objQ.size(); i++) {
 
 		tre::Object* currObj = objQ[i].first;
 
 		for (int j = 0; j < currObj->pObjMeshes.size(); j++) {
 
-			//Config and set const buffer
-			tre::ConstantBuffer::setObjConstBuffer(
-				_device, _context,
-				currObj->_boundingVolumeTransformation,
-				currObj->_boundingVolumeColor[j],
-				0, // bounding volume has no texture
-				0 // bounding volume has no normal
-			);
+			// Submit each object's data to const buffer
+			{
+				tre::ModelInfoStruct modelInfoStruct = tre::ConstantBuffer::createModelInfoStruct(currObj->_boundingVolumeTransformation, currObj->_boundingVolumeColor[j], 0u, 0u);
+				tre::ConstantBuffer::updateConstBufferData(_context, constBufferModelInfo, &modelInfoStruct, sizeof(tre::ModelInfoStruct));
+			}
 
 			_context->DrawIndexed(mesh.indexSize, 0, 0);
 		}
+	}
+
+	// clean up
+	{
+		constBufferModelInfo->Release();
 	}
 }
 }

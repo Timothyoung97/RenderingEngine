@@ -81,19 +81,19 @@ public:
 	// --Struct create functions-- //
 
 	static GlobalInfoStruct createGlobalInfoStruct(
-		XMVECTOR camPos,
-		XMMATRIX viewProjection,
+		const XMVECTOR& camPos,
+		const XMMATRIX& viewProjection,
 		const std::vector<XMMATRIX>& lightViewProjection,
-		XMFLOAT4 planeIntervals,
+		const XMFLOAT4& planeIntervals,
 		const tre::Light& dirLight,
 		int numOfPointLight,
-		XMFLOAT2 shadowMapDimension,
+		const XMFLOAT2& shadowMapDimension,
 		int csmDebugSwitch,
 		int ssaoSwtich
 	);
 
 	static CSMViewProjectionStruct createCSMViewProjectionStruct(const XMMATRIX& viewProjection);
-
+	static ModelInfoStruct createModelInfoStruct(const XMMATRIX& transformationLocal, const XMFLOAT4& color, UINT isWithTexture, UINT hasNormalMap);
 
 	// --DEPRECATED-- //
 	static ID3D11Buffer* setCamConstBuffer(
