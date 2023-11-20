@@ -13,7 +13,7 @@ using Microsoft::WRL::ComPtr;
 
 namespace tre {
 
-struct constBufferShaderRescCam {
+struct GlobalInfoStruct {
 	XMFLOAT2 viewportDimension;
 	XMFLOAT2 pad;
 	XMFLOAT4 camPos;
@@ -32,7 +32,7 @@ struct constBufferDirLightViewProjection {
 	XMMATRIX csmViewProjection;
 };
 
-struct constBufferShaderRescModel {
+struct ModelInfoStruct {
 	XMMATRIX transformationLocal;
 	XMMATRIX normalMatrix;
 	XMFLOAT4 color;
@@ -40,23 +40,23 @@ struct constBufferShaderRescModel {
 	UINT hasNormalMap;
 };
 
-struct constBufferDeferredLightingVolume {
+struct DeferredLightingVolumeStruct {
 	UINT currPointLightIdx;
 	XMFLOAT3 pad;
 };
 
-struct constBufferSSAOKernal {
+struct SSAOKernalStruct {
 	XMFLOAT4 kernalSamples[64];
 	float sampleRadius;
 	XMFLOAT3 pad;
 };
 
-struct constBufferHDR {
+struct HDRStruct {
 	float middleGrey;
 	XMFLOAT3 pad;
 };
 
-struct constBufferLuminance {
+struct LuminanceStruct {
 	XMFLOAT2 luminance;
 	float timeCoeff;
 	int numPixel;
@@ -64,7 +64,7 @@ struct constBufferLuminance {
 	XMINT2 pad;
 };
 
-struct constBufferBatchInformation {
+struct BatchInfoStruct {
 	UINT batchOffset;
 };
 
