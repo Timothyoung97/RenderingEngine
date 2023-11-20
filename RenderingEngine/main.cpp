@@ -236,6 +236,7 @@ int main()
 			lightViewProjs.push_back(lightViewProj);
 		}
 
+		ID3D11Buffer* constBufferCSMViewProj = tre::ConstantBuffer::createConstBuffer(deviceAndContext.device.Get(), (UINT)sizeof(tre::CSMViewProjectionStruct));
 		{
 			PROFILE_GPU_SCOPED("CSM Quad Draw");
 
@@ -246,8 +247,15 @@ int main()
 
 					renderer.setShadowBufferDrawSection(i);
 
-					// set const buffer from the light pov 
-					tre::ConstantBuffer::setLightViewProjectionConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), lightViewProjs[i]);
+					// Const Buffer 
+					{
+						// Create struct info and submit data to const buffer
+						tre::CSMViewProjectionStruct csmViewProjStruct = tre::ConstantBuffer::createCSMViewProjectionStruct(lightViewProjs[i]);
+						tre::ConstantBuffer::updateConstBufferData(deviceAndContext.context.Get(), constBufferCSMViewProj, &csmViewProjStruct, (UINT)sizeof(tre::CSMViewProjectionStruct));
+
+						// Binding 
+						deviceAndContext.context.Get()->VSSetConstantBuffers(0u, 1u, &constBufferCSMViewProj);
+					}
 
 					tre::Frustum lightFrustum = tre::Maths::createFrustumFromViewProjectionMatrix(lightViewProjs[i]);
 
@@ -412,6 +420,7 @@ int main()
 
 		{// clean up per frame resource
 			constBufferGlobalInfo->Release();
+			constBufferCSMViewProj->Release();
 		}
 
 		// record each frame

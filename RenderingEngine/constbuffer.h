@@ -28,7 +28,7 @@ struct GlobalInfoStruct {
 	int ssaoSwitch;
 };
 
-struct constBufferDirLightViewProjection {
+struct CSMViewProjectionStruct {
 	XMMATRIX csmViewProjection;
 };
 
@@ -70,9 +70,15 @@ struct BatchInfoStruct {
 
 class ConstantBuffer {
 public:
-
+	
+	// Creates an empty const buffer 
 	static ID3D11Buffer* createConstBuffer(ID3D11Device* pDevice, UINT sizeOfBuffer);
+	
+	// Updates a const buffer with data from struct
 	static void updateConstBufferData(ID3D11DeviceContext* pContext, ID3D11Buffer* pConstBuffer, void* pConstBufferInfo, UINT sizeOfConstBufferInfo);
+
+
+	// --Struct create functions-- //
 
 	static GlobalInfoStruct createGlobalInfoStruct(
 		XMVECTOR camPos,
@@ -86,6 +92,10 @@ public:
 		int ssaoSwtich
 	);
 
+	static CSMViewProjectionStruct createCSMViewProjectionStruct(const XMMATRIX& viewProjection);
+
+
+	// --DEPRECATED-- //
 	static ID3D11Buffer* setCamConstBuffer(
 		ID3D11Device* device, ID3D11DeviceContext* context, 
 		XMVECTOR camPos, 
@@ -98,7 +108,6 @@ public:
 		int csmDebugSwitch,
 		int ssaoSwtich
 	);
-	
 	static ID3D11Buffer* setObjConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, XMMATRIX transformationLocal, XMFLOAT4 color, UINT isWithTexture, UINT hasNormalMap);
 	static ID3D11Buffer* setLightingVolumeConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, int currPtLightIdx);
 	static ID3D11Buffer* setSSAOKernalConstBuffer(ID3D11Device* device, ID3D11DeviceContext* context, const std::vector<XMFLOAT4>& kernalSamples, float sampleRadius);

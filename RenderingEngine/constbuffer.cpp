@@ -68,6 +68,12 @@ GlobalInfoStruct ConstantBuffer::createGlobalInfoStruct(
 	return GlobalInfoStruct;
 };
 
+CSMViewProjectionStruct ConstantBuffer::createCSMViewProjectionStruct(const XMMATRIX& viewProjection) {
+	CSMViewProjectionStruct constBufferDirLightViewProj;
+	constBufferDirLightViewProj.csmViewProjection = viewProjection;
+	return constBufferDirLightViewProj;
+}
+
 // deprecated
 ID3D11Buffer* ConstantBuffer::setCamConstBuffer(
 	ID3D11Device* device, ID3D11DeviceContext* context, 
@@ -279,10 +285,10 @@ ID3D11Buffer* ConstantBuffer::setLightViewProjectionConstBuffer(ID3D11Device* de
 	constantBufferDescModel.Usage = D3D11_USAGE_DEFAULT;
 	constantBufferDescModel.CPUAccessFlags = 0u;
 	constantBufferDescModel.MiscFlags = 0u;
-	constantBufferDescModel.ByteWidth = sizeof(constBufferDirLightViewProjection);
+	constantBufferDescModel.ByteWidth = sizeof(CSMViewProjectionStruct);
 	constantBufferDescModel.StructureByteStride = 0u;
 
-	constBufferDirLightViewProjection constBufferDirLightViewProj;
+	CSMViewProjectionStruct constBufferDirLightViewProj;
 	constBufferDirLightViewProj.csmViewProjection = viewProjection;
 
 	//map to data to subresouce
@@ -306,7 +312,7 @@ ID3D11Buffer* ConstantBuffer::setBatchInfoConstBuffer(ID3D11Device* device, ID3D
 	constantBufferDescModel.Usage = D3D11_USAGE_DEFAULT;
 	constantBufferDescModel.CPUAccessFlags = 0u;
 	constantBufferDescModel.MiscFlags = 0u;
-	constantBufferDescModel.ByteWidth = sizeof(constBufferDirLightViewProjection);
+	constantBufferDescModel.ByteWidth = sizeof(CSMViewProjectionStruct);
 	constantBufferDescModel.StructureByteStride = 0u;
 
 	BatchInfoStruct BatchInfoStruct;
