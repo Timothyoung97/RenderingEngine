@@ -38,6 +38,8 @@ void ConstantBuffer::updateConstBufferData(ID3D11DeviceContext* pContext, ID3D11
 	pContext->Unmap(pConstBuffer, 0u);
 }
 
+/////////////// Struct Creation Functions ///////////////
+
 GlobalInfoStruct ConstantBuffer::createGlobalInfoStruct(
 	const XMVECTOR& camPos,
 	const XMMATRIX& viewProjection,
@@ -88,6 +90,13 @@ ModelInfoStruct ConstantBuffer::createModelInfoStruct(const XMMATRIX& transforma
 
 	return modelInfoStruct;
 }
+
+PointLightInfoStruct ConstantBuffer::createPointLightInfoStruct(int currPtLightIdx) {
+	PointLightInfoStruct ptLightInfoStruct;
+	ptLightInfoStruct.currPointLightIdx = (UINT)currPtLightIdx;
+
+	return ptLightInfoStruct;
+};
 
 // deprecated //
 ID3D11Buffer* ConstantBuffer::setCamConstBuffer(
@@ -185,10 +194,10 @@ ID3D11Buffer* ConstantBuffer::setLightingVolumeConstBuffer(ID3D11Device* device,
 	constantBufferDescModel.Usage = D3D11_USAGE_DYNAMIC;
 	constantBufferDescModel.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	constantBufferDescModel.MiscFlags = 0u;
-	constantBufferDescModel.ByteWidth = sizeof(DeferredLightingVolumeStruct);
+	constantBufferDescModel.ByteWidth = sizeof(PointLightInfoStruct);
 	constantBufferDescModel.StructureByteStride = 0u;
 
-	DeferredLightingVolumeStruct constBufferLightingVolume;
+	PointLightInfoStruct constBufferLightingVolume;
 	constBufferLightingVolume.currPointLightIdx = (UINT) currPtLightIdx;
 
 	//map to data to subresouce

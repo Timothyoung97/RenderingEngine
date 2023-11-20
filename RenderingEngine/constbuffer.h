@@ -40,7 +40,7 @@ struct ModelInfoStruct {
 	UINT hasNormalMap;
 };
 
-struct DeferredLightingVolumeStruct {
+struct PointLightInfoStruct {
 	UINT currPointLightIdx;
 	XMFLOAT3 pad;
 };
@@ -94,7 +94,8 @@ public:
 
 	static CSMViewProjectionStruct createCSMViewProjectionStruct(const XMMATRIX& viewProjection);
 	static ModelInfoStruct createModelInfoStruct(const XMMATRIX& transformationLocal, const XMFLOAT4& color, UINT isWithTexture, UINT hasNormalMap);
-
+	static PointLightInfoStruct createPointLightInfoStruct(int currPtLightIdx);
+	
 	// --DEPRECATED-- //
 	static ID3D11Buffer* setCamConstBuffer(
 		ID3D11Device* device, ID3D11DeviceContext* context, 

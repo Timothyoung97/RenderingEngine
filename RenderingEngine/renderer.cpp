@@ -338,6 +338,9 @@ void Renderer::deferredLightingLocalDraw(const std::vector<std::pair<Object*, Me
 	_context->VSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
 	_context->PSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
 
+	ID3D11Buffer* constBufferPtLightInfo = tre::ConstantBuffer::createConstBuffer(_device, sizeof(tre::PointLightInfoStruct));
+	_context->PSSetConstantBuffers(2u, 1u, &constBufferPtLightInfo);
+
 	for (int i = 0; i < objQ.size(); i++) {
 
 		// Submit each object's data to const buffer
@@ -346,7 +349,11 @@ void Renderer::deferredLightingLocalDraw(const std::vector<std::pair<Object*, Me
 			tre::ConstantBuffer::updateConstBufferData(_context, constBufferModelInfo, &modelInfoStruct, sizeof(tre::ModelInfoStruct));
 		}
 
-		tre::ConstantBuffer::setLightingVolumeConstBuffer(_device, _context, i);
+		// Submit point light's idx to const buffer
+		{
+			tre::PointLightInfoStruct ptLightInfoStruct = tre::ConstantBuffer::createPointLightInfoStruct(i);
+			tre::ConstantBuffer::updateConstBufferData(_context, constBufferPtLightInfo, &ptLightInfoStruct, sizeof(tre::PointLightInfoStruct));
+		}
 
 		float distFromObjToCam = tre::Maths::distBetweentObjToCam(objQ[i].first->objPos, cameraPos);
 		
@@ -362,6 +369,7 @@ void Renderer::deferredLightingLocalDraw(const std::vector<std::pair<Object*, Me
 	// clean up
 	{
 		constBufferModelInfo->Release();
+		constBufferPtLightInfo->Release();
 	}
 }
 
