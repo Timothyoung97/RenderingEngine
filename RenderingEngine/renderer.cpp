@@ -410,6 +410,7 @@ void Renderer::draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MO
 void Renderer::instancedDraw(const std::vector<std::pair<Object*, Mesh*>>& objQ, RENDER_MODE renderMode) {
 	if (objQ.size() == 0) return;
 
+	ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
 	const char* name = ToString(renderMode);
 	MICROPROFILE_SCOPE_CSTR(name);
 	PROFILE_GPU_SCOPED("Instanced Draw");
@@ -435,8 +436,15 @@ void Renderer::instancedDraw(const std::vector<std::pair<Object*, Mesh*>>& objQ,
 		_context->IASetIndexBuffer(currBatchInfo.pBatchMesh->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
 		// Update texture information
-		if (currBatchInfo.isWithTexture)	_context->PSSetShaderResources(0u, 1u, currBatchInfo.pBatchTexture->pShaderResView.GetAddressOf());
-		if (currBatchInfo.hasNormMap)		_context->PSSetShaderResources(1u, 1u, currBatchInfo.pBatchNormalMap->pShaderResView.GetAddressOf());
+		_context->PSSetShaderResources(0u, 1u, nullSRV);
+		if (currBatchInfo.isWithTexture) {
+			_context->PSSetShaderResources(0u, 1u, currBatchInfo.pBatchTexture->pShaderResView.GetAddressOf());
+		}
+
+		_context->PSSetShaderResources(1u, 1u, nullSRV);
+		if (currBatchInfo.hasNormMap) {
+			_context->PSSetShaderResources(1u, 1u, currBatchInfo.pBatchNormalMap->pShaderResView.GetAddressOf());
+		}
 
 		// Draw call
 		_context->DrawIndexedInstanced(currBatchInfo.pBatchMesh->indexSize, currBatchInfo.quantity, 0u, 0u, 0u);
