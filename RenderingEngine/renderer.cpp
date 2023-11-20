@@ -421,13 +421,24 @@ void Renderer::instancedDraw(const std::vector<std::pair<Object*, Mesh*>>& objQ,
 	UINT vertexStride = sizeof(Vertex);
 	UINT offset = 0;
 
+	// Create and set constant buffer for 1 frame
+	ID3D11Buffer* pConstBufferBatchIdx = tre::ConstantBuffer::setBatchInfoConstBuffer(_device, _context, 0);
+
 	for (int i = 0; i < _instanceBuffer.instanceBatchQueue.size(); i++) {
 		InstanceBatchInfo currBatchInfo = _instanceBuffer.instanceBatchQueue[i];
+
+		// update constant buffer for each draw call
+		_context->UpdateSubresource(pConstBufferBatchIdx, 0u, nullptr, &currBatchInfo.batchStartIdx, 0u, 0u);
+
+		// Update mesh vertex information
 		_context->IASetVertexBuffers(0, 1, currBatchInfo.pBatchMesh->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
 		_context->IASetIndexBuffer(currBatchInfo.pBatchMesh->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-		if (currBatchInfo.isWithTexture) _context->PSSetShaderResources(0u, 1u, currBatchInfo.pBatchTexture->pShaderResView.GetAddressOf());
-		if (currBatchInfo.hasNormMap) _context->PSSetShaderResources(1u, 1u, currBatchInfo.pBatchNormalMap->pShaderResView.GetAddressOf());
-		tre::ConstantBuffer::setBatchInfoConstBuffer(_device, _context, currBatchInfo.batchStartIdx);
+
+		// Update texture information
+		if (currBatchInfo.isWithTexture)	_context->PSSetShaderResources(0u, 1u, currBatchInfo.pBatchTexture->pShaderResView.GetAddressOf());
+		if (currBatchInfo.hasNormMap)		_context->PSSetShaderResources(1u, 1u, currBatchInfo.pBatchNormalMap->pShaderResView.GetAddressOf());
+
+		// Draw call
 		_context->DrawIndexedInstanced(currBatchInfo.pBatchMesh->indexSize, currBatchInfo.quantity, 0u, 0u, 0u);
 	}
 }

@@ -19,7 +19,10 @@ Scene::Scene(ID3D11Device* device, ID3D11DeviceContext* context) {
 		tre::CubeMesh(device), // floor
 		tre::CubeMesh(device), // transparent cube
 		tre::CubeMesh(device), // testing cube
-		tre::SphereMesh(device, 6, 6) // testing sphere
+		tre::SphereMesh(device, 6, 6), // testing sphere
+		tre::CubeMesh(device), // testing cube
+		tre::SphereMesh(device, 6, 6), // testing sphere
+
 	};
 	
 	// Create testing texture
@@ -30,7 +33,6 @@ Scene::Scene(ID3D11Device* device, ID3D11DeviceContext* context) {
 		tre::TextureLoader::createTexture(device, basePathStr + "textures\\UV_image_a.png"),
 		tre::TextureLoader::createTexture(device, basePathStr + "textures\\glTF.png"),
 		tre::TextureLoader::createTexture(device, basePathStr + "textures\\wall.jpg"),
-		tre::Texture()
 	};
 
 	_debugNormalTextures = {
@@ -41,8 +43,10 @@ Scene::Scene(ID3D11Device* device, ID3D11DeviceContext* context) {
 	_debugMaterials = {
 		Material {&_debugTextures[3], &_debugNormalTextures[0]},
 		Material {&_debugTextures[4], &_debugNormalTextures[1]},
-		Material {nullptr, nullptr, tre::colorF(Colors::White)},
+		Material {nullptr, nullptr, tre::colorF(Colors::GreenYellow)},
+		Material {&_debugTextures[0], nullptr},
 		Material {&_debugTextures[2], nullptr},
+		Material {nullptr, nullptr, tre::colorF(Colors::LightBlue)},
 	};
 
 	// Pt Lights
@@ -55,7 +59,7 @@ Scene::Scene(ID3D11Device* device, ID3D11DeviceContext* context) {
 	
 void Scene::createFloor() {
 	_floor.pObjMeshes = { &_debugMeshes[3] };
-	_floor.pObjMeshes[0]->pMaterial = &_debugMaterials[2];
+	_floor.pObjMeshes[0]->pMaterial = &_debugMaterials[5];
 	_floor.objPos = XMFLOAT3(.0f, -1.f, .0f);
 	_floor.objScale = XMFLOAT3(100.f, 0.01f, 100.f);
 	_floor.objRotation = XMFLOAT3(.0f, .0f, .0f);
@@ -211,15 +215,12 @@ tre::Object* Scene::addRandomObj() {
 	// Create new obj
 	tre::Object newObj;
 
-	float scaleVal = tre::Utility::getRandomFloat(3);
-	int textureIdx = tre::Utility::getRandomInt(1);
-
-	int selectIdx = tre::Utility::getRandomInt(1);
+	int selectIdx = tre::Utility::getRandomInt(3);
 	newObj.pObjMeshes = { &_debugMeshes[5 + selectIdx] };
 	newObj.pObjMeshes[0]->pMaterial = &_debugMaterials[selectIdx];
 
+	float scaleVal = tre::Utility::getRandomFloat(3);
 	XMFLOAT3 objPos = tre::Maths::getRotatePosition(XMFLOAT3(.0f, .0f, .0f), .0f, tre::Utility::getRandomFloat(360.f), tre::Utility::getRandomFloat(100.f));
-
 	newObj.objPos = objPos;
 	newObj.objScale = XMFLOAT3(scaleVal, scaleVal, scaleVal);
 	newObj.objRotation = XMFLOAT3(tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360));
