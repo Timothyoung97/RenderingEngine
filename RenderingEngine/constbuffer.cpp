@@ -98,6 +98,14 @@ PointLightInfoStruct ConstantBuffer::createPointLightInfoStruct(int currPtLightI
 	return ptLightInfoStruct;
 };
 
+SSAOKernalStruct ConstantBuffer::createSSAOKernalStruct(const std::vector<XMFLOAT4>& kernalSamples, float sampleRadius) {
+	SSAOKernalStruct ssaoKernalStruct;
+	std::copy(kernalSamples.begin(), kernalSamples.end(), ssaoKernalStruct.kernalSamples);
+	ssaoKernalStruct.sampleRadius = sampleRadius;
+
+	return ssaoKernalStruct;
+}
+
 // deprecated //
 ID3D11Buffer* ConstantBuffer::setCamConstBuffer(
 	ID3D11Device* device, ID3D11DeviceContext* context, 

@@ -334,8 +334,17 @@ int main()
 		}
 
 		// ssao pass
+		ID3D11Buffer* constBufferSSAOKernal = tre::ConstantBuffer::createConstBuffer(deviceAndContext.device.Get(), (UINT)sizeof(tre::SSAOKernalStruct));;
 		if (renderer.setting.ssaoSwitch) {
-			tre::ConstantBuffer::setSSAOKernalConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), renderer._ssao.ssaoKernalSamples, renderer.setting.ssaoSampleRadius);
+
+			// SSAO const buffer creation and binding
+			{
+				tre::SSAOKernalStruct ssaoKernalStruct = tre::ConstantBuffer::createSSAOKernalStruct(renderer._ssao.ssaoKernalSamples, renderer.setting.ssaoSampleRadius);
+				tre::ConstantBuffer::updateConstBufferData(deviceAndContext.context.Get(), constBufferSSAOKernal, &ssaoKernalStruct, (UINT)sizeof(tre::SSAOKernalStruct));
+
+				deviceAndContext.context.Get()->PSSetConstantBuffers(3u, 1u, &constBufferSSAOKernal);
+			}
+
 			PROFILE_GPU_SCOPED("SSAO Pass");
 			renderer.fullscreenPass(tre::RENDER_MODE::SSAO_FULLSCREEN_PASS);
 			renderer.fullscreenPass(tre::RENDER_MODE::SSAO_BLURRING_PASS);
@@ -417,10 +426,11 @@ int main()
 
 		deltaTime = timer.getDeltaTime();
 
-
-		{// clean up per frame resource
+		// clean up per frame resource
+		{
 			constBufferGlobalInfo->Release();
 			constBufferCSMViewProj->Release();
+			constBufferSSAOKernal->Release();
 		}
 
 		// record each frame

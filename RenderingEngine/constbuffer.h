@@ -95,7 +95,8 @@ public:
 	static CSMViewProjectionStruct createCSMViewProjectionStruct(const XMMATRIX& viewProjection);
 	static ModelInfoStruct createModelInfoStruct(const XMMATRIX& transformationLocal, const XMFLOAT4& color, UINT isWithTexture, UINT hasNormalMap);
 	static PointLightInfoStruct createPointLightInfoStruct(int currPtLightIdx);
-	
+	static SSAOKernalStruct createSSAOKernalStruct(const std::vector<XMFLOAT4>& kernalSamples, float sampleRadius);
+
 	// --DEPRECATED-- //
 	static ID3D11Buffer* setCamConstBuffer(
 		ID3D11Device* device, ID3D11DeviceContext* context, 
