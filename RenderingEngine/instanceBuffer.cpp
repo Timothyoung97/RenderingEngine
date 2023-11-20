@@ -39,6 +39,7 @@ void InstanceBuffer::updateBuffer(const std::vector<std::pair<Object*, Mesh*>>& 
 	
 	for (int i = 0; i < objQ.size() + 1; i++) {
 
+		// For the final batch
 		if (i == objQ.size()) {
 			InstanceBatchInfo newBatchInfo = { 
 				batchStartIdx, i - batchStartIdx,
@@ -49,14 +50,17 @@ void InstanceBuffer::updateBuffer(const std::vector<std::pair<Object*, Mesh*>>& 
 			break;
 		}
 
+		// Each instance's information
 		Object* pObj = objQ[i].first;
 		Mesh* pMesh = objQ[i].second;
 		Texture* pTexture = pMesh->pMaterial->objTexture;
 		Texture* pNormalMap = pMesh->pMaterial->objNormalMap;
-
+		
+		// Push each instance's information to the vector
 		InstanceInfo newInstInfo = this->createInstanceInfo(pObj->_transformationFinal, pMesh->pMaterial->baseColor, pTexture != nullptr ? 1 : 0, pNormalMap != nullptr ? 1 : 0);
 		instanceInfoQ.push_back(newInstInfo);
 
+		// If different mesh or different texture, then we classify as a new batch
 		if (pMesh != pBatchMesh || pTexture != pBatchTexture) {
 			InstanceBatchInfo newBatchInfo = { 
 				batchStartIdx, i - batchStartIdx, 
@@ -67,7 +71,7 @@ void InstanceBuffer::updateBuffer(const std::vector<std::pair<Object*, Mesh*>>& 
 
 			pBatchMesh = pMesh;
 			pBatchTexture = pTexture;
-			pBatchNormalMap = pBatchNormalMap;
+			pBatchNormalMap = pNormalMap;
 			batchStartIdx = i;
 		}
 
