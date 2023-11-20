@@ -5,6 +5,70 @@
 
 namespace tre {
 
+// Creates an empty constant buffer with the specified size (in bytes)
+ID3D11Buffer* ConstantBuffer::createConstBuffer(ID3D11Device* pDevice, UINT sizeOfBuffer) {
+	D3D11_BUFFER_DESC constBufferDesc;
+	constBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	constBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	constBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	constBufferDesc.MiscFlags = 0u;
+	constBufferDesc.ByteWidth = sizeOfBuffer;
+	constBufferDesc.StructureByteStride = 0u;
+
+	ID3D11Buffer* pConstBuffer;
+
+	CHECK_DX_ERROR(pDevice->CreateBuffer(
+		&constBufferDesc, nullptr, &pConstBuffer
+	));
+
+	return pConstBuffer;
+}
+
+// To update a constant buffer with data from the CPU 
+void ConstantBuffer::updateConstBufferData(ID3D11DeviceContext* pContext, ID3D11Buffer* pConstBuffer, void* pConstBufferInfoStruct, UINT sizeOfConstBufferInfo) {
+	
+	// Disable GPU access to constant buffer data
+	D3D11_MAPPED_SUBRESOURCE currData;
+	CHECK_DX_ERROR(pContext->Map(pConstBuffer, 0u, D3D11_MAP_WRITE_DISCARD, 0u, &currData));
+
+	// update data
+	memcpy(currData.pData, pConstBufferInfoStruct, sizeOfConstBufferInfo);
+
+	// Reenable GPU access to constant buffer data
+	pContext->Unmap(pConstBuffer, 0u);
+}
+
+// Creates a GlobalInfoStruct
+GlobalInfoStruct ConstantBuffer::createGlobalInfoStruct(
+	XMVECTOR camPos,
+	XMMATRIX viewProjection,
+	const std::vector<XMMATRIX>& lightViewProjection,
+	XMFLOAT4 planeIntervals,
+	const tre::Light& dirLight,
+	int numOfPointLight,
+	XMFLOAT2 shadowMapDimension,
+	int csmDebugSwitch,
+	int ssaoSwtich
+) {
+	GlobalInfoStruct GlobalInfoStruct;
+	GlobalInfoStruct.viewportDimension = XMFLOAT2(SCREEN_WIDTH, SCREEN_HEIGHT);
+	XMFLOAT4 camPosF;
+	XMStoreFloat4(&camPosF, camPos);
+	GlobalInfoStruct.camPos = camPosF;
+	GlobalInfoStruct.viewProjection = viewProjection;
+	GlobalInfoStruct.invViewProjection = XMMatrixInverse(nullptr, viewProjection);
+	std::copy(lightViewProjection.begin(), lightViewProjection.end(), GlobalInfoStruct.lightViewProjection);
+	GlobalInfoStruct.planeIntervals = planeIntervals;
+	GlobalInfoStruct.light = dirLight;
+	GlobalInfoStruct.numOfPointLight = (UINT)numOfPointLight;
+	GlobalInfoStruct.csmDebugSwitch = csmDebugSwitch;
+	GlobalInfoStruct.shadowMapDimension = shadowMapDimension;
+	GlobalInfoStruct.ssaoSwitch = ssaoSwtich;
+
+	return GlobalInfoStruct;
+};
+
+// deprecated
 ID3D11Buffer* ConstantBuffer::setCamConstBuffer(
 	ID3D11Device* device, ID3D11DeviceContext* context, 
 	XMVECTOR camPos, 
@@ -22,10 +86,10 @@ ID3D11Buffer* ConstantBuffer::setCamConstBuffer(
 	constantBufferDescCam.Usage = D3D11_USAGE_DYNAMIC;
 	constantBufferDescCam.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	constantBufferDescCam.MiscFlags = 0u;
-	constantBufferDescCam.ByteWidth = sizeof(constBufferShaderRescCam);
+	constantBufferDescCam.ByteWidth = sizeof(GlobalInfoStruct);
 	constantBufferDescCam.StructureByteStride = 0u;
 
-	constBufferShaderRescCam constBufferRescCam;
+	GlobalInfoStruct constBufferRescCam;
 	constBufferRescCam.viewportDimension = XMFLOAT2(SCREEN_WIDTH, SCREEN_HEIGHT);
 	XMFLOAT4 camPosF;
 	XMStoreFloat4(&camPosF, camPos);
@@ -62,10 +126,10 @@ ID3D11Buffer* ConstantBuffer::setObjConstBuffer(ID3D11Device* device, ID3D11Devi
 	constantBufferDescModel.Usage = D3D11_USAGE_DYNAMIC;
 	constantBufferDescModel.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	constantBufferDescModel.MiscFlags = 0u;
-	constantBufferDescModel.ByteWidth = sizeof(constBufferShaderRescModel);
+	constantBufferDescModel.ByteWidth = sizeof(ModelInfoStruct);
 	constantBufferDescModel.StructureByteStride = 0u;
 
-	constBufferShaderRescModel constBufferRescModel;
+	ModelInfoStruct constBufferRescModel;
 	constBufferRescModel.transformationLocal = transformationLocal;
 
 	XMMATRIX normalMatrix = XMMatrixTranspose(XMMatrixInverse(nullptr, constBufferRescModel.transformationLocal));
@@ -100,10 +164,10 @@ ID3D11Buffer* ConstantBuffer::setLightingVolumeConstBuffer(ID3D11Device* device,
 	constantBufferDescModel.Usage = D3D11_USAGE_DYNAMIC;
 	constantBufferDescModel.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	constantBufferDescModel.MiscFlags = 0u;
-	constantBufferDescModel.ByteWidth = sizeof(constBufferDeferredLightingVolume);
+	constantBufferDescModel.ByteWidth = sizeof(DeferredLightingVolumeStruct);
 	constantBufferDescModel.StructureByteStride = 0u;
 
-	constBufferDeferredLightingVolume constBufferLightingVolume;
+	DeferredLightingVolumeStruct constBufferLightingVolume;
 	constBufferLightingVolume.currPointLightIdx = (UINT) currPtLightIdx;
 
 	//map to data to subresouce
@@ -128,16 +192,16 @@ ID3D11Buffer* ConstantBuffer::setSSAOKernalConstBuffer(ID3D11Device* device, ID3
 	constantBufferDescModel.Usage = D3D11_USAGE_DEFAULT;
 	constantBufferDescModel.CPUAccessFlags = 0u;
 	constantBufferDescModel.MiscFlags = 0u;
-	constantBufferDescModel.ByteWidth = sizeof(constBufferSSAOKernal);
+	constantBufferDescModel.ByteWidth = sizeof(SSAOKernalStruct);
 	constantBufferDescModel.StructureByteStride = 0u;
 
-	constBufferSSAOKernal constBufferSSAOKernal;
-	std::copy(kernalSamples.begin(), kernalSamples.end(), constBufferSSAOKernal.kernalSamples);
-	constBufferSSAOKernal.sampleRadius = sampleRadius;
+	SSAOKernalStruct SSAOKernalStruct;
+	std::copy(kernalSamples.begin(), kernalSamples.end(), SSAOKernalStruct.kernalSamples);
+	SSAOKernalStruct.sampleRadius = sampleRadius;
 
 	//map to data to subresouce
 	D3D11_SUBRESOURCE_DATA csd = {};
-	csd.pSysMem = &constBufferSSAOKernal;
+	csd.pSysMem = &SSAOKernalStruct;
 
 	ID3D11Buffer* pConstBuffer;
 
@@ -157,15 +221,15 @@ ID3D11Buffer* ConstantBuffer::setHDRConstBuffer(ID3D11Device* device, ID3D11Devi
 	constantBufferDescModel.Usage = D3D11_USAGE_DEFAULT;
 	constantBufferDescModel.CPUAccessFlags = 0u;
 	constantBufferDescModel.MiscFlags = 0u;
-	constantBufferDescModel.ByteWidth = sizeof(constBufferHDR);
+	constantBufferDescModel.ByteWidth = sizeof(HDRStruct);
 	constantBufferDescModel.StructureByteStride = 0u;
 
-	constBufferHDR constBufferHDR;
-	constBufferHDR.middleGrey = middleGrey;
+	HDRStruct HDRStruct;
+	HDRStruct.middleGrey = middleGrey;
 
 	//map to data to subresouce
 	D3D11_SUBRESOURCE_DATA csd = {};
-	csd.pSysMem = &constBufferHDR;
+	csd.pSysMem = &HDRStruct;
 
 	ID3D11Buffer* pConstBuffer;
 
@@ -185,10 +249,10 @@ ID3D11Buffer* ConstantBuffer::setLuminaceConstBuffer(ID3D11Device* device, ID3D1
 	constantBufferDescModel.Usage = D3D11_USAGE_DEFAULT;
 	constantBufferDescModel.CPUAccessFlags = 0u;
 	constantBufferDescModel.MiscFlags = 0u;
-	constantBufferDescModel.ByteWidth = sizeof(constBufferLuminance);
+	constantBufferDescModel.ByteWidth = sizeof(LuminanceStruct);
 	constantBufferDescModel.StructureByteStride = 0u;
 
-	constBufferLuminance constBufferLumin;
+	LuminanceStruct constBufferLumin;
 	constBufferLumin.luminance = luminance;
 	constBufferLumin.timeCoeff = timeCoeff;
 	constBufferLumin.numPixel = SCREEN_HEIGHT * SCREEN_WIDTH;
@@ -245,12 +309,12 @@ ID3D11Buffer* ConstantBuffer::setBatchInfoConstBuffer(ID3D11Device* device, ID3D
 	constantBufferDescModel.ByteWidth = sizeof(constBufferDirLightViewProjection);
 	constantBufferDescModel.StructureByteStride = 0u;
 
-	constBufferBatchInformation constBufferBatchInformation;
-	constBufferBatchInformation.batchOffset = (UINT)batchOffset;
+	BatchInfoStruct BatchInfoStruct;
+	BatchInfoStruct.batchOffset = (UINT)batchOffset;
 
 	//map to data to subresouce
 	D3D11_SUBRESOURCE_DATA csd = {};
-	csd.pSysMem = &constBufferBatchInformation;
+	csd.pSysMem = &BatchInfoStruct;
 
 	ID3D11Buffer* pConstBuffer;
 

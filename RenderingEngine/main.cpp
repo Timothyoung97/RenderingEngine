@@ -284,8 +284,18 @@ int main()
 			renderer.instancedDraw(scene._culledOpaqueObjQ, tre::RENDER_MODE::INSTANCED_DEFERRED_OPAQUE_M);
 		}
 
-		// set const buffer for camera
-		tre::ConstantBuffer::setCamConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camPositionV, cam.camViewProjection, lightViewProjs, renderer.setting.csmPlaneIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), renderer.setting.csmDebugSwitch, renderer.setting.ssaoSwitch);
+		// set const buffer for global info
+		ID3D11Buffer* constBufferGlobalInfo = nullptr;
+		{
+			tre::GlobalInfoStruct GlobalInfoStruct = tre::ConstantBuffer::createGlobalInfoStruct(cam.camPositionV, cam.camViewProjection, lightViewProjs, renderer.setting.csmPlaneIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), renderer.setting.csmDebugSwitch, renderer.setting.ssaoSwitch);
+
+			constBufferGlobalInfo = tre::ConstantBuffer::createConstBuffer(deviceAndContext.device.Get(), (UINT)sizeof(GlobalInfoStruct));
+			tre::ConstantBuffer::updateConstBufferData(deviceAndContext.context.Get(), constBufferGlobalInfo, &GlobalInfoStruct, (UINT)sizeof(GlobalInfoStruct));
+
+			deviceAndContext.context.Get()->VSSetConstantBuffers(0u, 1u, &constBufferGlobalInfo);
+			deviceAndContext.context.Get()->PSSetConstantBuffers(0u, 1u, &constBufferGlobalInfo);
+			deviceAndContext.context.Get()->CSSetConstantBuffers(0u, 1u, &constBufferGlobalInfo);
+		}
 
 		// using compute shader update lights
 		scene.lightResc.dispatch();
@@ -398,6 +408,11 @@ int main()
 		}
 
 		deltaTime = timer.getDeltaTime();
+
+
+		{// clean up per frame resource
+			constBufferGlobalInfo->Release();
+		}
 
 		// record each frame
 		MicroProfileFlip(deviceAndContext.context.Get());

@@ -70,6 +70,22 @@ struct BatchInfoStruct {
 
 class ConstantBuffer {
 public:
+
+	static ID3D11Buffer* createConstBuffer(ID3D11Device* pDevice, UINT sizeOfBuffer);
+	static void updateConstBufferData(ID3D11DeviceContext* pContext, ID3D11Buffer* pConstBuffer, void* pConstBufferInfo, UINT sizeOfConstBufferInfo);
+
+	static GlobalInfoStruct createGlobalInfoStruct(
+		XMVECTOR camPos,
+		XMMATRIX viewProjection,
+		const std::vector<XMMATRIX>& lightViewProjection,
+		XMFLOAT4 planeIntervals,
+		const tre::Light& dirLight,
+		int numOfPointLight,
+		XMFLOAT2 shadowMapDimension,
+		int csmDebugSwitch,
+		int ssaoSwtich
+	);
+
 	static ID3D11Buffer* setCamConstBuffer(
 		ID3D11Device* device, ID3D11DeviceContext* context, 
 		XMVECTOR camPos, 
