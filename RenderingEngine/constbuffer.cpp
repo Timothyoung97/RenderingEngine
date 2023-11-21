@@ -106,6 +106,13 @@ SSAOKernalStruct ConstantBuffer::createSSAOKernalStruct(const std::vector<XMFLOA
 	return ssaoKernalStruct;
 }
 
+HDRStruct ConstantBuffer::createHDRStruct(float middleGrey) {
+	HDRStruct hdrStruct;
+	hdrStruct.middleGrey = middleGrey;
+
+	return hdrStruct;
+}
+
 // deprecated //
 ID3D11Buffer* ConstantBuffer::setCamConstBuffer(
 	ID3D11Device* device, ID3D11DeviceContext* context, 

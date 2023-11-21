@@ -96,6 +96,7 @@ public:
 	static ModelInfoStruct createModelInfoStruct(const XMMATRIX& transformationLocal, const XMFLOAT4& color, UINT isWithTexture, UINT hasNormalMap);
 	static PointLightInfoStruct createPointLightInfoStruct(int currPtLightIdx);
 	static SSAOKernalStruct createSSAOKernalStruct(const std::vector<XMFLOAT4>& kernalSamples, float sampleRadius);
+	static HDRStruct createHDRStruct(float middleGrey);
 
 	// --DEPRECATED-- //
 	static ID3D11Buffer* setCamConstBuffer(

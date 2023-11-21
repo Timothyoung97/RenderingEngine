@@ -377,9 +377,17 @@ int main()
 
 		renderer._hdrBuffer.dispatchAverage();
 
-		tre::ConstantBuffer::setHDRConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), renderer.setting.middleGrey);
-		// HDR
+		// HDR full screen pass
+		ID3D11Buffer* constBufferHDR = tre::ConstantBuffer::createConstBuffer(deviceAndContext.device.Get(), (UINT)sizeof(tre::HDRStruct));
 		{
+			// HDR const buffer update and binding
+			{
+				tre::HDRStruct hdrStruct = tre::ConstantBuffer::createHDRStruct(renderer.setting.middleGrey);
+				tre::ConstantBuffer::updateConstBufferData(deviceAndContext.context.Get(), constBufferHDR, &hdrStruct, (UINT)sizeof(tre::HDRStruct));
+
+				deviceAndContext.context.Get()->PSSetConstantBuffers(4u, 1u, &constBufferHDR);
+			}
+
 			PROFILE_GPU_SCOPED("HDR");
 			renderer.fullscreenPass(tre::RENDER_MODE::TONE_MAPPING_PASS);
 		}
@@ -431,6 +439,7 @@ int main()
 			constBufferGlobalInfo->Release();
 			constBufferCSMViewProj->Release();
 			constBufferSSAOKernal->Release();
+			constBufferHDR->Release();
 		}
 
 		// record each frame
