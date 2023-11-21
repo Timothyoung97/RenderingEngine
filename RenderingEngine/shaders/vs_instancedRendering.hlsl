@@ -8,6 +8,7 @@ cbuffer constBuffer : register(b0) {
 // Batch offset
 cbuffer constBuffer2 : register(b1) {
     uint offset;
+    float3 pad;
 };
 
 struct InstanceInfo {

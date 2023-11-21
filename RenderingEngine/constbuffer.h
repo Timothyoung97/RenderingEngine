@@ -66,6 +66,7 @@ struct LuminanceStruct {
 
 struct BatchInfoStruct {
 	UINT batchOffset;
+	XMFLOAT3 pad;
 };
 
 class ConstantBuffer {
@@ -98,8 +99,9 @@ public:
 	static SSAOKernalStruct createSSAOKernalStruct(const std::vector<XMFLOAT4>& kernalSamples, float sampleRadius);
 	static HDRStruct createHDRStruct(float middleGrey);
 	static LuminanceStruct createLuminanceStruct(const XMFLOAT2& luminance, float timeCoeff);
+	static BatchInfoStruct createBatchInfoStruct(int batchOffset);
 
-	// --DEPRECATED-- //
+	///////////////// --DEPRECATED-- /////////////////
 	static ID3D11Buffer* setCamConstBuffer(
 		ID3D11Device* device, ID3D11DeviceContext* context, 
 		XMVECTOR camPos, 

@@ -433,6 +433,7 @@ void Renderer::instancedDraw(const std::vector<std::pair<Object*, Mesh*>>& objQ,
 	if (objQ.size() == 0) return;
 
 	ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
+
 	const char* name = ToString(renderMode);
 	MICROPROFILE_SCOPE_CSTR(name);
 	PROFILE_GPU_SCOPED("Instanced Draw");
@@ -444,14 +445,19 @@ void Renderer::instancedDraw(const std::vector<std::pair<Object*, Mesh*>>& objQ,
 	UINT vertexStride = sizeof(Vertex);
 	UINT offset = 0;
 
-	// Create and set constant buffer for 1 frame
-	ID3D11Buffer* pConstBufferBatchIdx = tre::ConstantBuffer::setBatchInfoConstBuffer(_device, _context, 0);
+	// Create an empty const buffer 
+	ID3D11Buffer* constBufferBatchInfo = tre::ConstantBuffer::createConstBuffer(_device, (UINT)sizeof(tre::BatchInfoStruct));
 
 	for (int i = 0; i < _instanceBuffer.instanceBatchQueue.size(); i++) {
 		InstanceBatchInfo currBatchInfo = _instanceBuffer.instanceBatchQueue[i];
 
-		// update constant buffer for each draw call
-		_context->UpdateSubresource(pConstBufferBatchIdx, 0u, nullptr, &currBatchInfo.batchStartIdx, 0u, 0u);
+		// update constant buffer for each instanced draw call
+		{
+			tre::BatchInfoStruct bInfo = tre::ConstantBuffer::createBatchInfoStruct(currBatchInfo.batchStartIdx);
+			tre::ConstantBuffer::updateConstBufferData(_context, constBufferBatchInfo, &bInfo, (UINT)sizeof(tre::BatchInfoStruct));
+
+			_context->VSSetConstantBuffers(1u, 1u, &constBufferBatchInfo);
+		}
 
 		// Update mesh vertex information
 		_context->IASetVertexBuffers(0, 1, currBatchInfo.pBatchMesh->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
@@ -470,6 +476,11 @@ void Renderer::instancedDraw(const std::vector<std::pair<Object*, Mesh*>>& objQ,
 
 		// Draw call
 		_context->DrawIndexedInstanced(currBatchInfo.pBatchMesh->indexSize, currBatchInfo.quantity, 0u, 0u, 0u);
+	}
+
+	// clean up
+	{
+		constBufferBatchInfo->Release();
 	}
 }
 

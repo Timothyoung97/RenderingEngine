@@ -374,7 +374,7 @@ int main()
 		// Luminance Histogram
 		ID3D11Buffer* constBufferLuminanceHisto = tre::ConstantBuffer::createConstBuffer(deviceAndContext.device.Get(), (UINT)sizeof(tre::LuminanceStruct));
 		{
-			//tre::ConstantBuffer::setLuminaceConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), XMFLOAT2(renderer.setting.luminaceMin, renderer.setting.luminanceMax), renderer.setting.timeCoeff);
+			// Luminance Histogram Const Buffer update and binding
 			{
 				tre::LuminanceStruct luminStruct = tre::ConstantBuffer::createLuminanceStruct(XMFLOAT2(renderer.setting.luminaceMin, renderer.setting.luminanceMax), renderer.setting.timeCoeff);
 				tre::ConstantBuffer::updateConstBufferData(deviceAndContext.context.Get(), constBufferLuminanceHisto, &luminStruct, (UINT)sizeof(tre::LuminanceStruct));

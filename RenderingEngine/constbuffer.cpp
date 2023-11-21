@@ -123,7 +123,15 @@ LuminanceStruct ConstantBuffer::createLuminanceStruct(const XMFLOAT2& luminance,
 	return constBufferLumin;
 }
 
-// deprecated //
+BatchInfoStruct ConstantBuffer::createBatchInfoStruct(int batchOffset) {
+	BatchInfoStruct batchInfoStruct;
+	batchInfoStruct.batchOffset = (UINT)batchOffset;
+	
+	return batchInfoStruct;
+}
+
+///////////////// Deprecated /////////////////
+
 ID3D11Buffer* ConstantBuffer::setCamConstBuffer(
 	ID3D11Device* device, ID3D11DeviceContext* context, 
 	XMVECTOR camPos, 
