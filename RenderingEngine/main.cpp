@@ -25,7 +25,7 @@
 #include "texture.h"
 #include "object.h"
 #include "shader.h"
-#include "renderer.h"
+#include "graphics.h"
 #include "colors.h"
 #include "boundingvolume.h"
 #include "maths.h"
@@ -90,7 +90,7 @@ int main()
 	}
 
 	//Create Renderer
-	tre::Renderer renderer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), window.getWindowHandle());
+	tre::Graphics renderer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), window.getWindowHandle());
 
 	//Input Handler
 	tre::Input input;

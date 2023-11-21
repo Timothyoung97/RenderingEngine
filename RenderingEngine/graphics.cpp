@@ -1,6 +1,6 @@
 #include "microprofile.h"
 
-#include "renderer.h"
+#include "graphics.h"
 #include "window.h"
 #include "mesh.h"
 #include "device.h"
@@ -12,7 +12,7 @@
 
 namespace tre {
 
-Renderer::Renderer(ID3D11Device* _device, ID3D11DeviceContext* _context, HWND window) : _device(_device), _context(_context) {
+Graphics::Graphics(ID3D11Device* _device, ID3D11DeviceContext* _context, HWND window) : _device(_device), _context(_context) {
 	_factory.create();
 	_swapchain.create(_factory.dxgiFactory6, _device, window);
 	_blendstate.create(_device);
@@ -44,7 +44,7 @@ Renderer::Renderer(ID3D11Device* _device, ID3D11DeviceContext* _context, HWND wi
 	_instanceBuffer.createBuffer(_device, _context);
 }
 
-void Renderer::reset() {
+void Graphics::reset() {
 	_context->ClearState();
 	_context->PSSetSamplers(0, 1, _sampler.pSamplerStateLinear.GetAddressOf());
 	_context->PSSetSamplers(1, 1, _sampler.pSamplerStateMipPtWhiteBorder.GetAddressOf());
@@ -62,14 +62,14 @@ void Renderer::reset() {
 	this->clearShadowBuffer();
 }
 
-void Renderer::setShadowBufferDrawSection(int idx) {
+void Graphics::setShadowBufferDrawSection(int idx) {
 	_viewport.shadowViewport.TopLeftX = _rasterizer.rectArr[idx].left;
 	_viewport.shadowViewport.TopLeftY = _rasterizer.rectArr[idx].top;
 	_context->RSSetViewports(1, &_viewport.shadowViewport);
 	_context->RSSetScissorRects(1, &_rasterizer.rectArr[idx]);
 }
 
-void Renderer::clearSwapChainBuffer() {
+void Graphics::clearSwapChainBuffer() {
 
 	// Alternating buffers
 	int currBackBuffer = static_cast<int>(_swapchain.mainSwapchain->GetCurrentBackBufferIndex());
@@ -88,11 +88,11 @@ void Renderer::clearSwapChainBuffer() {
 	_context->ClearRenderTargetView(currRenderTargetView, tre::BACKGROUND_GREY);
 }
 
-void Renderer::clearShadowBuffer() {
+void Graphics::clearShadowBuffer() {
 	_context->ClearDepthStencilView(_depthbuffer.pShadowDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 }
 
-void Renderer::configureStates(RENDER_MODE renderObjType) {
+void Graphics::configureStates(RENDER_MODE renderObjType) {
 
 	ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
 
@@ -304,7 +304,7 @@ void Renderer::configureStates(RENDER_MODE renderObjType) {
 	}
 }
 
-void Renderer::fullscreenPass(tre::RENDER_MODE mode) {
+void Graphics::fullscreenPass(tre::RENDER_MODE mode) {
 
 	const char* name = ToString(mode);
 	MICROPROFILE_SCOPE_CSTR(name);
@@ -315,7 +315,7 @@ void Renderer::fullscreenPass(tre::RENDER_MODE mode) {
 	_context->Draw(6, 0);
 }
 
-void Renderer::deferredLightingLocalDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, XMVECTOR cameraPos) {
+void Graphics::deferredLightingLocalDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, XMVECTOR cameraPos) {
 	if (objQ.size() == 0) return;
 
 	const char* name = ToString(DEFERRED_LIGHTING_LOCAL_M);
@@ -374,7 +374,7 @@ void Renderer::deferredLightingLocalDraw(const std::vector<std::pair<Object*, Me
 }
 
 
-void Renderer::draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MODE renderObjType) {
+void Graphics::draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MODE renderObjType) {
 	if (objQ.size() == 0) return;
 
 	const char* name = ToString(renderObjType);
@@ -429,7 +429,7 @@ void Renderer::draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MO
 }
 
 
-void Renderer::instancedDraw(const std::vector<std::pair<Object*, Mesh*>>& objQ, RENDER_MODE renderMode) {
+void Graphics::instancedDraw(const std::vector<std::pair<Object*, Mesh*>>& objQ, RENDER_MODE renderMode) {
 	if (objQ.size() == 0) return;
 
 	ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
@@ -484,7 +484,7 @@ void Renderer::instancedDraw(const std::vector<std::pair<Object*, Mesh*>>& objQ,
 	}
 }
 
-void Renderer::debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh& mesh, BoundVolumeEnum typeOfBound, RENDER_MODE renderObjType) {
+void Graphics::debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh& mesh, BoundVolumeEnum typeOfBound, RENDER_MODE renderObjType) {
 	if (objQ.size() == 0) return;
 
 	const char* name = ToString(renderObjType);

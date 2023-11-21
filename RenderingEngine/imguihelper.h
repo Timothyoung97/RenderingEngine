@@ -7,7 +7,7 @@
 #include "imgui_impl_dx11.h"
 
 #include "camera.h"
-#include "renderer.h"
+#include "graphics.h"
 #include "window.h"
 #include "scene.h"
 #include "object.h"

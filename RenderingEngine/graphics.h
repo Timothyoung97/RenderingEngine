@@ -76,7 +76,7 @@ struct RendererStats {
 	int opaqueMeshCount = 0, transparentMeshCount = 0, totalMeshCount = 0;
 };
 
-class Renderer {
+class Graphics {
 public:
 
 	ID3D11Device* _device;
@@ -122,7 +122,7 @@ public:
 
 	ID3D11RenderTargetView* currRenderTargetView = nullptr;
 
-	Renderer(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, HWND window);
+	Graphics(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, HWND window);
 
 	void reset();
 
