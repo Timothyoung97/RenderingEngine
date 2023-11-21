@@ -414,8 +414,6 @@ int main()
 		if (renderer.setting.showBoundingVolume) {
 			PROFILE_GPU_SCOPED("Bounding Volume Wireframe");
 			renderer.draw(scene._wireframeObjQ, tre::RENDER_MODE::WIREFRAME_M);
-			renderer.debugDraw(scene._culledOpaqueObjQ, scene._debugMeshes[renderer.setting.meshIdx], renderer.setting.typeOfBound, tre::RENDER_MODE::WIREFRAME_M);
-			renderer.debugDraw(scene._culledTransparentObjQ, scene._debugMeshes[renderer.setting.meshIdx], renderer.setting.typeOfBound, tre::RENDER_MODE::WIREFRAME_M);
 		}
 
 		{

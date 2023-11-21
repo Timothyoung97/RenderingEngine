@@ -484,48 +484,48 @@ void Graphics::instancedDraw(const std::vector<std::pair<Object*, Mesh*>>& objQ,
 	}
 }
 
-void Graphics::debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh& mesh, BoundVolumeEnum typeOfBound, RENDER_MODE renderObjType) {
-	if (objQ.size() == 0) return;
-
-	const char* name = ToString(renderObjType);
-	MICROPROFILE_SCOPE_CSTR(name);
-	PROFILE_GPU_SCOPED("Debug Draw");
-
-	configureStates(renderObjType);
-
-	UINT vertexStride = sizeof(Vertex);
-	UINT offset = 0;
-	
-	//Set vertex buffer
-	_context->IASetVertexBuffers(0, 1, mesh.pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
-
-	//Set index buffer
-	_context->IASetIndexBuffer(mesh.pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-
-	// Create empty const buffer and pre bind the constant buffer
-	ID3D11Buffer* constBufferModelInfo = tre::ConstantBuffer::createConstBuffer(_device, sizeof(tre::ModelInfoStruct));
-	_context->VSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
-	_context->PSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
-
-	for (int i = 0; i < objQ.size(); i++) {
-
-		tre::Object* currObj = objQ[i].first;
-
-		for (int j = 0; j < currObj->pObjMeshes.size(); j++) {
-
-			// Submit each object's data to const buffer
-			{
-				tre::ModelInfoStruct modelInfoStruct = tre::ConstantBuffer::createModelInfoStruct(currObj->_boundingVolumeTransformation, currObj->_boundingVolumeColor[j], 0u, 0u);
-				tre::ConstantBuffer::updateConstBufferData(_context, constBufferModelInfo, &modelInfoStruct, sizeof(tre::ModelInfoStruct));
-			}
-
-			_context->DrawIndexed(mesh.indexSize, 0, 0);
-		}
-	}
-
-	// clean up
-	{
-		constBufferModelInfo->Release();
-	}
-}
+//void Graphics::debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh& mesh, BoundVolumeEnum typeOfBound, RENDER_MODE renderObjType) {
+//	if (objQ.size() == 0) return;
+//
+//	const char* name = ToString(renderObjType);
+//	MICROPROFILE_SCOPE_CSTR(name);
+//	PROFILE_GPU_SCOPED("Debug Draw");
+//
+//	configureStates(renderObjType);
+//
+//	UINT vertexStride = sizeof(Vertex);
+//	UINT offset = 0;
+//	
+//	//Set vertex buffer
+//	_context->IASetVertexBuffers(0, 1, mesh.pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
+//
+//	//Set index buffer
+//	_context->IASetIndexBuffer(mesh.pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+//
+//	// Create empty const buffer and pre bind the constant buffer
+//	ID3D11Buffer* constBufferModelInfo = tre::ConstantBuffer::createConstBuffer(_device, sizeof(tre::ModelInfoStruct));
+//	_context->VSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
+//	_context->PSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
+//
+//	for (int i = 0; i < objQ.size(); i++) {
+//
+//		tre::Object* currObj = objQ[i].first;
+//
+//		for (int j = 0; j < currObj->pObjMeshes.size(); j++) {
+//
+//			// Submit each object's data to const buffer
+//			{
+//				tre::ModelInfoStruct modelInfoStruct = tre::ConstantBuffer::createModelInfoStruct(currObj->_boundingVolumeTransformation, currObj->_boundingVolumeColor[j], 0u, 0u);
+//				tre::ConstantBuffer::updateConstBufferData(_context, constBufferModelInfo, &modelInfoStruct, sizeof(tre::ModelInfoStruct));
+//			}
+//
+//			_context->DrawIndexed(mesh.indexSize, 0, 0);
+//		}
+//	}
+//
+//	// clean up
+//	{
+//		constBufferModelInfo->Release();
+//	}
+//}
 }
