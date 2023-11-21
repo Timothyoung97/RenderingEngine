@@ -338,6 +338,7 @@ int main()
 				newLightObj.objRotation = XMFLOAT3(.0f, .0f, .0f);
 				newLightObj._boundingVolumeColor = { tre::colorF(Colors::White) };
 				newLightObj._transformationFinal = tre::Maths::createTransformationMatrix(newLightObj.objScale, newLightObj.objRotation, newLightObj.objPos);
+				newLightObj._boundingVolumeTransformation = newLightObj._transformationFinal;
 
 				scene._pointLightObjQ.push_back(newLightObj);
 				scene._wireframeObjQ.push_back(std::make_pair(&scene._pointLightObjQ.back(), scene._pointLightObjQ.back().pObjMeshes[0]));
@@ -413,13 +414,21 @@ int main()
 			graphics.fullscreenPass(tre::RENDER_MODE::TONE_MAPPING_PASS);
 		}
 
-		// Draw debug
+		// Draw debug // To be refactored
 		if (graphics.setting.showBoundingVolume) {
 			PROFILE_GPU_SCOPED("Bounding Volume Wireframe");
 			graphics.draw(scene._wireframeObjQ, tre::RENDER_MODE::WIREFRAME_M);
+		}
 
-			wireframeRenderer.draw(graphics, scene._culledOpaqueObjQ, graphics.setting.typeOfBound);
-			wireframeRenderer.draw(graphics, scene._culledTransparentObjQ, graphics.setting.typeOfBound);
+		// Wireframe draw
+		{
+			PROFILE_GPU_SCOPED("Bounding Volume Wireframe");
+			// Bind Camera View Projection Constant Buffer
+			{
+				deviceAndContext.context.Get()->VSSetConstantBuffers(0u, 1u, &constBufferCamViewProj);
+			}
+			wireframeRenderer.drawInstanced(&graphics, scene._culledOpaqueObjQ);
+			wireframeRenderer.drawInstanced(&graphics, scene._culledTransparentObjQ);
 		}
 
 		{

@@ -14,10 +14,18 @@ public:
 
 	// Shaders
 	VertexShader _vertexShader;
-	PixelShader _debugPixelShader;
+	PixelShader _debugPixelShader;	
+	
+	VertexShader _vertexShaderInstanced;
+	PixelShader _debugPixelShaderInstanced;
 
 	WireframeRenderer(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 
-	void draw(const Graphics& graphics, const std::vector<std::pair<Object*, Mesh*>> renderQ, BoundVolumeEnum typeOfBound);
+	Mesh* selectWireframeMesh(BoundVolumeEnum typeOfBound);
+
+	void draw(const Graphics& graphics, const std::vector<std::pair<Object*, Mesh*>>& renderQ);
+
+	void drawInstanced(Graphics* graphics, const std::vector<std::pair<Object*, Mesh*>>& renderQ);
+
 };
 }
