@@ -56,7 +56,7 @@ inline const char* ToString(RENDER_MODE rm)
 	}
 }
 
-struct RendererSetting {
+struct GraphicsSetting {
 	bool showBoundingVolume = false;
 	bool pauseLight = false;
 	bool ssaoSwitch = false;
@@ -71,7 +71,7 @@ struct RendererSetting {
 	XMFLOAT4 csmPlaneIntervalsF = { csmPlaneIntervals[1], csmPlaneIntervals[2], csmPlaneIntervals[3], csmPlaneIntervals[4] };
 };
 
-struct RendererStats {
+struct GraphicsStats {
 	int shadowCascadeOpaqueObjs[4] = { 0, 0, 0, 0 };
 	int opaqueMeshCount = 0, transparentMeshCount = 0, totalMeshCount = 0;
 };
@@ -117,8 +117,8 @@ public:
 	InstanceBuffer _instanceBuffer;
 
 	// Misc
-	RendererSetting setting;
-	RendererStats stats;
+	GraphicsSetting setting;
+	GraphicsStats stats;
 
 	ID3D11RenderTargetView* currRenderTargetView = nullptr;
 

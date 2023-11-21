@@ -1,6 +1,6 @@
 #include "imguihelper.h"
 
-ImguiHelper::ImguiHelper(ID3D11Device* device, ID3D11DeviceContext* context, tre::Window* window, tre::Scene* scene, tre::RendererSetting* renSetting, tre::RendererStats* renStats, tre::Camera* cam, tre::Object* debugObj) {
+ImguiHelper::ImguiHelper(ID3D11Device* device, ID3D11DeviceContext* context, tre::Window* window, tre::Scene* scene, tre::GraphicsSetting* renSetting, tre::GraphicsStats* renStats, tre::Camera* cam, tre::Object* debugObj) {
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();

@@ -15,12 +15,12 @@
 class ImguiHelper {
 public:
 	
-	ImguiHelper(ID3D11Device* device, ID3D11DeviceContext* context, tre::Window* window, tre::Scene* scene, tre::RendererSetting* renSetting, tre::RendererStats* renStats, tre::Camera* cam, tre::Object* debugObj);
+	ImguiHelper(ID3D11Device* device, ID3D11DeviceContext* context, tre::Window* window, tre::Scene* scene, tre::GraphicsSetting* renSetting, tre::GraphicsStats* renStats, tre::Camera* cam, tre::Object* debugObj);
 
 	// Setting
 	bool show_demo_window = false;
-	tre::RendererSetting* pRendererSetting;
-	tre::RendererStats* pRendererStats;
+	tre::GraphicsSetting* pRendererSetting;
+	tre::GraphicsStats* pRendererStats;
 	tre::Scene* pScene;
 	tre::Camera* pCam;
 	tre::Object* pDebugModel;

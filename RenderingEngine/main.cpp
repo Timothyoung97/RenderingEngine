@@ -32,6 +32,7 @@
 #include "scene.h"
 #include "modelloader.h"
 #include "imguihelper.h"
+#include "wireframeRenderer.h"
 
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;
@@ -90,7 +91,9 @@ int main()
 	}
 
 	//Create Renderer
-	tre::Graphics renderer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), window.getWindowHandle());
+	tre::Graphics graphics(deviceAndContext.device.Get(), deviceAndContext.context.Get(), window.getWindowHandle());
+	tre::WireframeRenderer wireframeRenderer(deviceAndContext.device.Get(), deviceAndContext.context.Get());
+
 
 	//Input Handler
 	tre::Input input;
@@ -100,13 +103,13 @@ int main()
 
 	for (int i = 0; i < scene._pObjQ.size(); i++) {
 		for (int j = 0; j < scene._pObjQ[i]->pObjMeshes.size(); j++) {
-			renderer.stats.totalMeshCount++;
+			graphics.stats.totalMeshCount++;
 			tre::Mesh* pMesh = scene._pObjQ[i]->pObjMeshes[j];
 			if ((pMesh->pMaterial->objTexture != nullptr && pMesh->pMaterial->objTexture->hasAlphaChannel)
 				|| (pMesh->pMaterial->objTexture == nullptr && pMesh->pMaterial->baseColor.w < 1.0f)) {
-				renderer.stats.transparentMeshCount++;
+				graphics.stats.transparentMeshCount++;
 			} else {
-				renderer.stats.opaqueMeshCount++;
+				graphics.stats.opaqueMeshCount++;
 			}
 		}
 	}
@@ -134,8 +137,8 @@ int main()
 		deviceAndContext.context.Get(),
 		&window,
 		&scene,
-		&renderer.setting,
-		&renderer.stats,
+		&graphics.setting,
+		&graphics.stats,
 		&cam,
 		pDebugModel
 	);
@@ -188,13 +191,13 @@ int main()
 				// Create new obj
 				tre::Object* pNewObj = scene.addRandomObj();
 
-				renderer.stats.totalMeshCount++;
+				graphics.stats.totalMeshCount++;
 				if ((pNewObj->pObjMeshes[0]->pMaterial->objTexture != nullptr && pNewObj->pObjMeshes[0]->pMaterial->objTexture->hasAlphaChannel)
 					|| (pNewObj->pObjMeshes[0]->pMaterial->objTexture == nullptr && pNewObj->pObjMeshes[0]->pMaterial->baseColor.w < 1.0f)) {
-					renderer.stats.transparentMeshCount++;
+					graphics.stats.transparentMeshCount++;
 				}
 				else {
-					renderer.stats.opaqueMeshCount++;
+					graphics.stats.opaqueMeshCount++;
 				}
 			}
 		}
@@ -203,7 +206,7 @@ int main()
 		}
 
 		// render clear context
-		renderer.reset();
+		graphics.reset();
 
 		// Update Camera
 		cam.camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(cam.fovY), static_cast<float>(tre::SCREEN_WIDTH) / tre::SCREEN_HEIGHT, .1f, 250.f);
@@ -211,7 +214,7 @@ int main()
 
 		{	// Update Bounding volume for all objects once
 			MICROPROFILE_SCOPE_CSTR("Update Bounding Volume");
-			scene.updateBoundingVolume(renderer.setting.typeOfBound);
+			scene.updateBoundingVolume(graphics.setting.typeOfBound);
 		}
 
 		// Shadow Draw
@@ -221,7 +224,7 @@ int main()
 			MICROPROFILE_SCOPE_CSTR("Build CSM View Projection Matrix");
 
 			// projection matrix of camera with specific near and far plane
-			XMMATRIX projMatrix = XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0f), static_cast<float>(tre::SCREEN_WIDTH) / tre::SCREEN_HEIGHT, renderer.setting.csmPlaneIntervals[i], renderer.setting.csmPlaneIntervals[i + 1]);
+			XMMATRIX projMatrix = XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0f), static_cast<float>(tre::SCREEN_WIDTH) / tre::SCREEN_HEIGHT, graphics.setting.csmPlaneIntervals[i], graphics.setting.csmPlaneIntervals[i + 1]);
 
 			std::vector<XMVECTOR> corners = tre::Maths::getFrustumCornersWorldSpace(XMMatrixMultiply(cam.camView, projMatrix));
 
@@ -236,7 +239,7 @@ int main()
 			lightViewProjs.push_back(lightViewProj);
 		}
 
-		ID3D11Buffer* constBufferCSMViewProj = tre::ConstantBuffer::createConstBuffer(deviceAndContext.device.Get(), (UINT)sizeof(tre::CSMViewProjectionStruct));
+		ID3D11Buffer* constBufferCSMViewProj = tre::ConstantBuffer::createConstBuffer(deviceAndContext.device.Get(), (UINT)sizeof(tre::ViewProjectionStruct));
 		{
 			PROFILE_GPU_SCOPED("CSM Quad Draw");
 
@@ -245,7 +248,7 @@ int main()
 				{	// Culling based on pointlight's view projection matrix
 					MICROPROFILE_SCOPE_CSTR("CSM Quad Obj Culling");
 
-					renderer.setShadowBufferDrawSection(i);
+					graphics.setShadowBufferDrawSection(i);
 
 					// Const Buffer 
 					{
@@ -259,24 +262,24 @@ int main()
 
 					tre::Frustum lightFrustum = tre::Maths::createFrustumFromViewProjectionMatrix(lightViewProjs[i]);
 
-					scene.cullObject(lightFrustum, renderer.setting.typeOfBound);
+					scene.cullObject(lightFrustum, graphics.setting.typeOfBound);
 					{
 						MICROPROFILE_SCOPE_CSTR("Grouping instances (Opaque only)");
 						scene.updateCulledOpaqueQ();
 					}
 
-					renderer.stats.shadowCascadeOpaqueObjs[i] = scene._culledOpaqueObjQ.size();
+					graphics.stats.shadowCascadeOpaqueObjs[i] = scene._culledOpaqueObjQ.size();
 				}
 
 				// draw shadow only for opaque objects
 				//renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_MODE::SHADOW_M); // non instanced
-				renderer.instancedDraw(scene._culledOpaqueObjQ, tre::RENDER_MODE::INSTANCED_SHADOW_M); // instanced
+				graphics.instancedDraw(scene._culledOpaqueObjQ, tre::RENDER_MODE::INSTANCED_SHADOW_M); // instanced
 			}
 		}
 
 		{	// culling for scene draw
 			MICROPROFILE_SCOPE_CSTR("Scene Obj Culling");
-			scene.cullObject(cam.cameraFrustum, renderer.setting.typeOfBound);
+			scene.cullObject(cam.cameraFrustum, graphics.setting.typeOfBound);
 			{
 				MICROPROFILE_SCOPE_CSTR("Grouping instances (Opaque + Transparent)");
 				scene.updateCulledOpaqueQ();
@@ -305,7 +308,7 @@ int main()
 		ID3D11Buffer* constBufferGlobalInfo = tre::ConstantBuffer::createConstBuffer(deviceAndContext.device.Get(), (UINT)sizeof(tre::GlobalInfoStruct));
 		{
 			// Create struct info and submit data to constant buffer
-			tre::GlobalInfoStruct globalInfoStruct = tre::ConstantBuffer::createGlobalInfoStruct(cam.camPositionV, cam.camViewProjection, lightViewProjs, renderer.setting.csmPlaneIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), renderer.setting.csmDebugSwitch, renderer.setting.ssaoSwitch);
+			tre::GlobalInfoStruct globalInfoStruct = tre::ConstantBuffer::createGlobalInfoStruct(cam.camPositionV, cam.camViewProjection, lightViewProjs, graphics.setting.csmPlaneIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), graphics.setting.csmDebugSwitch, graphics.setting.ssaoSwitch);
 			tre::ConstantBuffer::updateConstBufferData(deviceAndContext.context.Get(), constBufferGlobalInfo, &globalInfoStruct, (UINT)sizeof(tre::GlobalInfoStruct));
 
 			// Bind to shaders
@@ -344,38 +347,38 @@ int main()
 
 		// ssao pass
 		ID3D11Buffer* constBufferSSAOKernal = tre::ConstantBuffer::createConstBuffer(deviceAndContext.device.Get(), (UINT)sizeof(tre::SSAOKernalStruct));;
-		if (renderer.setting.ssaoSwitch) {
+		if (graphics.setting.ssaoSwitch) {
 
 			// SSAO const buffer creation and binding
 			{
-				tre::SSAOKernalStruct ssaoKernalStruct = tre::ConstantBuffer::createSSAOKernalStruct(renderer._ssao.ssaoKernalSamples, renderer.setting.ssaoSampleRadius);
+				tre::SSAOKernalStruct ssaoKernalStruct = tre::ConstantBuffer::createSSAOKernalStruct(graphics._ssao.ssaoKernalSamples, graphics.setting.ssaoSampleRadius);
 				tre::ConstantBuffer::updateConstBufferData(deviceAndContext.context.Get(), constBufferSSAOKernal, &ssaoKernalStruct, (UINT)sizeof(tre::SSAOKernalStruct));
 
 				deviceAndContext.context.Get()->PSSetConstantBuffers(3u, 1u, &constBufferSSAOKernal);
 			}
 
 			PROFILE_GPU_SCOPED("SSAO Pass");
-			renderer.fullscreenPass(tre::RENDER_MODE::SSAO_FULLSCREEN_PASS);
-			renderer.fullscreenPass(tre::RENDER_MODE::SSAO_BLURRING_PASS);
+			graphics.fullscreenPass(tre::RENDER_MODE::SSAO_FULLSCREEN_PASS);
+			graphics.fullscreenPass(tre::RENDER_MODE::SSAO_BLURRING_PASS);
 		}
 
 		// 2nd pass deferred lighting
 		{
 			PROFILE_GPU_SCOPED("Environmental Lighting");
-			renderer.fullscreenPass(tre::RENDER_MODE::DEFERRED_OPAQUE_LIGHTING_ENV_M);
+			graphics.fullscreenPass(tre::RENDER_MODE::DEFERRED_OPAQUE_LIGHTING_ENV_M);
 		}
 
 		// Draw all transparent objects
 		{
 			PROFILE_GPU_SCOPED("Transparent Obj");
-			renderer.draw(scene._culledTransparentObjQ, tre::RENDER_MODE::TRANSPARENT_M); // here can draw instanced
+			graphics.draw(scene._culledTransparentObjQ, tre::RENDER_MODE::TRANSPARENT_M); // here can draw instanced
 		}
 
 		// Draw all deferred lighting volume
 		{
 			deviceAndContext.context.Get()->PSGetShaderResources(2u, 1u, scene.lightResc.pLightShaderRescView.GetAddressOf());
 			PROFILE_GPU_SCOPED("Local Lighting");
-			renderer.deferredLightingLocalDraw(scene._wireframeObjQ, cam.camPositionV);
+			graphics.deferredLightingLocalDraw(scene._wireframeObjQ, cam.camPositionV);
 		}
 
 		deviceAndContext.context.Get()->OMSetRenderTargets(0, nullptr, nullptr);
@@ -385,14 +388,14 @@ int main()
 		{
 			// Luminance Histogram Const Buffer update and binding
 			{
-				tre::LuminanceStruct luminStruct = tre::ConstantBuffer::createLuminanceStruct(XMFLOAT2(renderer.setting.luminaceMin, renderer.setting.luminanceMax), renderer.setting.timeCoeff);
+				tre::LuminanceStruct luminStruct = tre::ConstantBuffer::createLuminanceStruct(XMFLOAT2(graphics.setting.luminaceMin, graphics.setting.luminanceMax), graphics.setting.timeCoeff);
 				tre::ConstantBuffer::updateConstBufferData(deviceAndContext.context.Get(), constBufferLuminanceHisto, &luminStruct, (UINT)sizeof(tre::LuminanceStruct));
 				deviceAndContext.context.Get()->CSSetConstantBuffers(0u, 1u, &constBufferLuminanceHisto);
 			}
 
 			PROFILE_GPU_SCOPED("CS: Luminance Histogram");
-			renderer._hdrBuffer.dispatchHistogram();
-			renderer._hdrBuffer.dispatchAverage();
+			graphics._hdrBuffer.dispatchHistogram();
+			graphics._hdrBuffer.dispatchAverage();
 		}
 
 		// HDR full screen pass
@@ -400,20 +403,23 @@ int main()
 		{
 			// HDR const buffer update and binding
 			{
-				tre::HDRStruct hdrStruct = tre::ConstantBuffer::createHDRStruct(renderer.setting.middleGrey);
+				tre::HDRStruct hdrStruct = tre::ConstantBuffer::createHDRStruct(graphics.setting.middleGrey);
 				tre::ConstantBuffer::updateConstBufferData(deviceAndContext.context.Get(), constBufferHDR, &hdrStruct, (UINT)sizeof(tre::HDRStruct));
 
 				deviceAndContext.context.Get()->PSSetConstantBuffers(4u, 1u, &constBufferHDR);
 			}
 
 			PROFILE_GPU_SCOPED("HDR");
-			renderer.fullscreenPass(tre::RENDER_MODE::TONE_MAPPING_PASS);
+			graphics.fullscreenPass(tre::RENDER_MODE::TONE_MAPPING_PASS);
 		}
 
 		// Draw debug
-		if (renderer.setting.showBoundingVolume) {
+		if (graphics.setting.showBoundingVolume) {
 			PROFILE_GPU_SCOPED("Bounding Volume Wireframe");
-			renderer.draw(scene._wireframeObjQ, tre::RENDER_MODE::WIREFRAME_M);
+			graphics.draw(scene._wireframeObjQ, tre::RENDER_MODE::WIREFRAME_M);
+
+			wireframeRenderer.draw(graphics, scene._culledOpaqueObjQ, graphics.setting.typeOfBound);
+			wireframeRenderer.draw(graphics, scene._culledTransparentObjQ, graphics.setting.typeOfBound);
 		}
 
 		{
@@ -428,9 +434,9 @@ int main()
 			const UINT kSyncInterval = 0; // Need to sync CPU frame to this function if we want V-SYNC
 
 			// When using sync interval 0, it is recommended to always pass the tearing flag when it is supported.
-			const UINT presentFlags = (kSyncInterval == 0 && renderer._swapchain.m_bTearingSupported) ? DXGI_PRESENT_ALLOW_TEARING : 0;
+			const UINT presentFlags = (kSyncInterval == 0 && graphics._swapchain.m_bTearingSupported) ? DXGI_PRESENT_ALLOW_TEARING : 0;
 
-			CHECK_DX_ERROR(renderer._swapchain.mainSwapchain->Present(kSyncInterval, presentFlags));
+			CHECK_DX_ERROR(graphics._swapchain.mainSwapchain->Present(kSyncInterval, presentFlags));
 		}
 
 		scene.updateDirLight();
