@@ -28,8 +28,8 @@ struct GlobalInfoStruct {
 	int ssaoSwitch;
 };
 
-struct CSMViewProjectionStruct {
-	XMMATRIX csmViewProjection;
+struct ViewProjectionStruct {
+	XMMATRIX viewProjection;
 };
 
 struct ModelInfoStruct {
@@ -93,7 +93,7 @@ public:
 		int ssaoSwtich
 	);
 
-	static CSMViewProjectionStruct createCSMViewProjectionStruct(const XMMATRIX& viewProjection);
+	static ViewProjectionStruct createViewProjectionStruct(const XMMATRIX& viewProjection);
 	static ModelInfoStruct createModelInfoStruct(const XMMATRIX& transformationLocal, const XMFLOAT4& color, UINT isWithTexture, UINT hasNormalMap);
 	static PointLightInfoStruct createPointLightInfoStruct(int currPtLightIdx);
 	static SSAOKernalStruct createSSAOKernalStruct(const std::vector<XMFLOAT4>& kernalSamples, float sampleRadius);

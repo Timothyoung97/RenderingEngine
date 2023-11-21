@@ -69,9 +69,9 @@ GlobalInfoStruct ConstantBuffer::createGlobalInfoStruct(
 	return GlobalInfoStruct;
 };
 
-CSMViewProjectionStruct ConstantBuffer::createCSMViewProjectionStruct(const XMMATRIX& viewProjection) {
-	CSMViewProjectionStruct csmViewProj;
-	csmViewProj.csmViewProjection = viewProjection;
+ViewProjectionStruct ConstantBuffer::createViewProjectionStruct(const XMMATRIX& viewProjection) {
+	ViewProjectionStruct csmViewProj;
+	csmViewProj.viewProjection = viewProjection;
 	return csmViewProj;
 }
 

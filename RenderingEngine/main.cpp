@@ -250,8 +250,8 @@ int main()
 					// Const Buffer 
 					{
 						// Create struct info and submit data to const buffer
-						tre::CSMViewProjectionStruct csmViewProjStruct = tre::ConstantBuffer::createCSMViewProjectionStruct(lightViewProjs[i]);
-						tre::ConstantBuffer::updateConstBufferData(deviceAndContext.context.Get(), constBufferCSMViewProj, &csmViewProjStruct, (UINT)sizeof(tre::CSMViewProjectionStruct));
+						tre::ViewProjectionStruct csmViewProjStruct = tre::ConstantBuffer::createViewProjectionStruct(lightViewProjs[i]);
+						tre::ConstantBuffer::updateConstBufferData(deviceAndContext.context.Get(), constBufferCSMViewProj, &csmViewProjStruct, (UINT)sizeof(tre::ViewProjectionStruct));
 
 						// Binding 
 						deviceAndContext.context.Get()->VSSetConstantBuffers(0u, 1u, &constBufferCSMViewProj);
@@ -285,11 +285,20 @@ int main()
 		}
 
 		// 1st pass deferred normal & albedo
+		ID3D11Buffer* constBufferCamViewProj = tre::ConstantBuffer::createConstBuffer(deviceAndContext.device.Get(), (UINT)sizeof(tre::ViewProjectionStruct));
 		{
 			PROFILE_GPU_SCOPED("G-Buffer");
 			//renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_MODE::DEFERRED_OPAQUE_M); // non instanced
-			tre::ConstantBuffer::setLightViewProjectionConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), cam.camViewProjection); // instanced
-			renderer.instancedDraw(scene._culledOpaqueObjQ, tre::RENDER_MODE::INSTANCED_DEFERRED_OPAQUE_M);
+
+			// Update const buffer and binding
+			{
+				tre::ViewProjectionStruct vpStruct = tre::ConstantBuffer::createViewProjectionStruct(cam.camViewProjection);
+				tre::ConstantBuffer::updateConstBufferData(deviceAndContext.context.Get(), constBufferCamViewProj, &vpStruct, (UINT)sizeof(tre::ViewProjectionStruct));
+
+				deviceAndContext.context.Get()->VSSetConstantBuffers(0u, 1u, &constBufferCamViewProj);
+			}
+
+			graphics.instancedDraw(scene._culledOpaqueObjQ, tre::RENDER_MODE::INSTANCED_DEFERRED_OPAQUE_M); // instanced
 		}
 
 		// set const buffer for global info
