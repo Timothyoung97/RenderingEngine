@@ -113,6 +113,16 @@ HDRStruct ConstantBuffer::createHDRStruct(float middleGrey) {
 	return hdrStruct;
 }
 
+LuminanceStruct ConstantBuffer::createLuminanceStruct(const XMFLOAT2& luminance, float timeCoeff) {
+	LuminanceStruct constBufferLumin;
+	constBufferLumin.luminance = luminance;
+	constBufferLumin.timeCoeff = timeCoeff;
+	constBufferLumin.numPixel = SCREEN_HEIGHT * SCREEN_WIDTH;
+	constBufferLumin.viewportDimension = XMINT2(SCREEN_WIDTH, SCREEN_HEIGHT);
+
+	return constBufferLumin;
+}
+
 // deprecated //
 ID3D11Buffer* ConstantBuffer::setCamConstBuffer(
 	ID3D11Device* device, ID3D11DeviceContext* context, 

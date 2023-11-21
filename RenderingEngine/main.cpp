@@ -371,11 +371,20 @@ int main()
 
 		deviceAndContext.context.Get()->OMSetRenderTargets(0, nullptr, nullptr);
 
-		tre::ConstantBuffer::setLuminaceConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), XMFLOAT2(renderer.setting.luminaceMin, renderer.setting.luminanceMax), renderer.setting.timeCoeff);
+		// Luminance Histogram
+		ID3D11Buffer* constBufferLuminanceHisto = tre::ConstantBuffer::createConstBuffer(deviceAndContext.device.Get(), (UINT)sizeof(tre::LuminanceStruct));
+		{
+			//tre::ConstantBuffer::setLuminaceConstBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get(), XMFLOAT2(renderer.setting.luminaceMin, renderer.setting.luminanceMax), renderer.setting.timeCoeff);
+			{
+				tre::LuminanceStruct luminStruct = tre::ConstantBuffer::createLuminanceStruct(XMFLOAT2(renderer.setting.luminaceMin, renderer.setting.luminanceMax), renderer.setting.timeCoeff);
+				tre::ConstantBuffer::updateConstBufferData(deviceAndContext.context.Get(), constBufferLuminanceHisto, &luminStruct, (UINT)sizeof(tre::LuminanceStruct));
+				deviceAndContext.context.Get()->CSSetConstantBuffers(0u, 1u, &constBufferLuminanceHisto);
+			}
 
-		renderer._hdrBuffer.dispatchHistogram();
-
-		renderer._hdrBuffer.dispatchAverage();
+			PROFILE_GPU_SCOPED("CS: Luminance Histogram");
+			renderer._hdrBuffer.dispatchHistogram();
+			renderer._hdrBuffer.dispatchAverage();
+		}
 
 		// HDR full screen pass
 		ID3D11Buffer* constBufferHDR = tre::ConstantBuffer::createConstBuffer(deviceAndContext.device.Get(), (UINT)sizeof(tre::HDRStruct));
@@ -440,6 +449,7 @@ int main()
 			constBufferCSMViewProj->Release();
 			constBufferSSAOKernal->Release();
 			constBufferHDR->Release();
+			constBufferLuminanceHisto->Release();
 		}
 
 		// record each frame

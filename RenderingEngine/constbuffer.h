@@ -97,6 +97,7 @@ public:
 	static PointLightInfoStruct createPointLightInfoStruct(int currPtLightIdx);
 	static SSAOKernalStruct createSSAOKernalStruct(const std::vector<XMFLOAT4>& kernalSamples, float sampleRadius);
 	static HDRStruct createHDRStruct(float middleGrey);
+	static LuminanceStruct createLuminanceStruct(const XMFLOAT2& luminance, float timeCoeff);
 
 	// --DEPRECATED-- //
 	static ID3D11Buffer* setCamConstBuffer(
