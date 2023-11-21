@@ -16,6 +16,7 @@ del /s /q bin\*.bin
 "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\fxc.exe" /nologo /E ps_texture_blur                /T ps_5_0 /Fo ./bin/pixel_shader_texture_blur.bin               ps_textureBlur.hlsl
 "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\fxc.exe" /nologo /E ps_hdr_tonedown                /T ps_5_0 /Fo ./bin/pixel_shader_hdr_rendering.bin              ps_hdrRendering.hlsl
 "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\fxc.exe" /nologo /E ps_instanced_deferred_gbuffer  /T ps_5_0 /Fo ./bin/pixel_shader_instanced_gbuffer.bin          ps_instancedDeferredRendering.hlsl
+"C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\fxc.exe" /nologo /E ps_instanced_wireframe         /T ps_5_0 /Fo ./bin/pixel_shader_instanced_wireframe.bin        ps_instancedWireframeRendering.hlsl
 
 "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\fxc.exe" /nologo /E cs_updateLightPosition         /T cs_5_0 /Fo ./bin/compute_shader_ptLight_movement.bin         cs_ptLightMovement.hlsl
 "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\fxc.exe" /nologo /E cs_genHistogram                /T cs_5_0 /Fo ./bin/compute_shader_lumin_histogram.bin          cs_luminanceHistogram.hlsl
