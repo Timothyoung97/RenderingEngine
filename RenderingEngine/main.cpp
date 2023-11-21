@@ -454,6 +454,7 @@ int main()
 		{
 			constBufferGlobalInfo->Release();
 			constBufferCSMViewProj->Release();
+			constBufferCamViewProj->Release();
 			constBufferSSAOKernal->Release();
 			constBufferHDR->Release();
 			constBufferLuminanceHisto->Release();
