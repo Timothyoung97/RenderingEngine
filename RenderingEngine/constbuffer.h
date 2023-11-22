@@ -51,34 +51,13 @@ struct SSAOKernalStruct {
 	XMFLOAT3 pad;
 };
 
-struct HDRStruct {
-	float middleGrey;
-	XMFLOAT3 pad;
-};
-
-struct LuminanceStruct {
-	XMFLOAT2 luminance;
-	float timeCoeff;
-	int numPixel;
-	XMINT2 viewportDimension;
-	XMINT2 pad;
-};
-
 struct BatchInfoStruct {
 	UINT batchOffset;
 	XMFLOAT3 pad;
 };
 
-class ConstantBuffer {
+class CommonStructUtility {
 public:
-	
-	// Creates an empty const buffer 
-	static ID3D11Buffer* createConstBuffer(ID3D11Device* pDevice, UINT sizeOfBuffer);
-	
-	// Updates a const buffer with data from struct
-	static void updateConstBufferData(ID3D11DeviceContext* pContext, ID3D11Buffer* pConstBuffer, void* pConstBufferInfo, UINT sizeOfConstBufferInfo);
-
-
 	// --Struct create functions-- //
 
 	static GlobalInfoStruct createGlobalInfoStruct(
@@ -98,6 +77,16 @@ public:
 	static PointLightInfoStruct createPointLightInfoStruct(int currPtLightIdx);
 	static SSAOKernalStruct createSSAOKernalStruct(const std::vector<XMFLOAT4>& kernalSamples, float sampleRadius);
 	static BatchInfoStruct createBatchInfoStruct(int batchOffset);
+};
+
+class Buffer {
+public:
+	
+	// Creates an empty const buffer 
+	static ID3D11Buffer* createConstBuffer(ID3D11Device* pDevice, UINT sizeOfBuffer);
+	
+	// Updates a const buffer with data from struct
+	static void updateConstBufferData(ID3D11DeviceContext* pContext, ID3D11Buffer* pConstBuffer, void* pConstBufferInfo, UINT sizeOfConstBufferInfo);
 };
 
 }

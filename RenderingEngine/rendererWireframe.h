@@ -1,5 +1,6 @@
 #include "graphics.h"
 #include "mesh.h"
+#include "camera.h"
 
 namespace tre {
 
@@ -22,6 +23,8 @@ public:
 	RendererWireframe(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 
 	Mesh* selectWireframeMesh(BoundVolumeEnum typeOfBound);
+
+	void setConstBufferCamViewProj(Graphics& graphic, const Camera& cam);
 
 	void draw(const Graphics& graphics, const std::vector<std::pair<Object*, Mesh*>>& renderQ);
 

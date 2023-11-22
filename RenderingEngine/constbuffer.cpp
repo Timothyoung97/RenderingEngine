@@ -6,7 +6,7 @@
 namespace tre {
 
 // Creates an empty constant buffer with the specified size (in bytes)
-ID3D11Buffer* ConstantBuffer::createConstBuffer(ID3D11Device* pDevice, UINT sizeOfBuffer) {
+ID3D11Buffer* Buffer::createConstBuffer(ID3D11Device* pDevice, UINT sizeOfBuffer) {
 	D3D11_BUFFER_DESC constBufferDesc;
 	constBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	constBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
@@ -25,7 +25,7 @@ ID3D11Buffer* ConstantBuffer::createConstBuffer(ID3D11Device* pDevice, UINT size
 }
 
 // To update a constant buffer with data from the CPU 
-void ConstantBuffer::updateConstBufferData(ID3D11DeviceContext* pContext, ID3D11Buffer* pConstBuffer, void* pConstBufferInfoStruct, UINT sizeOfConstBufferInfo) {
+void Buffer::updateConstBufferData(ID3D11DeviceContext* pContext, ID3D11Buffer* pConstBuffer, void* pConstBufferInfoStruct, UINT sizeOfConstBufferInfo) {
 	
 	// Disable GPU access to constant buffer data
 	D3D11_MAPPED_SUBRESOURCE currData;
@@ -40,7 +40,7 @@ void ConstantBuffer::updateConstBufferData(ID3D11DeviceContext* pContext, ID3D11
 
 /////////////// Struct Creation Functions ///////////////
 
-GlobalInfoStruct ConstantBuffer::createGlobalInfoStruct(
+GlobalInfoStruct CommonStructUtility::createGlobalInfoStruct(
 	const XMVECTOR& camPos,
 	const XMMATRIX& viewProjection,
 	const std::vector<XMMATRIX>& lightViewProjection,
@@ -69,13 +69,13 @@ GlobalInfoStruct ConstantBuffer::createGlobalInfoStruct(
 	return GlobalInfoStruct;
 };
 
-ViewProjectionStruct ConstantBuffer::createViewProjectionStruct(const XMMATRIX& viewProjection) {
+ViewProjectionStruct CommonStructUtility::createViewProjectionStruct(const XMMATRIX& viewProjection) {
 	ViewProjectionStruct csmViewProj;
 	csmViewProj.viewProjection = viewProjection;
 	return csmViewProj;
 }
 
-ModelInfoStruct ConstantBuffer::createModelInfoStruct(const XMMATRIX& transformationLocal, const XMFLOAT4& color, UINT isWithTexture, UINT hasNormalMap) {
+ModelInfoStruct CommonStructUtility::createModelInfoStruct(const XMMATRIX& transformationLocal, const XMFLOAT4& color, UINT isWithTexture, UINT hasNormalMap) {
 	ModelInfoStruct modelInfoStruct;
 	modelInfoStruct.transformationLocal = transformationLocal;
 
@@ -91,14 +91,14 @@ ModelInfoStruct ConstantBuffer::createModelInfoStruct(const XMMATRIX& transforma
 	return modelInfoStruct;
 }
 
-PointLightInfoStruct ConstantBuffer::createPointLightInfoStruct(int currPtLightIdx) {
+PointLightInfoStruct CommonStructUtility::createPointLightInfoStruct(int currPtLightIdx) {
 	PointLightInfoStruct ptLightInfoStruct;
 	ptLightInfoStruct.currPointLightIdx = (UINT)currPtLightIdx;
 
 	return ptLightInfoStruct;
 };
 
-SSAOKernalStruct ConstantBuffer::createSSAOKernalStruct(const std::vector<XMFLOAT4>& kernalSamples, float sampleRadius) {
+SSAOKernalStruct CommonStructUtility::createSSAOKernalStruct(const std::vector<XMFLOAT4>& kernalSamples, float sampleRadius) {
 	SSAOKernalStruct ssaoKernalStruct;
 	std::copy(kernalSamples.begin(), kernalSamples.end(), ssaoKernalStruct.kernalSamples);
 	ssaoKernalStruct.sampleRadius = sampleRadius;
@@ -106,7 +106,7 @@ SSAOKernalStruct ConstantBuffer::createSSAOKernalStruct(const std::vector<XMFLOA
 	return ssaoKernalStruct;
 }
 
-BatchInfoStruct ConstantBuffer::createBatchInfoStruct(int batchOffset) {
+BatchInfoStruct CommonStructUtility::createBatchInfoStruct(int batchOffset) {
 	BatchInfoStruct batchInfoStruct;
 	batchInfoStruct.batchOffset = (UINT)batchOffset;
 	

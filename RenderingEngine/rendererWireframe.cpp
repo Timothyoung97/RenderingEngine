@@ -30,6 +30,18 @@ Mesh* RendererWireframe::selectWireframeMesh(BoundVolumeEnum typeOfBound) {
 	}
 }
 
+void RendererWireframe::setConstBufferCamViewProj(Graphics& graphic, const Camera& cam) {
+	ID3D11Buffer* constBufferCamViewProj = tre::Buffer::createConstBuffer(_device, (UINT)sizeof(tre::ViewProjectionStruct));
+	{
+		// Update const buffer and binding
+		tre::ViewProjectionStruct vpStruct = tre::CommonStructUtility::createViewProjectionStruct(cam.camViewProjection);
+		tre::Buffer::updateConstBufferData(_context, constBufferCamViewProj, &vpStruct, (UINT)sizeof(tre::ViewProjectionStruct));
+
+		_context->VSSetConstantBuffers(0u, 1u, &constBufferCamViewProj);
+	}
+	graphic.bufferQueue.push_back(constBufferCamViewProj);
+}
+
 void RendererWireframe::draw(const Graphics& graphics, const std::vector<std::pair<Object*, Mesh*>>& objQ) {
 	if (objQ.size() == 0 || !graphics.setting.showBoundingVolume) return;
 
@@ -61,7 +73,7 @@ void RendererWireframe::draw(const Graphics& graphics, const std::vector<std::pa
 	}
 
 	// Create empty const buffer and pre bind the constant buffer
-	ID3D11Buffer* constBufferModelInfo = tre::ConstantBuffer::createConstBuffer(_device, sizeof(tre::ModelInfoStruct));
+	ID3D11Buffer* constBufferModelInfo = tre::Buffer::createConstBuffer(_device, sizeof(tre::ModelInfoStruct));
 	{
 		_context->VSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
 		_context->PSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
@@ -75,8 +87,8 @@ void RendererWireframe::draw(const Graphics& graphics, const std::vector<std::pa
 
 			// Submit each object's data to const buffer
 			{
-				tre::ModelInfoStruct modelInfoStruct = tre::ConstantBuffer::createModelInfoStruct(currObj->_boundingVolumeTransformation, currObj->_boundingVolumeColor[j], 0u, 0u);
-				tre::ConstantBuffer::updateConstBufferData(_context, constBufferModelInfo, &modelInfoStruct, sizeof(tre::ModelInfoStruct));
+				tre::ModelInfoStruct modelInfoStruct = tre::CommonStructUtility::createModelInfoStruct(currObj->_boundingVolumeTransformation, currObj->_boundingVolumeColor[j], 0u, 0u);
+				tre::Buffer::updateConstBufferData(_context, constBufferModelInfo, &modelInfoStruct, sizeof(tre::ModelInfoStruct));
 			}
 
 			_context->DrawIndexed(meshToRender->indexSize, 0u, 0u);
@@ -123,14 +135,14 @@ void RendererWireframe::drawInstanced(Graphics* graphics, const std::vector<std:
 	}
 
 	// Create an empty const buffer 
-	ID3D11Buffer* constBufferBatchInfo = tre::ConstantBuffer::createConstBuffer(_device, (UINT)sizeof(tre::BatchInfoStruct));
+	ID3D11Buffer* constBufferBatchInfo = tre::Buffer::createConstBuffer(_device, (UINT)sizeof(tre::BatchInfoStruct));
 
 	InstanceBatchInfo currBatchInfo = graphics->_instanceBuffer.instanceBatchQueue[0];
 
 	// update constant buffer for instanced draw call
 	{
-		tre::BatchInfoStruct bInfo = tre::ConstantBuffer::createBatchInfoStruct(currBatchInfo.batchStartIdx);
-		tre::ConstantBuffer::updateConstBufferData(_context, constBufferBatchInfo, &bInfo, (UINT)sizeof(tre::BatchInfoStruct));
+		tre::BatchInfoStruct bInfo = tre::CommonStructUtility::createBatchInfoStruct(currBatchInfo.batchStartIdx);
+		tre::Buffer::updateConstBufferData(_context, constBufferBatchInfo, &bInfo, (UINT)sizeof(tre::BatchInfoStruct));
 
 		_context->VSSetConstantBuffers(1u, 1u, &constBufferBatchInfo);
 	}

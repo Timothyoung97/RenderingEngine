@@ -303,25 +303,25 @@ void Graphics::deferredLightingLocalDraw(const std::vector<std::pair<Object*, Me
 	_context->IASetIndexBuffer(objQ[0].second->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
 	// Create empty const buffer and pre bind the constant buffer
-	ID3D11Buffer* constBufferModelInfo = tre::ConstantBuffer::createConstBuffer(_device, sizeof(tre::ModelInfoStruct));
+	ID3D11Buffer* constBufferModelInfo = tre::Buffer::createConstBuffer(_device, sizeof(tre::ModelInfoStruct));
 	_context->VSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
 	_context->PSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
 
-	ID3D11Buffer* constBufferPtLightInfo = tre::ConstantBuffer::createConstBuffer(_device, sizeof(tre::PointLightInfoStruct));
+	ID3D11Buffer* constBufferPtLightInfo = tre::Buffer::createConstBuffer(_device, sizeof(tre::PointLightInfoStruct));
 	_context->PSSetConstantBuffers(2u, 1u, &constBufferPtLightInfo);
 
 	for (int i = 0; i < objQ.size(); i++) {
 
 		// Submit each object's data to const buffer
 		{
-			tre::ModelInfoStruct modelInfoStruct = tre::ConstantBuffer::createModelInfoStruct(objQ[i].first->_transformationFinal, objQ[i].second->pMaterial->baseColor, 0u, 0u);
-			tre::ConstantBuffer::updateConstBufferData(_context, constBufferModelInfo, &modelInfoStruct, sizeof(tre::ModelInfoStruct));
+			tre::ModelInfoStruct modelInfoStruct = tre::CommonStructUtility::createModelInfoStruct(objQ[i].first->_transformationFinal, objQ[i].second->pMaterial->baseColor, 0u, 0u);
+			tre::Buffer::updateConstBufferData(_context, constBufferModelInfo, &modelInfoStruct, sizeof(tre::ModelInfoStruct));
 		}
 
 		// Submit point light's idx to const buffer
 		{
-			tre::PointLightInfoStruct ptLightInfoStruct = tre::ConstantBuffer::createPointLightInfoStruct(i);
-			tre::ConstantBuffer::updateConstBufferData(_context, constBufferPtLightInfo, &ptLightInfoStruct, sizeof(tre::PointLightInfoStruct));
+			tre::PointLightInfoStruct ptLightInfoStruct = tre::CommonStructUtility::createPointLightInfoStruct(i);
+			tre::Buffer::updateConstBufferData(_context, constBufferPtLightInfo, &ptLightInfoStruct, sizeof(tre::PointLightInfoStruct));
 		}
 
 		float distFromObjToCam = tre::Maths::distBetweentObjToCam(objQ[i].first->objPos, cameraPos);
@@ -353,7 +353,7 @@ void Graphics::draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MO
 	configureStates(renderObjType);
 
 	// Create empty const buffer and pre bind the constant buffer
-	ID3D11Buffer* constBufferModelInfo = tre::ConstantBuffer::createConstBuffer(_device, sizeof(tre::ModelInfoStruct));
+	ID3D11Buffer* constBufferModelInfo = tre::Buffer::createConstBuffer(_device, sizeof(tre::ModelInfoStruct));
 	_context->VSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
 	_context->PSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
 
@@ -384,8 +384,8 @@ void Graphics::draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MO
 
 		// Submit each object's data to const buffer
 		{
-			tre::ModelInfoStruct modelInfoStruct = tre::ConstantBuffer::createModelInfoStruct(objQ[i].first->_transformationFinal, objQ[i].second->pMaterial->baseColor, hasTexture, hasNormal);
-			tre::ConstantBuffer::updateConstBufferData(_context, constBufferModelInfo, &modelInfoStruct, sizeof(tre::ModelInfoStruct));
+			tre::ModelInfoStruct modelInfoStruct = tre::CommonStructUtility::createModelInfoStruct(objQ[i].first->_transformationFinal, objQ[i].second->pMaterial->baseColor, hasTexture, hasNormal);
+			tre::Buffer::updateConstBufferData(_context, constBufferModelInfo, &modelInfoStruct, sizeof(tre::ModelInfoStruct));
 		}
 
 		_context->DrawIndexed(objQ[i].second->indexSize, 0, 0);
@@ -415,15 +415,15 @@ void Graphics::instancedDraw(const std::vector<std::pair<Object*, Mesh*>>& objQ,
 	UINT offset = 0;
 
 	// Create an empty const buffer 
-	ID3D11Buffer* constBufferBatchInfo = tre::ConstantBuffer::createConstBuffer(_device, (UINT)sizeof(tre::BatchInfoStruct));
+	ID3D11Buffer* constBufferBatchInfo = tre::Buffer::createConstBuffer(_device, (UINT)sizeof(tre::BatchInfoStruct));
 
 	for (int i = 0; i < _instanceBuffer.instanceBatchQueue.size(); i++) {
 		InstanceBatchInfo currBatchInfo = _instanceBuffer.instanceBatchQueue[i];
 
 		// update constant buffer for each instanced draw call
 		{
-			tre::BatchInfoStruct bInfo = tre::ConstantBuffer::createBatchInfoStruct(currBatchInfo.batchStartIdx);
-			tre::ConstantBuffer::updateConstBufferData(_context, constBufferBatchInfo, &bInfo, (UINT)sizeof(tre::BatchInfoStruct));
+			tre::BatchInfoStruct bInfo = tre::CommonStructUtility::createBatchInfoStruct(currBatchInfo.batchStartIdx);
+			tre::Buffer::updateConstBufferData(_context, constBufferBatchInfo, &bInfo, (UINT)sizeof(tre::BatchInfoStruct));
 
 			_context->VSSetConstantBuffers(1u, 1u, &constBufferBatchInfo);
 		}

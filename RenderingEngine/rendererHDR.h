@@ -5,6 +5,20 @@
 using namespace DirectX;
 
 namespace tre {
+
+struct HDRStruct {
+	float middleGrey;
+	XMFLOAT3 pad;
+};
+
+struct LuminanceStruct {
+	XMFLOAT2 luminance;
+	float timeCoeff;
+	int numPixel;
+	XMINT2 viewportDimension;
+	XMINT2 pad;
+};
+
 class RendererHDR {
 public:
 	ID3D11Device* _device;

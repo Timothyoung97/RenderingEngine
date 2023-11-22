@@ -250,7 +250,7 @@ int main()
 			lightViewProjs.push_back(lightViewProj);
 		}
 
-		ID3D11Buffer* constBufferCSMViewProj = tre::ConstantBuffer::createConstBuffer(deviceAndContext.device.Get(), (UINT)sizeof(tre::ViewProjectionStruct));
+		ID3D11Buffer* constBufferCSMViewProj = tre::Buffer::createConstBuffer(deviceAndContext.device.Get(), (UINT)sizeof(tre::ViewProjectionStruct));
 		{
 			PROFILE_GPU_SCOPED("CSM Quad Draw");
 
@@ -264,8 +264,8 @@ int main()
 					// Const Buffer 
 					{
 						// Create struct info and submit data to const buffer
-						tre::ViewProjectionStruct csmViewProjStruct = tre::ConstantBuffer::createViewProjectionStruct(lightViewProjs[i]);
-						tre::ConstantBuffer::updateConstBufferData(deviceAndContext.context.Get(), constBufferCSMViewProj, &csmViewProjStruct, (UINT)sizeof(tre::ViewProjectionStruct));
+						tre::ViewProjectionStruct csmViewProjStruct = tre::CommonStructUtility::createViewProjectionStruct(lightViewProjs[i]);
+						tre::Buffer::updateConstBufferData(deviceAndContext.context.Get(), constBufferCSMViewProj, &csmViewProjStruct, (UINT)sizeof(tre::ViewProjectionStruct));
 
 						// Binding 
 						deviceAndContext.context.Get()->VSSetConstantBuffers(0u, 1u, &constBufferCSMViewProj);
@@ -299,28 +299,27 @@ int main()
 		}
 
 		// 1st pass deferred normal & albedo
-		ID3D11Buffer* constBufferCamViewProj = tre::ConstantBuffer::createConstBuffer(deviceAndContext.device.Get(), (UINT)sizeof(tre::ViewProjectionStruct));
+		ID3D11Buffer* constBufferCamViewProj = tre::Buffer::createConstBuffer(deviceAndContext.device.Get(), (UINT)sizeof(tre::ViewProjectionStruct));
 		{
-			PROFILE_GPU_SCOPED("G-Buffer");
-			//renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_MODE::DEFERRED_OPAQUE_M); // non instanced
-
 			// Update const buffer and binding
 			{
-				tre::ViewProjectionStruct vpStruct = tre::ConstantBuffer::createViewProjectionStruct(cam.camViewProjection);
-				tre::ConstantBuffer::updateConstBufferData(deviceAndContext.context.Get(), constBufferCamViewProj, &vpStruct, (UINT)sizeof(tre::ViewProjectionStruct));
+				tre::ViewProjectionStruct vpStruct = tre::CommonStructUtility::createViewProjectionStruct(cam.camViewProjection);
+				tre::Buffer::updateConstBufferData(deviceAndContext.context.Get(), constBufferCamViewProj, &vpStruct, (UINT)sizeof(tre::ViewProjectionStruct));
 
 				deviceAndContext.context.Get()->VSSetConstantBuffers(0u, 1u, &constBufferCamViewProj);
 			}
 
+			PROFILE_GPU_SCOPED("G-Buffer");
+			//renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_MODE::DEFERRED_OPAQUE_M); // non instanced
 			graphics.instancedDraw(scene._culledOpaqueObjQ, tre::RENDER_MODE::INSTANCED_DEFERRED_OPAQUE_M); // instanced
 		}
 
 		// set const buffer for global info
-		ID3D11Buffer* constBufferGlobalInfo = tre::ConstantBuffer::createConstBuffer(deviceAndContext.device.Get(), (UINT)sizeof(tre::GlobalInfoStruct));
+		ID3D11Buffer* constBufferGlobalInfo = tre::Buffer::createConstBuffer(deviceAndContext.device.Get(), (UINT)sizeof(tre::GlobalInfoStruct));
 		{
 			// Create struct info and submit data to constant buffer
-			tre::GlobalInfoStruct globalInfoStruct = tre::ConstantBuffer::createGlobalInfoStruct(cam.camPositionV, cam.camViewProjection, lightViewProjs, graphics.setting.csmPlaneIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), graphics.setting.csmDebugSwitch, graphics.setting.ssaoSwitch);
-			tre::ConstantBuffer::updateConstBufferData(deviceAndContext.context.Get(), constBufferGlobalInfo, &globalInfoStruct, (UINT)sizeof(tre::GlobalInfoStruct));
+			tre::GlobalInfoStruct globalInfoStruct = tre::CommonStructUtility::createGlobalInfoStruct(cam.camPositionV, cam.camViewProjection, lightViewProjs, graphics.setting.csmPlaneIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), graphics.setting.csmDebugSwitch, graphics.setting.ssaoSwitch);
+			tre::Buffer::updateConstBufferData(deviceAndContext.context.Get(), constBufferGlobalInfo, &globalInfoStruct, (UINT)sizeof(tre::GlobalInfoStruct));
 
 			// Bind to shaders
 			deviceAndContext.context.Get()->VSSetConstantBuffers(0u, 1u, &constBufferGlobalInfo);
@@ -359,13 +358,13 @@ int main()
 		}
 
 		// ssao pass
-		ID3D11Buffer* constBufferSSAOKernal = tre::ConstantBuffer::createConstBuffer(deviceAndContext.device.Get(), (UINT)sizeof(tre::SSAOKernalStruct));;
+		ID3D11Buffer* constBufferSSAOKernal = tre::Buffer::createConstBuffer(deviceAndContext.device.Get(), (UINT)sizeof(tre::SSAOKernalStruct));;
 		if (graphics.setting.ssaoSwitch) {
 
 			// SSAO const buffer creation and binding
 			{
-				tre::SSAOKernalStruct ssaoKernalStruct = tre::ConstantBuffer::createSSAOKernalStruct(graphics._ssao.ssaoKernalSamples, graphics.setting.ssaoSampleRadius);
-				tre::ConstantBuffer::updateConstBufferData(deviceAndContext.context.Get(), constBufferSSAOKernal, &ssaoKernalStruct, (UINT)sizeof(tre::SSAOKernalStruct));
+				tre::SSAOKernalStruct ssaoKernalStruct = tre::CommonStructUtility::createSSAOKernalStruct(graphics._ssao.ssaoKernalSamples, graphics.setting.ssaoSampleRadius);
+				tre::Buffer::updateConstBufferData(deviceAndContext.context.Get(), constBufferSSAOKernal, &ssaoKernalStruct, (UINT)sizeof(tre::SSAOKernalStruct));
 
 				deviceAndContext.context.Get()->PSSetConstantBuffers(3u, 1u, &constBufferSSAOKernal);
 			}
@@ -414,11 +413,7 @@ int main()
 		// Wireframe draw
 		{
 			PROFILE_GPU_SCOPED("Bounding Volume Wireframe");
-			// Bind Camera View Projection Constant Buffer
-			{
-				deviceAndContext.context.Get()->VSSetConstantBuffers(0u, 1u, &constBufferCamViewProj);
-			}
-
+			rendererWireframe.setConstBufferCamViewProj(graphics, cam);
 			rendererWireframe.drawInstanced(&graphics, scene._wireframeObjQ);			// for point lights
 			rendererWireframe.drawInstanced(&graphics, scene._culledOpaqueObjQ);		// for opaque objects
 			rendererWireframe.drawInstanced(&graphics, scene._culledTransparentObjQ);	// for transparent objects

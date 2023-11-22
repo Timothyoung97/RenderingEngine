@@ -32,29 +32,24 @@ LuminanceStruct RendererHDR::createLuminanceStruct(const XMFLOAT2& luminance, fl
 
 void RendererHDR::setConstBufferLuminSetting(Graphics& graphics) {
 	// Luminance Setting
-	ID3D11Buffer* constBufferLuminanceSetting = tre::ConstantBuffer::createConstBuffer(_device, (UINT)sizeof(tre::LuminanceStruct));
+	ID3D11Buffer* constBufferLuminanceSetting = tre::Buffer::createConstBuffer(_device, (UINT)sizeof(tre::LuminanceStruct));
 	{
 		// Luminance Histogram Const Buffer update and binding
-		{
-			tre::LuminanceStruct luminStruct = createLuminanceStruct(XMFLOAT2(graphics.setting.luminaceMin, graphics.setting.luminanceMax), graphics.setting.timeCoeff);
-			tre::ConstantBuffer::updateConstBufferData(_context, constBufferLuminanceSetting, &luminStruct, (UINT)sizeof(tre::LuminanceStruct));
-			_context->CSSetConstantBuffers(0u, 1u, &constBufferLuminanceSetting);
-		}
+		tre::LuminanceStruct luminStruct = createLuminanceStruct(XMFLOAT2(graphics.setting.luminaceMin, graphics.setting.luminanceMax), graphics.setting.timeCoeff);
+		tre::Buffer::updateConstBufferData(_context, constBufferLuminanceSetting, &luminStruct, (UINT)sizeof(tre::LuminanceStruct));
+		_context->CSSetConstantBuffers(0u, 1u, &constBufferLuminanceSetting);
 	}
 	graphics.bufferQueue.push_back(constBufferLuminanceSetting);
 }
 
 void RendererHDR::setConstBufferHDR(Graphics& graphics) {
 	// HDR Middle Grey
-	ID3D11Buffer* constBufferHDR = tre::ConstantBuffer::createConstBuffer(_device, (UINT)sizeof(tre::HDRStruct));
+	ID3D11Buffer* constBufferHDR = tre::Buffer::createConstBuffer(_device, (UINT)sizeof(tre::HDRStruct));
 	{
 		// HDR const buffer update and binding
-		{
-			tre::HDRStruct hdrStruct = createHDRStruct(graphics.setting.middleGrey);
-			tre::ConstantBuffer::updateConstBufferData(_context, constBufferHDR, &hdrStruct, (UINT)sizeof(tre::HDRStruct));
-
-			_context->PSSetConstantBuffers(4u, 1u, &constBufferHDR);
-		}
+		tre::HDRStruct hdrStruct = createHDRStruct(graphics.setting.middleGrey);
+		tre::Buffer::updateConstBufferData(_context, constBufferHDR, &hdrStruct, (UINT)sizeof(tre::HDRStruct));
+		_context->PSSetConstantBuffers(4u, 1u, &constBufferHDR);
 	}
 	graphics.bufferQueue.push_back(constBufferHDR);
 }
