@@ -359,13 +359,7 @@ int main()
 			deviceAndContext.context.Get()->PSSetShaderResources(2, 1, scene.lightResc.pLightShaderRescView.GetAddressOf());
 		}
 
-		// ssao pass
-		{
-			PROFILE_GPU_SCOPED("SSAO Pass");
-			rendererSSAO.setConstBufferSSAOSetting(graphics);
-			rendererSSAO.fullscreenPass(graphics);
-			rendererSSAO.fullscreenBlurPass(graphics);
-		}
+		rendererSSAO.render(graphics);
 
 		// 2nd pass deferred lighting
 		{
@@ -388,32 +382,8 @@ int main()
 
 		deviceAndContext.context.Get()->OMSetRenderTargets(0, nullptr, nullptr);
 
-		// HDR Rendering
-		{
-			// Luminance Histogram
-			{
-				PROFILE_GPU_SCOPED("CS: Luminance Histogram");
-				rendererHDR.setConstBufferLuminSetting(graphics);
-				rendererHDR.dispatchHistogram(graphics);
-				rendererHDR.dispatchAverage(graphics);
-			}
-
-			// Tone Mapping
-			{
-				PROFILE_GPU_SCOPED("HDR");
-				rendererHDR.setConstBufferHDR(graphics);
-				rendererHDR.fullscreenPass(graphics);
-			}
-		}
-
-		// Wireframe draw
-		{
-			PROFILE_GPU_SCOPED("Bounding Volume Wireframe");
-			rendererWireframe.setConstBufferCamViewProj(graphics, cam);
-			rendererWireframe.drawInstanced(&graphics, scene._wireframeObjQ);			// for point lights
-			rendererWireframe.drawInstanced(&graphics, scene._culledOpaqueObjQ);		// for opaque objects
-			rendererWireframe.drawInstanced(&graphics, scene._culledTransparentObjQ);	// for transparent objects
-		}
+		rendererHDR.render(graphics);
+		rendererWireframe.render(graphics, cam, scene);
 
 		// Imgui Tool
 		{

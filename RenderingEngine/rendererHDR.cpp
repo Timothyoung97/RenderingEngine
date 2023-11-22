@@ -104,4 +104,21 @@ void RendererHDR::fullscreenPass(const Graphics& graphics) {
 	_context->Draw(6, 0);
 }
 
+void RendererHDR::render(Graphics& graphics) {
+	// Luminance Histogram
+	{
+		PROFILE_GPU_SCOPED("CS: Luminance Histogram");
+		setConstBufferLuminSetting(graphics);
+		dispatchHistogram(graphics);
+		dispatchAverage(graphics);
+	}
+
+	// Tone Mapping
+	{
+		PROFILE_GPU_SCOPED("HDR");
+		setConstBufferHDR(graphics);
+		fullscreenPass(graphics);
+	}
+}
+
 }

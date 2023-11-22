@@ -29,5 +29,7 @@ public:
 	void fullscreenPass(const Graphics& graphics);
 	void fullscreenBlurPass(const Graphics& graphics);
 
+	void render(Graphics& graphics);
+
 };
 }

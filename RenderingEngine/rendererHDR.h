@@ -43,5 +43,7 @@ public:
 	void dispatchHistogram(const Graphics& graphics);
 	void dispatchAverage(const Graphics& graphics);
 	void fullscreenPass(const Graphics& graphics);
+
+	void render(Graphics& graphics);
 };
 }

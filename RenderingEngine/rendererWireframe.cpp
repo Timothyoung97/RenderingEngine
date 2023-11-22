@@ -158,4 +158,12 @@ void RendererWireframe::drawInstanced(Graphics* graphics, const std::vector<std:
 }
 
 
+void RendererWireframe::render(Graphics& graphics, const Camera& cam, const Scene& scene) {
+	PROFILE_GPU_SCOPED("Bounding Volume Wireframe");
+	setConstBufferCamViewProj(graphics, cam);
+	drawInstanced(&graphics, scene._wireframeObjQ);			// for point lights
+	drawInstanced(&graphics, scene._culledOpaqueObjQ);		// for opaque objects
+	drawInstanced(&graphics, scene._culledTransparentObjQ);	// for transparent objects
+}
+
 }

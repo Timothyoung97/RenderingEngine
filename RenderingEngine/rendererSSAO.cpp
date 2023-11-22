@@ -83,4 +83,12 @@ void RendererSSAO::fullscreenBlurPass(const Graphics& graphics) {
 	_context->Draw(6, 0);
 }
 
+void RendererSSAO::render(Graphics& graphics) {
+	MICROPROFILE_SCOPE_CSTR("CPU SSAO PASS");
+	PROFILE_GPU_SCOPED("GPU SSAO Pass");
+	setConstBufferSSAOSetting(graphics);
+	fullscreenPass(graphics);
+	fullscreenBlurPass(graphics);
+}
+
 }

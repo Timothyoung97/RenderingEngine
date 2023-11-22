@@ -3,6 +3,7 @@
 #include "graphics.h"
 #include "mesh.h"
 #include "camera.h"
+#include "scene.h"
 
 namespace tre {
 
@@ -31,6 +32,8 @@ public:
 	void draw(const Graphics& graphics, const std::vector<std::pair<Object*, Mesh*>>& renderQ);
 
 	void drawInstanced(Graphics* graphics, const std::vector<std::pair<Object*, Mesh*>>& renderQ);
+
+	void render(Graphics& graphics, const Camera& cam, const Scene& scene);
 
 };
 }
