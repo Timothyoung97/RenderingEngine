@@ -102,7 +102,7 @@ public:
 	PixelShader _ssaoPixelShader;
 	PixelShader _textureBlurPixelShader;
 	PixelShader _hdrPixelShader;
-	PixelShader _debugPixelShader;
+	//PixelShader _debugPixelShader;
 	PixelShader _instancedPixelShader;
 
 	Sampler _sampler;
@@ -115,6 +115,9 @@ public:
 	SSAO _ssao;
 	HdrBuffer _hdrBuffer;
 	InstanceBuffer _instanceBuffer;
+
+	ID3D11UnorderedAccessView* nullUAV[1] = { nullptr };
+	ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
 
 	// Misc
 	GraphicsSetting setting;

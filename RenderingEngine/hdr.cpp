@@ -12,10 +12,6 @@ void HdrBuffer::create(ID3D11Device* device, ID3D11DeviceContext* context) {
 	_device = device;
 	_context = context;
 
-	std::wstring basePathWstr = tre::Utility::getBasePathWstr();
-	computeShaderLuminancehistogram.create(basePathWstr + L"shaders\\bin\\compute_shader_lumin_histogram.bin", _device);
-	computeShaderLuminanceAverage.create(basePathWstr + L"shaders\\bin\\compute_shader_lumin_average.bin", _device);
-	
 	// HDR Texture to be rendered
 	D3D11_TEXTURE2D_DESC hdrBufferDesc;
 	hdrBufferDesc.Width = SCREEN_WIDTH;
@@ -127,29 +123,5 @@ void HdrBuffer::create(ID3D11Device* device, ID3D11DeviceContext* context) {
 	CHECK_DX_ERROR(_device->CreateUnorderedAccessView(
 		pLuminAvg.Get(), &pLuminAvgUAVDesc, pLuminAvgUAV.GetAddressOf()
 	));
-}
-
-void HdrBuffer::dispatchHistogram() {
-	_context->CSSetShader(computeShaderLuminancehistogram.pShader.Get(), NULL, 0u);
-	_context->CSSetShaderResources(0u, 1u, pShaderResViewHdrTexture.GetAddressOf());
-	_context->CSSetUnorderedAccessViews(0u, 1u, pLuminHistogramUAV.GetAddressOf(), nullptr);
-	{
-		PROFILE_GPU_SCOPED("Compute Shader Luminace Histogram");
-		_context->Dispatch(tre::Maths::divideAndRoundUp(SCREEN_WIDTH, 16u), tre::Maths::divideAndRoundUp(SCREEN_HEIGHT, 16u), 1u);
-	}
-	_context->CSSetShaderResources(0u, 1u, nullSRV);
-	_context->CSSetUnorderedAccessViews(0u, 1u, nullUAV, nullptr);
-}
-
-void HdrBuffer::dispatchAverage() {
-	_context->CSSetShader(computeShaderLuminanceAverage.pShader.Get(), NULL, 0u);
-	_context->CSSetUnorderedAccessViews(0u, 1, pLuminHistogramUAV.GetAddressOf(), nullptr);
-	_context->CSSetUnorderedAccessViews(1u, 1, pLuminAvgUAV.GetAddressOf(), nullptr);
-	{
-		PROFILE_GPU_SCOPED("Compute Shader Luminace Average");
-		_context->Dispatch(1u, 1u, 1u);
-	}
-	_context->CSSetUnorderedAccessViews(0u, 1, nullUAV, nullptr);
-	_context->CSSetUnorderedAccessViews(1u, 1, nullUAV, nullptr);
 }
 }

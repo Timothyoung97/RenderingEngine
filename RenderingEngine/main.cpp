@@ -33,6 +33,7 @@
 #include "modelloader.h"
 #include "imguihelper.h"
 #include "rendererWireframe.h"
+#include "rendererHDR.h"
 
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;
@@ -93,6 +94,7 @@ int main()
 	//Create Renderer
 	tre::Graphics graphics(deviceAndContext.device.Get(), deviceAndContext.context.Get(), window.getWindowHandle());
 	tre::RendererWireframe rendererWireframe(deviceAndContext.device.Get(), deviceAndContext.context.Get());
+	tre::RendererHDR rendererHDR(deviceAndContext.device.Get(), deviceAndContext.context.Get());
 
 	//Input Handler
 	tre::Input input;
@@ -395,8 +397,8 @@ int main()
 			}
 
 			PROFILE_GPU_SCOPED("CS: Luminance Histogram");
-			graphics._hdrBuffer.dispatchHistogram();
-			graphics._hdrBuffer.dispatchAverage();
+			rendererHDR.dispatchHistogram(graphics);
+			rendererHDR.dispatchAverage(graphics);
 		}
 
 		// HDR full screen pass
@@ -411,7 +413,7 @@ int main()
 			}
 
 			PROFILE_GPU_SCOPED("HDR");
-			graphics.fullscreenPass(tre::RENDER_MODE::TONE_MAPPING_PASS);
+			rendererHDR.fullscreenPass(graphics);
 		}
 
 		// Wireframe draw

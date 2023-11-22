@@ -36,7 +36,7 @@ Graphics::Graphics(ID3D11Device* _device, ID3D11DeviceContext* _context, HWND wi
 	_textureBlurPixelShader.create(basePathWstr + L"shaders\\bin\\pixel_shader_texture_blur.bin", _device);
 	_hdrPixelShader.create(basePathWstr + L"shaders\\bin\\pixel_shader_hdr_rendering.bin", _device);
 	_instancedPixelShader.create(basePathWstr + L"shaders\\bin\\pixel_shader_instanced_gbuffer.bin", _device);
-	_debugPixelShader.create(basePathWstr + L"shaders\\bin\\pixel_shader_debug.bin", _device);
+	//_debugPixelShader.create(basePathWstr + L"shaders\\bin\\pixel_shader_debug.bin", _device);
 
 	_gBuffer.create(_device);
 	_ssao.create(_device, _context);
@@ -285,22 +285,22 @@ void Graphics::configureStates(RENDER_MODE renderObjType) {
 		_context->OMSetRenderTargets(1, _ssao.ssaoBlurredTexture2dRTV.GetAddressOf(), nullptr);
 		break;
 
-	case tre::TONE_MAPPING_PASS: 
-		_context->IASetInputLayout(nullptr);
-		_context->VSSetShader(_vertexShaderFullscreenQuad.pShader.Get(), NULL, 0u);
+	//case tre::TONE_MAPPING_PASS: 
+	//	_context->IASetInputLayout(nullptr);
+	//	_context->VSSetShader(_vertexShaderFullscreenQuad.pShader.Get(), NULL, 0u);
 
-		_context->RSSetViewports(1, &_viewport.defaultViewport);
-		_context->RSSetState(_rasterizer.pRasterizerStateFCCW.Get());
+	//	_context->RSSetViewports(1, &_viewport.defaultViewport);
+	//	_context->RSSetState(_rasterizer.pRasterizerStateFCCW.Get());
 
-		_context->OMSetRenderTargets(0, nullptr, nullptr);
-		_context->PSSetShader(_hdrPixelShader.pShader.Get(), NULL, 0u);
-		_context->PSSetShaderResources(0u, 1u, _hdrBuffer.pShaderResViewHdrTexture.GetAddressOf()); // hdr texture
-		_context->PSSetShaderResources(1u, 1u, _hdrBuffer.pLuminAvgSRV.GetAddressOf());
+	//	_context->OMSetRenderTargets(0, nullptr, nullptr);
+	//	_context->PSSetShader(_hdrPixelShader.pShader.Get(), NULL, 0u);
+	//	_context->PSSetShaderResources(0u, 1u, _hdrBuffer.pShaderResViewHdrTexture.GetAddressOf()); // hdr texture
+	//	_context->PSSetShaderResources(1u, 1u, _hdrBuffer.pLuminAvgSRV.GetAddressOf());
 
-		_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
-		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0); // by default: read only depth test
-		_context->OMSetRenderTargets(1, &currRenderTargetView, nullptr);
-		break;
+	//	_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
+	//	_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0); // by default: read only depth test
+	//	_context->OMSetRenderTargets(1, &currRenderTargetView, nullptr);
+	//	break;
 	}
 }
 
@@ -483,6 +483,8 @@ void Graphics::instancedDraw(const std::vector<std::pair<Object*, Mesh*>>& objQ,
 		constBufferBatchInfo->Release();
 	}
 }
+
+//////////// Deprecated ////////////
 
 //void Graphics::debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh& mesh, BoundVolumeEnum typeOfBound, RENDER_MODE renderObjType) {
 //	if (objQ.size() == 0) return;
