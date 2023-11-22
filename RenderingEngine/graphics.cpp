@@ -130,19 +130,19 @@ void Graphics::configureStates(RENDER_MODE renderObjType) {
 		_context->OMSetRenderTargets(1, &currRenderTargetView, _depthbuffer.pDepthStencilView.Get());
 		break;			
 
-	case tre::WIREFRAME_M:
-		_context->VSSetShader(_vertexShader.pShader.Get(), NULL, 0u);
-		_context->IASetInputLayout(_inputLayout.vertLayout.Get());
+	//case tre::WIREFRAME_M:
+	//	_context->VSSetShader(_vertexShader.pShader.Get(), NULL, 0u);
+	//	_context->IASetInputLayout(_inputLayout.vertLayout.Get());
 
-		_context->RSSetViewports(1, &_viewport.defaultViewport);
-		_context->RSSetState(_rasterizer.pRasterizerStateWireFrame.Get());
-		
-		_context->PSSetShader(_debugPixelShader.pShader.Get(), NULL, 0u);
+	//	_context->RSSetViewports(1, &_viewport.defaultViewport);
+	//	_context->RSSetState(_rasterizer.pRasterizerStateWireFrame.Get());
+	//	
+	//	_context->PSSetShader(_debugPixelShader.pShader.Get(), NULL, 0u);
 
-		_context->OMSetBlendState(_blendstate.transparency.Get(), NULL, 0xffffffff);
-		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithoutDepthT.Get(), 0);
-		_context->OMSetRenderTargets(1, &currRenderTargetView, nullptr);
-		break;								
+	//	_context->OMSetBlendState(_blendstate.transparency.Get(), NULL, 0xffffffff);
+	//	_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithoutDepthT.Get(), 0);
+	//	_context->OMSetRenderTargets(1, &currRenderTargetView, nullptr);
+	//	break;								
 
 	case tre::SHADOW_M: // use normal draw func
 		_context->IASetInputLayout(_inputLayout.vertLayout.Get());
