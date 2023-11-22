@@ -31,6 +31,7 @@ Mesh* RendererWireframe::selectWireframeMesh(BoundVolumeEnum typeOfBound) {
 }
 
 void RendererWireframe::setConstBufferCamViewProj(Graphics& graphic, const Camera& cam) {
+	if (!graphic.setting.showBoundingVolume) return;
 	ID3D11Buffer* constBufferCamViewProj = tre::Buffer::createConstBuffer(_device, (UINT)sizeof(tre::ViewProjectionStruct));
 	{
 		// Update const buffer and binding
