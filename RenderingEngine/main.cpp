@@ -32,7 +32,7 @@
 #include "scene.h"
 #include "modelloader.h"
 #include "imguihelper.h"
-#include "wireframeRenderer.h"
+#include "rendererWireframe.h"
 
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;
@@ -92,8 +92,7 @@ int main()
 
 	//Create Renderer
 	tre::Graphics graphics(deviceAndContext.device.Get(), deviceAndContext.context.Get(), window.getWindowHandle());
-	tre::WireframeRenderer wireframeRenderer(deviceAndContext.device.Get(), deviceAndContext.context.Get());
-
+	tre::RendererWireframe rendererWireframe(deviceAndContext.device.Get(), deviceAndContext.context.Get());
 
 	//Input Handler
 	tre::Input input;
@@ -423,9 +422,9 @@ int main()
 				deviceAndContext.context.Get()->VSSetConstantBuffers(0u, 1u, &constBufferCamViewProj);
 			}
 
-			wireframeRenderer.drawInstanced(&graphics, scene._wireframeObjQ);			// for point lights
-			wireframeRenderer.drawInstanced(&graphics, scene._culledOpaqueObjQ);		// for opaque objects
-			wireframeRenderer.drawInstanced(&graphics, scene._culledTransparentObjQ);	// for transparent objects
+			rendererWireframe.drawInstanced(&graphics, scene._wireframeObjQ);			// for point lights
+			rendererWireframe.drawInstanced(&graphics, scene._culledOpaqueObjQ);		// for opaque objects
+			rendererWireframe.drawInstanced(&graphics, scene._culledTransparentObjQ);	// for transparent objects
 		}
 
 		{
@@ -464,6 +463,7 @@ int main()
 
 		// clean up per frame resource
 		{
+			MICROPROFILE_SCOPE_CSTR("Clean Up");
 			constBufferGlobalInfo->Release();
 			constBufferCSMViewProj->Release();
 			constBufferCamViewProj->Release();

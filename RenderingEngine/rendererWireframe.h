@@ -3,7 +3,7 @@
 
 namespace tre {
 
-class WireframeRenderer {
+class RendererWireframe {
 public:
 	ID3D11Device* _device;
 	ID3D11DeviceContext* _context;
@@ -19,7 +19,7 @@ public:
 	VertexShader _vertexShaderInstanced;
 	PixelShader _debugPixelShaderInstanced;
 
-	WireframeRenderer(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
+	RendererWireframe(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 
 	Mesh* selectWireframeMesh(BoundVolumeEnum typeOfBound);
 
