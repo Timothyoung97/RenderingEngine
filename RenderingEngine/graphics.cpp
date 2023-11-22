@@ -130,20 +130,6 @@ void Graphics::configureStates(RENDER_MODE renderObjType) {
 		_context->OMSetRenderTargets(1, &currRenderTargetView, _depthbuffer.pDepthStencilView.Get());
 		break;			
 
-	//case tre::WIREFRAME_M:
-	//	_context->VSSetShader(_vertexShader.pShader.Get(), NULL, 0u);
-	//	_context->IASetInputLayout(_inputLayout.vertLayout.Get());
-
-	//	_context->RSSetViewports(1, &_viewport.defaultViewport);
-	//	_context->RSSetState(_rasterizer.pRasterizerStateWireFrame.Get());
-	//	
-	//	_context->PSSetShader(_debugPixelShader.pShader.Get(), NULL, 0u);
-
-	//	_context->OMSetBlendState(_blendstate.transparency.Get(), NULL, 0xffffffff);
-	//	_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithoutDepthT.Get(), 0);
-	//	_context->OMSetRenderTargets(1, &currRenderTargetView, nullptr);
-	//	break;								
-
 	case tre::SHADOW_M: // use normal draw func
 		_context->IASetInputLayout(_inputLayout.vertLayout.Get());
 		_context->VSSetShader(_shadowCastShader.pShader.Get(), NULL, 0u);
@@ -284,23 +270,6 @@ void Graphics::configureStates(RENDER_MODE renderObjType) {
 		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0); // by default: read only depth test
 		_context->OMSetRenderTargets(1, _ssao.ssaoBlurredTexture2dRTV.GetAddressOf(), nullptr);
 		break;
-
-	//case tre::TONE_MAPPING_PASS: 
-	//	_context->IASetInputLayout(nullptr);
-	//	_context->VSSetShader(_vertexShaderFullscreenQuad.pShader.Get(), NULL, 0u);
-
-	//	_context->RSSetViewports(1, &_viewport.defaultViewport);
-	//	_context->RSSetState(_rasterizer.pRasterizerStateFCCW.Get());
-
-	//	_context->OMSetRenderTargets(0, nullptr, nullptr);
-	//	_context->PSSetShader(_hdrPixelShader.pShader.Get(), NULL, 0u);
-	//	_context->PSSetShaderResources(0u, 1u, _hdrBuffer.pShaderResViewHdrTexture.GetAddressOf()); // hdr texture
-	//	_context->PSSetShaderResources(1u, 1u, _hdrBuffer.pLuminAvgSRV.GetAddressOf());
-
-	//	_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
-	//	_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0); // by default: read only depth test
-	//	_context->OMSetRenderTargets(1, &currRenderTargetView, nullptr);
-	//	break;
 	}
 }
 
@@ -484,50 +453,4 @@ void Graphics::instancedDraw(const std::vector<std::pair<Object*, Mesh*>>& objQ,
 	}
 }
 
-//////////// Deprecated ////////////
-
-//void Graphics::debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh& mesh, BoundVolumeEnum typeOfBound, RENDER_MODE renderObjType) {
-//	if (objQ.size() == 0) return;
-//
-//	const char* name = ToString(renderObjType);
-//	MICROPROFILE_SCOPE_CSTR(name);
-//	PROFILE_GPU_SCOPED("Debug Draw");
-//
-//	configureStates(renderObjType);
-//
-//	UINT vertexStride = sizeof(Vertex);
-//	UINT offset = 0;
-//	
-//	//Set vertex buffer
-//	_context->IASetVertexBuffers(0, 1, mesh.pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
-//
-//	//Set index buffer
-//	_context->IASetIndexBuffer(mesh.pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-//
-//	// Create empty const buffer and pre bind the constant buffer
-//	ID3D11Buffer* constBufferModelInfo = tre::ConstantBuffer::createConstBuffer(_device, sizeof(tre::ModelInfoStruct));
-//	_context->VSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
-//	_context->PSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
-//
-//	for (int i = 0; i < objQ.size(); i++) {
-//
-//		tre::Object* currObj = objQ[i].first;
-//
-//		for (int j = 0; j < currObj->pObjMeshes.size(); j++) {
-//
-//			// Submit each object's data to const buffer
-//			{
-//				tre::ModelInfoStruct modelInfoStruct = tre::ConstantBuffer::createModelInfoStruct(currObj->_boundingVolumeTransformation, currObj->_boundingVolumeColor[j], 0u, 0u);
-//				tre::ConstantBuffer::updateConstBufferData(_context, constBufferModelInfo, &modelInfoStruct, sizeof(tre::ModelInfoStruct));
-//			}
-//
-//			_context->DrawIndexed(mesh.indexSize, 0, 0);
-//		}
-//	}
-//
-//	// clean up
-//	{
-//		constBufferModelInfo->Release();
-//	}
-//}
 }
