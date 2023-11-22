@@ -1,5 +1,6 @@
 #include <d3d11.h>
 #include "graphics.h"
+#include "constbuffer.h"
 
 using namespace DirectX;
 
@@ -16,6 +17,12 @@ public:
 	PixelShader _hdrPixelShader;
 
 	RendererHDR(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
+
+	static HDRStruct createHDRStruct(float middleGrey);
+	static LuminanceStruct createLuminanceStruct(const XMFLOAT2& luminance, float timeCoeff);
+
+	void setConstBufferLuminSetting(Graphics& graphics);
+	void setConstBufferHDR(Graphics& graphics);
 
 	void dispatchHistogram(const Graphics& graphics);
 	void dispatchAverage(const Graphics& graphics);

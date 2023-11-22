@@ -119,6 +119,8 @@ public:
 	ID3D11UnorderedAccessView* nullUAV[1] = { nullptr };
 	ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
 
+	std::vector<ID3D11Buffer*> bufferQueue;
+
 	// Misc
 	GraphicsSetting setting;
 	GraphicsStats stats;
@@ -140,8 +142,5 @@ public:
 	void deferredLightingLocalDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, XMVECTOR cameraPos);
 	void instancedDraw(const std::vector<std::pair<Object*, Mesh*>>& objQ, RENDER_MODE renderMode);
 
-	//////////// Deprecated ////////////
-	
-	//void debugDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, Mesh& mesh, BoundVolumeEnum typeOfBound, RENDER_MODE renderMode);
 };
 }

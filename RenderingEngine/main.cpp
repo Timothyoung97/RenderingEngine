@@ -151,6 +151,16 @@ int main()
 	{
 		tre::Timer timer;
 
+		// Resource Clean Up
+		{
+			MICROPROFILE_SCOPE_CSTR("Clean Up");
+			while (!graphics.bufferQueue.empty()) {
+				ID3D11Buffer* currBuffer = graphics.bufferQueue.back();
+				graphics.bufferQueue.pop_back();
+				currBuffer->Release();
+			}
+		}
+
 		MICROPROFILE_SCOPE_CSTR("Frame");
 
 		// Update keyboard event
@@ -387,32 +397,17 @@ int main()
 		deviceAndContext.context.Get()->OMSetRenderTargets(0, nullptr, nullptr);
 
 		// Luminance Histogram
-		ID3D11Buffer* constBufferLuminanceSetting = tre::ConstantBuffer::createConstBuffer(deviceAndContext.device.Get(), (UINT)sizeof(tre::LuminanceStruct));
 		{
-			// Luminance Histogram Const Buffer update and binding
-			{
-				tre::LuminanceStruct luminStruct = tre::ConstantBuffer::createLuminanceStruct(XMFLOAT2(graphics.setting.luminaceMin, graphics.setting.luminanceMax), graphics.setting.timeCoeff);
-				tre::ConstantBuffer::updateConstBufferData(deviceAndContext.context.Get(), constBufferLuminanceSetting, &luminStruct, (UINT)sizeof(tre::LuminanceStruct));
-				deviceAndContext.context.Get()->CSSetConstantBuffers(0u, 1u, &constBufferLuminanceSetting);
-			}
-
 			PROFILE_GPU_SCOPED("CS: Luminance Histogram");
+			rendererHDR.setConstBufferLuminSetting(graphics);
 			rendererHDR.dispatchHistogram(graphics);
 			rendererHDR.dispatchAverage(graphics);
 		}
 
 		// HDR full screen pass
-		ID3D11Buffer* constBufferHDR = tre::ConstantBuffer::createConstBuffer(deviceAndContext.device.Get(), (UINT)sizeof(tre::HDRStruct));
 		{
-			// HDR const buffer update and binding
-			{
-				tre::HDRStruct hdrStruct = tre::ConstantBuffer::createHDRStruct(graphics.setting.middleGrey);
-				tre::ConstantBuffer::updateConstBufferData(deviceAndContext.context.Get(), constBufferHDR, &hdrStruct, (UINT)sizeof(tre::HDRStruct));
-
-				deviceAndContext.context.Get()->PSSetConstantBuffers(4u, 1u, &constBufferHDR);
-			}
-
 			PROFILE_GPU_SCOPED("HDR");
+			rendererHDR.setConstBufferHDR(graphics);
 			rendererHDR.fullscreenPass(graphics);
 		}
 
@@ -470,8 +465,6 @@ int main()
 			constBufferCSMViewProj->Release();
 			constBufferCamViewProj->Release();
 			constBufferSSAOKernal->Release();
-			constBufferHDR->Release();
-			constBufferLuminanceSetting->Release();
 		}
 
 		// record each frame

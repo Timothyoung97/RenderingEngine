@@ -13,6 +13,52 @@ RendererHDR::RendererHDR(ID3D11Device* pDevice, ID3D11DeviceContext* pContext) :
 	_hdrPixelShader.create(basePathWstr + L"shaders\\bin\\pixel_shader_hdr_rendering.bin", _device);
 }
 
+HDRStruct RendererHDR::createHDRStruct(float middleGrey) {
+	HDRStruct hdrStruct;
+	hdrStruct.middleGrey = middleGrey;
+
+	return hdrStruct;
+}
+
+LuminanceStruct RendererHDR::createLuminanceStruct(const XMFLOAT2& luminance, float timeCoeff) {
+	LuminanceStruct constBufferLumin;
+	constBufferLumin.luminance = luminance;
+	constBufferLumin.timeCoeff = timeCoeff;
+	constBufferLumin.numPixel = SCREEN_HEIGHT * SCREEN_WIDTH;
+	constBufferLumin.viewportDimension = XMINT2(SCREEN_WIDTH, SCREEN_HEIGHT);
+
+	return constBufferLumin;
+}
+
+void RendererHDR::setConstBufferLuminSetting(Graphics& graphics) {
+	// Luminance Setting
+	ID3D11Buffer* constBufferLuminanceSetting = tre::ConstantBuffer::createConstBuffer(_device, (UINT)sizeof(tre::LuminanceStruct));
+	{
+		// Luminance Histogram Const Buffer update and binding
+		{
+			tre::LuminanceStruct luminStruct = createLuminanceStruct(XMFLOAT2(graphics.setting.luminaceMin, graphics.setting.luminanceMax), graphics.setting.timeCoeff);
+			tre::ConstantBuffer::updateConstBufferData(_context, constBufferLuminanceSetting, &luminStruct, (UINT)sizeof(tre::LuminanceStruct));
+			_context->CSSetConstantBuffers(0u, 1u, &constBufferLuminanceSetting);
+		}
+	}
+	graphics.bufferQueue.push_back(constBufferLuminanceSetting);
+}
+
+void RendererHDR::setConstBufferHDR(Graphics& graphics) {
+	// HDR Middle Grey
+	ID3D11Buffer* constBufferHDR = tre::ConstantBuffer::createConstBuffer(_device, (UINT)sizeof(tre::HDRStruct));
+	{
+		// HDR const buffer update and binding
+		{
+			tre::HDRStruct hdrStruct = createHDRStruct(graphics.setting.middleGrey);
+			tre::ConstantBuffer::updateConstBufferData(_context, constBufferHDR, &hdrStruct, (UINT)sizeof(tre::HDRStruct));
+
+			_context->PSSetConstantBuffers(4u, 1u, &constBufferHDR);
+		}
+	}
+	graphics.bufferQueue.push_back(constBufferHDR);
+}
+
 void RendererHDR::dispatchHistogram(const Graphics& graphics){
 	_context->CSSetShader(_computeShaderLuminancehistogram.pShader.Get(), NULL, 0u);
 	_context->CSSetShaderResources(0u, 1u, graphics._hdrBuffer.pShaderResViewHdrTexture.GetAddressOf());
