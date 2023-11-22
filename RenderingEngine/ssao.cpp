@@ -21,49 +21,6 @@ void SSAO::create(ID3D11Device* device, ID3D11DeviceContext* context) {
 		ssaoKernalSamples.push_back(XMFLOAT4(tre::Utility::getRandomFloatRange(-75.f, 75.f), .0f, .0f, .0f));
 	}
 
-	// create ssaoNoise, to be used as texture2D
-	std::vector<XMFLOAT4> ssaoNoise;
-	for (int i = 0; i < 16; i++) {
-		XMFLOAT4 newNoise = XMFLOAT4(
-			tre::Utility::getRandomFloat(1.f),
-			tre::Utility::getRandomFloat(1.f),
-			.0f,
-			.0f
-		);
-		ssaoNoise.push_back(newNoise);
-	}
-
-	D3D11_TEXTURE2D_DESC ssaoNoiseTextureDesc;
-	ssaoNoiseTextureDesc.Width = 4;
-	ssaoNoiseTextureDesc.Height = 4;
-	ssaoNoiseTextureDesc.MipLevels = 1;
-	ssaoNoiseTextureDesc.ArraySize = 1;
-	ssaoNoiseTextureDesc.Format = DXGI_FORMAT_R8G8_UNORM; // DXGI_FORMAT_R8G8_UNORM
-	ssaoNoiseTextureDesc.SampleDesc.Count = 1;
-	ssaoNoiseTextureDesc.SampleDesc.Quality = 0;
-	ssaoNoiseTextureDesc.Usage = D3D11_USAGE_DEFAULT;
-	ssaoNoiseTextureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-	ssaoNoiseTextureDesc.CPUAccessFlags = 0;
-	ssaoNoiseTextureDesc.MiscFlags = 0;
-
-	D3D11_SUBRESOURCE_DATA ssaoNoiseTextureData = {};
-	ssaoNoiseTextureData.pSysMem = ssaoNoise.data();
-	ssaoNoiseTextureData.SysMemPitch = static_cast<UINT>(4 * sizeof(XMFLOAT4));
-	ssaoNoiseTextureData.SysMemSlicePitch = 0u;
-
-	CHECK_DX_ERROR(_device->CreateTexture2D(
-		&ssaoNoiseTextureDesc, &ssaoNoiseTextureData, ssaoNoiseTexture2d.GetAddressOf()
-	));
-
-	D3D11_SHADER_RESOURCE_VIEW_DESC ssaoNoiseSRVDesc;
-	ssaoNoiseSRVDesc.Format = DXGI_FORMAT_R8G8_UNORM;
-	ssaoNoiseSRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-	ssaoNoiseSRVDesc.Texture2D = D3D11_TEX2D_SRV(0, -1);
-
-	CHECK_DX_ERROR(_device->CreateShaderResourceView(
-		ssaoNoiseTexture2d.Get(), &ssaoNoiseSRVDesc, ssaoNoiseTexture2dSRV.GetAddressOf()
-	));
-
 	// create ssaoResultTexture2d, to be used as render result
 	D3D11_TEXTURE2D_DESC ssaoResultTexture2dDesc;
 	ssaoResultTexture2dDesc.Width = SCREEN_WIDTH;

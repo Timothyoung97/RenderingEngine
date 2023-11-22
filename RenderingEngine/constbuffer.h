@@ -45,12 +45,6 @@ struct PointLightInfoStruct {
 	XMFLOAT3 pad;
 };
 
-struct SSAOKernalStruct {
-	XMFLOAT4 kernalSamples[64];
-	float sampleRadius;
-	XMFLOAT3 pad;
-};
-
 struct BatchInfoStruct {
 	UINT batchOffset;
 	XMFLOAT3 pad;
@@ -75,7 +69,6 @@ public:
 	static ViewProjectionStruct createViewProjectionStruct(const XMMATRIX& viewProjection);
 	static ModelInfoStruct createModelInfoStruct(const XMMATRIX& transformationLocal, const XMFLOAT4& color, UINT isWithTexture, UINT hasNormalMap);
 	static PointLightInfoStruct createPointLightInfoStruct(int currPtLightIdx);
-	static SSAOKernalStruct createSSAOKernalStruct(const std::vector<XMFLOAT4>& kernalSamples, float sampleRadius);
 	static BatchInfoStruct createBatchInfoStruct(int batchOffset);
 };
 

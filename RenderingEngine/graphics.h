@@ -99,10 +99,6 @@ public:
 	PixelShader _deferredShader;
 	PixelShader _deferredShaderLightingEnv;
 	PixelShader _deferredShaderLightingLocal;
-	PixelShader _ssaoPixelShader;
-	PixelShader _textureBlurPixelShader;
-	PixelShader _hdrPixelShader;
-	//PixelShader _debugPixelShader;
 	PixelShader _instancedPixelShader;
 
 	Sampler _sampler;

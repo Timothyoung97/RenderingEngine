@@ -96,14 +96,6 @@ PointLightInfoStruct CommonStructUtility::createPointLightInfoStruct(int currPtL
 	ptLightInfoStruct.currPointLightIdx = (UINT)currPtLightIdx;
 
 	return ptLightInfoStruct;
-};
-
-SSAOKernalStruct CommonStructUtility::createSSAOKernalStruct(const std::vector<XMFLOAT4>& kernalSamples, float sampleRadius) {
-	SSAOKernalStruct ssaoKernalStruct;
-	std::copy(kernalSamples.begin(), kernalSamples.end(), ssaoKernalStruct.kernalSamples);
-	ssaoKernalStruct.sampleRadius = sampleRadius;
-
-	return ssaoKernalStruct;
 }
 
 BatchInfoStruct CommonStructUtility::createBatchInfoStruct(int batchOffset) {

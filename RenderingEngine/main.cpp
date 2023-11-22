@@ -34,6 +34,7 @@
 #include "imguihelper.h"
 #include "rendererWireframe.h"
 #include "rendererHDR.h"
+#include "rendererSSAO.h"
 
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;
@@ -95,6 +96,7 @@ int main()
 	tre::Graphics graphics(deviceAndContext.device.Get(), deviceAndContext.context.Get(), window.getWindowHandle());
 	tre::RendererWireframe rendererWireframe(deviceAndContext.device.Get(), deviceAndContext.context.Get());
 	tre::RendererHDR rendererHDR(deviceAndContext.device.Get(), deviceAndContext.context.Get());
+	tre::RendererSSAO rendererSSAO(deviceAndContext.device.Get(), deviceAndContext.context.Get());
 
 	//Input Handler
 	tre::Input input;
@@ -358,20 +360,11 @@ int main()
 		}
 
 		// ssao pass
-		ID3D11Buffer* constBufferSSAOKernal = tre::Buffer::createConstBuffer(deviceAndContext.device.Get(), (UINT)sizeof(tre::SSAOKernalStruct));;
-		if (graphics.setting.ssaoSwitch) {
-
-			// SSAO const buffer creation and binding
-			{
-				tre::SSAOKernalStruct ssaoKernalStruct = tre::CommonStructUtility::createSSAOKernalStruct(graphics._ssao.ssaoKernalSamples, graphics.setting.ssaoSampleRadius);
-				tre::Buffer::updateConstBufferData(deviceAndContext.context.Get(), constBufferSSAOKernal, &ssaoKernalStruct, (UINT)sizeof(tre::SSAOKernalStruct));
-
-				deviceAndContext.context.Get()->PSSetConstantBuffers(3u, 1u, &constBufferSSAOKernal);
-			}
-
+		{
 			PROFILE_GPU_SCOPED("SSAO Pass");
-			graphics.fullscreenPass(tre::RENDER_MODE::SSAO_FULLSCREEN_PASS);
-			graphics.fullscreenPass(tre::RENDER_MODE::SSAO_BLURRING_PASS);
+			rendererSSAO.setConstBufferSSAOSetting(graphics);
+			rendererSSAO.fullscreenPass(graphics);
+			rendererSSAO.fullscreenBlurPass(graphics);
 		}
 
 		// 2nd pass deferred lighting
@@ -395,19 +388,22 @@ int main()
 
 		deviceAndContext.context.Get()->OMSetRenderTargets(0, nullptr, nullptr);
 
-		// Luminance Histogram
+		// HDR Rendering
 		{
-			PROFILE_GPU_SCOPED("CS: Luminance Histogram");
-			rendererHDR.setConstBufferLuminSetting(graphics);
-			rendererHDR.dispatchHistogram(graphics);
-			rendererHDR.dispatchAverage(graphics);
-		}
+			// Luminance Histogram
+			{
+				PROFILE_GPU_SCOPED("CS: Luminance Histogram");
+				rendererHDR.setConstBufferLuminSetting(graphics);
+				rendererHDR.dispatchHistogram(graphics);
+				rendererHDR.dispatchAverage(graphics);
+			}
 
-		// HDR full screen pass
-		{
-			PROFILE_GPU_SCOPED("HDR");
-			rendererHDR.setConstBufferHDR(graphics);
-			rendererHDR.fullscreenPass(graphics);
+			// Tone Mapping
+			{
+				PROFILE_GPU_SCOPED("HDR");
+				rendererHDR.setConstBufferHDR(graphics);
+				rendererHDR.fullscreenPass(graphics);
+			}
 		}
 
 		// Wireframe draw
@@ -419,6 +415,7 @@ int main()
 			rendererWireframe.drawInstanced(&graphics, scene._culledTransparentObjQ);	// for transparent objects
 		}
 
+		// Imgui Tool
 		{
 			MICROPROFILE_SCOPE_CSTR("IMGUI");
 			PROFILE_GPU_SCOPED("IMGUI");
@@ -459,7 +456,6 @@ int main()
 			constBufferGlobalInfo->Release();
 			constBufferCSMViewProj->Release();
 			constBufferCamViewProj->Release();
-			constBufferSSAOKernal->Release();
 		}
 
 		// record each frame

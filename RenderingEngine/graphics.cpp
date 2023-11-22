@@ -32,11 +32,7 @@ Graphics::Graphics(ID3D11Device* _device, ID3D11DeviceContext* _context, HWND wi
 	_deferredShader.create(basePathWstr + L"shaders\\bin\\pixel_shader_deferred.bin", _device);
 	_deferredShaderLightingEnv.create(basePathWstr + L"shaders\\bin\\pixel_shader_deferred_lighting_env.bin", _device);
 	_deferredShaderLightingLocal.create(basePathWstr + L"shaders\\bin\\pixel_shader_deferred_lighting_local.bin", _device);
-	_ssaoPixelShader.create(basePathWstr + L"shaders\\bin\\pixel_shader_ssao_rendering.bin", _device);
-	_textureBlurPixelShader.create(basePathWstr + L"shaders\\bin\\pixel_shader_texture_blur.bin", _device);
-	_hdrPixelShader.create(basePathWstr + L"shaders\\bin\\pixel_shader_hdr_rendering.bin", _device);
 	_instancedPixelShader.create(basePathWstr + L"shaders\\bin\\pixel_shader_instanced_gbuffer.bin", _device);
-	//_debugPixelShader.create(basePathWstr + L"shaders\\bin\\pixel_shader_debug.bin", _device);
 
 	_gBuffer.create(_device);
 	_ssao.create(_device, _context);
@@ -237,39 +233,6 @@ void Graphics::configureStates(RENDER_MODE renderObjType) {
 		_context->OMSetRenderTargets(1, _hdrBuffer.pRenderTargetViewHdrTexture.GetAddressOf(), _depthbuffer.pDepthStencilView.Get()); // draw to HDR floating point buffer
 		break;
 
-	case tre::SSAO_FULLSCREEN_PASS:
-		_context->IASetInputLayout(nullptr);
-		_context->VSSetShader(_vertexShaderFullscreenQuad.pShader.Get(), NULL, 0u);
-
-		_context->RSSetViewports(1, &_viewport.defaultViewport);
-		_context->RSSetState(_rasterizer.pRasterizerStateFCCW.Get());
-
-		_context->OMSetRenderTargets(0, nullptr, nullptr);
-		_context->PSSetShader(_ssaoPixelShader.pShader.Get(), NULL, 0u);
-		_context->PSSetShaderResources(1, 1, _gBuffer.pShaderResViewDeferredNormal.GetAddressOf()); // normal
-		_context->PSSetShaderResources(4, 1, _depthbuffer.pDepthStencilReadOnlyShaderRescView.GetAddressOf()); //depth
-		_context->PSSetShaderResources(5, 1, _ssao.ssaoNoiseTexture2dSRV.GetAddressOf()); // noise texture
-
-		_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
-		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0); // by default: read only depth test
-		_context->OMSetRenderTargets(1, _ssao.ssaoResultTexture2dRTV.GetAddressOf(), nullptr);
-		break;
-
-	case tre::SSAO_BLURRING_PASS:
-		_context->IASetInputLayout(nullptr);
-		_context->VSSetShader(_vertexShaderFullscreenQuad.pShader.Get(), NULL, 0u);
-
-		_context->RSSetViewports(1, &_viewport.defaultViewport);
-		_context->RSSetState(_rasterizer.pRasterizerStateFCCW.Get());
-
-		_context->OMSetRenderTargets(0, nullptr, nullptr);
-		_context->PSSetShader(_textureBlurPixelShader.pShader.Get(), NULL, 0u);
-		_context->PSSetShaderResources(6, 1, _ssao.ssaoResultTexture2dSRV.GetAddressOf()); // normal
-
-		_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
-		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0); // by default: read only depth test
-		_context->OMSetRenderTargets(1, _ssao.ssaoBlurredTexture2dRTV.GetAddressOf(), nullptr);
-		break;
 	}
 }
 

@@ -6,7 +6,6 @@ cbuffer constBufferSSAO : register(b3) {
     float3 ssaoPad;
 };
 
-Texture2D noiseTexture : register(t5);
 SamplerState wrapPointSampler : register(s2);
 SamplerState clampPointSampler : register(s3);
 

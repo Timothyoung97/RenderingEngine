@@ -17,9 +17,6 @@ public:
 
 	std::vector<XMFLOAT4> ssaoKernalSamples;
 
-	ComPtr<ID3D11Texture2D> ssaoNoiseTexture2d;
-	ComPtr<ID3D11ShaderResourceView> ssaoNoiseTexture2dSRV;
-
 	ComPtr<ID3D11Texture2D> ssaoResultTexture2d;
 	ComPtr<ID3D11ShaderResourceView> ssaoResultTexture2dSRV;
 	ComPtr<ID3D11RenderTargetView> ssaoResultTexture2dRTV;
