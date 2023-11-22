@@ -326,6 +326,7 @@ int main()
 
 			scene.lightResc.updatePtLightCPU();
 			scene._pointLightObjQ.clear();
+			scene._pointLightObjQ.reserve(scene.lightResc.readOnlyPointLightQ.size());
 			scene._wireframeObjQ.clear();
 
 			for (int i = 0; i < scene.lightResc.readOnlyPointLightQ.size(); i++) {
@@ -414,12 +415,6 @@ int main()
 			graphics.fullscreenPass(tre::RENDER_MODE::TONE_MAPPING_PASS);
 		}
 
-		// Draw debug // To be refactored
-		if (graphics.setting.showBoundingVolume) {
-			PROFILE_GPU_SCOPED("Bounding Volume Wireframe");
-			graphics.draw(scene._wireframeObjQ, tre::RENDER_MODE::WIREFRAME_M);
-		}
-
 		// Wireframe draw
 		{
 			PROFILE_GPU_SCOPED("Bounding Volume Wireframe");
@@ -427,8 +422,10 @@ int main()
 			{
 				deviceAndContext.context.Get()->VSSetConstantBuffers(0u, 1u, &constBufferCamViewProj);
 			}
-			wireframeRenderer.drawInstanced(&graphics, scene._culledOpaqueObjQ);
-			wireframeRenderer.drawInstanced(&graphics, scene._culledTransparentObjQ);
+
+			wireframeRenderer.drawInstanced(&graphics, scene._wireframeObjQ);			// for point lights
+			wireframeRenderer.drawInstanced(&graphics, scene._culledOpaqueObjQ);		// for opaque objects
+			wireframeRenderer.drawInstanced(&graphics, scene._culledTransparentObjQ);	// for transparent objects
 		}
 
 		{
