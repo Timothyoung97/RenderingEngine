@@ -5,6 +5,7 @@
 #include "microprofile.h"
 #include "colors.h"
 #include "utility.h"
+#include "window.h"
 
 namespace tre {
 
@@ -76,6 +77,33 @@ void Scene::createFloor() {
 	_pObjQ.push_back(&_floor);
 }
 
+void Scene::createViewProjections(const Graphics& graphics, const Camera& cam) {
+	MICROPROFILE_SCOPE_CSTR("Update View Projections");
+
+	viewProjs.clear();
+	viewProjs.push_back(cam.camViewProjection); // first push in camera's view projections
+
+	for (int i = 0; i < 4; i++) { // for 4 quads
+
+		MICROPROFILE_SCOPE_CSTR("Build CSM View Projection Matrix");
+
+		// projection matrix of camera with specific near and far plane
+		XMMATRIX projMatrix = XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0f), static_cast<float>(tre::SCREEN_WIDTH) / tre::SCREEN_HEIGHT, graphics.setting.csmPlaneIntervals[i], graphics.setting.csmPlaneIntervals[i + 1]);
+
+		std::vector<XMVECTOR> corners = tre::Maths::getFrustumCornersWorldSpace(XMMatrixMultiply(cam.camView, projMatrix));
+
+		XMVECTOR center = tre::Maths::getAverageVector(corners);
+
+		XMMATRIX lightView = XMMatrixLookAtLH(center + XMVECTOR{ dirlight.direction.x, dirlight.direction.y, dirlight.direction.z }, center, XMVECTOR{ .0f, 1.f, .0f });
+
+		XMMATRIX lightOrthoProj = tre::Maths::createOrthoMatrixFromFrustumCorners(10.f, corners, lightView);
+
+		XMMATRIX lightViewProj = XMMatrixMultiply(lightView, lightOrthoProj);
+
+		viewProjs.push_back(lightViewProj);
+	}
+}
+
 void Scene::updateDirLight() {
 	MICROPROFILE_SCOPE_CSTR("Update Directional Light Property");
 
@@ -112,22 +140,30 @@ void Scene::updateBoundingVolume(BoundVolumeEnum typeOfBound) {
 }
 
 void Scene::updateCulledOpaqueQ() {
-	std::sort(_culledOpaqueObjQ.begin(), _culledOpaqueObjQ.end(),
-		[](const std::pair<tre::Object*, tre::Mesh*> obj1, const std::pair<tre::Object*, tre::Mesh*> obj2) {
-			if (obj1.second < obj2.second) {
-				return true;
+	MICROPROFILE_SCOPE_CSTR("Grouping Opaque Objects");
+
+	for (int i = 0; i < _culledOpaqueObjQ.size(); i++) {
+
+		// Grouping first based on mesh, then based on textures
+		std::sort(_culledOpaqueObjQ[i].begin(), _culledOpaqueObjQ[i].end(),
+			[](const std::pair<tre::Object*, tre::Mesh*> obj1, const std::pair<tre::Object*, tre::Mesh*> obj2) {
+				if (obj1.second < obj2.second) {
+					return true;
+				}
+				else if (obj1.second > obj2.second) {
+					return false;
+				}
+				else {
+					return obj1.second->pMaterial->objTexture < obj2.second->pMaterial->objTexture;
+				}
 			}
-			else if (obj1.second > obj2.second) {
-				return false;
-			}
-			else {
-				return obj1.second->pMaterial->objTexture < obj2.second->pMaterial->objTexture;
-			}
-		}
-	);
+		);
+	}
 }
 
-void Scene::updateCulledTransparentQ(Camera& cam) {
+void Scene::updateCulledTransparentQ(const Camera& cam) {
+	MICROPROFILE_SCOPE_CSTR("Sorting Transparent Object Based on Depth");
+
 	if (_toRecalDistFromCam) {
 		for (int i = 0; i < _culledTransparentObjQ.size(); i++) {
 			Object* pObj = _culledTransparentObjQ[i].first;
@@ -146,50 +182,53 @@ void Scene::updateCulledTransparentQ(Camera& cam) {
 	}
 }
 
-void Scene::cullObject(Frustum& frustum, BoundVolumeEnum typeOfBound) {
+void Scene::cullObject(std::vector<Frustum>& frustums, BoundVolumeEnum typeOfBound) {
 
-	MICROPROFILE_SCOPE_CSTR("cullObject");
+	MICROPROFILE_SCOPE_CSTR("Cull Object Based on Views");
 
 	// clear render queue
 	_culledOpaqueObjQ.clear();
 	_culledTransparentObjQ.clear();
 
-	for (int i = 0; i < _pObjQ.size(); i++) {
-		Object* pObj = _pObjQ[i];
-		for (int j = 0; j < pObj->pObjMeshes.size(); j++) {
-			Mesh* pMesh = pObj->pObjMeshes[j];
+	for (int viewIdx = 0; viewIdx < frustums.size(); viewIdx++) {
+		MICROPROFILE_SCOPE_CSTR("Cull View");
+		for (int i = 0; i < _pObjQ.size(); i++) {
+			Object* pObj = _pObjQ[i];
+			for (int j = 0; j < pObj->pObjMeshes.size(); j++) {
+				Mesh* pMesh = pObj->pObjMeshes[j];
 
-			bool isTransparent = pMesh->pMaterial->isTransparent();
-			bool addToQ = pObj->isMeshWithinView(j, frustum, typeOfBound);
+				bool isTransparent = pMesh->pMaterial->isTransparent();
+				bool addToQ = pObj->isMeshWithinView(j, frustums[viewIdx], typeOfBound, viewIdx == 0);
 
-			if (addToQ) {
-				// add to queue function
-				if (isTransparent) {
-					_toSortTransparentQ = true;
-
-					_culledTransparentObjQ.push_back(std::make_pair(pObj, pMesh));
-
-				} else {
-					_culledOpaqueObjQ.push_back(std::make_pair(pObj, pMesh));
+				if (addToQ) {
+					if (isTransparent && viewIdx == 0) {
+						_toSortTransparentQ = true;
+						_culledTransparentObjQ.push_back(std::make_pair(pObj, pMesh));
+						break;
+					}
+					_culledOpaqueObjQ[viewIdx].push_back(std::make_pair(pObj, pMesh));
 				}
 			}
 		}
+
 	}
 }
 
-void Scene::update(const Graphics& graphics) {
+void Scene::update(const Graphics& graphics, const Camera& cam) {
+	MICROPROFILE_SCOPE_CSTR("Scene Update");
+
+	createViewProjections(graphics, cam);
 	updateBoundingVolume(graphics.setting.typeOfBound);
 	updateDirLight();
-}
 
-void Scene::cullFromCamera(Camera& cam, const Graphics& graphics) {
-	MICROPROFILE_SCOPE_CSTR("Scene Obj Culling");
-	cullObject(cam.cameraFrustum, graphics.setting.typeOfBound);
-	{
-		MICROPROFILE_SCOPE_CSTR("Grouping instances (Opaque + Transparent)");
-		updateCulledOpaqueQ();
-		updateCulledTransparentQ(cam);
+	std::vector<Frustum> frustums;
+	for (const XMMATRIX& viewProj : viewProjs) {
+		frustums.push_back(tre::Maths::createFrustumFromViewProjectionMatrix(viewProj));
 	}
+	
+	cullObject(frustums, graphics.setting.typeOfBound);
+	updateCulledOpaqueQ();
+	updateCulledTransparentQ(cam);
 }
 
 void Scene::updatePtLight() {

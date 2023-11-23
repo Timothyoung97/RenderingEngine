@@ -14,18 +14,16 @@ XMMATRIX Object::makeLocalToWorldMatrix() {
 	return localTransformation;
 }
 
-bool Object::isMeshWithinView(int meshIdx, Frustum& frustum, BoundVolumeEnum typeOfBound) {
-	bool isWithinView = false;
+bool Object::isMeshWithinView(int meshIdx, Frustum& frustum, BoundVolumeEnum typeOfBound, bool toChangeColor) {
+	int isWithinView = 0;
 
 	switch (typeOfBound) {
 	case RitterBoundingSphere:
 		if (ritterBs[meshIdx].isInFrustum(frustum)) {
-			_boundingVolumeColor[meshIdx] = tre::colorF(Colors::LightGreen);
-			isWithinView = true;
+			isWithinView = 2;
 		}
 		else if (ritterBs[meshIdx].isOverlapFrustum(frustum)) {
-			_boundingVolumeColor[meshIdx] = tre::colorF(Colors::Blue);
-			isWithinView = true;
+			isWithinView = 1;
 		}
 		else {
 			_boundingVolumeColor[meshIdx] = tre::colorF(Colors::Red);
@@ -36,15 +34,12 @@ bool Object::isMeshWithinView(int meshIdx, Frustum& frustum, BoundVolumeEnum typ
 
 	case NaiveBoundingSphere:
 		if (naiveBs[meshIdx].isInFrustum(frustum)) {
-			_boundingVolumeColor[meshIdx] = tre::colorF(Colors::LightGreen);
-			isWithinView = true;
+			isWithinView = 2;
 		}
 		else if (naiveBs[meshIdx].isOverlapFrustum(frustum)) {
-			_boundingVolumeColor[meshIdx] = tre::colorF(Colors::Blue);
-			isWithinView = true;
+			isWithinView = 1;
 		}
 		else {
-			_boundingVolumeColor[meshIdx] = tre::colorF(Colors::Red);
 			//addToQ = 1; //debug
 		}
 
@@ -52,19 +47,31 @@ bool Object::isMeshWithinView(int meshIdx, Frustum& frustum, BoundVolumeEnum typ
 
 	case AABBBoundingBox:
 		if (aabb[meshIdx].isInFrustum(frustum)) {
-			_boundingVolumeColor[meshIdx] = tre::colorF(Colors::LightGreen);
-			isWithinView = true;
+			isWithinView = 2;
 		}
 		else if (aabb[meshIdx].isOverlapFrustum(frustum)) {
-			_boundingVolumeColor[meshIdx] = tre::colorF(Colors::Blue);
-			isWithinView = true;
+			isWithinView = 1;
 		}
 		else {
-			_boundingVolumeColor[meshIdx] = tre::colorF(Colors::Red);
 			//addToQ = 1; //debug
 		}
 
 		break;
+	}
+
+	if (toChangeColor) {
+		switch (isWithinView)
+		{
+		case 2:
+			_boundingVolumeColor[meshIdx] = tre::colorF(Colors::LightGreen);
+			break;
+		case 1:
+			_boundingVolumeColor[meshIdx] = tre::colorF(Colors::Blue);
+			break;
+		default:
+			_boundingVolumeColor[meshIdx] = tre::colorF(Colors::Red);
+			break;
+		}
 	}
 
 	return isWithinView;

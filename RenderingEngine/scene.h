@@ -24,9 +24,11 @@ public:
 	float dirlightYaw = .0f;
 	float dirlightPitch = 45.f;
 	float dirLightDiffuse = .5f;
-	std::vector<XMMATRIX> csmViewProjs;
+
+	// Views
+	std::vector<XMMATRIX> viewProjs;
 	
-	//Pt Light
+	// Pt Light
 	tre::LightResource lightResc;
 
 	// Resources
@@ -43,7 +45,7 @@ public:
 	std::vector<tre::Object*> _pObjQ;
 
 	// Render Queue
-	std::vector<std::pair<tre::Object*, tre::Mesh*>> _culledOpaqueObjQ;
+	std::unordered_map<int, std::vector<std::pair<tre::Object*, tre::Mesh*>>> _culledOpaqueObjQ;
 	std::vector<std::pair<tre::Object*, tre::Mesh*>> _culledTransparentObjQ;
 	std::vector<std::pair<tre::Object*, tre::Mesh*>> _wireframeObjQ;
 
@@ -53,20 +55,19 @@ public:
 	Scene(ID3D11Device* device, ID3D11DeviceContext* context);
 
 	tre::Object _floor;
+	tre::Object* addRandomObj();
 
 	void createFloor();
+	void createViewProjections(const Graphics& graphics, const Camera& cam);
 
+	void cullObject(std::vector<Frustum>& frustum, BoundVolumeEnum typeOfBound);
 	void updateDirLight();
 	void updatePtLight();
-
 	void updateBoundingVolume(BoundVolumeEnum typeOfBound);
-	void cullObject(Frustum& frustum, BoundVolumeEnum typeOfBound);
-	void updateCulledTransparentQ(Camera& cam);
+	void updateCulledTransparentQ(const Camera& cam);
 	void updateCulledOpaqueQ();
-	void update(const Graphics& graphics);
+
+	void update(const Graphics& graphics, const Camera& cam);
 	
-	void cullFromCamera(Camera& cam, const Graphics& graphics);
-	
-	tre::Object* addRandomObj();
 };
 }

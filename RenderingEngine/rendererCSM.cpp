@@ -10,32 +10,6 @@ RendererCSM::RendererCSM(ID3D11Device* pDevice, ID3D11DeviceContext* pContext) :
 	_vertexShaderInstanced.create(basePathWstr + L"shaders\\bin\\vertex_shader_instancedRendering.bin", _device);
 }
 
-void RendererCSM::generateCSMViewProj(const Graphics& graphics, Scene& scene, const Camera& cam) {
-	std::vector<XMMATRIX> csmViewProjs;
-
-	for (int i = 0; i < 4; i++) { // for 4 quads
-
-		MICROPROFILE_SCOPE_CSTR("Build CSM View Projection Matrix");
-
-		// projection matrix of camera with specific near and far plane
-		XMMATRIX projMatrix = XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0f), static_cast<float>(tre::SCREEN_WIDTH) / tre::SCREEN_HEIGHT, graphics.setting.csmPlaneIntervals[i], graphics.setting.csmPlaneIntervals[i + 1]);
-
-		std::vector<XMVECTOR> corners = tre::Maths::getFrustumCornersWorldSpace(XMMatrixMultiply(cam.camView, projMatrix));
-
-		XMVECTOR center = tre::Maths::getAverageVector(corners);
-
-		XMMATRIX lightView = XMMatrixLookAtLH(center + XMVECTOR{ scene.dirlight.direction.x, scene.dirlight.direction.y, scene.dirlight.direction.z }, center, XMVECTOR{ .0f, 1.f, .0f });
-
-		XMMATRIX lightOrthoProj = tre::Maths::createOrthoMatrixFromFrustumCorners(10.f, corners, lightView);
-
-		XMMATRIX lightViewProj = XMMatrixMultiply(lightView, lightOrthoProj);
-
-		csmViewProjs.push_back(lightViewProj);
-	}
-
-	scene.csmViewProjs = csmViewProjs;
-}
-
 void RendererCSM::setCSMViewport(Graphics& graphics, int idx) {
 	graphics._viewport.shadowViewport.TopLeftX = graphics._rasterizer.rectArr[idx].left;
 	graphics._viewport.shadowViewport.TopLeftY = graphics._rasterizer.rectArr[idx].top;
@@ -117,43 +91,34 @@ void RendererCSM::drawInstanced(Graphics& graphics, const std::vector<std::pair<
 
 void RendererCSM::render(Graphics& graphics, Scene& scene, const Camera& cam) {
 
-	generateCSMViewProj(graphics, scene, cam);
-
 	ID3D11Buffer* constBufferCSMViewProj = tre::Buffer::createConstBuffer(_device, (UINT)sizeof(tre::ViewProjectionStruct));
 	{
 		PROFILE_GPU_SCOPED("CSM Quad Draw");
 
-		for (int i = 0; i < 4; i++) {
+		// viewIdx: 0 -> reserved for camera
+		for (int viewIdx = 1; viewIdx < 5; viewIdx++) {
 
 			{	// Culling based on pointlight's view projection matrix
 				MICROPROFILE_SCOPE_CSTR("CSM Quad Obj Culling");
 
-				setCSMViewport(graphics, i);
+				setCSMViewport(graphics, viewIdx - 1);
 
 				// Const Buffer 
 				{
 					// Create struct info and submit data to const buffer
-					tre::ViewProjectionStruct csmViewProjStruct = tre::CommonStructUtility::createViewProjectionStruct(scene.csmViewProjs[i]);
+					tre::ViewProjectionStruct csmViewProjStruct = tre::CommonStructUtility::createViewProjectionStruct(scene.viewProjs[viewIdx]);
 					tre::Buffer::updateConstBufferData(_context, constBufferCSMViewProj, &csmViewProjStruct, (UINT)sizeof(tre::ViewProjectionStruct));
 
 					// Binding 
 					_context->VSSetConstantBuffers(0u, 1u, &constBufferCSMViewProj);
 				}
 
-				tre::Frustum lightFrustum = tre::Maths::createFrustumFromViewProjectionMatrix(scene.csmViewProjs[i]);
-
-				scene.cullObject(lightFrustum, graphics.setting.typeOfBound);
-				{
-					MICROPROFILE_SCOPE_CSTR("Grouping instances (Opaque only)");
-					scene.updateCulledOpaqueQ();
-				}
-
-				graphics.stats.shadowCascadeOpaqueObjs[i] = scene._culledOpaqueObjQ.size();
+				graphics.stats.shadowCascadeOpaqueObjs[viewIdx] = scene._culledOpaqueObjQ.size();
 			}
 
 			// draw shadow only for opaque objects
 			//renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_MODE::SHADOW_M); // non instanced
-			drawInstanced(graphics, scene._culledOpaqueObjQ); // instanced
+			drawInstanced(graphics, scene._culledOpaqueObjQ[viewIdx]); // instanced
 		}
 	}
 

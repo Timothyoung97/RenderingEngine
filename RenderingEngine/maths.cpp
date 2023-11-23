@@ -171,7 +171,7 @@ XMFLOAT3 Maths::convertRotationMatrixToEuler(XMMATRIX rotationMatrix) {
 	return XMFLOAT3(cx, .0f, atan2f(-nQF._21, nQF._11));
 }
 
-Frustum Maths::createFrustumFromViewProjectionMatrix(XMMATRIX viewProjection) {
+Frustum Maths::createFrustumFromViewProjectionMatrix(const XMMATRIX& viewProjection) {
 	XMFLOAT4X4 viewProjectionF;
 	XMStoreFloat4x4(&viewProjectionF, viewProjection);
 

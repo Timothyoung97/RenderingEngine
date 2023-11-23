@@ -58,7 +58,7 @@ GlobalInfoStruct CommonStructUtility::createGlobalInfoStruct(
 	GlobalInfoStruct.camPos = camPosF;
 	GlobalInfoStruct.viewProjection = viewProjection;
 	GlobalInfoStruct.invViewProjection = XMMatrixInverse(nullptr, viewProjection);
-	std::copy(lightViewProjection.begin(), lightViewProjection.end(), GlobalInfoStruct.lightViewProjection);
+	std::copy(lightViewProjection.begin() + 1, lightViewProjection.end(), GlobalInfoStruct.lightViewProjection);
 	GlobalInfoStruct.planeIntervals = planeIntervals;
 	GlobalInfoStruct.light = dirLight;
 	GlobalInfoStruct.numOfPointLight = (UINT)numOfPointLight;

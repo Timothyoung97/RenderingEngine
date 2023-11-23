@@ -161,11 +161,10 @@ int main()
 		graphics.clean();											// Clear buffer + clean up
 
 		cam.updateCamera();											// Update Camera
-		scene.update(graphics);										// Update Scene
+
+		scene.update(graphics, cam);								// Update Scene
 
 		rendererCSM.render(graphics, scene, cam);					// CSM Shadow Pass
-
-		scene.cullFromCamera(cam, graphics);						// culling for scene draw
 
 		// 1st pass deferred normal & albedo
 		ID3D11Buffer* constBufferCamViewProj = tre::Buffer::createConstBuffer(deviceAndContext.device.Get(), (UINT)sizeof(tre::ViewProjectionStruct));
@@ -180,14 +179,14 @@ int main()
 
 			PROFILE_GPU_SCOPED("G-Buffer");
 			//renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_MODE::DEFERRED_OPAQUE_M); // non instanced
-			graphics.instancedDraw(scene._culledOpaqueObjQ, tre::RENDER_MODE::INSTANCED_DEFERRED_OPAQUE_M); // instanced
+			graphics.instancedDraw(scene._culledOpaqueObjQ[0], tre::RENDER_MODE::INSTANCED_DEFERRED_OPAQUE_M); // instanced
 		}
 
 		// set const buffer for global info
 		ID3D11Buffer* constBufferGlobalInfo = tre::Buffer::createConstBuffer(deviceAndContext.device.Get(), (UINT)sizeof(tre::GlobalInfoStruct));
 		{
 			// Create struct info and submit data to constant buffer
-			tre::GlobalInfoStruct globalInfoStruct = tre::CommonStructUtility::createGlobalInfoStruct(cam.camPositionV, cam.camViewProjection, scene.csmViewProjs, graphics.setting.csmPlaneIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), graphics.setting.csmDebugSwitch, graphics.setting.ssaoSwitch);
+			tre::GlobalInfoStruct globalInfoStruct = tre::CommonStructUtility::createGlobalInfoStruct(cam.camPositionV, cam.camViewProjection, scene.viewProjs, graphics.setting.csmPlaneIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), graphics.setting.csmDebugSwitch, graphics.setting.ssaoSwitch);
 			tre::Buffer::updateConstBufferData(deviceAndContext.context.Get(), constBufferGlobalInfo, &globalInfoStruct, (UINT)sizeof(tre::GlobalInfoStruct));
 
 			// Bind to shaders
