@@ -125,14 +125,10 @@ public:
 
 	Graphics(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, HWND window);
 
-	void reset();
+	void clean();
 
-	void setShadowBufferDrawSection(int idx); // idx --> 0: top left, 1: top right, 2: bottom left, 3: bottom right
 	void configureStates(RENDER_MODE renderMode);
-
 	void clearSwapChainBuffer();
-	void clearShadowBuffer();
-
 	void draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MODE renderMode);
 	void fullscreenPass(tre::RENDER_MODE mode);
 	void deferredLightingLocalDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, XMVECTOR cameraPos);

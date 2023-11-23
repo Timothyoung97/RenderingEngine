@@ -155,19 +155,9 @@ int main()
 
 		tre::Timer timer;
 
-		// Resource Clean Up
-		{
-			MICROPROFILE_SCOPE_CSTR("Clean Up");
-			while (!graphics.bufferQueue.empty()) {
-				ID3D11Buffer* currBuffer = graphics.bufferQueue.back();
-				graphics.bufferQueue.pop_back();
-				currBuffer->Release();
-			}
-		}
-
 		input.updateInputEvent();									// Update input event
 		control.update(input, graphics, scene, cam, deltaTime);		// Update control
-		graphics.reset();											// render clear context
+		graphics.clean();											// Clear buffer + clean up
 		cam.updateCamera();											// Update Camera
 		scene.update(graphics);										// Update Scene
 		rendererCSM.render(graphics, scene, cam);					// CSM Shadow Pass

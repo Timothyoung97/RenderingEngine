@@ -40,7 +40,15 @@ Graphics::Graphics(ID3D11Device* _device, ID3D11DeviceContext* _context, HWND wi
 	_instanceBuffer.createBuffer(_device, _context);
 }
 
-void Graphics::reset() {
+void Graphics::clean() {
+	MICROPROFILE_SCOPE_CSTR("Clean Up");
+
+	while (!bufferQueue.empty()) {
+		ID3D11Buffer* currBuffer = bufferQueue.back();
+		bufferQueue.pop_back();
+		currBuffer->Release();
+	}
+
 	_context->ClearState();
 	_context->PSSetSamplers(0, 1, _sampler.pSamplerStateLinear.GetAddressOf());
 	_context->PSSetSamplers(1, 1, _sampler.pSamplerStateMipPtWhiteBorder.GetAddressOf());
@@ -53,9 +61,9 @@ void Graphics::reset() {
 	_context->ClearRenderTargetView(_gBuffer.pRenderTargetViewDeferredNormal.Get(), tre::BACKGROUND_BLACK);
 	_context->ClearRenderTargetView(_hdrBuffer.pRenderTargetViewHdrTexture.Get(), Colors::Transparent);
 	_context->ClearDepthStencilView(_depthbuffer.pDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+	_context->ClearDepthStencilView(_depthbuffer.pShadowDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 	this->clearSwapChainBuffer();
-	this->clearShadowBuffer();
 }
 
 void Graphics::clearSwapChainBuffer() {
@@ -75,10 +83,6 @@ void Graphics::clearSwapChainBuffer() {
 	
 	// Set draw target to Screen
 	_context->ClearRenderTargetView(currRenderTargetView, tre::BACKGROUND_GREY);
-}
-
-void Graphics::clearShadowBuffer() {
-	_context->ClearDepthStencilView(_depthbuffer.pShadowDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 }
 
 void Graphics::configureStates(RENDER_MODE renderObjType) {
