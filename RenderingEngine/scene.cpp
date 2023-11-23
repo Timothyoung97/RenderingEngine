@@ -77,6 +77,7 @@ void Scene::createFloor() {
 }
 
 void Scene::updateDirLight() {
+	MICROPROFILE_SCOPE_CSTR("Update Directional Light Property");
 
 	XMFLOAT3 dirF = tre::Maths::getRotatePosition(XMFLOAT3(.0f, .0f, .0f), dirlightPitch, dirlightYaw, 1.f);
 	XMVECTOR dirV = XMLoadFloat3(&dirF);
@@ -258,14 +259,8 @@ tre::Object* Scene::addRandomObj() {
 }
 
 void Scene::update(const Graphics& graphics) {
-	{	// Update Bounding volume for all objects once
-		MICROPROFILE_SCOPE_CSTR("Update Bounding Volume");
-		updateBoundingVolume(graphics.setting.typeOfBound);
-	}
-	{
-		MICROPROFILE_SCOPE_CSTR("Update Directional Light Property");
-		updateDirLight();
-	}
+	updateBoundingVolume(graphics.setting.typeOfBound);
+	updateDirLight();
 }
 
 void Scene::cullFromCamera(Camera& cam, const Graphics& graphics) {
@@ -275,6 +270,35 @@ void Scene::cullFromCamera(Camera& cam, const Graphics& graphics) {
 		MICROPROFILE_SCOPE_CSTR("Grouping instances (Opaque + Transparent)");
 		updateCulledOpaqueQ();
 		updateCulledTransparentQ(cam);
+	}
+}
+
+void Scene::updatePtLight() {
+	// using compute shader update lights
+	lightResc.dispatch();
+
+	MICROPROFILE_SCOPE_CSTR("CPU Point Light Update");
+	PROFILE_GPU_SCOPED("CPU Point Light Update");
+
+	lightResc.updatePtLightCPU();
+	_pointLightObjQ.clear();
+	_pointLightObjQ.reserve(lightResc.readOnlyPointLightQ.size());
+	_wireframeObjQ.clear();
+
+	for (int i = 0; i < lightResc.readOnlyPointLightQ.size(); i++) {
+		tre::Object newLightObj;
+
+		newLightObj.pObjMeshes = { &_debugMeshes[1] }; // sphere
+		newLightObj.pObjMeshes[0]->pMaterial = &_debugMaterials[2];
+		newLightObj.objPos = lightResc.readOnlyPointLightQ[i].pos;
+		newLightObj.objScale = XMFLOAT3(lightResc.readOnlyPointLightQ[i].range, lightResc.readOnlyPointLightQ[i].range, lightResc.readOnlyPointLightQ[i].range);
+		newLightObj.objRotation = XMFLOAT3(.0f, .0f, .0f);
+		newLightObj._boundingVolumeColor = { tre::colorF(Colors::White) };
+		newLightObj._transformationFinal = tre::Maths::createTransformationMatrix(newLightObj.objScale, newLightObj.objRotation, newLightObj.objPos);
+		newLightObj._boundingVolumeTransformation = newLightObj._transformationFinal;
+
+		_pointLightObjQ.push_back(newLightObj);
+		_wireframeObjQ.push_back(std::make_pair(&_pointLightObjQ.back(), _pointLightObjQ.back().pObjMeshes[0]));
 	}
 }
 

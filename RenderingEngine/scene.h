@@ -55,15 +55,18 @@ public:
 	tre::Object _floor;
 
 	void createFloor();
+
 	void updateDirLight();
+	void updatePtLight();
+
 	void updateBoundingVolume(BoundVolumeEnum typeOfBound);
 	void cullObject(Frustum& frustum, BoundVolumeEnum typeOfBound);
 	void updateCulledTransparentQ(Camera& cam);
 	void updateCulledOpaqueQ();
+	void update(const Graphics& graphics);
 	
 	tre::Object* addRandomObj();
 
-	void update(const Graphics& graphics);
 	void cullFromCamera(Camera& cam, const Graphics& graphics);
 
 };

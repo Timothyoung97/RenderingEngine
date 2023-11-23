@@ -196,35 +196,8 @@ int main()
 			deviceAndContext.context.Get()->CSSetConstantBuffers(0u, 1u, &constBufferGlobalInfo);
 		}
 
-		// using compute shader update lights
-		scene.lightResc.dispatch();
-
-		{
-			MICROPROFILE_SCOPE_CSTR("CPU Point Light Update");
-			PROFILE_GPU_SCOPED("CPU Point Light Update");
-
-			scene.lightResc.updatePtLightCPU();
-			scene._pointLightObjQ.clear();
-			scene._pointLightObjQ.reserve(scene.lightResc.readOnlyPointLightQ.size());
-			scene._wireframeObjQ.clear();
-
-			for (int i = 0; i < scene.lightResc.readOnlyPointLightQ.size(); i++) {
-				tre::Object newLightObj;
-
-				newLightObj.pObjMeshes = { &scene._debugMeshes[1] }; // sphere
-				newLightObj.pObjMeshes[0]->pMaterial = &scene._debugMaterials[2];
-				newLightObj.objPos = scene.lightResc.readOnlyPointLightQ[i].pos;
-				newLightObj.objScale = XMFLOAT3(scene.lightResc.readOnlyPointLightQ[i].range, scene.lightResc.readOnlyPointLightQ[i].range, scene.lightResc.readOnlyPointLightQ[i].range);
-				newLightObj.objRotation = XMFLOAT3(.0f, .0f, .0f);
-				newLightObj._boundingVolumeColor = { tre::colorF(Colors::White) };
-				newLightObj._transformationFinal = tre::Maths::createTransformationMatrix(newLightObj.objScale, newLightObj.objRotation, newLightObj.objPos);
-				newLightObj._boundingVolumeTransformation = newLightObj._transformationFinal;
-
-				scene._pointLightObjQ.push_back(newLightObj);
-				scene._wireframeObjQ.push_back(std::make_pair(&scene._pointLightObjQ.back(), scene._pointLightObjQ.back().pObjMeshes[0]));
-			}
-			deviceAndContext.context.Get()->PSSetShaderResources(2, 1, scene.lightResc.pLightShaderRescView.GetAddressOf());
-		}
+		scene.updatePtLight();
+		deviceAndContext.context.Get()->PSSetShaderResources(2, 1, scene.lightResc.pLightShaderRescView.GetAddressOf());
 
 		rendererSSAO.render(graphics); // SSAO Pass
 
