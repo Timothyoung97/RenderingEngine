@@ -157,10 +157,14 @@ int main()
 
 		input.updateInputEvent();									// Update input event
 		control.update(input, graphics, scene, cam, deltaTime);		// Update control
+
 		graphics.clean();											// Clear buffer + clean up
+
 		cam.updateCamera();											// Update Camera
 		scene.update(graphics);										// Update Scene
+
 		rendererCSM.render(graphics, scene, cam);					// CSM Shadow Pass
+
 		scene.cullFromCamera(cam, graphics);						// culling for scene draw
 
 		// 1st pass deferred normal & albedo
@@ -243,10 +247,8 @@ int main()
 			graphics.deferredLightingLocalDraw(scene._wireframeObjQ, cam.camPositionV);
 		}
 
-		deviceAndContext.context.Get()->OMSetRenderTargets(0, nullptr, nullptr);
-
 		rendererHDR.render(graphics);						// HDR Pass
-		rendererWireframe.render(graphics, cam, scene);		//Wireframe Debug Pass
+		rendererWireframe.render(graphics, cam, scene);		// Wireframe Debug Pass
 
 		// Imgui Tool
 		{

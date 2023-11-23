@@ -105,6 +105,7 @@ void RendererHDR::fullscreenPass(const Graphics& graphics) {
 }
 
 void RendererHDR::render(Graphics& graphics) {
+	_context->OMSetRenderTargets(0, nullptr, nullptr);
 	// Luminance Histogram
 	{
 		PROFILE_GPU_SCOPED("CS: Luminance Histogram");

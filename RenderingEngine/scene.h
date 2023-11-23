@@ -57,7 +57,7 @@ public:
 	void createFloor();
 	void updateDirLight();
 	void updateBoundingVolume(BoundVolumeEnum typeOfBound);
-	void cullObject(const Frustum& frustum, BoundVolumeEnum typeOfBound);
+	void cullObject(Frustum& frustum, BoundVolumeEnum typeOfBound);
 	void updateCulledTransparentQ(Camera& cam);
 	void updateCulledOpaqueQ();
 	
