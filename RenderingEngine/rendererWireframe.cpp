@@ -43,7 +43,7 @@ void RendererWireframe::setConstBufferCamViewProj(Graphics& graphic, const Camer
 	graphic.bufferQueue.push_back(constBufferCamViewProj);
 }
 
-void RendererWireframe::draw(const Graphics& graphics, const std::vector<std::pair<Object*, Mesh*>>& objQ) {
+void RendererWireframe::draw(Graphics& graphics, const std::vector<std::pair<Object*, Mesh*>>& objQ) {
 	if (objQ.size() == 0 || !graphics.setting.showBoundingVolume) return;
 
 	const char* name = ToString(RENDER_MODE::WIREFRAME_M);
@@ -96,49 +96,49 @@ void RendererWireframe::draw(const Graphics& graphics, const std::vector<std::pa
 		}
 	}
 
-	// clean up
+	// push into buffer for cleaning in the next frame
 	{
-		constBufferModelInfo->Release();
+		graphics.bufferQueue.push_back(constBufferModelInfo);
 	}
 }
 
-void RendererWireframe::drawInstanced(Graphics* graphics, const std::vector<std::pair<Object*, Mesh*>>& objQ) {
-	if (objQ.size() == 0 || !graphics->setting.showBoundingVolume) return;
+void RendererWireframe::drawInstanced(Graphics& graphics, const std::vector<std::pair<Object*, Mesh*>>& objQ) {
+	if (objQ.size() == 0 || !graphics.setting.showBoundingVolume) return;
 	const char* name = ToString(tre::RENDER_MODE::WIREFRAME_M);
 	MICROPROFILE_SCOPE_CSTR(name);
 	PROFILE_GPU_SCOPED("Instanced Wireframe");
 
 	// Select mesh to render based on bounding methods
-	Mesh* meshToRender = selectWireframeMesh(graphics->setting.typeOfBound);
+	Mesh* meshToRender = selectWireframeMesh(graphics.setting.typeOfBound);
 
 	// Update instance buffer with wireframe mesh
 	{
-		graphics->_instanceBuffer.updateBuffer(objQ, meshToRender);
+		graphics._instanceBuffer.updateBuffer(objQ, meshToRender);
 	}
 
 	{
 		UINT vertexStride = sizeof(Vertex), offset = 0;
-		_context->IASetInputLayout(graphics->_inputLayout.vertLayout.Get());
+		_context->IASetInputLayout(graphics._inputLayout.vertLayout.Get());
 		_context->IASetVertexBuffers(0, 1, meshToRender->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
 		_context->IASetIndexBuffer(meshToRender->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
 		_context->VSSetShader(_vertexShaderInstanced.pShader.Get(), NULL, 0u);
-		_context->VSSetShaderResources(0u, 1, graphics->_instanceBuffer.pInstanceBufferSRV.GetAddressOf()); // to do
+		_context->VSSetShaderResources(0u, 1, graphics._instanceBuffer.pInstanceBufferSRV.GetAddressOf()); // to do
 
-		_context->RSSetViewports(1, &graphics->_viewport.defaultViewport);
-		_context->RSSetState(graphics->_rasterizer.pRasterizerStateWireFrame.Get());
+		_context->RSSetViewports(1, &graphics._viewport.defaultViewport);
+		_context->RSSetState(graphics._rasterizer.pRasterizerStateWireFrame.Get());
 
 		_context->PSSetShader(_debugPixelShaderInstanced.pShader.Get(), NULL, 0u);
 
-		_context->OMSetBlendState(graphics->_blendstate.transparency.Get(), NULL, 0xffffffff);
-		_context->OMSetDepthStencilState(graphics->_depthbuffer.pDSStateWithoutDepthT.Get(), 0);
-		_context->OMSetRenderTargets(1, &graphics->currRenderTargetView, nullptr);
+		_context->OMSetBlendState(graphics._blendstate.transparency.Get(), NULL, 0xffffffff);
+		_context->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithoutDepthT.Get(), 0);
+		_context->OMSetRenderTargets(1, &graphics.currRenderTargetView, nullptr);
 	}
 
 	// Create an empty const buffer 
 	ID3D11Buffer* constBufferBatchInfo = tre::Buffer::createConstBuffer(_device, (UINT)sizeof(tre::BatchInfoStruct));
 
-	InstanceBatchInfo currBatchInfo = graphics->_instanceBuffer.instanceBatchQueue[0];
+	InstanceBatchInfo currBatchInfo = graphics._instanceBuffer.instanceBatchQueue[0];
 
 	// update constant buffer for instanced draw call
 	{
@@ -151,9 +151,9 @@ void RendererWireframe::drawInstanced(Graphics* graphics, const std::vector<std:
 	// Draw call
 	_context->DrawIndexedInstanced(currBatchInfo.pBatchMesh->indexSize, currBatchInfo.quantity, 0u, 0u, 0u);
 
-	// clean up
+	// push into buffer for cleaning in the next frame
 	{
-		constBufferBatchInfo->Release();
+		graphics.bufferQueue.push_back(constBufferBatchInfo);
 	}
 }
 
@@ -161,9 +161,9 @@ void RendererWireframe::drawInstanced(Graphics* graphics, const std::vector<std:
 void RendererWireframe::render(Graphics& graphics, const Camera& cam, const Scene& scene) {
 	PROFILE_GPU_SCOPED("Bounding Volume Wireframe");
 	setConstBufferCamViewProj(graphics, cam);
-	drawInstanced(&graphics, scene._wireframeObjQ);			// for point lights
-	drawInstanced(&graphics, scene._culledOpaqueObjQ);		// for opaque objects
-	drawInstanced(&graphics, scene._culledTransparentObjQ);	// for transparent objects
+	drawInstanced(graphics, scene._wireframeObjQ);			// for point lights
+	drawInstanced(graphics, scene._culledOpaqueObjQ);		// for opaque objects
+	drawInstanced(graphics, scene._culledTransparentObjQ);	// for transparent objects
 }
 
 }
