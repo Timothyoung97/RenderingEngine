@@ -63,8 +63,6 @@ int main()
 
 	// Scene
 	tre::Scene scene(deviceAndContext.device.Get(), deviceAndContext.context.Get());
-	scene.createFloor();
-	scene.updateDirLight();
 
 	//Create Camera
 	tre::Camera cam(tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);
@@ -220,18 +218,10 @@ int main()
 			toDumpFile = true;
 		}
 
-		// render clear context
-		graphics.reset();
-
-		// Update Camera
-		cam.camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(cam.fovY), static_cast<float>(tre::SCREEN_WIDTH) / tre::SCREEN_HEIGHT, .1f, 250.f);
-		cam.updateCamera();
-
-		{	// Update Bounding volume for all objects once
-			MICROPROFILE_SCOPE_CSTR("Update Bounding Volume");
-			scene.updateBoundingVolume(graphics.setting.typeOfBound);
-		}
-
+		
+		graphics.reset();								// render clear context
+		cam.updateCamera();								// Update Camera
+		scene.update(graphics);							// Update Scene
 		rendererCSM.render(graphics, scene, cam);		// CSM Shadow Pass
 
 		{	// culling for scene draw
@@ -346,8 +336,6 @@ int main()
 
 			CHECK_DX_ERROR(graphics._swapchain.mainSwapchain->Present(kSyncInterval, presentFlags));
 		}
-
-		scene.updateDirLight();
 
 		if (toDumpFile) {
 			spdlog::info("Profiling");

@@ -57,6 +57,9 @@ Scene::Scene(ID3D11Device* device, ID3D11DeviceContext* context) {
 	//lightResc.addPointLight(XMFLOAT3(-3.0f, -3.0f, -3.0f), XMFLOAT3(1.f, .35f, .44f), XMFLOAT4(.0f, 1.f, .0f, .5f), XMFLOAT2(.0f, .0f));
 	//lightResc.addPointLight(XMFLOAT3(1.f, 1.f, 1.0f),	   XMFLOAT3(1.f, .22f, .2f),  XMFLOAT4(.0f, .0f, 1.f, .5f), XMFLOAT2(.0f, .0f));
 	//lightResc.addPointLight(XMFLOAT3(-1.0f, .0f, -1.0f),   XMFLOAT3(1.f, .22f, .27f), XMFLOAT4(1.f, 1.f, .0f, .5f), XMFLOAT2(.0f, .0f));
+
+	createFloor();
+	updateDirLight();
 }
 	
 void Scene::createFloor() {
@@ -105,6 +108,22 @@ void Scene::updateBoundingVolume(BoundVolumeEnum typeOfBound) {
 			}
 		}
 	}
+}
+
+void Scene::updateCulledOpaqueQ() {
+	std::sort(_culledOpaqueObjQ.begin(), _culledOpaqueObjQ.end(),
+		[](const std::pair<tre::Object*, tre::Mesh*> obj1, const std::pair<tre::Object*, tre::Mesh*> obj2) {
+			if (obj1.second < obj2.second) {
+				return true;
+			}
+			else if (obj1.second > obj2.second) {
+				return false;
+			}
+			else {
+				return obj1.second->pMaterial->objTexture < obj2.second->pMaterial->objTexture;
+			}
+		}
+	);
 }
 
 void Scene::updateCulledTransparentQ(Camera& cam) {
@@ -238,18 +257,14 @@ tre::Object* Scene::addRandomObj() {
 	return _pObjQ.back();
 }
 
-void Scene::updateCulledOpaqueQ() {
-	std::sort(_culledOpaqueObjQ.begin(), _culledOpaqueObjQ.end(), 
-		[](const std::pair<tre::Object*, tre::Mesh*> obj1, const std::pair<tre::Object*, tre::Mesh*> obj2) {
-			if (obj1.second < obj2.second) {
-				return true;
-			} else if (obj1.second > obj2.second) {
-				return false;
-			} else {
-				return obj1.second->pMaterial->objTexture < obj2.second->pMaterial->objTexture;
-			}
-		}
-	);
+void Scene::update(const Graphics& graphics) {
+	{	// Update Bounding volume for all objects once
+		MICROPROFILE_SCOPE_CSTR("Update Bounding Volume");
+		updateBoundingVolume(graphics.setting.typeOfBound);
+	}
+	{
+		MICROPROFILE_SCOPE_CSTR("Update Directional Light Property");
+		updateDirLight();
+	}
 }
-
 }

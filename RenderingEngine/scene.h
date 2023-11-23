@@ -7,6 +7,7 @@
 #include "material.h"
 #include "light.h"
 #include "camera.h"
+#include "graphics.h"
 
 #include <vector>
 #include <unordered_map>
@@ -61,6 +62,8 @@ public:
 	void updateCulledOpaqueQ();
 	
 	tre::Object* addRandomObj();
+
+	void update(const Graphics& graphics);
 
 };
 }

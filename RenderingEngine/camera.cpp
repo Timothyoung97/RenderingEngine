@@ -1,4 +1,5 @@
 #include "camera.h"
+#include "window.h"
 
 namespace tre {
 
@@ -56,6 +57,7 @@ void Camera::turnCamera(float yawOffset, float pitchOffset) {
 }
 
 void Camera::updateCamera() {
+	camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovY), static_cast<float>(tre::SCREEN_WIDTH) / tre::SCREEN_HEIGHT, .1f, 250.f);
 	camRightV = XMVector3Normalize(XMVector3Cross(directionV, defaultUpV));
 	camUpV = XMVector3Normalize(XMVector3Cross(camRightV, directionV));
 	camView = XMMatrixLookAtLH(camPositionV, camPositionV + directionV, camUpV);
