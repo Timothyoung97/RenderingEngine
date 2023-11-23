@@ -179,7 +179,7 @@ int main()
 
 			PROFILE_GPU_SCOPED("G-Buffer");
 			//renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_MODE::DEFERRED_OPAQUE_M); // non instanced
-			graphics.instancedDraw(scene._culledOpaqueObjQ[0], tre::RENDER_MODE::INSTANCED_DEFERRED_OPAQUE_M); // instanced
+			graphics.instancedDraw(scene._culledOpaqueObjQ[scene.camViewIdx], tre::RENDER_MODE::INSTANCED_DEFERRED_OPAQUE_M); // instanced
 		}
 
 		// set const buffer for global info

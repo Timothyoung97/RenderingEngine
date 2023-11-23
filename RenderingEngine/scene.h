@@ -27,7 +27,9 @@ public:
 
 	// Views
 	std::vector<XMMATRIX> viewProjs;
-	
+	const int camViewIdx = 0;
+	const int csmViewBeginIdx = 1;
+
 	// Pt Light
 	tre::LightResource lightResc;
 

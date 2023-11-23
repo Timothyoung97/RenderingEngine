@@ -95,30 +95,29 @@ void RendererCSM::render(Graphics& graphics, Scene& scene, const Camera& cam) {
 	{
 		PROFILE_GPU_SCOPED("CSM Quad Draw");
 
-		// viewIdx: 0 -> reserved for camera
-		for (int viewIdx = 1; viewIdx < 5; viewIdx++) {
+		for (int viewIdx = 0; viewIdx < 4; viewIdx++) {
 
 			{	// Culling based on pointlight's view projection matrix
 				MICROPROFILE_SCOPE_CSTR("CSM Quad Obj Culling");
 
-				setCSMViewport(graphics, viewIdx - 1);
+				setCSMViewport(graphics, viewIdx);
 
 				// Const Buffer 
 				{
 					// Create struct info and submit data to const buffer
-					tre::ViewProjectionStruct csmViewProjStruct = tre::CommonStructUtility::createViewProjectionStruct(scene.viewProjs[viewIdx]);
+					tre::ViewProjectionStruct csmViewProjStruct = tre::CommonStructUtility::createViewProjectionStruct(scene.viewProjs[scene.csmViewBeginIdx + viewIdx]);
 					tre::Buffer::updateConstBufferData(_context, constBufferCSMViewProj, &csmViewProjStruct, (UINT)sizeof(tre::ViewProjectionStruct));
 
 					// Binding 
 					_context->VSSetConstantBuffers(0u, 1u, &constBufferCSMViewProj);
 				}
 
-				graphics.stats.shadowCascadeOpaqueObjs[viewIdx] = scene._culledOpaqueObjQ.size();
+				graphics.stats.shadowCascadeOpaqueObjs[scene.csmViewBeginIdx + viewIdx] = scene._culledOpaqueObjQ.size();
 			}
 
 			// draw shadow only for opaque objects
 			//renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_MODE::SHADOW_M); // non instanced
-			drawInstanced(graphics, scene._culledOpaqueObjQ[viewIdx]); // instanced
+			drawInstanced(graphics, scene._culledOpaqueObjQ[scene.csmViewBeginIdx + viewIdx]); // instanced
 		}
 	}
 

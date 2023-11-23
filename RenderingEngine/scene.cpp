@@ -198,9 +198,9 @@ void Scene::cullObject(std::vector<Frustum>& frustums, BoundVolumeEnum typeOfBou
 				Mesh* pMesh = pObj->pObjMeshes[j];
 
 				bool isTransparent = pMesh->pMaterial->isTransparent();
-				bool addToQ = pObj->isMeshWithinView(j, frustums[viewIdx], typeOfBound, viewIdx == 0);
+				bool addToQ = pObj->isMeshWithinView(j, frustums[viewIdx], typeOfBound, viewIdx == camViewIdx);
 
-				if (addToQ) {
+				if (addToQ > 0) {
 					if (isTransparent && viewIdx == 0) {
 						_toSortTransparentQ = true;
 						_culledTransparentObjQ.push_back(std::make_pair(pObj, pMesh));

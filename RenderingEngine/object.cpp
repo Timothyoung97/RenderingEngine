@@ -74,7 +74,7 @@ bool Object::isMeshWithinView(int meshIdx, Frustum& frustum, BoundVolumeEnum typ
 		}
 	}
 
-	return isWithinView;
+	return isWithinView > 0;
 }
 
 }
