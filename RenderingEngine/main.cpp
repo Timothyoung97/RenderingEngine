@@ -161,16 +161,7 @@ int main()
 		cam.updateCamera();											// Update Camera
 		scene.update(graphics);										// Update Scene
 		rendererCSM.render(graphics, scene, cam);					// CSM Shadow Pass
-
-		{	// culling for scene draw
-			MICROPROFILE_SCOPE_CSTR("Scene Obj Culling");
-			scene.cullObject(cam.cameraFrustum, graphics.setting.typeOfBound);
-			{
-				MICROPROFILE_SCOPE_CSTR("Grouping instances (Opaque + Transparent)");
-				scene.updateCulledOpaqueQ();
-				scene.updateCulledTransparentQ(cam);
-			}
-		}
+		scene.cullFromCamera(cam, graphics);						// culling for scene draw
 
 		// 1st pass deferred normal & albedo
 		ID3D11Buffer* constBufferCamViewProj = tre::Buffer::createConstBuffer(deviceAndContext.device.Get(), (UINT)sizeof(tre::ViewProjectionStruct));

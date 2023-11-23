@@ -267,4 +267,15 @@ void Scene::update(const Graphics& graphics) {
 		updateDirLight();
 	}
 }
+
+void Scene::cullFromCamera(Camera& cam, const Graphics& graphics) {
+	MICROPROFILE_SCOPE_CSTR("Scene Obj Culling");
+	cullObject(cam.cameraFrustum, graphics.setting.typeOfBound);
+	{
+		MICROPROFILE_SCOPE_CSTR("Grouping instances (Opaque + Transparent)");
+		updateCulledOpaqueQ();
+		updateCulledTransparentQ(cam);
+	}
+}
+
 }
