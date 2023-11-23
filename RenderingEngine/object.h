@@ -35,6 +35,7 @@ struct Object {
 	float distFromCam;
 
 	XMMATRIX makeLocalToWorldMatrix();
+	bool isMeshWithinView(int meshIdx, Frustum& frustum, BoundVolumeEnum typeOfBound);
 };
 
 }

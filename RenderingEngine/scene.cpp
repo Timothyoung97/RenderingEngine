@@ -160,57 +160,7 @@ void Scene::cullObject(Frustum& frustum, BoundVolumeEnum typeOfBound) {
 			Mesh* pMesh = pObj->pObjMeshes[j];
 
 			bool isTransparent = pMesh->pMaterial->isTransparent();
-
-			int addToQ = 0;
-			switch (typeOfBound) {
-			case RitterBoundingSphere:
-				if (pObj->ritterBs[j].isOverlapFrustum(frustum)) {
-					pObj->_boundingVolumeColor[j] = tre::colorF(Colors::LightGreen);
-					addToQ = 1;
-				}
-				else if (pObj->ritterBs[j].isInFrustum(frustum)) {
-					pObj->_boundingVolumeColor[j] = tre::colorF(Colors::Blue);
-					addToQ = 1;
-				}
-				else {
-					pObj->_boundingVolumeColor[j] = tre::colorF(Colors::Red);
-					//addToQ = 1; //debug
-				}
-
-				break;
-
-			case NaiveBoundingSphere:
-				if (pObj->naiveBs[j].isOverlapFrustum(frustum)) {
-					pObj->_boundingVolumeColor[j] = tre::colorF(Colors::LightGreen);
-					addToQ = 1;
-				}
-				else if (pObj->naiveBs[j].isInFrustum(frustum)) {
-					pObj->_boundingVolumeColor[j] = tre::colorF(Colors::Blue);
-					addToQ = 1;
-				}
-				else {
-					pObj->_boundingVolumeColor[j] = tre::colorF(Colors::Red);
-					//addToQ = 1; //debug
-				}
-
-				break;
-
-			case AABBBoundingBox:
-				if (pObj->aabb[j].isOverlapFrustum(frustum)) {
-					pObj->_boundingVolumeColor[j] = tre::colorF(Colors::LightGreen);
-					addToQ = 1;
-				}
-				else if (pObj->aabb[j].isInFrustum(frustum)) {
-					pObj->_boundingVolumeColor[j] = tre::colorF(Colors::Blue);
-					addToQ = 1;
-				}
-				else {
-					pObj->_boundingVolumeColor[j] = tre::colorF(Colors::Red);
-					//addToQ = 1; //debug
-				}
-
-				break;
-			}
+			bool addToQ = pObj->isMeshWithinView(j, frustum, typeOfBound);
 
 			if (addToQ) {
 				// add to queue function
