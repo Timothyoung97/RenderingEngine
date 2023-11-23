@@ -36,6 +36,7 @@
 #include "rendererHDR.h"
 #include "rendererSSAO.h"
 #include "rendererCSM.h"
+#include "control.h"
 
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;
@@ -100,6 +101,7 @@ int main()
 
 	//Input Handler
 	tre::Input input;
+	tre::Control control;
 	
 	//Delta Time between frame
 	float deltaTime = 0;
@@ -146,11 +148,11 @@ int main()
 		pDebugModel
 	);
 
-	bool toDumpFile = false;
-
 	// main loop
 	while (!input.shouldQuit())
 	{
+		MICROPROFILE_SCOPE_CSTR("Frame");
+
 		tre::Timer timer;
 
 		// Resource Clean Up
@@ -163,66 +165,12 @@ int main()
 			}
 		}
 
-		MICROPROFILE_SCOPE_CSTR("Frame");
-
-		// Update keyboard event
-		input.updateInputEvent();
-
-		// Control
-		if (input._keyState[SDL_SCANCODE_W]) { // control camera movement
-			cam.moveCamera(cam.directionV * deltaTime);
-			scene._toRecalDistFromCam = true;
-		}
-		else if (input._keyState[SDL_SCANCODE_S]) {
-			cam.moveCamera(-cam.directionV * deltaTime);
-			scene._toRecalDistFromCam = true;
-		}
-		else if (input._keyState[SDL_SCANCODE_D]) {
-			cam.moveCamera(-cam.camRightV * deltaTime);
-			scene._toRecalDistFromCam = true;
-		}
-		else if (input._keyState[SDL_SCANCODE_A]) {
-			cam.moveCamera(cam.camRightV * deltaTime);
-			scene._toRecalDistFromCam = true;
-		}
-		else if (input._keyState[SDL_SCANCODE_Q]) {
-			cam.moveCamera(cam.defaultUpV * deltaTime);
-			scene._toRecalDistFromCam = true;
-		}
-		else if (input._keyState[SDL_SCANCODE_E]) {
-			cam.moveCamera(-cam.defaultUpV * deltaTime);
-			scene._toRecalDistFromCam = true;
-		}
-		else if (input._mouseWheelScollY != 0) {
-			cam.cameraMoveSpeed = SDL_clamp(cam.cameraMoveSpeed + input._mouseWheelScollY, .001f, .5f);
-		}
-		else if (input._mouseButtonState[MOUSE_BUTTON_IDX(SDL_BUTTON_RIGHT)]) { // control camera angle
-			cam.turnCamera(input._deltaDisplacement.x, input._deltaDisplacement.y);
-		}
-		else if (input._keyState[SDL_SCANCODE_SPACE]) {
-			for (int i = 0; i < 100; i++) {
-				// Create new obj
-				tre::Object* pNewObj = scene.addRandomObj();
-
-				graphics.stats.totalMeshCount++;
-				if ((pNewObj->pObjMeshes[0]->pMaterial->objTexture != nullptr && pNewObj->pObjMeshes[0]->pMaterial->objTexture->hasAlphaChannel)
-					|| (pNewObj->pObjMeshes[0]->pMaterial->objTexture == nullptr && pNewObj->pObjMeshes[0]->pMaterial->baseColor.w < 1.0f)) {
-					graphics.stats.transparentMeshCount++;
-				}
-				else {
-					graphics.stats.opaqueMeshCount++;
-				}
-			}
-		}
-		else if (input._keyState[SDL_SCANCODE_K]) {
-			toDumpFile = true;
-		}
-
-		
-		graphics.reset();								// render clear context
-		cam.updateCamera();								// Update Camera
-		scene.update(graphics);							// Update Scene
-		rendererCSM.render(graphics, scene, cam);		// CSM Shadow Pass
+		input.updateInputEvent();									// Update input event
+		control.update(input, graphics, scene, cam, deltaTime);		// Update control
+		graphics.reset();											// render clear context
+		cam.updateCamera();											// Update Camera
+		scene.update(graphics);										// Update Scene
+		rendererCSM.render(graphics, scene, cam);					// CSM Shadow Pass
 
 		{	// culling for scene draw
 			MICROPROFILE_SCOPE_CSTR("Scene Obj Culling");
@@ -337,10 +285,10 @@ int main()
 			CHECK_DX_ERROR(graphics._swapchain.mainSwapchain->Present(kSyncInterval, presentFlags));
 		}
 
-		if (toDumpFile) {
+		if (control.toDumpFile) {
 			spdlog::info("Profiling");
 			MicroProfileDumpFileImmediately("profile.html", nullptr, deviceAndContext.context.Get());
-			toDumpFile = false;
+			control.toDumpFile = false;
 		}
 
 		{
