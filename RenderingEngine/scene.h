@@ -23,6 +23,7 @@ public:
 	float dirlightYaw = .0f;
 	float dirlightPitch = 45.f;
 	float dirLightDiffuse = .5f;
+	std::vector<XMMATRIX> csmViewProjs;
 	
 	//Pt Light
 	tre::LightResource lightResc;

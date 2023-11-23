@@ -58,13 +58,6 @@ void Graphics::reset() {
 	this->clearShadowBuffer();
 }
 
-void Graphics::setShadowBufferDrawSection(int idx) {
-	_viewport.shadowViewport.TopLeftX = _rasterizer.rectArr[idx].left;
-	_viewport.shadowViewport.TopLeftY = _rasterizer.rectArr[idx].top;
-	_context->RSSetViewports(1, &_viewport.shadowViewport);
-	_context->RSSetScissorRects(1, &_rasterizer.rectArr[idx]);
-}
-
 void Graphics::clearSwapChainBuffer() {
 
 	// Alternating buffers
@@ -129,23 +122,6 @@ void Graphics::configureStates(RENDER_MODE renderObjType) {
 	case tre::SHADOW_M: // use normal draw func
 		_context->IASetInputLayout(_inputLayout.vertLayout.Get());
 		_context->VSSetShader(_shadowCastShader.pShader.Get(), NULL, 0u);
-
-		// use setShadowBufferDrawSection to select draw section
-		_context->RSSetState(_rasterizer.pShadowRasterizerState.Get());
-		
-		// unbind shadow buffer as a resource, so that we can write to it
-		_context->PSSetShader(nullptr, NULL, 0u);
-		_context->PSSetShaderResources(3, 1, nullSRV);
-		
-		_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
-		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
-		_context->OMSetRenderTargets(0, nullptr, _depthbuffer.pShadowDepthStencilView.Get());
-		break;
-
-	case tre::INSTANCED_SHADOW_M: // use normal draw func
-		_context->IASetInputLayout(_inputLayout.vertLayout.Get());
-		_context->VSSetShader(_vertexShaderInstanced.pShader.Get(), NULL, 0u);
-		_context->VSSetShaderResources(0u, 1, _instanceBuffer.pInstanceBufferSRV.GetAddressOf());
 
 		// use setShadowBufferDrawSection to select draw section
 		_context->RSSetState(_rasterizer.pShadowRasterizerState.Get());

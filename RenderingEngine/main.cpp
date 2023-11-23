@@ -35,6 +35,7 @@
 #include "rendererWireframe.h"
 #include "rendererHDR.h"
 #include "rendererSSAO.h"
+#include "rendererCSM.h"
 
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;
@@ -97,6 +98,7 @@ int main()
 	tre::RendererWireframe rendererWireframe(deviceAndContext.device.Get(), deviceAndContext.context.Get());
 	tre::RendererHDR rendererHDR(deviceAndContext.device.Get(), deviceAndContext.context.Get());
 	tre::RendererSSAO rendererSSAO(deviceAndContext.device.Get(), deviceAndContext.context.Get());
+	tre::RendererCSM rendererCSM(deviceAndContext.device.Get(), deviceAndContext.context.Get());
 
 	//Input Handler
 	tre::Input input;
@@ -230,65 +232,7 @@ int main()
 			scene.updateBoundingVolume(graphics.setting.typeOfBound);
 		}
 
-		// Shadow Draw
-		std::vector<XMMATRIX> lightViewProjs;
-		for (int i = 0; i < 4; i++) { // for 4 quads
-
-			MICROPROFILE_SCOPE_CSTR("Build CSM View Projection Matrix");
-
-			// projection matrix of camera with specific near and far plane
-			XMMATRIX projMatrix = XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0f), static_cast<float>(tre::SCREEN_WIDTH) / tre::SCREEN_HEIGHT, graphics.setting.csmPlaneIntervals[i], graphics.setting.csmPlaneIntervals[i + 1]);
-
-			std::vector<XMVECTOR> corners = tre::Maths::getFrustumCornersWorldSpace(XMMatrixMultiply(cam.camView, projMatrix));
-
-			XMVECTOR center = tre::Maths::getAverageVector(corners);
-
-			XMMATRIX lightView = XMMatrixLookAtLH(center + XMVECTOR{ scene.dirlight.direction.x, scene.dirlight.direction.y, scene.dirlight.direction.z }, center, XMVECTOR{ .0f, 1.f, .0f });
-
-			XMMATRIX lightOrthoProj = tre::Maths::createOrthoMatrixFromFrustumCorners(10.f, corners, lightView);
-
-			XMMATRIX lightViewProj = XMMatrixMultiply(lightView, lightOrthoProj);
-
-			lightViewProjs.push_back(lightViewProj);
-		}
-
-		ID3D11Buffer* constBufferCSMViewProj = tre::Buffer::createConstBuffer(deviceAndContext.device.Get(), (UINT)sizeof(tre::ViewProjectionStruct));
-		{
-			PROFILE_GPU_SCOPED("CSM Quad Draw");
-
-			for (int i = 0; i < 4; i++) {
-
-				{	// Culling based on pointlight's view projection matrix
-					MICROPROFILE_SCOPE_CSTR("CSM Quad Obj Culling");
-
-					graphics.setShadowBufferDrawSection(i);
-
-					// Const Buffer 
-					{
-						// Create struct info and submit data to const buffer
-						tre::ViewProjectionStruct csmViewProjStruct = tre::CommonStructUtility::createViewProjectionStruct(lightViewProjs[i]);
-						tre::Buffer::updateConstBufferData(deviceAndContext.context.Get(), constBufferCSMViewProj, &csmViewProjStruct, (UINT)sizeof(tre::ViewProjectionStruct));
-
-						// Binding 
-						deviceAndContext.context.Get()->VSSetConstantBuffers(0u, 1u, &constBufferCSMViewProj);
-					}
-
-					tre::Frustum lightFrustum = tre::Maths::createFrustumFromViewProjectionMatrix(lightViewProjs[i]);
-
-					scene.cullObject(lightFrustum, graphics.setting.typeOfBound);
-					{
-						MICROPROFILE_SCOPE_CSTR("Grouping instances (Opaque only)");
-						scene.updateCulledOpaqueQ();
-					}
-
-					graphics.stats.shadowCascadeOpaqueObjs[i] = scene._culledOpaqueObjQ.size();
-				}
-
-				// draw shadow only for opaque objects
-				//renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_MODE::SHADOW_M); // non instanced
-				graphics.instancedDraw(scene._culledOpaqueObjQ, tre::RENDER_MODE::INSTANCED_SHADOW_M); // instanced
-			}
-		}
+		rendererCSM.render(graphics, scene, cam);		// CSM Shadow Pass
 
 		{	// culling for scene draw
 			MICROPROFILE_SCOPE_CSTR("Scene Obj Culling");
@@ -320,7 +264,7 @@ int main()
 		ID3D11Buffer* constBufferGlobalInfo = tre::Buffer::createConstBuffer(deviceAndContext.device.Get(), (UINT)sizeof(tre::GlobalInfoStruct));
 		{
 			// Create struct info and submit data to constant buffer
-			tre::GlobalInfoStruct globalInfoStruct = tre::CommonStructUtility::createGlobalInfoStruct(cam.camPositionV, cam.camViewProjection, lightViewProjs, graphics.setting.csmPlaneIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), graphics.setting.csmDebugSwitch, graphics.setting.ssaoSwitch);
+			tre::GlobalInfoStruct globalInfoStruct = tre::CommonStructUtility::createGlobalInfoStruct(cam.camPositionV, cam.camViewProjection, scene.csmViewProjs, graphics.setting.csmPlaneIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), graphics.setting.csmDebugSwitch, graphics.setting.ssaoSwitch);
 			tre::Buffer::updateConstBufferData(deviceAndContext.context.Get(), constBufferGlobalInfo, &globalInfoStruct, (UINT)sizeof(tre::GlobalInfoStruct));
 
 			// Bind to shaders
@@ -359,7 +303,7 @@ int main()
 			deviceAndContext.context.Get()->PSSetShaderResources(2, 1, scene.lightResc.pLightShaderRescView.GetAddressOf());
 		}
 
-		rendererSSAO.render(graphics);
+		rendererSSAO.render(graphics); // SSAO Pass
 
 		// 2nd pass deferred lighting
 		{
@@ -382,8 +326,8 @@ int main()
 
 		deviceAndContext.context.Get()->OMSetRenderTargets(0, nullptr, nullptr);
 
-		rendererHDR.render(graphics);
-		rendererWireframe.render(graphics, cam, scene);
+		rendererHDR.render(graphics);						// HDR Pass
+		rendererWireframe.render(graphics, cam, scene);		//Wireframe Debug Pass
 
 		// Imgui Tool
 		{
@@ -424,7 +368,6 @@ int main()
 		{
 			MICROPROFILE_SCOPE_CSTR("Clean Up");
 			constBufferGlobalInfo->Release();
-			constBufferCSMViewProj->Release();
 			constBufferCamViewProj->Release();
 		}
 
