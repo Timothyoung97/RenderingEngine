@@ -159,12 +159,7 @@ void Scene::cullObject(Frustum& frustum, BoundVolumeEnum typeOfBound) {
 		for (int j = 0; j < pObj->pObjMeshes.size(); j++) {
 			Mesh* pMesh = pObj->pObjMeshes[j];
 
-			int isTransparent = 0;
-			if ((pMesh->pMaterial->objTexture != nullptr && pMesh->pMaterial->objTexture->hasAlphaChannel)
-				|| (pMesh->pMaterial->objTexture == nullptr && pMesh->pMaterial->baseColor.w < 1.0f)) {
-
-				isTransparent = 1;
-			}
+			bool isTransparent = pMesh->pMaterial->isTransparent();
 
 			int addToQ = 0;
 			switch (typeOfBound) {
@@ -232,32 +227,6 @@ void Scene::cullObject(Frustum& frustum, BoundVolumeEnum typeOfBound) {
 	}
 }
 
-// Add random object with random transformations, meshes and textures
-tre::Object* Scene::addRandomObj() {
-	// Create new obj
-	tre::Object newObj;
-
-	int selectIdx = tre::Utility::getRandomInt(3);
-	newObj.pObjMeshes = { &_debugMeshes[5 + selectIdx] };
-	newObj.pObjMeshes[0]->pMaterial = &_debugMaterials[selectIdx];
-
-	float scaleVal = tre::Utility::getRandomFloat(3);
-	XMFLOAT3 objPos = tre::Maths::getRotatePosition(XMFLOAT3(.0f, .0f, .0f), .0f, tre::Utility::getRandomFloat(360.f), tre::Utility::getRandomFloat(100.f));
-	newObj.objPos = objPos;
-	newObj.objScale = XMFLOAT3(scaleVal, scaleVal, scaleVal);
-	newObj.objRotation = XMFLOAT3(tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360));
-	newObj._boundingVolumeColor = { tre::colorF(Colors::Green) };
-	newObj.ritterBs = { newObj.pObjMeshes[0]->ritterSphere };
-	newObj.naiveBs = { newObj.pObjMeshes[0]->naiveSphere };
-	newObj.aabb = { newObj.pObjMeshes[0]->aabb };
-	newObj._transformationFinal = tre::Maths::createTransformationMatrix(newObj.objScale, newObj.objRotation, newObj.objPos);
-
-	_objQ.push_back(newObj);
-	_pObjQ.push_back(&_objQ.back());
-
-	return _pObjQ.back();
-}
-
 void Scene::update(const Graphics& graphics) {
 	updateBoundingVolume(graphics.setting.typeOfBound);
 	updateDirLight();
@@ -300,6 +269,32 @@ void Scene::updatePtLight() {
 		_pointLightObjQ.push_back(newLightObj);
 		_wireframeObjQ.push_back(std::make_pair(&_pointLightObjQ.back(), _pointLightObjQ.back().pObjMeshes[0]));
 	}
+}
+
+// Add random object with random transformations, meshes and textures
+tre::Object* Scene::addRandomObj() {
+	// Create new obj
+	tre::Object newObj;
+
+	int selectIdx = tre::Utility::getRandomInt(3);
+	newObj.pObjMeshes = { &_debugMeshes[5 + selectIdx] };
+	newObj.pObjMeshes[0]->pMaterial = &_debugMaterials[selectIdx];
+
+	float scaleVal = tre::Utility::getRandomFloat(3);
+	XMFLOAT3 objPos = tre::Maths::getRotatePosition(XMFLOAT3(.0f, .0f, .0f), .0f, tre::Utility::getRandomFloat(360.f), tre::Utility::getRandomFloat(100.f));
+	newObj.objPos = objPos;
+	newObj.objScale = XMFLOAT3(scaleVal, scaleVal, scaleVal);
+	newObj.objRotation = XMFLOAT3(tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360));
+	newObj._boundingVolumeColor = { tre::colorF(Colors::Green) };
+	newObj.ritterBs = { newObj.pObjMeshes[0]->ritterSphere };
+	newObj.naiveBs = { newObj.pObjMeshes[0]->naiveSphere };
+	newObj.aabb = { newObj.pObjMeshes[0]->aabb };
+	newObj._transformationFinal = tre::Maths::createTransformationMatrix(newObj.objScale, newObj.objRotation, newObj.objPos);
+
+	_objQ.push_back(newObj);
+	_pObjQ.push_back(&_objQ.back());
+
+	return _pObjQ.back();
 }
 
 }

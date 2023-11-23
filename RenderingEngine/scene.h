@@ -65,9 +65,8 @@ public:
 	void updateCulledOpaqueQ();
 	void update(const Graphics& graphics);
 	
-	tre::Object* addRandomObj();
-
 	void cullFromCamera(Camera& cam, const Graphics& graphics);
-
+	
+	tre::Object* addRandomObj();
 };
 }

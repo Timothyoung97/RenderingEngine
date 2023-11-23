@@ -12,6 +12,8 @@ struct Material {
 	Texture* objTexture = nullptr;
 	Texture* objNormalMap = nullptr;
 	XMFLOAT4 baseColor;
+
+	bool isTransparent();
 };
 
 }
