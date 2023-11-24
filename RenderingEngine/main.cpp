@@ -13,30 +13,31 @@
 #include <format>
 
 //Custom Header
-#include "timer.h"
-#include "window.h"
-#include "input.h"
+#include "boundingvolume.h"
+#include "camera.h"
+#include "colors.h"
+#include "constbuffer.h"
+#include "control.h"
 #include "dxdebug.h"
 #include "device.h"
-#include "mesh.h"
-#include "utility.h"
-#include "camera.h"
-#include "constbuffer.h"
-#include "texture.h"
-#include "object.h"
-#include "shader.h"
 #include "graphics.h"
-#include "colors.h"
-#include "boundingvolume.h"
-#include "maths.h"
-#include "scene.h"
-#include "modelloader.h"
 #include "imguihelper.h"
-#include "rendererWireframe.h"
+#include "input.h"
+#include "maths.h"
+#include "mesh.h"
+#include "modelloader.h"
+#include "object.h"
+#include "rendererCSM.h"
 #include "rendererHDR.h"
 #include "rendererSSAO.h"
-#include "rendererCSM.h"
-#include "control.h"
+#include "rendererWireframe.h"
+#include "rendererGBuffer.h"
+#include "scene.h"
+#include "shader.h"
+#include "texture.h"
+#include "timer.h"
+#include "utility.h"
+#include "window.h"
 
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;
@@ -98,6 +99,7 @@ int main()
 	tre::RendererHDR rendererHDR(deviceAndContext.device.Get(), deviceAndContext.context.Get());
 	tre::RendererSSAO rendererSSAO(deviceAndContext.device.Get(), deviceAndContext.context.Get());
 	tre::RendererCSM rendererCSM(deviceAndContext.device.Get(), deviceAndContext.context.Get());
+	tre::RendererGBuffer rendererGBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get());
 
 	//Input Handler
 	tre::Input input;
@@ -158,30 +160,11 @@ int main()
 
 		input.updateInputEvent();									// Update input event
 		control.update(input, graphics, scene, cam, deltaTime);		// Update control
-
 		graphics.clean();											// Clear buffer + clean up
-
 		cam.updateCamera();											// Update Camera
-
 		scene.update(graphics, cam);								// Update Scene
-
 		rendererCSM.render(graphics, scene, cam);					// CSM Shadow Pass
-
-		// 1st pass deferred normal & albedo
-		ID3D11Buffer* constBufferCamViewProj = tre::Buffer::createConstBuffer(deviceAndContext.device.Get(), (UINT)sizeof(tre::ViewProjectionStruct));
-		{
-			// Update const buffer and binding
-			{
-				tre::ViewProjectionStruct vpStruct = tre::CommonStructUtility::createViewProjectionStruct(cam.camViewProjection);
-				tre::Buffer::updateConstBufferData(deviceAndContext.context.Get(), constBufferCamViewProj, &vpStruct, (UINT)sizeof(tre::ViewProjectionStruct));
-
-				deviceAndContext.context.Get()->VSSetConstantBuffers(0u, 1u, &constBufferCamViewProj);
-			}
-
-			PROFILE_GPU_SCOPED("G-Buffer");
-			//renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_MODE::DEFERRED_OPAQUE_M); // non instanced
-			graphics.instancedDraw(scene._culledOpaqueObjQ[scene.camViewIdx], tre::RENDER_MODE::INSTANCED_DEFERRED_OPAQUE_M); // instanced
-		}
+		rendererGBuffer.render(graphics, scene, cam);				// 1st pass deferred normal & albedo
 
 		// set const buffer for global info
 		ID3D11Buffer* constBufferGlobalInfo = tre::Buffer::createConstBuffer(deviceAndContext.device.Get(), (UINT)sizeof(tre::GlobalInfoStruct));
@@ -215,7 +198,6 @@ int main()
 
 		// Draw all deferred lighting volume
 		{
-			deviceAndContext.context.Get()->PSGetShaderResources(2u, 1u, scene.lightResc.pLightShaderRescView.GetAddressOf());
 			PROFILE_GPU_SCOPED("Local Lighting");
 			graphics.deferredLightingLocalDraw(scene._wireframeObjQ, cam.camPositionV);
 		}
@@ -260,7 +242,6 @@ int main()
 		{
 			MICROPROFILE_SCOPE_CSTR("Clean Up");
 			constBufferGlobalInfo->Release();
-			constBufferCamViewProj->Release();
 		}
 
 		// record each frame

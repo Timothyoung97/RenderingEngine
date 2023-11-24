@@ -97,8 +97,8 @@ void RendererCSM::render(Graphics& graphics, Scene& scene, const Camera& cam) {
 
 		for (int viewIdx = 0; viewIdx < 4; viewIdx++) {
 
-			{	// Culling based on pointlight's view projection matrix
-				MICROPROFILE_SCOPE_CSTR("CSM Quad Obj Culling");
+			{	// Render based on pointlight's view projection matrix
+				MICROPROFILE_SCOPE_CSTR("CSM Quad Obj Draw");
 
 				setCSMViewport(graphics, viewIdx);
 

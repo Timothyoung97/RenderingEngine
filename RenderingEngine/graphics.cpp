@@ -156,24 +156,6 @@ void Graphics::configureStates(RENDER_MODE renderObjType) {
 		_context->OMSetRenderTargets(2, _gBuffer.rtvs, _depthbuffer.pDepthStencilView.Get());
 		break;
 
-	case tre::INSTANCED_DEFERRED_OPAQUE_M: // use normal draw func
-		_context->IASetInputLayout(_inputLayout.vertLayout.Get());
-		_context->VSSetShader(_vertexShaderInstanced.pShader.Get(), NULL, 0u);
-		_context->VSSetShaderResources(0u, 1, _instanceBuffer.pInstanceBufferSRV.GetAddressOf());
-
-		_context->RSSetViewports(1, &_viewport.defaultViewport);
-		_context->RSSetState(_rasterizer.pRasterizerStateFCCW.Get());
-		
-		// unbind depth buffer as a shader resource, so that we can write to it
-		_context->OMSetRenderTargets(0, nullptr, nullptr);
-		_context->PSSetShader(_instancedPixelShader.pShader.Get(), NULL, 0u);
-		_context->PSSetShaderResources(4, 1, nullSRV);
-		
-		_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
-		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
-		_context->OMSetRenderTargets(2, _gBuffer.rtvs, _depthbuffer.pDepthStencilView.Get());
-		break;
-
 	case tre::DEFERRED_OPAQUE_LIGHTING_ENV_M:
 		_context->IASetInputLayout(nullptr);
 		_context->VSSetShader(_vertexShaderFullscreenQuad.pShader.Get(), NULL, 0u);
