@@ -51,10 +51,11 @@ public:
 
 	/// <summary>
 	/// Use for batching a single instance with the same mesh but no texture/normal, typically used in wireframe draw where all meshes are the same
+	/// !!! This function is only for wireframe instanced draw call, it will batch all objects to be drawn in the same as 1 batch
 	/// </summary>
 	/// <param name="objQ"></param>
 	/// <param name="specifiedMesh"></param>
-	void updateBuffer(const std::vector<std::pair<Object*, Mesh*>>& objQ, Mesh* specifiedMesh);
+	void updateBuffer(const std::vector<Object*>& objQ, Mesh* specifiedMesh);
 
 	InstanceInfo createInstanceInfo(XMMATRIX transformationLocal, XMFLOAT4 color, UINT isWithTexture, UINT hasNormalMap);
 };

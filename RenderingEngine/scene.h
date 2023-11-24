@@ -49,7 +49,7 @@ public:
 	// Render Queue
 	std::unordered_map<int, std::vector<std::pair<tre::Object*, tre::Mesh*>>> _culledOpaqueObjQ;
 	std::vector<std::pair<tre::Object*, tre::Mesh*>> _culledTransparentObjQ;
-	std::vector<std::pair<tre::Object*, tre::Mesh*>> _wireframeObjQ;
+	std::vector<tre::Object*> _wireframeObjQ;
 
 	bool _toSortTransparentQ = false;
 	bool _toRecalDistFromCam = true; // when scene is init, to calculate distance from camera

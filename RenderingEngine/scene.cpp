@@ -231,7 +231,6 @@ void Scene::updatePtLight() {
 	_pointLightObjQ.clear();
 	_pointLightObjQ.reserve(lightResc.readOnlyPointLightQ.size());
 	_wireframeObjQ.clear();
-
 	for (int i = 0; i < lightResc.readOnlyPointLightQ.size(); i++) {
 		tre::Object newLightObj;
 
@@ -246,7 +245,7 @@ void Scene::updatePtLight() {
 		newLightObj.isInView = { true };
 
 		_pointLightObjQ.push_back(newLightObj);
-		_wireframeObjQ.push_back(std::make_pair(&_pointLightObjQ.back(), _pointLightObjQ.back().pObjMeshes[0]));
+		_wireframeObjQ.push_back(&_pointLightObjQ.back());
 	}
 }
 

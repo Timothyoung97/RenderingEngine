@@ -227,7 +227,7 @@ void Graphics::fullscreenPass(tre::RENDER_MODE mode) {
 	_context->Draw(6, 0);
 }
 
-void Graphics::deferredLightingLocalDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, XMVECTOR cameraPos) {
+void Graphics::deferredLightingLocalDraw(const std::vector<Object*>& objQ, XMVECTOR cameraPos) {
 	if (objQ.size() == 0) return;
 
 	const char* name = ToString(DEFERRED_LIGHTING_LOCAL_M);
@@ -240,10 +240,10 @@ void Graphics::deferredLightingLocalDraw(const std::vector<std::pair<Object*, Me
 	UINT offset = 0;
 
 	//Set vertex buffer
-	_context->IASetVertexBuffers(0, 1, objQ[0].second->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
+	_context->IASetVertexBuffers(0, 1, objQ[0]->pObjMeshes[0]->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
 
 	//Set index buffer
-	_context->IASetIndexBuffer(objQ[0].second->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+	_context->IASetIndexBuffer(objQ[0]->pObjMeshes[0]->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
 	// Create empty const buffer and pre bind the constant buffer
 	ID3D11Buffer* constBufferModelInfo = tre::Buffer::createConstBuffer(_device, sizeof(tre::ModelInfoStruct));
@@ -257,7 +257,7 @@ void Graphics::deferredLightingLocalDraw(const std::vector<std::pair<Object*, Me
 
 		// Submit each object's data to const buffer
 		{
-			tre::ModelInfoStruct modelInfoStruct = tre::CommonStructUtility::createModelInfoStruct(objQ[i].first->_transformationFinal, objQ[i].second->pMaterial->baseColor, 0u, 0u);
+			tre::ModelInfoStruct modelInfoStruct = tre::CommonStructUtility::createModelInfoStruct(objQ[i]->_transformationFinal, objQ[i]->pObjMeshes[0]->pMaterial->baseColor, 0u, 0u);
 			tre::Buffer::updateConstBufferData(_context, constBufferModelInfo, &modelInfoStruct, sizeof(tre::ModelInfoStruct));
 		}
 
@@ -267,15 +267,15 @@ void Graphics::deferredLightingLocalDraw(const std::vector<std::pair<Object*, Me
 			tre::Buffer::updateConstBufferData(_context, constBufferPtLightInfo, &ptLightInfoStruct, sizeof(tre::PointLightInfoStruct));
 		}
 
-		float distFromObjToCam = tre::Maths::distBetweentObjToCam(objQ[i].first->objPos, cameraPos);
+		float distFromObjToCam = tre::Maths::distBetweentObjToCam(objQ[i]->objPos, cameraPos);
 		
 		// if the camera is inside the light sphere
-		if (distFromObjToCam < objQ[i].first->objScale.x) {
+		if (distFromObjToCam < objQ[i]->objScale.x) {
 			_context->RSSetState(_rasterizer.pRasterizerStateFCW.Get()); // render only back face
 			_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithoutDepthT.Get(), 0); // all depth test pass to render the sphere
 		}
 
-		_context->DrawIndexed(objQ[i].second->indexSize, 0, 0);
+		_context->DrawIndexed(objQ[i]->pObjMeshes[0]->indexSize, 0, 0);
 	}
 
 	// clean up

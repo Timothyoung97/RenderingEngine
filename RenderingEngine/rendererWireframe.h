@@ -29,9 +29,9 @@ public:
 
 	void setConstBufferCamViewProj(Graphics& graphic, const Camera& cam);
 
-	void draw(Graphics& graphics, const std::vector<std::pair<Object*, Mesh*>>& renderQ);
+	void draw(Graphics& graphics, const std::vector<Object*>& renderQ);
 
-	void drawInstanced(Graphics& graphics, const std::vector<std::pair<Object*, Mesh*>>& renderQ);
+	void drawInstanced(Graphics& graphics, const std::vector<Object*>& renderQ);
 
 	void render(Graphics& graphics, const Camera& cam, const Scene& scene);
 

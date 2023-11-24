@@ -131,7 +131,7 @@ public:
 	void clearSwapChainBuffer();
 	void draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MODE renderMode);
 	void fullscreenPass(tre::RENDER_MODE mode);
-	void deferredLightingLocalDraw(const std::vector<std::pair<Object*, Mesh*>> objQ, XMVECTOR cameraPos);
+	void deferredLightingLocalDraw(const std::vector<Object*>& objQ, XMVECTOR cameraPos);
 	void instancedDraw(const std::vector<std::pair<Object*, Mesh*>>& objQ, RENDER_MODE renderMode);
 
 };

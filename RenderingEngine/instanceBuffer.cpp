@@ -1,5 +1,7 @@
 #include "instanceBuffer.h"
 
+#include <set>
+
 #include "dxdebug.h"
 
 namespace tre {
@@ -111,9 +113,30 @@ void InstanceBuffer::updateBuffer(const std::vector<std::pair<Object*, Mesh*>>& 
 	));
 }
 
-void InstanceBuffer::updateBuffer(const std::vector<std::pair<Object*, Mesh*>>& objQ, Mesh* specifiedMesh) {
+void InstanceBuffer::updateBuffer(const std::vector<Object*>& objQ, Mesh* specifiedMesh) {
 	std::vector<InstanceInfo> instanceInfoQ;
 	instanceBatchQueue.clear();
+
+	std::set<Object*> processed;
+	int quantity = 0;
+	for (int i = 0; i < objQ.size(); i++) {
+		// Each instance's information
+		Object* pObj = objQ[i];
+		if (processed.contains(pObj)) {
+			continue;
+		}
+
+		processed.insert(pObj);
+		for (int j = 0; j < pObj->_boundingVolumeTransformation.size(); j++) {
+			// Push each instance's information to the vector
+			if (!pObj->isInView[j]) {
+				continue;
+			}
+			InstanceInfo newInstInfo = this->createInstanceInfo(pObj->_boundingVolumeTransformation[j], pObj->_boundingVolumeColor[j], 0u, 0u);
+			instanceInfoQ.push_back(newInstInfo);
+			quantity++;
+		}
+	}
 
 	InstanceBatchInfo singleBatch;
 	singleBatch.batchStartIdx = 0;
@@ -122,18 +145,8 @@ void InstanceBuffer::updateBuffer(const std::vector<std::pair<Object*, Mesh*>>& 
 	singleBatch.pBatchMesh = specifiedMesh;
 	singleBatch.pBatchNormalMap = nullptr;
 	singleBatch.pBatchTexture = nullptr;
-	singleBatch.quantity = objQ.size();
+	singleBatch.quantity = quantity;
 	instanceBatchQueue.push_back(singleBatch);
-
-	for (int i = 0; i < objQ.size(); i++) {
-		// Each instance's information
-		Object* pObj = objQ[i].first;
-		for (int j = 0; j < pObj->_boundingVolumeTransformation.size(); j++) {
-			// Push each instance's information to the vector
-			InstanceInfo newInstInfo = this->createInstanceInfo(pObj->_boundingVolumeTransformation[j], pObj->_boundingVolumeColor[j], 0u, 0u);
-			instanceInfoQ.push_back(newInstInfo);
-		}
-	}
 
 	D3D11_BUFFER_DESC pInstanceBufferDesc;
 	pInstanceBufferDesc.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE;

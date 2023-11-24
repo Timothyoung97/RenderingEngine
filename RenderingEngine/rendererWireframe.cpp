@@ -1,4 +1,7 @@
 #include "rendererWireframe.h"
+
+#include <set>
+
 #include "utility.h"
 
 namespace tre {
@@ -43,7 +46,7 @@ void RendererWireframe::setConstBufferCamViewProj(Graphics& graphic, const Camer
 	graphic.bufferQueue.push_back(constBufferCamViewProj);
 }
 
-void RendererWireframe::draw(Graphics& graphics, const std::vector<std::pair<Object*, Mesh*>>& objQ) {
+void RendererWireframe::draw(Graphics& graphics, const std::vector<Object*>& objQ) {
 	if (objQ.size() == 0 || !graphics.setting.showBoundingVolume) return;
 
 	const char* name = ToString(RENDER_MODE::WIREFRAME_M);
@@ -80,11 +83,20 @@ void RendererWireframe::draw(Graphics& graphics, const std::vector<std::pair<Obj
 		_context->PSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
 	}
 
+	std::set<Object*> processed;
 	for (int i = 0; i < objQ.size(); i++) {
 
-		tre::Object* currObj = objQ[i].first;
+		tre::Object* currObj = objQ[i];
+		if (processed.contains(currObj)) {
+			continue;
+		}
 
+		processed.insert(currObj);
 		for (int j = 0; j < currObj->pObjMeshes.size(); j++) {
+
+			if (!currObj->isInView[j]) {
+				continue;
+			}
 
 			// Submit each object's data to const buffer
 			{
@@ -102,7 +114,7 @@ void RendererWireframe::draw(Graphics& graphics, const std::vector<std::pair<Obj
 	}
 }
 
-void RendererWireframe::drawInstanced(Graphics& graphics, const std::vector<std::pair<Object*, Mesh*>>& objQ) {
+void RendererWireframe::drawInstanced(Graphics& graphics, const std::vector<Object*>& objQ) {
 	if (objQ.size() == 0 || !graphics.setting.showBoundingVolume) return;
 	const char* name = ToString(tre::RENDER_MODE::WIREFRAME_M);
 	MICROPROFILE_SCOPE_CSTR(name);
@@ -157,13 +169,12 @@ void RendererWireframe::drawInstanced(Graphics& graphics, const std::vector<std:
 	}
 }
 
-
 void RendererWireframe::render(Graphics& graphics, const Camera& cam, const Scene& scene) {
 	PROFILE_GPU_SCOPED("Bounding Volume Wireframe");
 	setConstBufferCamViewProj(graphics, cam);
-	drawInstanced(graphics, scene._wireframeObjQ);			// for point lights
-	drawInstanced(graphics, scene._culledOpaqueObjQ.at(0));		// for opaque objects
-	drawInstanced(graphics, scene._culledTransparentObjQ);	// for transparent objects
+
+	drawInstanced(graphics, scene._wireframeObjQ);		// for point lights
+	drawInstanced(graphics, scene._pObjQ);				// for all opaque + transparent objects
 }
 
 }
