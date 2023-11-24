@@ -42,8 +42,6 @@ public:
 	ComPtr<ID3D11Buffer> pInstanceBuffer;
 	ComPtr<ID3D11ShaderResourceView> pInstanceBufferSRV;
 
-	int lastBufferSize = 100; // hardcoded initial buffer size
-
 	std::vector<InstanceBatchInfo> instanceBatchQueue;
 
 	void createBuffer(ID3D11Device* _device, ID3D11DeviceContext* _context);

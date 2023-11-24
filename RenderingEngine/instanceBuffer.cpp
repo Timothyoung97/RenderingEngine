@@ -140,7 +140,7 @@ void InstanceBuffer::updateBuffer(const std::vector<std::pair<Object*, Mesh*>>& 
 	pInstanceBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	pInstanceBufferDesc.CPUAccessFlags = 0u;
 	pInstanceBufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-	pInstanceBufferDesc.ByteWidth = static_cast<UINT>(sizeof(InstanceInfo) * instanceInfoQ.size()); //hardcoded initial size
+	pInstanceBufferDesc.ByteWidth = static_cast<UINT>(sizeof(InstanceInfo) * instanceInfoQ.size()); 
 	pInstanceBufferDesc.StructureByteStride = static_cast<UINT>(sizeof(InstanceInfo));
 
 	D3D11_SUBRESOURCE_DATA pInstanceBufferData = {};
