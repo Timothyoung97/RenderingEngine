@@ -16,7 +16,6 @@ void RendererGBuffer::render(Graphics& graphics, Scene& scene, Camera& cam) {
 
 	const char* name = ToString(RENDER_MODE::INSTANCED_DEFERRED_OPAQUE_M);
 	MICROPROFILE_SCOPE_CSTR(name);
-	PROFILE_GPU_SCOPED("G-Buffer Instanced Draw");
 
 	// View Projection Const Buffer
 	ID3D11Buffer* constBufferCamViewProj = tre::Buffer::createConstBuffer(_device, (UINT)sizeof(tre::ViewProjectionStruct));
@@ -55,7 +54,8 @@ void RendererGBuffer::render(Graphics& graphics, Scene& scene, Camera& cam) {
 
 	// Create an empty const buffer 
 	ID3D11Buffer* constBufferBatchInfo = tre::Buffer::createConstBuffer(_device, (UINT)sizeof(tre::BatchInfoStruct));
-
+	
+	PROFILE_GPU_SCOPED("G-Buffer Instanced Draw");
 	for (int i = 0; i < graphics._instanceBuffer.instanceBatchQueue.size(); i++) {
 		InstanceBatchInfo currBatchInfo = graphics._instanceBuffer.instanceBatchQueue[i];
 

@@ -1,8 +1,9 @@
 #include "instanceBuffer.h"
 
-#include <set>
-
 #include "dxdebug.h"
+#include "utility.h"
+
+#include <set>
 
 namespace tre {
 
@@ -31,6 +32,9 @@ InstanceInfo InstanceBuffer::createInstanceInfo(XMMATRIX transformationLocal, XM
 
 void InstanceBuffer::updateBuffer(const std::vector<std::pair<Object*, Mesh*>>& objQ) {
 	
+	MICROPROFILE_SCOPE_CSTR("Batching Instances");
+	PROFILE_GPU_SCOPED("GPU Batching Instances");
+
 	std::vector<InstanceInfo> instanceInfoQ;
 	instanceBatchQueue.clear();
 
@@ -114,6 +118,10 @@ void InstanceBuffer::updateBuffer(const std::vector<std::pair<Object*, Mesh*>>& 
 }
 
 void InstanceBuffer::updateBuffer(const std::vector<Object*>& objQ, Mesh* specifiedMesh) {
+
+	MICROPROFILE_SCOPE_CSTR("Batching Instances Wireframe");
+	PROFILE_GPU_SCOPED("GPU Batching Instances Wireframe");
+
 	std::vector<InstanceInfo> instanceInfoQ;
 	instanceBatchQueue.clear();
 
