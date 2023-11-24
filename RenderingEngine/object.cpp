@@ -2,41 +2,62 @@
 #include "colors.h"
 
 namespace tre {
-	
-XMMATRIX Object::makeLocalToWorldMatrix() {
-	XMMATRIX localTransformation = Maths::createTransformationMatrix(this->objScale, this->objRotation, this->objPos);
 
-	if (this->parent != nullptr) {
-		XMMATRIX parentMatrix = this->parent->makeLocalToWorldMatrix();
+void ObjectUtility::updateBoundingVolumeTransformation(Object& obj, BoundVolumeEnum typeOfBound) {
+	obj._boundingVolumeTransformation.clear();
+	for (int i = 0; i < obj.pObjMeshes.size(); i++) {
+		switch (typeOfBound) {
+		case tre::AABBBoundingBox:
+			obj._boundingVolumeTransformation.push_back(tre::BoundingVolume::updateAABB(obj.pObjMeshes[i]->aabb, obj.aabb[i], obj._transformationFinal));
+			break;
+		case tre::RitterBoundingSphere:
+			obj._boundingVolumeTransformation.push_back(tre::BoundingVolume::updateBoundingSphere(obj.pObjMeshes[i]->ritterSphere, obj.ritterBs[i], obj._transformationFinal));
+			break;
+		case tre::NaiveBoundingSphere:
+			obj._boundingVolumeTransformation.push_back(tre::BoundingVolume::updateBoundingSphere(obj.pObjMeshes[i]->naiveSphere, obj.naiveBs[i], obj._transformationFinal));
+			break;
+		}
+	}
+
+	// update for children
+	for (Object& child : obj.children) {
+		updateBoundingVolumeTransformation(child, typeOfBound);
+	}
+}
+
+XMMATRIX ObjectUtility::makeLocalToWorldMatrix(Object& obj) {
+	XMMATRIX localTransformation = Maths::createTransformationMatrix(obj.objScale, obj.objRotation, obj.objPos);
+
+	if (obj.parent != nullptr) {
+		XMMATRIX parentMatrix = makeLocalToWorldMatrix(*obj.parent);
 		localTransformation = XMMatrixMultiply(parentMatrix, localTransformation);
 	}
 
 	return localTransformation;
 }
 
-bool Object::isMeshWithinView(int meshIdx, Frustum& frustum, BoundVolumeEnum typeOfBound, bool toChangeColor) {
+bool ObjectUtility::isMeshWithinView(Object& obj, int meshIdx, Frustum& frustum, BoundVolumeEnum typeOfBound, bool toChangeColor) {
 	int isWithinView = 0;
 
 	switch (typeOfBound) {
 	case RitterBoundingSphere:
-		if (ritterBs[meshIdx].isInFrustum(frustum)) {
+		if (obj.ritterBs[meshIdx].isInFrustum(frustum)) {
 			isWithinView = 2;
 		}
-		else if (ritterBs[meshIdx].isOverlapFrustum(frustum)) {
+		else if (obj.ritterBs[meshIdx].isOverlapFrustum(frustum)) {
 			isWithinView = 1;
 		}
 		else {
-			_boundingVolumeColor[meshIdx] = tre::colorF(Colors::Red);
 			//addToQ = 1; //debug
 		}
 
 		break;
 
 	case NaiveBoundingSphere:
-		if (naiveBs[meshIdx].isInFrustum(frustum)) {
+		if (obj.naiveBs[meshIdx].isInFrustum(frustum)) {
 			isWithinView = 2;
 		}
-		else if (naiveBs[meshIdx].isOverlapFrustum(frustum)) {
+		else if (obj.naiveBs[meshIdx].isOverlapFrustum(frustum)) {
 			isWithinView = 1;
 		}
 		else {
@@ -46,10 +67,10 @@ bool Object::isMeshWithinView(int meshIdx, Frustum& frustum, BoundVolumeEnum typ
 		break;
 
 	case AABBBoundingBox:
-		if (aabb[meshIdx].isInFrustum(frustum)) {
+		if (obj.aabb[meshIdx].isInFrustum(frustum)) {
 			isWithinView = 2;
 		}
-		else if (aabb[meshIdx].isOverlapFrustum(frustum)) {
+		else if (obj.aabb[meshIdx].isOverlapFrustum(frustum)) {
 			isWithinView = 1;
 		}
 		else {
@@ -63,13 +84,13 @@ bool Object::isMeshWithinView(int meshIdx, Frustum& frustum, BoundVolumeEnum typ
 		switch (isWithinView)
 		{
 		case 2:
-			_boundingVolumeColor[meshIdx] = tre::colorF(Colors::LightGreen);
+			obj._boundingVolumeColor[meshIdx] = tre::colorF(Colors::LightGreen);
 			break;
 		case 1:
-			_boundingVolumeColor[meshIdx] = tre::colorF(Colors::Blue);
+			obj._boundingVolumeColor[meshIdx] = tre::colorF(Colors::Blue);
 			break;
 		default:
-			_boundingVolumeColor[meshIdx] = tre::colorF(Colors::Red);
+			obj._boundingVolumeColor[meshIdx] = tre::colorF(Colors::Red);
 			break;
 		}
 	}

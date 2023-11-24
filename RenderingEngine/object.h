@@ -23,7 +23,7 @@ struct Object {
 	std::vector<BoundingSphere> naiveBs;
 	std::vector<AABB> aabb;
 	std::vector<XMFLOAT4> _boundingVolumeColor;
-	XMMATRIX _boundingVolumeTransformation;
+	std::vector<XMMATRIX> _boundingVolumeTransformation;
 
 	XMFLOAT3 objPos;
 	XMFLOAT3 objScale;
@@ -33,9 +33,14 @@ struct Object {
 	aiMatrix4x4 _transformationAssimp;
 
 	float distFromCam;
+};
 
-	XMMATRIX makeLocalToWorldMatrix();
-	bool isMeshWithinView(int meshIdx, Frustum& frustum, BoundVolumeEnum typeOfBound, bool toChangeColor);
+class ObjectUtility {
+public:
+	static void updateBoundingVolumeTransformation(Object& obj, BoundVolumeEnum typeOfBound);
+	static XMMATRIX makeLocalToWorldMatrix(Object& obj);
+	static bool isMeshWithinView(Object& obj, int meshIdx, Frustum& frustum, BoundVolumeEnum typeOfBound, bool toChangeColor);
+
 };
 
 }

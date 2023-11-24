@@ -123,19 +123,7 @@ void Scene::updateBoundingVolume(BoundVolumeEnum typeOfBound) {
 
 	for (int i = 0; i < _pObjQ.size(); i++) {
 		Object* pObj = _pObjQ[i];
-		for (int j = 0; j < pObj->pObjMeshes.size(); j++) {
-			switch (typeOfBound) {
-			case tre::AABBBoundingBox:
-				pObj->_boundingVolumeTransformation = tre::BoundingVolume::updateAABB(pObj->pObjMeshes[j]->aabb, pObj->aabb[j], pObj->_transformationFinal);
-				break;
-			case tre::RitterBoundingSphere:
-				pObj->_boundingVolumeTransformation = tre::BoundingVolume::updateBoundingSphere(pObj->pObjMeshes[j]->ritterSphere, pObj->ritterBs[j], pObj->_transformationFinal);
-				break;
-			case tre::NaiveBoundingSphere:
-				pObj->_boundingVolumeTransformation = tre::BoundingVolume::updateBoundingSphere(pObj->pObjMeshes[j]->naiveSphere, pObj->naiveBs[j], pObj->_transformationFinal);
-				break;
-			}
-		}
+		tre::ObjectUtility::updateBoundingVolumeTransformation(*pObj, typeOfBound);
 	}
 }
 
@@ -198,13 +186,13 @@ void Scene::cullObject(std::vector<Frustum>& frustums, BoundVolumeEnum typeOfBou
 				Mesh* pMesh = pObj->pObjMeshes[j];
 
 				bool isTransparent = pMesh->pMaterial->isTransparent();
-				bool addToQ = pObj->isMeshWithinView(j, frustums[viewIdx], typeOfBound, viewIdx == camViewIdx);
+				bool addToQ = tre::ObjectUtility::isMeshWithinView(*pObj, j, frustums[viewIdx], typeOfBound, viewIdx == camViewIdx);
 
-				if (addToQ > 0) {
+				if (addToQ) {
 					if (isTransparent && viewIdx == 0) {
 						_toSortTransparentQ = true;
 						_culledTransparentObjQ.push_back(std::make_pair(pObj, pMesh));
-						break;
+						continue;
 					}
 					_culledOpaqueObjQ[viewIdx].push_back(std::make_pair(pObj, pMesh));
 				}
@@ -253,7 +241,7 @@ void Scene::updatePtLight() {
 		newLightObj.objRotation = XMFLOAT3(.0f, .0f, .0f);
 		newLightObj._boundingVolumeColor = { tre::colorF(Colors::White) };
 		newLightObj._transformationFinal = tre::Maths::createTransformationMatrix(newLightObj.objScale, newLightObj.objRotation, newLightObj.objPos);
-		newLightObj._boundingVolumeTransformation = newLightObj._transformationFinal;
+		newLightObj._boundingVolumeTransformation.push_back(newLightObj._transformationFinal);
 
 		_pointLightObjQ.push_back(newLightObj);
 		_wireframeObjQ.push_back(std::make_pair(&_pointLightObjQ.back(), _pointLightObjQ.back().pObjMeshes[0]));

@@ -88,7 +88,7 @@ void RendererWireframe::draw(Graphics& graphics, const std::vector<std::pair<Obj
 
 			// Submit each object's data to const buffer
 			{
-				tre::ModelInfoStruct modelInfoStruct = tre::CommonStructUtility::createModelInfoStruct(currObj->_boundingVolumeTransformation, currObj->_boundingVolumeColor[j], 0u, 0u);
+				tre::ModelInfoStruct modelInfoStruct = tre::CommonStructUtility::createModelInfoStruct(currObj->_boundingVolumeTransformation[j], currObj->_boundingVolumeColor[j], 0u, 0u);
 				tre::Buffer::updateConstBufferData(_context, constBufferModelInfo, &modelInfoStruct, sizeof(tre::ModelInfoStruct));
 			}
 

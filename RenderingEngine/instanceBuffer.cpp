@@ -128,10 +128,11 @@ void InstanceBuffer::updateBuffer(const std::vector<std::pair<Object*, Mesh*>>& 
 	for (int i = 0; i < objQ.size(); i++) {
 		// Each instance's information
 		Object* pObj = objQ[i].first;
-
-		// Push each instance's information to the vector
-		InstanceInfo newInstInfo = this->createInstanceInfo(pObj->_boundingVolumeTransformation, pObj->_boundingVolumeColor[0], 0u, 0u);
-		instanceInfoQ.push_back(newInstInfo);
+		for (int j = 0; j < pObj->_boundingVolumeTransformation.size(); j++) {
+			// Push each instance's information to the vector
+			InstanceInfo newInstInfo = this->createInstanceInfo(pObj->_boundingVolumeTransformation[j], pObj->_boundingVolumeColor[j], 0u, 0u);
+			instanceInfoQ.push_back(newInstInfo);
+		}
 	}
 
 	D3D11_BUFFER_DESC pInstanceBufferDesc;
