@@ -72,6 +72,7 @@ void Scene::createFloor() {
 	_floor.aabb = { _floor.pObjMeshes[0]->aabb };
 	_floor.ritterBs = { _floor.pObjMeshes[0]->ritterSphere };
 	_floor.naiveBs = { _floor.pObjMeshes[0]->naiveSphere };
+	_floor.isInView = { true };
 	_floor._boundingVolumeColor = { tre::colorF(Colors::WhiteSmoke) };
 	_floor._transformationFinal = tre::Maths::createTransformationMatrix(_floor.objScale, _floor.objRotation, _floor.objPos);
 	_pObjQ.push_back(&_floor);
@@ -242,6 +243,7 @@ void Scene::updatePtLight() {
 		newLightObj._boundingVolumeColor = { tre::colorF(Colors::White) };
 		newLightObj._transformationFinal = tre::Maths::createTransformationMatrix(newLightObj.objScale, newLightObj.objRotation, newLightObj.objPos);
 		newLightObj._boundingVolumeTransformation.push_back(newLightObj._transformationFinal);
+		newLightObj.isInView = { true };
 
 		_pointLightObjQ.push_back(newLightObj);
 		_wireframeObjQ.push_back(std::make_pair(&_pointLightObjQ.back(), _pointLightObjQ.back().pObjMeshes[0]));
@@ -263,6 +265,7 @@ tre::Object* Scene::addRandomObj() {
 	newObj.objScale = XMFLOAT3(scaleVal, scaleVal, scaleVal);
 	newObj.objRotation = XMFLOAT3(tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360), tre::Utility::getRandomFloat(360));
 	newObj._boundingVolumeColor = { tre::colorF(Colors::Green) };
+	newObj.isInView = { true };
 	newObj.ritterBs = { newObj.pObjMeshes[0]->ritterSphere };
 	newObj.naiveBs = { newObj.pObjMeshes[0]->naiveSphere };
 	newObj.aabb = { newObj.pObjMeshes[0]->aabb };

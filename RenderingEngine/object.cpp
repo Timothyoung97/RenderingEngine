@@ -36,7 +36,7 @@ XMMATRIX ObjectUtility::makeLocalToWorldMatrix(Object& obj) {
 	return localTransformation;
 }
 
-bool ObjectUtility::isMeshWithinView(Object& obj, int meshIdx, Frustum& frustum, BoundVolumeEnum typeOfBound, bool toChangeColor) {
+bool ObjectUtility::isMeshWithinView(Object& obj, int meshIdx, Frustum& frustum, BoundVolumeEnum typeOfBound, bool isCameraView) {
 	int isWithinView = 0;
 
 	switch (typeOfBound) {
@@ -80,7 +80,8 @@ bool ObjectUtility::isMeshWithinView(Object& obj, int meshIdx, Frustum& frustum,
 		break;
 	}
 
-	if (toChangeColor) {
+	if (isCameraView) {
+		obj.isInView[meshIdx] = isWithinView != 0;
 		switch (isWithinView)
 		{
 		case 2:

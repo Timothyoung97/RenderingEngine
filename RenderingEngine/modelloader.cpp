@@ -143,6 +143,7 @@ void ModelLoader::processNode(aiNode* currNode, Object* currObj, Object* pParent
 			currObj->ritterBs.push_back(currObj->pObjMeshes.back()->ritterSphere);
 			currObj->naiveBs.push_back(currObj->pObjMeshes.back()->naiveSphere);
 			currObj->_boundingVolumeColor.push_back(tre::colorF(Colors::LightGreen));
+			currObj->isInView.push_back(true);
 		}
 	}
 

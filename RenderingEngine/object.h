@@ -18,12 +18,12 @@ struct Object {
 	std::vector<Object> children;
 
 	std::vector<Mesh*> pObjMeshes;
-	
 	std::vector<BoundingSphere> ritterBs;
 	std::vector<BoundingSphere> naiveBs;
 	std::vector<AABB> aabb;
 	std::vector<XMFLOAT4> _boundingVolumeColor;
 	std::vector<XMMATRIX> _boundingVolumeTransformation;
+	std::vector<bool> isInView;
 
 	XMFLOAT3 objPos;
 	XMFLOAT3 objScale;

@@ -131,6 +131,7 @@ int main()
 	debugModel.naiveBs = { debugModel.pObjMeshes[0]->naiveSphere };
 	debugModel.aabb = { debugModel.pObjMeshes[0]->aabb };
 	debugModel._boundingVolumeColor = { tre::colorF(Colors::LightGreen) };
+	debugModel.isInView = { true };
 	scene._objQ.push_back(debugModel);
 	scene._pObjQ.push_back(&scene._objQ.back());
 
