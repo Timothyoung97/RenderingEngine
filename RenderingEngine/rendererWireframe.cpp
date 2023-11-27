@@ -126,6 +126,7 @@ void RendererWireframe::drawInstanced(Graphics& graphics, const std::vector<Obje
 	// Update instance buffer with wireframe mesh
 	{
 		graphics._instanceBuffer.updateBuffer(objQ, meshToRender);
+		if (graphics._instanceBuffer.instanceBatchQueue.empty()) return;
 	}
 
 	{
