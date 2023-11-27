@@ -1,5 +1,7 @@
 #include "imguihelper.h"
 
+#include "utility.h"
+
 ImguiHelper::ImguiHelper(ID3D11Device* device, ID3D11DeviceContext* context, tre::Window* window, tre::Scene* scene, tre::GraphicsSetting* renSetting, tre::GraphicsStats* renStats, tre::Camera* cam, tre::Object* debugObj) {
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
@@ -24,6 +26,10 @@ ImguiHelper::ImguiHelper(ID3D11Device* device, ID3D11DeviceContext* context, tre
 }
 
 void ImguiHelper::render() {
+
+	MICROPROFILE_SCOPE_CSTR("IMGUI");
+	PROFILE_GPU_SCOPED("IMGUI");
+
 	ImGuiIO& io = ImGui::GetIO();
 
 	// Start the Dear ImGui frame

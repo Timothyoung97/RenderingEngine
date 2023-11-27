@@ -11,5 +11,6 @@ class Timer {
 public:
 	Timer();
 	float getDeltaTime();
+	void spinWait();
 };
 }

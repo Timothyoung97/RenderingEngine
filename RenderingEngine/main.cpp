@@ -26,6 +26,7 @@
 #include "input.h"
 #include "maths.h"
 #include "mesh.h"
+#include "microprofiler.h"
 #include "modelloader.h"
 #include "object.h"
 #include "rendererCSM.h"
@@ -48,37 +49,23 @@ using Microsoft::WRL::ComPtr;
 
 int main()
 {
-	// set random seed
-	srand((uint32_t)time(NULL));
-
-	//Create Window
-	tre::Window window("RenderingEngine", tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);
-
-	//Create Device 
-	tre::Device deviceAndContext;
-
-	{	// microprofile setting
-		MicroProfileOnThreadCreate("Main");
-		MicroProfileSetEnableAllGroups(true);
-		MicroProfileSetForceMetaCounters(true);
-
-		MicroProfileGpuInitD3D11(deviceAndContext.device.Get(), deviceAndContext.context.Get());
-		MICROPROFILE_GPU_SET_CONTEXT(deviceAndContext.context.Get(), MicroProfileGetGlobalGpuThreadLog());
-		MicroProfileStartContextSwitchTrace();
-	}
-
-	// Scene
-	tre::Scene scene(deviceAndContext.device.Get(), deviceAndContext.context.Get());
-
-	//Create Camera
-	tre::Camera cam(tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);
-
-	//File path
-	std::string basePathStr = tre::Utility::getBasePathStr();
 	
-	// Loading model
-	tre::ModelLoader ml;
+	srand((uint32_t)time(NULL));	// set random seed
+	
+	tre::Window window("RenderingEngine", tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);	//Create Window
 
+	tre::Device deviceAndContext; 	//Create Device 
+
+	tre::MicroProfiler profiler(deviceAndContext.device.Get(), deviceAndContext.context.Get()); 	// Create Profiler
+
+
+	tre::Scene scene(deviceAndContext.device.Get(), deviceAndContext.context.Get()); 	// Create Scene
+
+	
+	tre::Camera cam(tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);	// Create Camera
+
+	std::string basePathStr = tre::Utility::getBasePathStr();	//File path
+	
 	pfd::open_file f = pfd::open_file("Choose files to read", basePathStr,
 		{ 
 			"All Files", "*" ,
@@ -88,6 +75,7 @@ int main()
 		pfd::opt::force_path
 	);
 
+	tre::ModelLoader ml;	// Loading model
 	if (f.result().size()) {
 		ml.load(deviceAndContext.device.Get(), f.result()[0]);
 
@@ -118,6 +106,25 @@ int main()
 	//Delta Time between frame
 	float deltaTime = 0;
 
+	// Testing Obj
+	tre::Object debugModel;
+	{
+		debugModel.pObjMeshes = { &scene._debugMeshes[4] };
+		debugModel.pObjMeshes[0]->pMaterial = &scene._debugMaterials[4];
+		debugModel.objPos = XMFLOAT3(.0f, .5f, .0f);
+		debugModel.objScale = XMFLOAT3(1.f, 1.f, 1.f);
+		debugModel.objRotation = XMFLOAT3(.0f, .0f, .0f);
+		debugModel.ritterBs = { debugModel.pObjMeshes[0]->ritterSphere };
+		debugModel.naiveBs = { debugModel.pObjMeshes[0]->naiveSphere };
+		debugModel.aabb = { debugModel.pObjMeshes[0]->aabb };
+		debugModel._boundingVolumeColor = { tre::colorF(Colors::LightGreen) };
+		debugModel.isInView = { true };
+		scene._objQ.push_back(debugModel);
+		scene._pObjQ.push_back(&scene._objQ.back());
+	}
+	tre::Object* pDebugModel = scene._pObjQ.back();
+
+	// Stats Update
 	for (int i = 0; i < scene._pObjQ.size(); i++) {
 		for (int j = 0; j < scene._pObjQ[i]->pObjMeshes.size(); j++) {
 			graphics.stats.totalMeshCount++;
@@ -131,35 +138,8 @@ int main()
 		}
 	}
 
-	// Testing Obj
-	tre::Object debugModel;
-
-	debugModel.pObjMeshes = { &scene._debugMeshes[4] };
-	debugModel.pObjMeshes[0]->pMaterial = &scene._debugMaterials[4];
-	debugModel.objPos = XMFLOAT3(.0f, .5f, .0f);
-	debugModel.objScale = XMFLOAT3(1.f, 1.f, 1.f);
-	debugModel.objRotation = XMFLOAT3(.0f, .0f, .0f);
-	debugModel.ritterBs = { debugModel.pObjMeshes[0]->ritterSphere };
-	debugModel.naiveBs = { debugModel.pObjMeshes[0]->naiveSphere };
-	debugModel.aabb = { debugModel.pObjMeshes[0]->aabb };
-	debugModel._boundingVolumeColor = { tre::colorF(Colors::LightGreen) };
-	debugModel.isInView = { true };
-	scene._objQ.push_back(debugModel);
-	scene._pObjQ.push_back(&scene._objQ.back());
-
-	tre::Object* pDebugModel = scene._pObjQ.back();
-
 	// create imgui
-	ImguiHelper imguiHelper(
-		deviceAndContext.device.Get(),
-		deviceAndContext.context.Get(),
-		&window,
-		&scene,
-		&graphics.setting,
-		&graphics.stats,
-		&cam,
-		pDebugModel
-	);
+	ImguiHelper imguiHelper(deviceAndContext.device.Get(), deviceAndContext.context.Get(), &window, &scene, &graphics.setting, &graphics.stats, &cam, pDebugModel);
 
 	// main loop
 	while (!input.shouldQuit())
@@ -167,7 +147,6 @@ int main()
 		MICROPROFILE_SCOPE_CSTR("Frame");
 
 		tre::Timer timer;
-
 		graphics.clean();											// Clear buffer + clean up
 		input.updateInputEvent();									// Update input event
 		control.update(input, graphics, scene, cam, deltaTime);		// Update control
@@ -182,46 +161,15 @@ int main()
 		rendererLocalLighting.render(graphics, scene, cam);			// Local Lighting Pass
 		rendererHDR.render(graphics);								// HDR Pass
 		rendererWireframe.render(graphics, cam, scene);				// Wireframe Debug Pass
-
-		// Imgui Tool
-		{
-			MICROPROFILE_SCOPE_CSTR("IMGUI");
-			PROFILE_GPU_SCOPED("IMGUI");
-			imguiHelper.render();
-		}
-
-		{
-			MICROPROFILE_SCOPE_CSTR("Swap Chain Present");
-
-			const UINT kSyncInterval = 0; // Need to sync CPU frame to this function if we want V-SYNC
-
-			// When using sync interval 0, it is recommended to always pass the tearing flag when it is supported.
-			const UINT presentFlags = (kSyncInterval == 0 && graphics._swapchain.m_bTearingSupported) ? DXGI_PRESENT_ALLOW_TEARING : 0;
-
-			CHECK_DX_ERROR(graphics._swapchain.mainSwapchain->Present(kSyncInterval, presentFlags));
-		}
-
-		if (control.toDumpFile) {
-			spdlog::info("Profiling");
-			MicroProfileDumpFileImmediately("profile.html", nullptr, deviceAndContext.context.Get());
-			control.toDumpFile = false;
-		}
-
-		{
-			MICROPROFILE_SCOPE_CSTR("Spin Wait");
-			// framerate control
-			while (timer.getDeltaTime() < 1000.0 / 60) {
-			}
-		}
-
-		deltaTime = timer.getDeltaTime();
-
-		// record each frame
-		MicroProfileFlip(deviceAndContext.context.Get());
+		imguiHelper.render();										// IMGUI tool
+		graphics.present();											// Present final frame image
+		timer.spinWait();											// framerate control
+		deltaTime = timer.getDeltaTime();							// Update frame time
+		profiler.recordFrame();										// record each frame
+		profiler.storeToDisk(control.toDumpFile);					// Store profiel log into disk
 	}
 
-	MicroProfileGpuShutdown();
-	MicroProfileShutdown();
+	profiler.cleanup();
 	imguiHelper.cleanup();
 
 	return 0;

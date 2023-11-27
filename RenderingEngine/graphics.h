@@ -119,6 +119,8 @@ public:
 	void clean();
 	void clearSwapChainBuffer();
 
+	void present();
+
 	////////////////// Deprecated //////////////////
 	//void configureStates(RENDER_MODE renderMode);
 	//void draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MODE renderMode);

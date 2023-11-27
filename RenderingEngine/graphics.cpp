@@ -76,6 +76,16 @@ void Graphics::clearSwapChainBuffer() {
 	_context->ClearRenderTargetView(currRenderTargetView, tre::BACKGROUND_GREY);
 }
 
+void Graphics::present() {
+	MICROPROFILE_SCOPE_CSTR("Swap Chain Present");
+
+	const UINT kSyncInterval = 0; // Need to sync CPU frame to this function if we want V-SYNC
+
+	// When using sync interval 0, it is recommended to always pass the tearing flag when it is supported.
+	const UINT presentFlags = (kSyncInterval == 0 && _swapchain.m_bTearingSupported) ? DXGI_PRESENT_ALLOW_TEARING : 0;
+
+	CHECK_DX_ERROR(_swapchain.mainSwapchain->Present(kSyncInterval, presentFlags));
+}
 
 ////////////////// Deprecated //////////////////
 
