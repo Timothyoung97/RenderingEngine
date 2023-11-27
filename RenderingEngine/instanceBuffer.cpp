@@ -97,7 +97,6 @@ void InstanceBuffer::updateBuffer(const std::vector<std::pair<Object*, Mesh*>>& 
 	D3D11_SUBRESOURCE_DATA pInstanceBufferData = {};
 	pInstanceBufferData.pSysMem = instanceInfoQ.data();
 
-	ID3D11Buffer* newInstanceBuffer;
 	CHECK_DX_ERROR(_device->CreateBuffer(
 		&pInstanceBufferDesc, &pInstanceBufferData, pInstanceBuffer.GetAddressOf()
 	));
@@ -167,7 +166,6 @@ void InstanceBuffer::updateBuffer(const std::vector<Object*>& objQ, Mesh* specif
 	D3D11_SUBRESOURCE_DATA pInstanceBufferData = {};
 	pInstanceBufferData.pSysMem = instanceInfoQ.data();
 
-	ID3D11Buffer* newInstanceBuffer;
 	CHECK_DX_ERROR(_device->CreateBuffer(
 		&pInstanceBufferDesc, &pInstanceBufferData, pInstanceBuffer.GetAddressOf()
 	));
