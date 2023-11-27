@@ -16,6 +16,7 @@
 #include "boundingvolume.h"
 #include "camera.h"
 #include "colors.h"
+#include "computerPointLight.h"
 #include "constbuffer.h"
 #include "control.h"
 #include "dxdebug.h"
@@ -107,6 +108,8 @@ int main()
 	tre::RendererTransparency rendererTransparency(deviceAndContext.device.Get(), deviceAndContext.context.Get());
 	tre::RendererWireframe rendererWireframe(deviceAndContext.device.Get(), deviceAndContext.context.Get());
 
+	tre::ComputerPointLight computerPtLight(deviceAndContext.device.Get(), deviceAndContext.context.Get());
+
 	//Input Handler
 	tre::Input input;
 	tre::Control control;
@@ -164,32 +167,20 @@ int main()
 
 		tre::Timer timer;
 
+		graphics.clean();											// Clear buffer + clean up
 		input.updateInputEvent();									// Update input event
 		control.update(input, graphics, scene, cam, deltaTime);		// Update control
-		graphics.clean();											// Clear buffer + clean up
 		cam.updateCamera();											// Update Camera
+		computerPtLight.compute(graphics, scene, cam);				// Compute Pt Light's position
 		scene.update(graphics, cam);								// Update Scene
 		rendererCSM.render(graphics, scene, cam);					// CSM Shadow Pass
 		rendererGBuffer.render(graphics, scene, cam);				// 1st pass deferred normal & albedo
-
-		// set const buffer for global info
-		ID3D11Buffer* constBufferGlobalInfo = tre::Buffer::createConstBuffer(deviceAndContext.device.Get(), (UINT)sizeof(tre::GlobalInfoStruct));
-		{
-			// Create struct info and submit data to constant buffer
-			tre::GlobalInfoStruct globalInfoStruct = tre::CommonStructUtility::createGlobalInfoStruct(cam.camPositionV, cam.camViewProjection, scene.viewProjs, graphics.setting.csmPlaneIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), graphics.setting.csmDebugSwitch, graphics.setting.ssaoSwitch);
-			tre::Buffer::updateConstBufferData(deviceAndContext.context.Get(), constBufferGlobalInfo, &globalInfoStruct, (UINT)sizeof(tre::GlobalInfoStruct));
-
-			// Bind to shaders
-			deviceAndContext.context.Get()->CSSetConstantBuffers(0u, 1u, &constBufferGlobalInfo);
-		}
-
-		scene.updatePtLight();
-		rendererSSAO.render(graphics, scene, cam);						// SSAO Pass
-		rendererEnvLighting.render(graphics, scene, cam);				// Environment Lighting Pass
-		rendererTransparency.render(graphics, scene, cam);				// Transparency Object Pass
-		rendererLocalLighting.render(graphics, scene, cam);				// Local Lighting Pass
-		rendererHDR.render(graphics);									// HDR Pass
-		rendererWireframe.render(graphics, cam, scene);					// Wireframe Debug Pass
+		rendererSSAO.render(graphics, scene, cam);					// SSAO Pass
+		rendererEnvLighting.render(graphics, scene, cam);			// Environment Lighting Pass
+		rendererTransparency.render(graphics, scene, cam);			// Transparency Object Pass
+		rendererLocalLighting.render(graphics, scene, cam);			// Local Lighting Pass
+		rendererHDR.render(graphics);								// HDR Pass
+		rendererWireframe.render(graphics, cam, scene);				// Wireframe Debug Pass
 
 		// Imgui Tool
 		{
@@ -223,12 +214,6 @@ int main()
 		}
 
 		deltaTime = timer.getDeltaTime();
-
-		// clean up per frame resource
-		{
-			MICROPROFILE_SCOPE_CSTR("Clean Up");
-			constBufferGlobalInfo->Release();
-		}
 
 		// record each frame
 		MicroProfileFlip(deviceAndContext.context.Get());

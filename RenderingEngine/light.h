@@ -36,8 +36,6 @@ public:
 	ID3D11Device* _device;
 	ID3D11DeviceContext* _context;
 	
-	ComputeShader computeShaderPtLightMovement;
-
 	ComPtr<ID3D11Buffer> pLightBufferGPU;
 	ComPtr<ID3D11ShaderResourceView> pLightShaderRescView;
 	ComPtr<ID3D11UnorderedAccessView> pLightUnorderedAccessView;
@@ -61,7 +59,5 @@ public:
 	void updateComputeShaderBuffer(PointLight newPointLight);
 	void updatePixelShaderBuffer();
 	void updatePtLightCPU();
-
-	void dispatch();
 };
 }

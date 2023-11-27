@@ -221,12 +221,10 @@ void Scene::update(const Graphics& graphics, const Camera& cam) {
 	cullObject(frustums, graphics.setting.typeOfBound);
 	updateCulledOpaqueQ();
 	updateCulledTransparentQ(cam);
+	updatePtLight();
 }
 
 void Scene::updatePtLight() {
-	// using compute shader update lights
-	lightResc.dispatch();
-
 	MICROPROFILE_SCOPE_CSTR("CPU Point Light Update");
 	PROFILE_GPU_SCOPED("CPU Point Light Update");
 
