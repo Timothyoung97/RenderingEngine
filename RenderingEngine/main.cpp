@@ -49,23 +49,16 @@ using Microsoft::WRL::ComPtr;
 
 int main()
 {
-	
-	srand((uint32_t)time(NULL));	// set random seed
-	
-	tre::Window window("RenderingEngine", tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);	//Create Window
-
-	tre::Device deviceAndContext; 	//Create Device 
-
+	// Crate Global Resource
+	srand((uint32_t)time(NULL));																	// set random seed
+	tre::Window window("RenderingEngine", tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);					// Create Window
+	tre::Device deviceAndContext; 																	// Create Device 
 	tre::MicroProfiler profiler(deviceAndContext.device.Get(), deviceAndContext.context.Get()); 	// Create Profiler
+	tre::Scene scene(deviceAndContext.device.Get(), deviceAndContext.context.Get()); 				// Create Scene
+	tre::Camera cam(tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);											// Create Camera
 
-
-	tre::Scene scene(deviceAndContext.device.Get(), deviceAndContext.context.Get()); 	// Create Scene
-
-	
-	tre::Camera cam(tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);	// Create Camera
-
-	std::string basePathStr = tre::Utility::getBasePathStr();	//File path
-	
+	// Loading Models
+	std::string basePathStr = tre::Utility::getBasePathStr();										// File path
 	pfd::open_file f = pfd::open_file("Choose files to read", basePathStr,
 		{ 
 			"All Files", "*" ,
@@ -75,7 +68,7 @@ int main()
 		pfd::opt::force_path
 	);
 
-	tre::ModelLoader ml;	// Loading model
+	tre::ModelLoader ml;
 	if (f.result().size()) {
 		ml.load(deviceAndContext.device.Get(), f.result()[0]);
 
@@ -99,11 +92,11 @@ int main()
 	// Create Computer 
 	tre::ComputerPointLight computerPtLight(deviceAndContext.device.Get(), deviceAndContext.context.Get());
 
-	//Input Handler
+	// Input Handler
 	tre::Input input;
 	tre::Control control;
 	
-	//Delta Time between frame
+	// Delta Time between frame
 	float deltaTime = 0;
 
 	// Testing Obj
