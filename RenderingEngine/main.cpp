@@ -13,18 +13,15 @@
 #include <format>
 
 //Custom Header
-#include "boundingvolume.h"
 #include "camera.h"
 #include "colors.h"
 #include "computerPointLight.h"
-#include "constbuffer.h"
 #include "control.h"
 #include "dxdebug.h"
 #include "device.h"
 #include "graphics.h"
 #include "imguihelper.h"
 #include "input.h"
-#include "maths.h"
 #include "mesh.h"
 #include "microprofiler.h"
 #include "modelloader.h"
@@ -38,14 +35,11 @@
 #include "rendererTransparency.h"
 #include "rendererWireframe.h"
 #include "scene.h"
-#include "shader.h"
-#include "texture.h"
 #include "timer.h"
 #include "utility.h"
 #include "window.h"
 
 using namespace DirectX;
-using Microsoft::WRL::ComPtr;
 
 int main()
 {
