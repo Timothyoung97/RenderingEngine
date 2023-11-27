@@ -28,6 +28,7 @@
 #include "modelloader.h"
 #include "object.h"
 #include "rendererCSM.h"
+#include "rendererEnvironmentLighting.h"
 #include "rendererGBuffer.h"
 #include "rendererHDR.h"
 #include "rendererLocalLighting.h"
@@ -97,13 +98,14 @@ int main()
 
 	//Create Renderer
 	tre::Graphics graphics(deviceAndContext.device.Get(), deviceAndContext.context.Get(), window.getWindowHandle());
-	tre::RendererWireframe rendererWireframe(deviceAndContext.device.Get(), deviceAndContext.context.Get());
-	tre::RendererHDR rendererHDR(deviceAndContext.device.Get(), deviceAndContext.context.Get());
-	tre::RendererSSAO rendererSSAO(deviceAndContext.device.Get(), deviceAndContext.context.Get());
 	tre::RendererCSM rendererCSM(deviceAndContext.device.Get(), deviceAndContext.context.Get());
+	tre::RendererEnvironmentLighting rendererEnvLighting(deviceAndContext.device.Get(), deviceAndContext.context.Get());
 	tre::RendererGBuffer rendererGBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get());
-	tre::RendererTransparency rendererTransparency(deviceAndContext.device.Get(), deviceAndContext.context.Get());
+	tre::RendererHDR rendererHDR(deviceAndContext.device.Get(), deviceAndContext.context.Get());
 	tre::RendererLocalLighting rendererLocalLighting(deviceAndContext.device.Get(), deviceAndContext.context.Get());
+	tre::RendererSSAO rendererSSAO(deviceAndContext.device.Get(), deviceAndContext.context.Get());
+	tre::RendererTransparency rendererTransparency(deviceAndContext.device.Get(), deviceAndContext.context.Get());
+	tre::RendererWireframe rendererWireframe(deviceAndContext.device.Get(), deviceAndContext.context.Get());
 
 	//Input Handler
 	tre::Input input;
@@ -186,14 +188,8 @@ int main()
 		scene.updatePtLight();
 		deviceAndContext.context.Get()->PSSetShaderResources(2, 1, scene.lightResc.pLightShaderRescView.GetAddressOf());
 
-		rendererSSAO.render(graphics); // SSAO Pass
-
-		// 2nd pass deferred lighting
-		{
-			PROFILE_GPU_SCOPED("Environmental Lighting");
-			graphics.fullscreenPass(tre::RENDER_MODE::DEFERRED_OPAQUE_LIGHTING_ENV_M);
-		}
-
+		rendererSSAO.render(graphics);						// SSAO Pass
+		rendererEnvLighting.render(graphics);				// Environment Lighting Pass
 		rendererTransparency.render(graphics, scene);		// Transparency Object Pass
 		rendererLocalLighting.render(graphics, scene, cam);	// Local Lighting Pass
 		rendererHDR.render(graphics);						// HDR Pass
