@@ -31,10 +31,14 @@ void RendererGBuffer::render(Graphics& graphics, Scene& scene, Camera& cam) {
 	// Batching
 	graphics._instanceBuffer.updateBuffer(scene._culledOpaqueObjQ[scene.camViewIdx]);
 
+	// Create an empty const buffer 
+	ID3D11Buffer* constBufferBatchInfo = tre::Buffer::createConstBuffer(_device, (UINT)sizeof(tre::BatchInfoStruct));
+
 	{
 		_context->IASetInputLayout(graphics._inputLayout.vertLayout.Get());
 		_context->VSSetShader(_vertexShaderInstanced.pShader.Get(), NULL, 0u);
 		_context->VSSetShaderResources(0u, 1, graphics._instanceBuffer.pInstanceBufferSRV.GetAddressOf());
+		_context->VSSetConstantBuffers(1u, 1u, &constBufferBatchInfo);
 
 		_context->RSSetViewports(1, &graphics._viewport.defaultViewport);
 		_context->RSSetState(graphics._rasterizer.pRasterizerStateFCCW.Get());
@@ -52,9 +56,6 @@ void RendererGBuffer::render(Graphics& graphics, Scene& scene, Camera& cam) {
 	UINT vertexStride = sizeof(Vertex);
 	UINT offset = 0;
 
-	// Create an empty const buffer 
-	ID3D11Buffer* constBufferBatchInfo = tre::Buffer::createConstBuffer(_device, (UINT)sizeof(tre::BatchInfoStruct));
-	
 	PROFILE_GPU_SCOPED("G-Buffer Instanced Draw");
 	for (int i = 0; i < graphics._instanceBuffer.instanceBatchQueue.size(); i++) {
 		InstanceBatchInfo currBatchInfo = graphics._instanceBuffer.instanceBatchQueue[i];
@@ -63,8 +64,6 @@ void RendererGBuffer::render(Graphics& graphics, Scene& scene, Camera& cam) {
 		{
 			tre::BatchInfoStruct bInfo = tre::CommonStructUtility::createBatchInfoStruct(currBatchInfo.batchStartIdx);
 			tre::Buffer::updateConstBufferData(_context, constBufferBatchInfo, &bInfo, (UINT)sizeof(tre::BatchInfoStruct));
-
-			_context->VSSetConstantBuffers(1u, 1u, &constBufferBatchInfo);
 		}
 
 		// Update mesh vertex information
