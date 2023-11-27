@@ -1,6 +1,7 @@
 #pragma once
 
 #include "graphics.h"
+#include "scene.h"
 
 namespace tre {
 
@@ -24,12 +25,10 @@ public:
 
 	static SSAOKernalStruct createSSAOKernalStruct(const std::vector<XMFLOAT4>& kernalSamples, float sampleRadius);
 
-	void setConstBufferSSAOSetting(Graphics& graphics);
-
-	void fullscreenPass(const Graphics& graphics);
+	void fullscreenPass(Graphics& graphics, const Scene& scene, const Camera& cam);
 	void fullscreenBlurPass(const Graphics& graphics);
 
-	void render(Graphics& graphics);
+	void render(Graphics& graphics, const Scene& scene, const Camera& cam);
 
 };
 }

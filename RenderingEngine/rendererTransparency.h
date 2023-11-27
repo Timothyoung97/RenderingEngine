@@ -16,6 +16,6 @@ public:
 
 	RendererTransparency(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 
-	void render(Graphics& graphics, const Scene& scene);
+	void render(Graphics& graphics, const Scene& scene, const Camera& cam);
 };
 }

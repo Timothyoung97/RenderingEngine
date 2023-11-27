@@ -180,18 +180,16 @@ int main()
 			tre::Buffer::updateConstBufferData(deviceAndContext.context.Get(), constBufferGlobalInfo, &globalInfoStruct, (UINT)sizeof(tre::GlobalInfoStruct));
 
 			// Bind to shaders
-			deviceAndContext.context.Get()->VSSetConstantBuffers(0u, 1u, &constBufferGlobalInfo);
-			deviceAndContext.context.Get()->PSSetConstantBuffers(0u, 1u, &constBufferGlobalInfo);
 			deviceAndContext.context.Get()->CSSetConstantBuffers(0u, 1u, &constBufferGlobalInfo);
 		}
 
 		scene.updatePtLight();
-		rendererSSAO.render(graphics);						// SSAO Pass
-		rendererEnvLighting.render(graphics);				// Environment Lighting Pass
-		rendererTransparency.render(graphics, scene);		// Transparency Object Pass
-		rendererLocalLighting.render(graphics, scene, cam);	// Local Lighting Pass
-		rendererHDR.render(graphics);						// HDR Pass
-		rendererWireframe.render(graphics, cam, scene);		// Wireframe Debug Pass
+		rendererSSAO.render(graphics, scene, cam);						// SSAO Pass
+		rendererEnvLighting.render(graphics, scene, cam);				// Environment Lighting Pass
+		rendererTransparency.render(graphics, scene, cam);				// Transparency Object Pass
+		rendererLocalLighting.render(graphics, scene, cam);				// Local Lighting Pass
+		rendererHDR.render(graphics);									// HDR Pass
+		rendererWireframe.render(graphics, cam, scene);					// Wireframe Debug Pass
 
 		// Imgui Tool
 		{

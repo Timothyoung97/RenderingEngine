@@ -17,15 +17,31 @@ void RendererLocalLighting::render(Graphics& graphics, const Scene& scene, const
 	MICROPROFILE_SCOPE_CSTR(name);
 	PROFILE_GPU_SCOPED("Deferred Local Light Draw");
 
+	// set const buffer for global info
+	ID3D11Buffer* constBufferGlobalInfo = tre::Buffer::createConstBuffer(_device, (UINT)sizeof(tre::GlobalInfoStruct));
+	{
+		// Create struct info and submit data to constant buffer
+		tre::GlobalInfoStruct globalInfoStruct = tre::CommonStructUtility::createGlobalInfoStruct(cam.camPositionV, cam.camViewProjection, scene.viewProjs, graphics.setting.csmPlaneIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), graphics.setting.csmDebugSwitch, graphics.setting.ssaoSwitch);
+		tre::Buffer::updateConstBufferData(_context, constBufferGlobalInfo, &globalInfoStruct, (UINT)sizeof(tre::GlobalInfoStruct));
+	}
+
+	// Create empty const buffer and pre bind the constant buffer
+	ID3D11Buffer* constBufferModelInfo = tre::Buffer::createConstBuffer(_device, sizeof(tre::ModelInfoStruct));
+	ID3D11Buffer* constBufferPtLightInfo = tre::Buffer::createConstBuffer(_device, sizeof(tre::PointLightInfoStruct));
+
 	{
 		_context->IASetInputLayout(graphics._inputLayout.vertLayout.Get());
 		_context->VSSetShader(_vertexShader.pShader.Get(), NULL, 0u);
+		_context->VSSetConstantBuffers(0u, 1u, &constBufferGlobalInfo);
+		_context->VSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
 
 		_context->RSSetViewports(1, &graphics._viewport.defaultViewport);
 		_context->RSSetState(graphics._rasterizer.pRasterizerStateFCCW.Get()); // by default: render only front face
 
 		_context->OMSetRenderTargets(0, nullptr, nullptr);
 		_context->PSSetShader(_deferredShaderLightingLocal.pShader.Get(), NULL, 0u);
+		_context->PSSetConstantBuffers(0u, 1u, &constBufferGlobalInfo);
+		_context->PSSetConstantBuffers(2u, 1u, &constBufferPtLightInfo);
 		_context->PSSetShaderResources(0, 1, graphics._gBuffer.pShaderResViewDeferredAlbedo.GetAddressOf()); // albedo
 		_context->PSSetShaderResources(1, 1, graphics._gBuffer.pShaderResViewDeferredNormal.GetAddressOf()); // normal
 		_context->PSSetShaderResources(2, 1, scene.lightResc.pLightShaderRescView.GetAddressOf());			// point light info
@@ -46,13 +62,6 @@ void RendererLocalLighting::render(Graphics& graphics, const Scene& scene, const
 	//Set index buffer
 	_context->IASetIndexBuffer(scene._wireframeObjQ[0]->pObjMeshes[0]->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
-	// Create empty const buffer and pre bind the constant buffer
-	ID3D11Buffer* constBufferModelInfo = tre::Buffer::createConstBuffer(_device, sizeof(tre::ModelInfoStruct));
-	_context->VSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
-	_context->PSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
-
-	ID3D11Buffer* constBufferPtLightInfo = tre::Buffer::createConstBuffer(_device, sizeof(tre::PointLightInfoStruct));
-	_context->PSSetConstantBuffers(2u, 1u, &constBufferPtLightInfo);
 
 	for (int i = 0; i < scene._wireframeObjQ.size(); i++) {
 
@@ -81,6 +90,7 @@ void RendererLocalLighting::render(Graphics& graphics, const Scene& scene, const
 
 	// clean up
 	{
+		graphics.bufferQueue.push_back(constBufferGlobalInfo);
 		graphics.bufferQueue.push_back(constBufferModelInfo);
 		graphics.bufferQueue.push_back(constBufferPtLightInfo);
 	}

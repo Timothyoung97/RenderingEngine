@@ -11,21 +11,37 @@ RendererTransparency::RendererTransparency(ID3D11Device* pDevice, ID3D11DeviceCo
 	_forwardShader.create(basePathWstr + L"shaders\\bin\\pixel_shader_forward.bin", _device);
 }
 
-void RendererTransparency::render(Graphics& graphics, const Scene& scene) {
+void RendererTransparency::render(Graphics& graphics, const Scene& scene, const Camera& cam) {
 	if (scene._culledTransparentObjQ.size() == 0) return;
 
 	const char* name = ToString(RENDER_MODE::TRANSPARENT_M);
 	MICROPROFILE_SCOPE_CSTR(name);
 	PROFILE_GPU_SCOPED("Forward Tranparent Draw");
 
+	// set const buffer for global info
+	ID3D11Buffer* constBufferGlobalInfo = tre::Buffer::createConstBuffer(_device, (UINT)sizeof(tre::GlobalInfoStruct));
+	{
+		// Create struct info and submit data to constant buffer
+		tre::GlobalInfoStruct globalInfoStruct = tre::CommonStructUtility::createGlobalInfoStruct(cam.camPositionV, cam.camViewProjection, scene.viewProjs, graphics.setting.csmPlaneIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), graphics.setting.csmDebugSwitch, graphics.setting.ssaoSwitch);
+		tre::Buffer::updateConstBufferData(_context, constBufferGlobalInfo, &globalInfoStruct, (UINT)sizeof(tre::GlobalInfoStruct));
+	}
+
+	// Create empty const buffer and pre bind the constant buffer
+	ID3D11Buffer* constBufferModelInfo = tre::Buffer::createConstBuffer(_device, sizeof(tre::ModelInfoStruct));
+
+	// Context Configuration
 	{
 		_context->IASetInputLayout(graphics._inputLayout.vertLayout.Get());
 		_context->VSSetShader(_vertexShader.pShader.Get(), NULL, 0u);
+		_context->VSSetConstantBuffers(0u, 1u, &constBufferGlobalInfo);
+		_context->VSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
 
 		_context->RSSetViewports(1, &graphics._viewport.defaultViewport);
 		_context->RSSetState(graphics._rasterizer.pRasterizerStateFCCW.Get());
 
 		_context->PSSetShader(_forwardShader.pShader.Get(), NULL, 0u);
+		_context->PSSetConstantBuffers(0u, 1u, &constBufferGlobalInfo);
+		_context->PSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
 		_context->PSSetShaderResources(3, 1, graphics._depthbuffer.pShadowShaderRescView.GetAddressOf()); // shadow
 		_context->PSSetShaderResources(4, 1, graphics.nullSRV);
 
@@ -33,11 +49,6 @@ void RendererTransparency::render(Graphics& graphics, const Scene& scene) {
 		_context->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0);
 		_context->OMSetRenderTargets(1, graphics._hdrBuffer.pRenderTargetViewHdrTexture.GetAddressOf(), graphics._depthbuffer.pDepthStencilView.Get());
 	}
-
-	// Create empty const buffer and pre bind the constant buffer
-	ID3D11Buffer* constBufferModelInfo = tre::Buffer::createConstBuffer(_device, sizeof(tre::ModelInfoStruct));
-	_context->VSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
-	_context->PSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
 
 	for (int i = 0; i < scene._culledTransparentObjQ.size(); i++) {
 
@@ -75,6 +86,7 @@ void RendererTransparency::render(Graphics& graphics, const Scene& scene) {
 
 	// clean up
 	{
+		graphics.bufferQueue.push_back(constBufferGlobalInfo);
 		graphics.bufferQueue.push_back(constBufferModelInfo);
 	}
 }

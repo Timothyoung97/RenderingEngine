@@ -10,11 +10,20 @@ RendererEnvironmentLighting::RendererEnvironmentLighting(ID3D11Device* pDevice, 
 	_deferredShaderLightingEnv.create(basePathWstr + L"shaders\\bin\\pixel_shader_deferred_lighting_env.bin", _device);
 }
 
-void RendererEnvironmentLighting::render(const Graphics& graphics) {
+void RendererEnvironmentLighting::render(Graphics& graphics, const Scene& scene, const Camera& cam) {
 	const char* name = ToString(RENDER_MODE::DEFERRED_OPAQUE_LIGHTING_ENV_M);
 	MICROPROFILE_SCOPE_CSTR(name);
 	PROFILE_GPU_SCOPED("Deferred Environment Lighting Pass");
 
+	// set const buffer for global info
+	ID3D11Buffer* constBufferGlobalInfo = tre::Buffer::createConstBuffer(_device, (UINT)sizeof(tre::GlobalInfoStruct));
+	{
+		// Create struct info and submit data to constant buffer
+		tre::GlobalInfoStruct globalInfoStruct = tre::CommonStructUtility::createGlobalInfoStruct(cam.camPositionV, cam.camViewProjection, scene.viewProjs, graphics.setting.csmPlaneIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), graphics.setting.csmDebugSwitch, graphics.setting.ssaoSwitch);
+		tre::Buffer::updateConstBufferData(_context, constBufferGlobalInfo, &globalInfoStruct, (UINT)sizeof(tre::GlobalInfoStruct));
+	}
+
+	// Context Configuration
 	{
 		_context->IASetInputLayout(nullptr);
 		_context->VSSetShader(_vertexShaderFullscreenQuad.pShader.Get(), NULL, 0u);
@@ -24,6 +33,7 @@ void RendererEnvironmentLighting::render(const Graphics& graphics) {
 
 		_context->OMSetRenderTargets(0, nullptr, nullptr);
 		_context->PSSetShader(_deferredShaderLightingEnv.pShader.Get(), NULL, 0u);
+		_context->PSSetConstantBuffers(0u, 1u, &constBufferGlobalInfo);
 		_context->PSSetShaderResources(0, 1, graphics._gBuffer.pShaderResViewDeferredAlbedo.GetAddressOf()); // albedo
 		_context->PSSetShaderResources(1, 1, graphics._gBuffer.pShaderResViewDeferredNormal.GetAddressOf()); // normal
 		_context->PSSetShaderResources(3, 1, graphics._depthbuffer.pShadowShaderRescView.GetAddressOf()); // shadow
@@ -36,5 +46,9 @@ void RendererEnvironmentLighting::render(const Graphics& graphics) {
 	}
 
 	_context->Draw(6, 0);
+
+	{
+		graphics.bufferQueue.push_back(constBufferGlobalInfo);
+	}
 }
 } 

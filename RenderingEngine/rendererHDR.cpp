@@ -81,7 +81,7 @@ void RendererHDR::dispatchAverage(const Graphics& graphics){
 void RendererHDR::fullscreenPass(const Graphics& graphics) {
 	const char* name = ToString(RENDER_MODE::TONE_MAPPING_PASS);
 	MICROPROFILE_SCOPE_CSTR(name);
-	PROFILE_GPU_SCOPED("Fullscreen Pass");
+	PROFILE_GPU_SCOPED("HDR Fullscreen Pass");
 	
 	// Context Confiuration
 	{

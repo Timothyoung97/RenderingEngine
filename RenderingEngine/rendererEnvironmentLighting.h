@@ -1,6 +1,7 @@
 #pragma once
 
 #include "graphics.h"
+#include "scene.h"
 
 namespace tre {
 
@@ -15,7 +16,7 @@ public:
 	
 	RendererEnvironmentLighting(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 
-	void render(const Graphics& graphics);
+	void render(Graphics& graphics, const Scene& scene, const Camera& cam);
 
 };
 }
