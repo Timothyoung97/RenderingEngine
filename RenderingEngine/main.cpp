@@ -147,7 +147,7 @@ int main()
 		computerPtLight.compute(graphics, scene, cam);				// Compute Pt Light's position
 		scene.update(graphics, cam);								// Update Scene
 		rendererCSM.render(graphics, scene, cam);					// CSM Shadow Pass
-		rendererGBuffer.render(graphics, scene, cam);				// 1st pass deferred normal & albedo
+		rendererGBuffer.render(graphics, scene, cam);				// G-Buffer: Deferred normal, albedo and depth
 		rendererSSAO.render(graphics, scene, cam);					// SSAO Pass
 		rendererEnvLighting.render(graphics, scene, cam);			// Environment Lighting Pass
 		rendererTransparency.render(graphics, scene, cam);			// Transparency Object Pass
