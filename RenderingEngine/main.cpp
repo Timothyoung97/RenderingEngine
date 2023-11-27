@@ -30,6 +30,7 @@
 #include "rendererCSM.h"
 #include "rendererGBuffer.h"
 #include "rendererHDR.h"
+#include "rendererLocalLighting.h"
 #include "rendererSSAO.h"
 #include "rendererTransparency.h"
 #include "rendererWireframe.h"
@@ -102,6 +103,7 @@ int main()
 	tre::RendererCSM rendererCSM(deviceAndContext.device.Get(), deviceAndContext.context.Get());
 	tre::RendererGBuffer rendererGBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get());
 	tre::RendererTransparency rendererTransparency(deviceAndContext.device.Get(), deviceAndContext.context.Get());
+	tre::RendererLocalLighting rendererLocalLighting(deviceAndContext.device.Get(), deviceAndContext.context.Get());
 
 	//Input Handler
 	tre::Input input;
@@ -192,14 +194,8 @@ int main()
 			graphics.fullscreenPass(tre::RENDER_MODE::DEFERRED_OPAQUE_LIGHTING_ENV_M);
 		}
 
-		rendererTransparency.render(graphics, scene);
-
-		// Draw all deferred lighting volume
-		{
-			PROFILE_GPU_SCOPED("Local Lighting");
-			graphics.deferredLightingLocalDraw(scene._wireframeObjQ, cam.camPositionV);
-		}
-
+		rendererTransparency.render(graphics, scene);		// Transparency Object Pass
+		rendererLocalLighting.render(graphics, scene, cam);	// Local Lighting Pass
 		rendererHDR.render(graphics);						// HDR Pass
 		rendererWireframe.render(graphics, cam, scene);		// Wireframe Debug Pass
 

@@ -91,22 +91,6 @@ void Graphics::configureStates(RENDER_MODE renderObjType) {
 
 	switch (renderObjType)
 	{
-	case tre::TRANSPARENT_M:
-		_context->IASetInputLayout(_inputLayout.vertLayout.Get());
-		_context->VSSetShader(_vertexShader.pShader.Get(), NULL, 0u);
-
-		_context->RSSetViewports(1, &_viewport.defaultViewport);
-		_context->RSSetState(_rasterizer.pRasterizerStateFCCW.Get());
-
-		_context->PSSetShader(_forwardShader.pShader.Get(), NULL, 0u);
-		_context->PSSetShaderResources(3, 1, _depthbuffer.pShadowShaderRescView.GetAddressOf()); // shadow
-		_context->PSSetShaderResources(4, 1, nullSRV);
-
-		_context->OMSetBlendState(_blendstate.transparency.Get(), NULL, 0xffffffff);
-		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0);
-		_context->OMSetRenderTargets(1, _hdrBuffer.pRenderTargetViewHdrTexture.GetAddressOf(), _depthbuffer.pDepthStencilView.Get());
-		break;		
-
 	case tre::OPAQUE_M:
 		_context->IASetInputLayout(_inputLayout.vertLayout.Get());
 		_context->VSSetShader(_vertexShader.pShader.Get(), NULL, 0u);
@@ -175,26 +159,6 @@ void Graphics::configureStates(RENDER_MODE renderObjType) {
 		_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
 		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
 		break;
-
-	case tre::DEFERRED_LIGHTING_LOCAL_M:
-		_context->IASetInputLayout(_inputLayout.vertLayout.Get());
-		_context->VSSetShader(_vertexShader.pShader.Get(), NULL, 0u);
-
-		_context->RSSetViewports(1, &_viewport.defaultViewport);
-		_context->RSSetState(_rasterizer.pRasterizerStateFCCW.Get()); // by default: render only front face
-
-		_context->OMSetRenderTargets(0, nullptr, nullptr);
-		_context->PSSetShader(_deferredShaderLightingLocal.pShader.Get(), NULL, 0u);
-		_context->PSSetShaderResources(0, 1, _gBuffer.pShaderResViewDeferredAlbedo.GetAddressOf()); // albedo
-		_context->PSSetShaderResources(1, 1, _gBuffer.pShaderResViewDeferredNormal.GetAddressOf()); // normal
-		_context->CopyResource(_depthbuffer.pDepthStencilReadOnlyTexture.Get(), _depthbuffer.pDepthStencilTexture.Get());
-		_context->PSSetShaderResources(4, 1, _depthbuffer.pDepthStencilReadOnlyShaderRescView.GetAddressOf()); //depth
-
-		_context->OMSetBlendState(_blendstate.lighting.Get(), NULL, 0xffffffff);
-		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0); // by default: read only depth test
-		_context->OMSetRenderTargets(1, _hdrBuffer.pRenderTargetViewHdrTexture.GetAddressOf(), _depthbuffer.pDepthStencilView.Get()); // draw to HDR floating point buffer
-		break;
-
 	}
 }
 
