@@ -89,17 +89,8 @@ public:
 
 	InputLayout _inputLayout;
 	VertexShader _vertexShader;
-	VertexShader _shadowCastShader;
-	VertexShader _vertexShaderFullscreenQuad;
-	VertexShader _vertexShaderInstanced;
 
 	Rasterizer _rasterizer;
-
-	PixelShader _forwardShader;
-	PixelShader _deferredShader;
-	PixelShader _deferredShaderLightingEnv;
-	PixelShader _deferredShaderLightingLocal;
-	PixelShader _instancedPixelShader;
 
 	Sampler _sampler;
 
@@ -126,13 +117,13 @@ public:
 	Graphics(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, HWND window);
 
 	void clean();
-
-	void configureStates(RENDER_MODE renderMode);
 	void clearSwapChainBuffer();
-	void draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MODE renderMode);
-	void fullscreenPass(tre::RENDER_MODE mode);
-	void deferredLightingLocalDraw(const std::vector<Object*>& objQ, XMVECTOR cameraPos);
-	void instancedDraw(const std::vector<std::pair<Object*, Mesh*>>& objQ, RENDER_MODE renderMode);
+
+	////////////////// Deprecated //////////////////
+	//void configureStates(RENDER_MODE renderMode);
+	//void draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MODE renderMode);
+	//void fullscreenPass(tre::RENDER_MODE mode);
+	//void instancedDraw(const std::vector<std::pair<Object*, Mesh*>>& objQ, RENDER_MODE renderMode);
 
 };
 }

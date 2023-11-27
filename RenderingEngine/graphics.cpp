@@ -23,16 +23,7 @@ Graphics::Graphics(ID3D11Device* _device, ID3D11DeviceContext* _context, HWND wi
 	
 	std::wstring basePathWstr = tre::Utility::getBasePathWstr();
 	_vertexShader.create(basePathWstr + L"shaders\\bin\\vertex_shader.bin", _device);
-	_vertexShaderFullscreenQuad.create(basePathWstr + L"shaders\\bin\\vertex_shader_fullscreen.bin", _device);
-	_vertexShaderInstanced.create(basePathWstr + L"shaders\\bin\\vertex_shader_instancedRendering.bin", _device);
 	_inputLayout.create(_device, &_vertexShader);
-
-	_forwardShader.create(basePathWstr + L"shaders\\bin\\pixel_shader_forward.bin", _device);
-	_shadowCastShader.create(basePathWstr + L"shaders\\bin\\vertex_shader_csmShadowCast.bin", _device);
-	_deferredShader.create(basePathWstr + L"shaders\\bin\\pixel_shader_deferred.bin", _device);
-	_deferredShaderLightingEnv.create(basePathWstr + L"shaders\\bin\\pixel_shader_deferred_lighting_env.bin", _device);
-	_deferredShaderLightingLocal.create(basePathWstr + L"shaders\\bin\\pixel_shader_deferred_lighting_local.bin", _device);
-	_instancedPixelShader.create(basePathWstr + L"shaders\\bin\\pixel_shader_instanced_gbuffer.bin", _device);
 
 	_gBuffer.create(_device);
 	_ssao.create(_device, _context);
@@ -85,202 +76,186 @@ void Graphics::clearSwapChainBuffer() {
 	_context->ClearRenderTargetView(currRenderTargetView, tre::BACKGROUND_GREY);
 }
 
-void Graphics::configureStates(RENDER_MODE renderObjType) {
 
-	ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
+////////////////// Deprecated //////////////////
 
-	switch (renderObjType)
-	{
-	case tre::OPAQUE_M:
-		_context->IASetInputLayout(_inputLayout.vertLayout.Get());
-		_context->VSSetShader(_vertexShader.pShader.Get(), NULL, 0u);
-
-		_context->RSSetViewports(1, &_viewport.defaultViewport);
-		_context->RSSetState(_rasterizer.pRasterizerStateFCCW.Get());
-
-		_context->PSSetShader(_forwardShader.pShader.Get(), NULL, 0u);
-		_context->PSSetShaderResources(3, 1, _depthbuffer.pShadowShaderRescView.GetAddressOf()); // shadow
-		_context->PSSetShaderResources(4, 1, nullSRV);
-
-		_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
-		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
-		_context->OMSetRenderTargets(1, &currRenderTargetView, _depthbuffer.pDepthStencilView.Get());
-		break;			
-
-	case tre::SHADOW_M: // use normal draw func
-		_context->IASetInputLayout(_inputLayout.vertLayout.Get());
-		_context->VSSetShader(_shadowCastShader.pShader.Get(), NULL, 0u);
-
-		// use setShadowBufferDrawSection to select draw section
-		_context->RSSetState(_rasterizer.pShadowRasterizerState.Get());
-		
-		// unbind shadow buffer as a resource, so that we can write to it
-		_context->PSSetShader(nullptr, NULL, 0u);
-		_context->PSSetShaderResources(3, 1, nullSRV);
-		
-		_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
-		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
-		_context->OMSetRenderTargets(0, nullptr, _depthbuffer.pShadowDepthStencilView.Get());
-		break;
-
-	case tre::DEFERRED_OPAQUE_M: // use normal draw func
-		_context->IASetInputLayout(_inputLayout.vertLayout.Get());
-		_context->VSSetShader(_vertexShader.pShader.Get(), NULL, 0u);
-
-		_context->RSSetViewports(1, &_viewport.defaultViewport);
-		_context->RSSetState(_rasterizer.pRasterizerStateFCCW.Get());
-		
-		// unbind depth buffer as a shader resource, so that we can write to it
-		_context->OMSetRenderTargets(0, nullptr, nullptr);
-		_context->PSSetShader(_deferredShader.pShader.Get(), NULL, 0u);
-		_context->PSSetShaderResources(4, 1, nullSRV);
-		
-		_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
-		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
-		_context->OMSetRenderTargets(2, _gBuffer.rtvs, _depthbuffer.pDepthStencilView.Get());
-		break;
-
-	case tre::DEFERRED_OPAQUE_LIGHTING_ENV_M:
-		_context->IASetInputLayout(nullptr);
-		_context->VSSetShader(_vertexShaderFullscreenQuad.pShader.Get(), NULL, 0u);
-
-		_context->RSSetViewports(1, &_viewport.defaultViewport);
-		_context->RSSetState(_rasterizer.pRasterizerStateFCCW.Get());
-
-		_context->OMSetRenderTargets(0, nullptr, nullptr);
-		_context->PSSetShader(_deferredShaderLightingEnv.pShader.Get(), NULL, 0u);
-		_context->PSSetShaderResources(0, 1, _gBuffer.pShaderResViewDeferredAlbedo.GetAddressOf()); // albedo
-		_context->PSSetShaderResources(1, 1, _gBuffer.pShaderResViewDeferredNormal.GetAddressOf()); // normal
-		_context->PSSetShaderResources(3, 1, _depthbuffer.pShadowShaderRescView.GetAddressOf()); // shadow
-		_context->PSSetShaderResources(4, 1, _depthbuffer.pDepthStencilShaderRescView.GetAddressOf()); //depth
-		_context->PSSetShaderResources(7, 1, _ssao.ssaoBlurredTexture2dSRV.GetAddressOf()); // ssao
-
-		_context->OMSetRenderTargets(1, _hdrBuffer.pRenderTargetViewHdrTexture.GetAddressOf(), nullptr);
-		_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
-		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
-		break;
-	}
-}
-
-void Graphics::fullscreenPass(tre::RENDER_MODE mode) {
-
-	const char* name = ToString(mode);
-	MICROPROFILE_SCOPE_CSTR(name);
-	PROFILE_GPU_SCOPED("Fullscreen Pass");
-
-	configureStates(mode);
-
-	_context->Draw(6, 0);
-}
-
-void Graphics::draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MODE renderObjType) {
-	if (objQ.size() == 0) return;
-
-	const char* name = ToString(renderObjType);
-	MICROPROFILE_SCOPE_CSTR(name);
-	PROFILE_GPU_SCOPED("Forward Draw");
-	
-	configureStates(renderObjType);
-
-	// Create empty const buffer and pre bind the constant buffer
-	ID3D11Buffer* constBufferModelInfo = tre::Buffer::createConstBuffer(_device, sizeof(tre::ModelInfoStruct));
-	_context->VSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
-	_context->PSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
-
-	for (int i = 0; i < objQ.size(); i++) {
-
-		UINT vertexStride = sizeof(Vertex);
-		UINT offset = 0;
-
-		//Set vertex buffer
-		_context->IASetVertexBuffers(0, 1, objQ[i].second->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
-
-		//Set index buffer
-		_context->IASetIndexBuffer(objQ[i].second->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-
-		//set shader resc view and sampler
-		bool hasTexture = 0;
-		bool hasNormal = 0;
-		if (objQ[i].second->pMaterial->objTexture != nullptr) {
-			_context->PSSetShaderResources(0, 1, objQ[i].second->pMaterial->objTexture->pShaderResView.GetAddressOf());
-			hasTexture = 1;
-		}
-
-		// set normal map
-		if (objQ[i].second->pMaterial->objNormalMap != nullptr) {
-			_context->PSSetShaderResources(1, 1, objQ[i].second->pMaterial->objNormalMap->pShaderResView.GetAddressOf());
-			hasNormal = 1;
-		}
-
-		// Submit each object's data to const buffer
-		{
-			tre::ModelInfoStruct modelInfoStruct = tre::CommonStructUtility::createModelInfoStruct(objQ[i].first->_transformationFinal, objQ[i].second->pMaterial->baseColor, hasTexture, hasNormal);
-			tre::Buffer::updateConstBufferData(_context, constBufferModelInfo, &modelInfoStruct, sizeof(tre::ModelInfoStruct));
-		}
-
-		_context->DrawIndexed(objQ[i].second->indexSize, 0, 0);
-	}
-
-	// clean up
-	{
-		constBufferModelInfo->Release();
-	}
-}
-
-
-void Graphics::instancedDraw(const std::vector<std::pair<Object*, Mesh*>>& objQ, RENDER_MODE renderMode) {
-	if (objQ.size() == 0) return;
-
-	ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
-
-	const char* name = ToString(renderMode);
-	MICROPROFILE_SCOPE_CSTR(name);
-	PROFILE_GPU_SCOPED("Instanced Draw");
-
-	_instanceBuffer.updateBuffer(objQ);
-
-	configureStates(renderMode);
-
-	UINT vertexStride = sizeof(Vertex);
-	UINT offset = 0;
-
-	// Create an empty const buffer 
-	ID3D11Buffer* constBufferBatchInfo = tre::Buffer::createConstBuffer(_device, (UINT)sizeof(tre::BatchInfoStruct));
-
-	for (int i = 0; i < _instanceBuffer.instanceBatchQueue.size(); i++) {
-		InstanceBatchInfo currBatchInfo = _instanceBuffer.instanceBatchQueue[i];
-
-		// update constant buffer for each instanced draw call
-		{
-			tre::BatchInfoStruct bInfo = tre::CommonStructUtility::createBatchInfoStruct(currBatchInfo.batchStartIdx);
-			tre::Buffer::updateConstBufferData(_context, constBufferBatchInfo, &bInfo, (UINT)sizeof(tre::BatchInfoStruct));
-
-			_context->VSSetConstantBuffers(1u, 1u, &constBufferBatchInfo);
-		}
-
-		// Update mesh vertex information
-		_context->IASetVertexBuffers(0, 1, currBatchInfo.pBatchMesh->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
-		_context->IASetIndexBuffer(currBatchInfo.pBatchMesh->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-
-		// Update texture information
-		_context->PSSetShaderResources(0u, 1u, nullSRV);
-		if (currBatchInfo.isWithTexture) {
-			_context->PSSetShaderResources(0u, 1u, currBatchInfo.pBatchTexture->pShaderResView.GetAddressOf());
-		}
-
-		_context->PSSetShaderResources(1u, 1u, nullSRV);
-		if (currBatchInfo.hasNormMap) {
-			_context->PSSetShaderResources(1u, 1u, currBatchInfo.pBatchNormalMap->pShaderResView.GetAddressOf());
-		}
-
-		// Draw call
-		_context->DrawIndexedInstanced(currBatchInfo.pBatchMesh->indexSize, currBatchInfo.quantity, 0u, 0u, 0u);
-	}
-
-	// clean up
-	{
-		constBufferBatchInfo->Release();
-	}
-}
+//void Graphics::configureStates(RENDER_MODE renderObjType) {
+//
+//	ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
+//
+//	switch (renderObjType)
+//	{
+//	case tre::OPAQUE_M:
+//		_context->IASetInputLayout(_inputLayout.vertLayout.Get());
+//		_context->VSSetShader(_vertexShader.pShader.Get(), NULL, 0u);
+//
+//		_context->RSSetViewports(1, &_viewport.defaultViewport);
+//		_context->RSSetState(_rasterizer.pRasterizerStateFCCW.Get());
+//
+//		_context->PSSetShader(_forwardShader.pShader.Get(), NULL, 0u);
+//		_context->PSSetShaderResources(3, 1, _depthbuffer.pShadowShaderRescView.GetAddressOf()); // shadow
+//		_context->PSSetShaderResources(4, 1, nullSRV);
+//
+//		_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
+//		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
+//		_context->OMSetRenderTargets(1, &currRenderTargetView, _depthbuffer.pDepthStencilView.Get());
+//		break;			
+//
+//	case tre::SHADOW_M: // use normal draw func
+//		_context->IASetInputLayout(_inputLayout.vertLayout.Get());
+//		_context->VSSetShader(_shadowCastShader.pShader.Get(), NULL, 0u);
+//
+//		// use setShadowBufferDrawSection to select draw section
+//		_context->RSSetState(_rasterizer.pShadowRasterizerState.Get());
+//		
+//		// unbind shadow buffer as a resource, so that we can write to it
+//		_context->PSSetShader(nullptr, NULL, 0u);
+//		_context->PSSetShaderResources(3, 1, nullSRV);
+//		
+//		_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
+//		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
+//		_context->OMSetRenderTargets(0, nullptr, _depthbuffer.pShadowDepthStencilView.Get());
+//		break;
+//
+//	case tre::DEFERRED_OPAQUE_M: // use normal draw func
+//		_context->IASetInputLayout(_inputLayout.vertLayout.Get());
+//		_context->VSSetShader(_vertexShader.pShader.Get(), NULL, 0u);
+//
+//		_context->RSSetViewports(1, &_viewport.defaultViewport);
+//		_context->RSSetState(_rasterizer.pRasterizerStateFCCW.Get());
+//		
+//		// unbind depth buffer as a shader resource, so that we can write to it
+//		_context->OMSetRenderTargets(0, nullptr, nullptr);
+//		_context->PSSetShader(_deferredShader.pShader.Get(), NULL, 0u);
+//		_context->PSSetShaderResources(4, 1, nullSRV);
+//		
+//		_context->OMSetBlendState(_blendstate.opaque.Get(), NULL, 0xffffffff);
+//		_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
+//		_context->OMSetRenderTargets(2, _gBuffer.rtvs, _depthbuffer.pDepthStencilView.Get());
+//		break;
+//
+//	}
+//}
+//
+//void Graphics::fullscreenPass(tre::RENDER_MODE mode) {
+//
+//	const char* name = ToString(mode);
+//	MICROPROFILE_SCOPE_CSTR(name);
+//	PROFILE_GPU_SCOPED("Fullscreen Pass");
+//
+//	configureStates(mode);
+//
+//	_context->Draw(6, 0);
+//}
+//
+//void Graphics::draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MODE renderObjType) {
+//	if (objQ.size() == 0) return;
+//
+//	const char* name = ToString(renderObjType);
+//	MICROPROFILE_SCOPE_CSTR(name);
+//	PROFILE_GPU_SCOPED("Forward Draw");
+//	
+//	configureStates(renderObjType);
+//
+//	// Create empty const buffer and pre bind the constant buffer
+//	ID3D11Buffer* constBufferModelInfo = tre::Buffer::createConstBuffer(_device, sizeof(tre::ModelInfoStruct));
+//	_context->VSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
+//	_context->PSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
+//
+//	for (int i = 0; i < objQ.size(); i++) {
+//
+//		UINT vertexStride = sizeof(Vertex);
+//		UINT offset = 0;
+//
+//		//Set vertex buffer
+//		_context->IASetVertexBuffers(0, 1, objQ[i].second->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
+//
+//		//Set index buffer
+//		_context->IASetIndexBuffer(objQ[i].second->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+//
+//		//set shader resc view and sampler
+//		bool hasTexture = 0;
+//		bool hasNormal = 0;
+//		if (objQ[i].second->pMaterial->objTexture != nullptr) {
+//			_context->PSSetShaderResources(0, 1, objQ[i].second->pMaterial->objTexture->pShaderResView.GetAddressOf());
+//			hasTexture = 1;
+//		}
+//
+//		// set normal map
+//		if (objQ[i].second->pMaterial->objNormalMap != nullptr) {
+//			_context->PSSetShaderResources(1, 1, objQ[i].second->pMaterial->objNormalMap->pShaderResView.GetAddressOf());
+//			hasNormal = 1;
+//		}
+//
+//		// Submit each object's data to const buffer
+//		{
+//			tre::ModelInfoStruct modelInfoStruct = tre::CommonStructUtility::createModelInfoStruct(objQ[i].first->_transformationFinal, objQ[i].second->pMaterial->baseColor, hasTexture, hasNormal);
+//			tre::Buffer::updateConstBufferData(_context, constBufferModelInfo, &modelInfoStruct, sizeof(tre::ModelInfoStruct));
+//		}
+//
+//		_context->DrawIndexed(objQ[i].second->indexSize, 0, 0);
+//	}
+//
+//	// clean up
+//	{
+//		constBufferModelInfo->Release();
+//	}
+//}
+//
+//
+//void Graphics::instancedDraw(const std::vector<std::pair<Object*, Mesh*>>& objQ, RENDER_MODE renderMode) {
+//	if (objQ.size() == 0) return;
+//
+//	ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
+//
+//	const char* name = ToString(renderMode);
+//	MICROPROFILE_SCOPE_CSTR(name);
+//	PROFILE_GPU_SCOPED("Instanced Draw");
+//
+//	_instanceBuffer.updateBuffer(objQ);
+//
+//	configureStates(renderMode);
+//
+//	UINT vertexStride = sizeof(Vertex);
+//	UINT offset = 0;
+//
+//	// Create an empty const buffer 
+//	ID3D11Buffer* constBufferBatchInfo = tre::Buffer::createConstBuffer(_device, (UINT)sizeof(tre::BatchInfoStruct));
+//
+//	for (int i = 0; i < _instanceBuffer.instanceBatchQueue.size(); i++) {
+//		InstanceBatchInfo currBatchInfo = _instanceBuffer.instanceBatchQueue[i];
+//
+//		// update constant buffer for each instanced draw call
+//		{
+//			tre::BatchInfoStruct bInfo = tre::CommonStructUtility::createBatchInfoStruct(currBatchInfo.batchStartIdx);
+//			tre::Buffer::updateConstBufferData(_context, constBufferBatchInfo, &bInfo, (UINT)sizeof(tre::BatchInfoStruct));
+//
+//			_context->VSSetConstantBuffers(1u, 1u, &constBufferBatchInfo);
+//		}
+//
+//		// Update mesh vertex information
+//		_context->IASetVertexBuffers(0, 1, currBatchInfo.pBatchMesh->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
+//		_context->IASetIndexBuffer(currBatchInfo.pBatchMesh->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+//
+//		// Update texture information
+//		_context->PSSetShaderResources(0u, 1u, nullSRV);
+//		if (currBatchInfo.isWithTexture) {
+//			_context->PSSetShaderResources(0u, 1u, currBatchInfo.pBatchTexture->pShaderResView.GetAddressOf());
+//		}
+//
+//		_context->PSSetShaderResources(1u, 1u, nullSRV);
+//		if (currBatchInfo.hasNormMap) {
+//			_context->PSSetShaderResources(1u, 1u, currBatchInfo.pBatchNormalMap->pShaderResView.GetAddressOf());
+//		}
+//
+//		// Draw call
+//		_context->DrawIndexedInstanced(currBatchInfo.pBatchMesh->indexSize, currBatchInfo.quantity, 0u, 0u, 0u);
+//	}
+//
+//	// clean up
+//	{
+//		constBufferBatchInfo->Release();
+//	}
+//}
 
 }

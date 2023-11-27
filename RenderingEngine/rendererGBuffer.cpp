@@ -41,7 +41,7 @@ void RendererGBuffer::render(Graphics& graphics, Scene& scene, Camera& cam) {
 
 		// unbind depth buffer as a shader resource, so that we can write to it
 		_context->OMSetRenderTargets(0, nullptr, nullptr);
-		_context->PSSetShader(graphics._instancedPixelShader.pShader.Get(), NULL, 0u);
+		_context->PSSetShader(_pixelShaderInstanced.pShader.Get(), NULL, 0u);
 		_context->PSSetShaderResources(4, 1, graphics.nullSRV);
 
 		_context->OMSetBlendState(graphics._blendstate.opaque.Get(), NULL, 0xffffffff);
