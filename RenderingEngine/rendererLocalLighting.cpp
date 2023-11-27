@@ -28,6 +28,7 @@ void RendererLocalLighting::render(const Graphics& graphics, const Scene& scene,
 		_context->PSSetShader(_deferredShaderLightingLocal.pShader.Get(), NULL, 0u);
 		_context->PSSetShaderResources(0, 1, graphics._gBuffer.pShaderResViewDeferredAlbedo.GetAddressOf()); // albedo
 		_context->PSSetShaderResources(1, 1, graphics._gBuffer.pShaderResViewDeferredNormal.GetAddressOf()); // normal
+		_context->PSSetShaderResources(2, 1, scene.lightResc.pLightShaderRescView.GetAddressOf());			// point light info
 		_context->CopyResource(graphics._depthbuffer.pDepthStencilReadOnlyTexture.Get(), graphics._depthbuffer.pDepthStencilTexture.Get());
 		_context->PSSetShaderResources(4, 1, graphics._depthbuffer.pDepthStencilReadOnlyShaderRescView.GetAddressOf()); //depth
 

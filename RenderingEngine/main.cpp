@@ -186,8 +186,6 @@ int main()
 		}
 
 		scene.updatePtLight();
-		deviceAndContext.context.Get()->PSSetShaderResources(2, 1, scene.lightResc.pLightShaderRescView.GetAddressOf());
-
 		rendererSSAO.render(graphics);						// SSAO Pass
 		rendererEnvLighting.render(graphics);				// Environment Lighting Pass
 		rendererTransparency.render(graphics, scene);		// Transparency Object Pass
