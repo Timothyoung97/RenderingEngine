@@ -28,10 +28,11 @@
 #include "modelloader.h"
 #include "object.h"
 #include "rendererCSM.h"
+#include "rendererGBuffer.h"
 #include "rendererHDR.h"
 #include "rendererSSAO.h"
+#include "rendererTransparency.h"
 #include "rendererWireframe.h"
-#include "rendererGBuffer.h"
 #include "scene.h"
 #include "shader.h"
 #include "texture.h"
@@ -100,6 +101,7 @@ int main()
 	tre::RendererSSAO rendererSSAO(deviceAndContext.device.Get(), deviceAndContext.context.Get());
 	tre::RendererCSM rendererCSM(deviceAndContext.device.Get(), deviceAndContext.context.Get());
 	tre::RendererGBuffer rendererGBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get());
+	tre::RendererTransparency rendererTransparency(deviceAndContext.device.Get(), deviceAndContext.context.Get());
 
 	//Input Handler
 	tre::Input input;
@@ -125,7 +127,7 @@ int main()
 	tre::Object debugModel;
 
 	debugModel.pObjMeshes = { &scene._debugMeshes[4] };
-	debugModel.pObjMeshes[0]->pMaterial = &scene._debugMaterials[3];
+	debugModel.pObjMeshes[0]->pMaterial = &scene._debugMaterials[4];
 	debugModel.objPos = XMFLOAT3(.0f, .5f, .0f);
 	debugModel.objScale = XMFLOAT3(1.f, 1.f, 1.f);
 	debugModel.objRotation = XMFLOAT3(.0f, .0f, .0f);
@@ -190,11 +192,7 @@ int main()
 			graphics.fullscreenPass(tre::RENDER_MODE::DEFERRED_OPAQUE_LIGHTING_ENV_M);
 		}
 
-		// Draw all transparent objects
-		{
-			PROFILE_GPU_SCOPED("Transparent Obj");
-			graphics.draw(scene._culledTransparentObjQ, tre::RENDER_MODE::TRANSPARENT_M); // here can draw instanced
-		}
+		rendererTransparency.render(graphics, scene);
 
 		// Draw all deferred lighting volume
 		{

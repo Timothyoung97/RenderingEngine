@@ -159,6 +159,8 @@ void LightResource::updatePtLightCPU() {
 }
 
 void LightResource::dispatch() {
+	if (!numOfLights) return;
+
 	// using compute shader update lights
 	_context->CSSetShader(computeShaderPtLightMovement.pShader.Get(), NULL, 0u);
 	_context->CSSetUnorderedAccessViews(0, 1, pLightUnorderedAccessView.GetAddressOf(), nullptr);
