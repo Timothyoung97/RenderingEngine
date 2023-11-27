@@ -22,6 +22,8 @@ Graphics::Graphics(ID3D11Device* _device, ID3D11DeviceContext* _context, HWND wi
 	_viewport.create(tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);
 	
 	std::wstring basePathWstr = tre::Utility::getBasePathWstr();
+
+	VertexShader _vertexShader;
 	_vertexShader.create(basePathWstr + L"shaders\\bin\\vertex_shader.bin", _device);
 	_inputLayout.create(_device, &_vertexShader);
 

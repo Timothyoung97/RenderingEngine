@@ -86,14 +86,9 @@ public:
 
 	// Pipeline
 	Viewport _viewport;
-
 	InputLayout _inputLayout;
-	VertexShader _vertexShader;
-
 	Rasterizer _rasterizer;
-
 	Sampler _sampler;
-
 	BlendState _blendstate;
 	DepthBuffer _depthbuffer;
 	
