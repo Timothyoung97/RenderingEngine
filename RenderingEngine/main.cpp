@@ -108,6 +108,7 @@ int main()
 	tre::RendererTransparency rendererTransparency(deviceAndContext.device.Get(), deviceAndContext.context.Get());
 	tre::RendererWireframe rendererWireframe(deviceAndContext.device.Get(), deviceAndContext.context.Get());
 
+	// Create Computer 
 	tre::ComputerPointLight computerPtLight(deviceAndContext.device.Get(), deviceAndContext.context.Get());
 
 	//Input Handler
