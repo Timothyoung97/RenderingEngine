@@ -11,7 +11,7 @@ RendererTransparency::RendererTransparency(ID3D11Device* pDevice, ID3D11DeviceCo
 	_forwardShader.create(basePathWstr + L"shaders\\bin\\pixel_shader_forward.bin", _device);
 }
 
-void RendererTransparency::render(const Graphics& graphics, const Scene& scene) {
+void RendererTransparency::render(Graphics& graphics, const Scene& scene) {
 	if (scene._culledTransparentObjQ.size() == 0) return;
 
 	const char* name = ToString(RENDER_MODE::TRANSPARENT_M);
@@ -75,7 +75,7 @@ void RendererTransparency::render(const Graphics& graphics, const Scene& scene) 
 
 	// clean up
 	{
-		constBufferModelInfo->Release();
+		graphics.bufferQueue.push_back(constBufferModelInfo);
 	}
 }
 

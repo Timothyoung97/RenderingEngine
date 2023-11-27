@@ -10,7 +10,7 @@ RendererLocalLighting::RendererLocalLighting(ID3D11Device* pDevice, ID3D11Device
 	_deferredShaderLightingLocal.create(basePathWstr + L"shaders\\bin\\pixel_shader_deferred_lighting_local.bin", _device);
 }
 
-void RendererLocalLighting::render(const Graphics& graphics, const Scene& scene, const Camera& cam) {
+void RendererLocalLighting::render(Graphics& graphics, const Scene& scene, const Camera& cam) {
 	if (scene._wireframeObjQ.size() == 0) return;
 
 	const char* name = ToString(DEFERRED_LIGHTING_LOCAL_M);
@@ -81,8 +81,8 @@ void RendererLocalLighting::render(const Graphics& graphics, const Scene& scene,
 
 	// clean up
 	{
-		constBufferModelInfo->Release();
-		constBufferPtLightInfo->Release();
+		graphics.bufferQueue.push_back(constBufferModelInfo);
+		graphics.bufferQueue.push_back(constBufferPtLightInfo);
 	}
 }
 

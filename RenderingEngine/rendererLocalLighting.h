@@ -15,6 +15,6 @@ public:
 
 	RendererLocalLighting(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 
-	void render(const Graphics& graphics, const Scene& secne, const Camera& cam);
+	void render(Graphics& graphics, const Scene& secne, const Camera& cam);
 };
 }
