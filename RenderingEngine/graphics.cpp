@@ -173,65 +173,6 @@ void Graphics::fullscreenPass(tre::RENDER_MODE mode) {
 	_context->Draw(6, 0);
 }
 
-void Graphics::deferredLightingLocalDraw(const std::vector<Object*>& objQ, XMVECTOR cameraPos) {
-	if (objQ.size() == 0) return;
-
-	const char* name = ToString(DEFERRED_LIGHTING_LOCAL_M);
-	MICROPROFILE_SCOPE_CSTR(name);
-	PROFILE_GPU_SCOPED("Deferred Local Light Draw");
-
-	configureStates(RENDER_MODE::DEFERRED_LIGHTING_LOCAL_M);
-
-	UINT vertexStride = sizeof(Vertex);
-	UINT offset = 0;
-
-	//Set vertex buffer
-	_context->IASetVertexBuffers(0, 1, objQ[0]->pObjMeshes[0]->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
-
-	//Set index buffer
-	_context->IASetIndexBuffer(objQ[0]->pObjMeshes[0]->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-
-	// Create empty const buffer and pre bind the constant buffer
-	ID3D11Buffer* constBufferModelInfo = tre::Buffer::createConstBuffer(_device, sizeof(tre::ModelInfoStruct));
-	_context->VSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
-	_context->PSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
-
-	ID3D11Buffer* constBufferPtLightInfo = tre::Buffer::createConstBuffer(_device, sizeof(tre::PointLightInfoStruct));
-	_context->PSSetConstantBuffers(2u, 1u, &constBufferPtLightInfo);
-
-	for (int i = 0; i < objQ.size(); i++) {
-
-		// Submit each object's data to const buffer
-		{
-			tre::ModelInfoStruct modelInfoStruct = tre::CommonStructUtility::createModelInfoStruct(objQ[i]->_transformationFinal, objQ[i]->pObjMeshes[0]->pMaterial->baseColor, 0u, 0u);
-			tre::Buffer::updateConstBufferData(_context, constBufferModelInfo, &modelInfoStruct, sizeof(tre::ModelInfoStruct));
-		}
-
-		// Submit point light's idx to const buffer
-		{
-			tre::PointLightInfoStruct ptLightInfoStruct = tre::CommonStructUtility::createPointLightInfoStruct(i);
-			tre::Buffer::updateConstBufferData(_context, constBufferPtLightInfo, &ptLightInfoStruct, sizeof(tre::PointLightInfoStruct));
-		}
-
-		float distFromObjToCam = tre::Maths::distBetweentObjToCam(objQ[i]->objPos, cameraPos);
-		
-		// if the camera is inside the light sphere
-		if (distFromObjToCam < objQ[i]->objScale.x) {
-			_context->RSSetState(_rasterizer.pRasterizerStateFCW.Get()); // render only back face
-			_context->OMSetDepthStencilState(_depthbuffer.pDSStateWithoutDepthT.Get(), 0); // all depth test pass to render the sphere
-		}
-
-		_context->DrawIndexed(objQ[i]->pObjMeshes[0]->indexSize, 0, 0);
-	}
-
-	// clean up
-	{
-		constBufferModelInfo->Release();
-		constBufferPtLightInfo->Release();
-	}
-}
-
-
 void Graphics::draw(const std::vector<std::pair<Object*, Mesh*>> objQ, RENDER_MODE renderObjType) {
 	if (objQ.size() == 0) return;
 
