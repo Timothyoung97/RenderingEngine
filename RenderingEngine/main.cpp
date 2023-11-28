@@ -148,6 +148,7 @@ int main()
 
 	profiler.cleanup();
 	imguiHelper.cleanup();
+	window.cleanup();
 
 	return 0;
 }

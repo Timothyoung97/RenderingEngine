@@ -35,7 +35,7 @@ public:
 
 	HWND getWindowHandle();
 
-	~Window();
+	void cleanup();
 	Window(const Window&) = delete;
 	Window& operator=(const Window&) = delete;
 };

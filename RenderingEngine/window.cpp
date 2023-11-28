@@ -27,7 +27,7 @@ HWND Window::getWindowHandle() {
 }
 
 //Destructor
-Window::~Window() {
+void Window::cleanup() {
 	SDL_DestroyWindow(window); // destroy window
 	SDL_Quit(); // destroy subsystem
 }
