@@ -98,7 +98,7 @@ void RendererHDR::fullscreenPass(const Graphics& graphics) {
 
 		_context->OMSetBlendState(graphics._blendstate.opaque.Get(), NULL, 0xffffffff);
 		_context->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0); // by default: read only depth test
-		_context->OMSetRenderTargets(1, &graphics.currRenderTargetView, nullptr);
+		_context->OMSetRenderTargets(1, graphics.currRenderTargetView.GetAddressOf(), nullptr);
 	}
 
 	_context->Draw(6, 0);

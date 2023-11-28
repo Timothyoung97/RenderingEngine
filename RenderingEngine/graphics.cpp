@@ -64,18 +64,18 @@ void Graphics::clearSwapChainBuffer() {
 	// Alternating buffers
 	int currBackBuffer = static_cast<int>(_swapchain.mainSwapchain->GetCurrentBackBufferIndex());
 
-	ID3D11Texture2D* backBuffer = nullptr;
+	ComPtr<ID3D11Texture2D> backBuffer;
 
 	CHECK_DX_ERROR(_swapchain.mainSwapchain->GetBuffer(
 		currBackBuffer, __uuidof(ID3D11Texture2D), (LPVOID*)&backBuffer
 	));
 
 	CHECK_DX_ERROR(_device->CreateRenderTargetView(
-		backBuffer, NULL, &currRenderTargetView
+		backBuffer.Get(), NULL, currRenderTargetView.GetAddressOf()
 	));
 	
 	// Set draw target to Screen
-	_context->ClearRenderTargetView(currRenderTargetView, tre::BACKGROUND_GREY);
+	_context->ClearRenderTargetView(currRenderTargetView.Get(), tre::BACKGROUND_GREY);
 }
 
 void Graphics::present() {

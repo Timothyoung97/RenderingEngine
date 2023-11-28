@@ -73,7 +73,7 @@ void RendererWireframe::draw(Graphics& graphics, const std::vector<Object*>& obj
 
 		_context->OMSetBlendState(graphics._blendstate.transparency.Get(), NULL, 0xffffffff);
 		_context->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithoutDepthT.Get(), 0);
-		_context->OMSetRenderTargets(1, &graphics.currRenderTargetView, nullptr);
+		_context->OMSetRenderTargets(1, graphics.currRenderTargetView.GetAddressOf(), nullptr);
 	}
 
 	// Create empty const buffer and pre bind the constant buffer
@@ -145,7 +145,7 @@ void RendererWireframe::drawInstanced(Graphics& graphics, const std::vector<Obje
 
 		_context->OMSetBlendState(graphics._blendstate.transparency.Get(), NULL, 0xffffffff);
 		_context->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithoutDepthT.Get(), 0);
-		_context->OMSetRenderTargets(1, &graphics.currRenderTargetView, nullptr);
+		_context->OMSetRenderTargets(1, graphics.currRenderTargetView.GetAddressOf(), nullptr);
 	}
 
 	// Create an empty const buffer 

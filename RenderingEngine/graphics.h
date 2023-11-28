@@ -107,7 +107,7 @@ public:
 	GraphicsSetting setting;
 	GraphicsStats stats;
 
-	ID3D11RenderTargetView* currRenderTargetView = nullptr;
+	ComPtr<ID3D11RenderTargetView> currRenderTargetView;
 
 	Graphics(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, HWND window);
 
