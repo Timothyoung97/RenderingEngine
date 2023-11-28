@@ -39,10 +39,13 @@ public:
 	ID3D11Device* _device;
 	ID3D11DeviceContext* _context;
 
+	ComPtr<ID3D11Buffer> pStagingInstanceBuffer;
 	ComPtr<ID3D11Buffer> pInstanceBuffer;
 	ComPtr<ID3D11ShaderResourceView> pInstanceBufferSRV;
 
 	std::vector<InstanceBatchInfo> instanceBatchQueue;
+
+	int currMaxInstanceCount = 100;
 
 	void createBuffer(ID3D11Device* _device, ID3D11DeviceContext* _context);
 
