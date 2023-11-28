@@ -21,7 +21,7 @@ void GBuffer::create(ID3D11Device* device) {
 		&gbufferDesc, nullptr, pGBufferTextureAlbedo.GetAddressOf()
 	)); 
 
-	gbufferDesc.Format = DXGI_FORMAT_R11G11B10_FLOAT;
+	gbufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	CHECK_DX_ERROR(device->CreateTexture2D(
 		&gbufferDesc, nullptr, pGBufferTextureNormal.GetAddressOf()
 	));
@@ -35,7 +35,7 @@ void GBuffer::create(ID3D11Device* device) {
 		pGBufferTextureAlbedo.Get(), &shaderResViewDesc, pShaderResViewDeferredAlbedo.GetAddressOf()
 	));
 
-	shaderResViewDesc.Format = DXGI_FORMAT_R11G11B10_FLOAT;
+	shaderResViewDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	CHECK_DX_ERROR(device->CreateShaderResourceView(
 		pGBufferTextureNormal.Get(), &shaderResViewDesc, pShaderResViewDeferredNormal.GetAddressOf()
 	));
@@ -50,7 +50,7 @@ void GBuffer::create(ID3D11Device* device) {
 		pGBufferTextureAlbedo.Get(), &rtvd, pRenderTargetViewDeferredAlbedo.GetAddressOf()
 	));
 
-	rtvd.Format = DXGI_FORMAT_R11G11B10_FLOAT;
+	rtvd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	CHECK_DX_ERROR(device->CreateRenderTargetView(
 		pGBufferTextureNormal.Get(), &rtvd, pRenderTargetViewDeferredNormal.GetAddressOf()
 	));
