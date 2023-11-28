@@ -87,7 +87,7 @@ void InstanceBuffer::updateBuffer(const std::vector<std::pair<Object*, Mesh*>>& 
 	}
 
 	D3D11_BUFFER_DESC pInstanceBufferDesc;
-	pInstanceBufferDesc.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE;
+	pInstanceBufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 	pInstanceBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	pInstanceBufferDesc.CPUAccessFlags = 0u;
 	pInstanceBufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
@@ -160,7 +160,7 @@ void InstanceBuffer::updateBuffer(const std::vector<Object*>& objQ, Mesh* specif
 	instanceBatchQueue.push_back(singleBatch);
 
 	D3D11_BUFFER_DESC pInstanceBufferDesc;
-	pInstanceBufferDesc.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE;
+	pInstanceBufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 	pInstanceBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	pInstanceBufferDesc.CPUAccessFlags = 0u;
 	pInstanceBufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
