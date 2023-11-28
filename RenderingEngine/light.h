@@ -42,7 +42,7 @@ public:
 
 	int readIndex = 0;
 	int writeIndex = readIndex ^ 1;
-	ID3D11Buffer* doubleBuffer[2] = { nullptr, nullptr };
+	ComPtr<ID3D11Buffer> doubleBuffer[2];
 
 	int numOfLights = 0;
 	int maxPointLightNum = 9;

@@ -32,17 +32,13 @@ void LightResource::create(ID3D11Device* device, ID3D11DeviceContext* context) {
 	lightBufferDescCPU.ByteWidth = static_cast<UINT>(sizeof(tre::PointLight)) * maxPointLightNum;
 	lightBufferDescCPU.StructureByteStride = static_cast<UINT>(sizeof(tre::PointLight));
 
-	ID3D11Buffer* pLightBufferCPU0;
 	CHECK_DX_ERROR(_device->CreateBuffer(
-		&lightBufferDescCPU, NULL, &pLightBufferCPU0
+		&lightBufferDescCPU, NULL, doubleBuffer[0].GetAddressOf()
 	));
-	doubleBuffer[0] = pLightBufferCPU0;
 
-	ID3D11Buffer* pLightBufferCPU1;
 	CHECK_DX_ERROR(_device->CreateBuffer(
-		&lightBufferDescCPU, NULL, &pLightBufferCPU1
+		&lightBufferDescCPU, NULL, doubleBuffer[1].GetAddressOf()
 	));
-	doubleBuffer[1] = pLightBufferCPU1;
 }
 
 void LightResource::updatePixelShaderBuffer() {
@@ -75,14 +71,14 @@ void LightResource::updateComputeShaderBuffer(PointLight newPointLight) {
 	D3D11_SUBRESOURCE_DATA lightData = {};
 	lightData.pSysMem = &newPointLight;
 
-	ID3D11Buffer* pLightBufferCPU;
+	ComPtr<ID3D11Buffer> pLightBufferCPU;
 
 	CHECK_DX_ERROR(_device->CreateBuffer(
-		&lightBufferDescCPU, &lightData, &pLightBufferCPU
+		&lightBufferDescCPU, &lightData, pLightBufferCPU.GetAddressOf()
 	));
 
 	// Copy subresource from CPU to GPU
-	_context->CopySubresourceRegion(pLightBufferGPU.Get(), 0, (numOfLights - 1) * static_cast<UINT>(sizeof(tre::PointLight)), 0, 0, pLightBufferCPU, 0, NULL);
+	_context->CopySubresourceRegion(pLightBufferGPU.Get(), 0, (numOfLights - 1) * static_cast<UINT>(sizeof(tre::PointLight)), 0, 0, pLightBufferCPU.Get(), 0, NULL);
 
 	// update GPU on buffer
 	D3D11_BUFFER_UAV lightBufferUAV;
@@ -136,10 +132,10 @@ PointLight LightResource::addPointLight(XMFLOAT3 pos, XMFLOAT3 att, XMFLOAT4 dif
 
 void LightResource::updatePtLightCPU() {
 
-	_context->CopyResource(doubleBuffer[writeIndex], pLightBufferGPU.Get());
+	_context->CopyResource(doubleBuffer[writeIndex].Get(), pLightBufferGPU.Get());
 
 	D3D11_MAPPED_SUBRESOURCE data;
-	CHECK_DX_ERROR(_context->Map(doubleBuffer[readIndex], 0, D3D11_MAP_READ, 0u, &data));
+	CHECK_DX_ERROR(_context->Map(doubleBuffer[readIndex].Get(), 0, D3D11_MAP_READ, 0u, &data));
 
 	readOnlyPointLightQ.clear();
 
@@ -149,7 +145,7 @@ void LightResource::updatePtLightCPU() {
 		readOnlyPointLightQ.push_back(pPtLight[i]);
 	}
 
-	_context->Unmap(doubleBuffer[readIndex], 0);
+	_context->Unmap(doubleBuffer[readIndex].Get(), 0);
 
 	readIndex ^= 1;
 	writeIndex ^= 1;
