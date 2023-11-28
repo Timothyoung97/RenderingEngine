@@ -1,6 +1,5 @@
 #define SDL_MAIN_HANDLED
 
-#include "spdlog/spdlog.h"
 #include "portable-file-dialogs.h"
 
 //Custom Header
