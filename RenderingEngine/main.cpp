@@ -1,16 +1,7 @@
 #define SDL_MAIN_HANDLED
 
-#include <dxgi1_4.h>
-#include <d3d11.h>
-#include <DirectXMath.h>
-#include <wrl/client.h>
 #include "spdlog/spdlog.h"
 #include "portable-file-dialogs.h"
-
-#include <algorithm>
-#include <functional>
-#include <array>
-#include <format>
 
 //Custom Header
 #include "camera.h"
