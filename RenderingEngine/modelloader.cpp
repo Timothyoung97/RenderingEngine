@@ -46,7 +46,7 @@ void ModelLoader::loadResource(ID3D11Device* device, const aiScene* scene) {
 	for (int i = 0; i < scene->mNumMeshes; i++) {
 		aiMesh* mesh = scene->mMeshes[i];
 		if (!_meshes.contains(i)) {
-			printf("Loading mesh %d", i);
+			printf("Loading mesh %d\n", i);
 			_meshes[i] = CustomMesh(device, mesh);	
 		}
 	}
@@ -60,7 +60,7 @@ void ModelLoader::loadResource(ID3D11Device* device, const aiScene* scene) {
 
 		pMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &diffuseTexName);
 		if (diffuseTexName.length && !_textures.contains(diffuseTexName.C_Str())) {
-			printf("Loading diffuse texture %s", diffuseTexName.C_Str());
+			printf("Loading diffuse texture %s\n", diffuseTexName.C_Str());
 			std::string fullFilepath = this->_directoryPath + tre::Utility::uriDecode(std::string(diffuseTexName.C_Str()));
 			_textures[diffuseTexName.C_Str()] = tre::TextureLoader::createTexture(device, fullFilepath);
 		}
@@ -68,7 +68,7 @@ void ModelLoader::loadResource(ID3D11Device* device, const aiScene* scene) {
 		aiString normalMapName;
 		pMaterial->GetTexture(aiTextureType_NORMALS, 0, &normalMapName);
 		if (normalMapName.length && !_textures.contains(normalMapName.C_Str())) {
-			printf("Loading normal texture %s", normalMapName.C_Str());
+			printf("Loading normal texture %s\n", normalMapName.C_Str());
 			std::string fullFilepath = this->_directoryPath + tre::Utility::uriDecode(std::string(normalMapName.C_Str()));
 			_textures[normalMapName.C_Str()] = tre::TextureLoader::createTexture(device, fullFilepath);
 		}

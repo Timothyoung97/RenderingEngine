@@ -18,7 +18,7 @@ Texture TextureLoader::createTexture(ID3D11Device* device, std::string filepath)
 	if (img == NULL) {
 		printf("Error loading image\n");
 	}
-	printf("Img path: %s\n, Img width: %d, Img height: %d, Img channels: %d\n", filepath.c_str(), imgWidth, imgHeight, imgChannels);
+	printf("Img path: %s\n Img width: %d, Img height: %d, Img channels: %d\n", filepath.c_str(), imgWidth, imgHeight, imgChannels);
 
 	// set alpha channel boolean
 	if (imgChannels == 4) newTexture.hasAlphaChannel = true;
