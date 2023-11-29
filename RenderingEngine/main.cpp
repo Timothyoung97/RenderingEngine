@@ -29,11 +29,15 @@
 #include "utility.h"
 #include "window.h"
 
+#include "engine.h"
+
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>  
 #include <crtdbg.h>
 
 using namespace DirectX;
+
+tre::Engine* g_Engine;
 
 int main()
 {
@@ -44,9 +48,12 @@ int main()
 	_CrtMemCheckpoint(&s1);
 
 	{
+		tre::Engine e;
+		g_Engine = &e;
+		e.init();
+
 		// Crate Global Resource
 		srand((uint32_t)time(NULL));																	// set random seed
-		tre::Window window("RenderingEngine", tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);					// Create Window
 		tre::Device deviceAndContext; 																	// Create Device 
 		tre::MicroProfiler profiler(deviceAndContext.device.Get(), deviceAndContext.context.Get()); 	// Create Profiler
 		tre::Scene scene(deviceAndContext.device.Get(), deviceAndContext.context.Get()); 				// Create Scene
@@ -61,7 +68,7 @@ int main()
 				"obj Files (.obj)", "*.obj",
 			},
 			pfd::opt::force_path
-			);
+		);
 
 		tre::ModelLoader ml;
 		if (f.result().size()) {
@@ -74,7 +81,7 @@ int main()
 		}
 
 		//Create Renderer
-		tre::Graphics graphics(deviceAndContext.device.Get(), deviceAndContext.context.Get(), window.getWindowHandle());
+		tre::Graphics graphics(deviceAndContext.device.Get(), deviceAndContext.context.Get(), e.window->getWindowHandle());
 		tre::RendererCSM rendererCSM(deviceAndContext.device.Get(), deviceAndContext.context.Get());
 		tre::RendererEnvironmentLighting rendererEnvLighting(deviceAndContext.device.Get(), deviceAndContext.context.Get());
 		tre::RendererGBuffer rendererGBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get());
@@ -128,7 +135,7 @@ int main()
 		}
 
 		// create imgui
-		ImguiHelper imguiHelper(deviceAndContext.device.Get(), deviceAndContext.context.Get(), &window, &scene, &graphics.setting, &graphics.stats, &cam, pDebugModel);
+		ImguiHelper imguiHelper(deviceAndContext.device.Get(), deviceAndContext.context.Get(), e.window, &scene, &graphics.setting, &graphics.stats, &cam, pDebugModel);
 
 		// main loop
 		while (!input.shouldQuit())
@@ -162,7 +169,8 @@ int main()
 		{
 			profiler.cleanup();
 			imguiHelper.cleanup();
-			window.cleanup();
+			//window.cleanup();
+			e.close();
 		}
 	}
 
