@@ -11,7 +11,7 @@
 #define CHECK_SDL_ERR(condition) \
 { \
 	if (!(condition)) { \
-		printf("Assertion failed: %s at %s:%s\n", SDL_GetError(), __FILE__, __LINE__);	\
+		printf("Assertion failed: %s at %s:%d\n", SDL_GetError(), __FILE__, __LINE__);	\
 		assert(false); \
 	} \
 }
