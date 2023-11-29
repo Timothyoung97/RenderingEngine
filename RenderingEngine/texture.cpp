@@ -1,4 +1,3 @@
-#include <spdlog/spdlog.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -17,9 +16,9 @@ Texture TextureLoader::createTexture(ID3D11Device* device, std::string filepath)
 	int imgWidth, imgHeight, imgChannels, desiredChannels = 4;
 	unsigned char* img = stbi_load(filepath.c_str(), &imgWidth, &imgHeight, &imgChannels, desiredChannels);
 	if (img == NULL) {
-		spdlog::error("Error loading image");
+		printf("Error loading image\n");
 	}
-	spdlog::info("Img path: {}\n, Img width: {}, Img height: {}, Img channels: {}\n", filepath.c_str(), imgWidth, imgHeight, imgChannels);
+	printf("Img path: %s\n, Img width: %d, Img height: %d, Img channels: %d\n", filepath.c_str(), imgWidth, imgHeight, imgChannels);
 
 	// set alpha channel boolean
 	if (imgChannels == 4) newTexture.hasAlphaChannel = true;
@@ -49,7 +48,7 @@ Texture TextureLoader::createTexture(ID3D11Device* device, std::string filepath)
 		&texture2dDesc, &textureData, pTexture.GetAddressOf()
 	));
 
-	STBI_FREE(img);
+	stbi_image_free(img);
 
 	// Create Shader Resource view
 	D3D11_SHADER_RESOURCE_VIEW_DESC shaderResViewDesc;

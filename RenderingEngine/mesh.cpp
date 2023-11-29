@@ -217,7 +217,7 @@ void SphereMesh::create(ID3D11Device* device, int sectorC, int stackC, float r) 
 
 			idx++;
 		}
-		idx ++; // increment to the next stack line
+		idx++; // increment to the next stack line
 	}
 
 	//build south pole

@@ -23,7 +23,6 @@ Scene::Scene(ID3D11Device* device, ID3D11DeviceContext* context) {
 		tre::SphereMesh(device, 6, 6), // testing sphere
 		tre::CubeMesh(device), // testing cube
 		tre::SphereMesh(device, 6, 6), // testing sphere
-
 	};
 	
 	// Create testing texture

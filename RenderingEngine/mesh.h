@@ -38,6 +38,7 @@ public:
 
 	int indexSize;
 	void createVertexAndIndexBuffer(ID3D11Device* device, const std::vector<Vertex> &vertices, const std::vector<uint32_t> &indices);
+
 };
 
 class CustomMesh : public Mesh {
@@ -54,7 +55,6 @@ public:
 
 class SphereMesh : public Mesh {
 public:
-
 	SphereMesh(ID3D11Device* device, int sectorC, int stackC);
 	SphereMesh(ID3D11Device* device, int sectorC, int stackC, float r);
 

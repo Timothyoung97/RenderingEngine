@@ -1,7 +1,8 @@
 #include "microprofiler.h"
 
 #include "microprofile.h"
-#include "spdlog/spdlog.h"
+
+#include <stdio.h>
 
 namespace tre {
 
@@ -26,7 +27,7 @@ void MicroProfiler::cleanup() {
 
 void MicroProfiler::storeToDisk(bool& toStore) {
 	if (toStore) {
-		spdlog::info("Profiling");
+		printf("Profiling\n");
 		MicroProfileDumpFileImmediately("profile.html", nullptr, _context);
 		toStore = false;
 	}

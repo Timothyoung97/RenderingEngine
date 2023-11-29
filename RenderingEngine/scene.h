@@ -70,6 +70,6 @@ public:
 	void updateCulledOpaqueQ();
 
 	void update(const Graphics& graphics, const Camera& cam);
-	
+
 };
 }

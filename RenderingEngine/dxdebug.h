@@ -1,12 +1,13 @@
 #pragma once
 
-#include <spdlog/spdlog.h>
+#include <stdio.h>
+#include <cassert>
 
 #define CHECK_DX_ERROR(dx11Func) \
 { \
 	HRESULT hresult; \
 	if (!SUCCEEDED(hresult = dx11Func)) { \
-		spdlog::error("Assertion failed: {} at {}:{}\n", hresult, __FILE__, __LINE__);	\
+		printf("Assertion failed: %d at %s:%d\n", hresult, __FILE__, __LINE__);	\
 		assert(false); \
 	} \
 }

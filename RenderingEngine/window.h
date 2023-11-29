@@ -1,16 +1,17 @@
 #pragma once
 
-#include "spdlog/spdlog.h"
-
 // Using SDL
 #include <SDL.h>
 #include <SDL_syswm.h>
 
+#include <stdio.h>
+#include <string>
+#include <cassert>
 
 #define CHECK_SDL_ERR(condition) \
 { \
 	if (!(condition)) { \
-		spdlog::error("Assertion failed: {} at {}:{}\n", SDL_GetError(), __FILE__, __LINE__);	\
+		printf("Assertion failed: %s at %s:%s\n", SDL_GetError(), __FILE__, __LINE__);	\
 		assert(false); \
 	} \
 }
