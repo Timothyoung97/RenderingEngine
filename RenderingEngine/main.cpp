@@ -53,8 +53,6 @@ int main()
 		e.init();
 
 		// Crate Global Resource
-		srand((uint32_t)time(NULL));																	// set random seed
-		tre::Scene scene(e.device->device.Get(), e.device->context.Get()); 								// Create Scene
 		tre::Camera cam(tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);											// Create Camera
 
 		// Loading Models
@@ -74,7 +72,7 @@ int main()
 
 			for (int i = 0; i < ml._objectWithMesh.size(); i++) {
 				tre::Object* pObj = ml._objectWithMesh[i];
-				scene._pObjQ.push_back(pObj);
+				e.scene->_pObjQ.push_back(pObj);
 			}
 		}
 
@@ -102,8 +100,8 @@ int main()
 		// Testing Obj
 		{
 			tre::Object debugModel;	
-			debugModel.pObjMeshes = { &scene._debugMeshes[4] };
-			debugModel.pObjMeshes[0]->pMaterial = &scene._debugMaterials[4];
+			debugModel.pObjMeshes = { &e.scene->_debugMeshes[4] };
+			debugModel.pObjMeshes[0]->pMaterial = &e.scene->_debugMaterials[4];
 			debugModel.objPos = XMFLOAT3(.0f, .5f, .0f);
 			debugModel.objScale = XMFLOAT3(1.f, 1.f, 1.f);
 			debugModel.objRotation = XMFLOAT3(.0f, .0f, .0f);
@@ -112,16 +110,16 @@ int main()
 			debugModel.aabb = { debugModel.pObjMeshes[0]->aabb };
 			debugModel._boundingVolumeColor = { tre::colorF(Colors::LightGreen) };
 			debugModel.isInView = { true };
-			scene._objQ.push_back(debugModel);
-			scene._pObjQ.push_back(&scene._objQ.back());
+			e.scene->_objQ.push_back(debugModel);
+			e.scene->_pObjQ.push_back(&e.scene->_objQ.back());
 		}
-		tre::Object* pDebugModel = scene._pObjQ.back();
+		tre::Object* pDebugModel = e.scene->_pObjQ.back();
 
 		// Stats Update
-		for (int i = 0; i < scene._pObjQ.size(); i++) {
-			for (int j = 0; j < scene._pObjQ[i]->pObjMeshes.size(); j++) {
+		for (int i = 0; i < e.scene->_pObjQ.size(); i++) {
+			for (int j = 0; j < e.scene->_pObjQ[i]->pObjMeshes.size(); j++) {
 				graphics.stats.totalMeshCount++;
-				tre::Mesh* pMesh = scene._pObjQ[i]->pObjMeshes[j];
+				tre::Mesh* pMesh = e.scene->_pObjQ[i]->pObjMeshes[j];
 				if ((pMesh->pMaterial->objTexture != nullptr && pMesh->pMaterial->objTexture->hasAlphaChannel)
 					|| (pMesh->pMaterial->objTexture == nullptr && pMesh->pMaterial->baseColor.w < 1.0f)) {
 					graphics.stats.transparentMeshCount++;
@@ -133,7 +131,7 @@ int main()
 		}
 
 		// create imgui
-		ImguiHelper imguiHelper(e.device->device.Get(), e.device->context.Get(), e.window, &scene, &graphics.setting, &graphics.stats, &cam, pDebugModel);
+		ImguiHelper imguiHelper(e.device->device.Get(), e.device->context.Get(), e.window, e.scene, &graphics.setting, &graphics.stats, &cam, pDebugModel);
 
 		// main loop
 		while (!input.shouldQuit())
@@ -143,18 +141,18 @@ int main()
 			tre::Timer timer;
 			graphics.clean();											// Clear buffer + clean up
 			input.updateInputEvent();									// Update input event
-			control.update(input, graphics, scene, cam, deltaTime);		// Update control
+			control.update(input, graphics, *e.scene, cam, deltaTime);		// Update control
 			cam.updateCamera();											// Update Camera
-			computerPtLight.compute(graphics, scene, cam);				// Compute Pt Light's position
-			scene.update(graphics, cam);								// Update Scene
-			rendererCSM.render(graphics, scene, cam);					// CSM Shadow Pass
-			rendererGBuffer.render(graphics, scene, cam);				// G-Buffer: Deferred normal, albedo and depth
-			rendererSSAO.render(graphics, scene, cam);					// SSAO Pass
-			rendererEnvLighting.render(graphics, scene, cam);			// Environment Lighting Pass
-			rendererTransparency.render(graphics, scene, cam);			// Transparency Object Pass
-			rendererLocalLighting.render(graphics, scene, cam);			// Local Lighting Pass
+			computerPtLight.compute(graphics, *e.scene, cam);				// Compute Pt Light's position
+			e.scene->update(graphics, cam);								// Update Scene
+			rendererCSM.render(graphics, *e.scene, cam);					// CSM Shadow Pass
+			rendererGBuffer.render(graphics, *e.scene, cam);				// G-Buffer: Deferred normal, albedo and depth
+			rendererSSAO.render(graphics, *e.scene, cam);					// SSAO Pass
+			rendererEnvLighting.render(graphics, *e.scene, cam);			// Environment Lighting Pass
+			rendererTransparency.render(graphics, *e.scene, cam);			// Transparency Object Pass
+			rendererLocalLighting.render(graphics, *e.scene, cam);			// Local Lighting Pass
 			rendererHDR.render(graphics);								// HDR Pass
-			rendererWireframe.render(graphics, cam, scene);				// Wireframe Debug Pass
+			rendererWireframe.render(graphics, cam, *e.scene);				// Wireframe Debug Pass
 			imguiHelper.render();										// IMGUI tool
 			graphics.present();											// Present final frame image
 			timer.spinWait();											// framerate control

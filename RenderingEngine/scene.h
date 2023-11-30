@@ -54,10 +54,11 @@ public:
 	bool _toSortTransparentQ = false;
 	bool _toRecalDistFromCam = true; // when scene is init, to calculate distance from camera
 
-	Scene(ID3D11Device* device, ID3D11DeviceContext* context);
-
 	tre::Object _floor;
 	tre::Object* addRandomObj();
+
+	Scene();
+	void init();
 
 	void createFloor();
 	void createViewProjections(const Graphics& graphics, const Camera& cam);

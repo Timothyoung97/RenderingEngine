@@ -6,38 +6,45 @@
 #include "colors.h"
 #include "utility.h"
 #include "window.h"
+#include "engine.h"
+
+extern tre::Engine* pEngine;
 
 namespace tre {
 
-Scene::Scene(ID3D11Device* device, ID3D11DeviceContext* context) {
+Scene::Scene() {
+	this->init();
+}
+
+void Scene::init() {
 
 	this->_objQ.reserve(1000000); // hardcoded capacity
 
 	_debugMeshes = {
-		tre::CubeMesh(device), // Bounding WireMesh
-		tre::SphereMesh(device, 20, 20), // Bounding WireMesh
-		tre::TeapotMesh(device),
-		tre::CubeMesh(device), // floor
-		tre::CubeMesh(device), // transparent cube
-		tre::CubeMesh(device), // testing cube
-		tre::SphereMesh(device, 6, 6), // testing sphere
-		tre::CubeMesh(device), // testing cube
-		tre::SphereMesh(device, 6, 6), // testing sphere
+		tre::CubeMesh(pEngine->device->device.Get()), // Bounding WireMesh
+		tre::SphereMesh(pEngine->device->device.Get(), 20, 20), // Bounding WireMesh
+		tre::TeapotMesh(pEngine->device->device.Get()),
+		tre::CubeMesh(pEngine->device->device.Get()), // floor
+		tre::CubeMesh(pEngine->device->device.Get()), // transparent cube
+		tre::CubeMesh(pEngine->device->device.Get()), // testing cube
+		tre::SphereMesh(pEngine->device->device.Get(), 6, 6), // testing sphere
+		tre::CubeMesh(pEngine->device->device.Get()), // testing cube
+		tre::SphereMesh(pEngine->device->device.Get(), 6, 6), // testing sphere
 	};
 	
 	// Create testing texture
 	std::string basePathStr = Utility::getBasePathStr();
 	_debugTextures = {
-		tre::TextureLoader::createTexture(device, basePathStr + "textures\\UV_image.jpg"),
-		tre::TextureLoader::createTexture(device, basePathStr + "textures\\UV_image2.jpg"),
-		tre::TextureLoader::createTexture(device, basePathStr + "textures\\UV_image_a.png"),
-		tre::TextureLoader::createTexture(device, basePathStr + "textures\\glTF.png"),
-		tre::TextureLoader::createTexture(device, basePathStr + "textures\\wall.jpg"),
+		tre::TextureLoader::createTexture(pEngine->device->device.Get(), basePathStr + "textures\\UV_image.jpg"),
+		tre::TextureLoader::createTexture(pEngine->device->device.Get(), basePathStr + "textures\\UV_image2.jpg"),
+		tre::TextureLoader::createTexture(pEngine->device->device.Get(), basePathStr + "textures\\UV_image_a.png"),
+		tre::TextureLoader::createTexture(pEngine->device->device.Get(), basePathStr + "textures\\glTF.png"),
+		tre::TextureLoader::createTexture(pEngine->device->device.Get(), basePathStr + "textures\\wall.jpg"),
 	};
 
 	_debugNormalTextures = {
-		tre::TextureLoader::createTexture(device, basePathStr + "textures\\glTF_normal.png"),
-		tre::TextureLoader::createTexture(device, basePathStr + "textures\\wall_normal.jpg")
+		tre::TextureLoader::createTexture(pEngine->device->device.Get(), basePathStr + "textures\\glTF_normal.png"),
+		tre::TextureLoader::createTexture(pEngine->device->device.Get(), basePathStr + "textures\\wall_normal.jpg")
 	};
 
 	_debugMaterials = {
@@ -50,7 +57,7 @@ Scene::Scene(ID3D11Device* device, ID3D11DeviceContext* context) {
 	};
 
 	// Pt Lights
-	lightResc.create(device, context);
+	lightResc.create(pEngine->device->device.Get(), pEngine->device->context.Get());
 	
 	// Debug 
 	//lightResc.addPointLight(XMFLOAT3(3.0f, 3.0f, 3.0f),    XMFLOAT3(1.f, .14f, .07f),  XMFLOAT4(.0f, 10.f, 10.f, .5f), XMFLOAT2(.0f, .0f));
