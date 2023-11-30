@@ -6,6 +6,7 @@
 #include "window.h"
 #include "microprofiler.h"
 #include "scene.h"
+#include "camera.h"
 
 namespace tre {
 
@@ -15,9 +16,11 @@ void Engine::init() {
 	device = new Device;
 	profiler = new MicroProfiler;
 	scene = new Scene;
+	cam = new Camera;
 }
 
 void Engine::close() {
+	delete cam;
 	delete scene;
 	profiler->cleanup();
 	delete profiler;

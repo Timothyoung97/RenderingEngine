@@ -52,9 +52,6 @@ int main()
 		pEngine = &e;
 		e.init();
 
-		// Crate Global Resource
-		tre::Camera cam(tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);											// Create Camera
-
 		// Loading Models
 		std::string basePathStr = tre::Utility::getBasePathStr();										// File path
 		pfd::open_file f = pfd::open_file("Choose files to read", basePathStr,
@@ -131,7 +128,7 @@ int main()
 		}
 
 		// create imgui
-		ImguiHelper imguiHelper(e.device->device.Get(), e.device->context.Get(), e.window, e.scene, &graphics.setting, &graphics.stats, &cam, pDebugModel);
+		ImguiHelper imguiHelper(e.device->device.Get(), e.device->context.Get(), e.window, e.scene, &graphics.setting, &graphics.stats, e.cam, pDebugModel);
 
 		// main loop
 		while (!input.shouldQuit())
@@ -141,18 +138,18 @@ int main()
 			tre::Timer timer;
 			graphics.clean();											// Clear buffer + clean up
 			input.updateInputEvent();									// Update input event
-			control.update(input, graphics, *e.scene, cam, deltaTime);		// Update control
-			cam.updateCamera();											// Update Camera
-			computerPtLight.compute(graphics, *e.scene, cam);				// Compute Pt Light's position
-			e.scene->update(graphics, cam);								// Update Scene
-			rendererCSM.render(graphics, *e.scene, cam);					// CSM Shadow Pass
-			rendererGBuffer.render(graphics, *e.scene, cam);				// G-Buffer: Deferred normal, albedo and depth
-			rendererSSAO.render(graphics, *e.scene, cam);					// SSAO Pass
-			rendererEnvLighting.render(graphics, *e.scene, cam);			// Environment Lighting Pass
-			rendererTransparency.render(graphics, *e.scene, cam);			// Transparency Object Pass
-			rendererLocalLighting.render(graphics, *e.scene, cam);			// Local Lighting Pass
+			control.update(input, graphics, *e.scene, *e.cam, deltaTime);		// Update control
+			e.cam->updateCamera();											// Update Camera
+			computerPtLight.compute(graphics, *e.scene, *e.cam);				// Compute Pt Light's position
+			e.scene->update(graphics, *e.cam);								// Update Scene
+			rendererCSM.render(graphics, *e.scene, *e.cam);					// CSM Shadow Pass
+			rendererGBuffer.render(graphics, *e.scene, *e.cam);				// G-Buffer: Deferred normal, albedo and depth
+			rendererSSAO.render(graphics, *e.scene, *e.cam);					// SSAO Pass
+			rendererEnvLighting.render(graphics, *e.scene, *e.cam);			// Environment Lighting Pass
+			rendererTransparency.render(graphics, *e.scene, *e.cam);			// Transparency Object Pass
+			rendererLocalLighting.render(graphics, *e.scene, *e.cam);			// Local Lighting Pass
 			rendererHDR.render(graphics);								// HDR Pass
-			rendererWireframe.render(graphics, cam, *e.scene);				// Wireframe Debug Pass
+			rendererWireframe.render(graphics, *e.cam, *e.scene);				// Wireframe Debug Pass
 			imguiHelper.render();										// IMGUI tool
 			graphics.present();											// Present final frame image
 			timer.spinWait();											// framerate control

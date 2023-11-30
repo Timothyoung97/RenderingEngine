@@ -31,8 +31,9 @@ public:
 
 	float fovY = 45.0f; // default
 
-	Camera(float width, float height);
+	Camera();
 
+	void init(float width, float height);
 	void updateCamera();
 	void moveCamera(XMVECTOR offset);
 	void turnCamera(float yawOffset, float pitchOffset);

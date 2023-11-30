@@ -6,6 +6,7 @@ class Window;
 class Device;
 class MicroProfiler;
 class Scene;
+class Camera;
 
 class Engine {
 public:
@@ -14,6 +15,7 @@ public:
 	Device* device;
 	MicroProfiler* profiler;
 	Scene* scene;
+	Camera* cam;
 
 	void init();
 	void close();
