@@ -1,6 +1,7 @@
-#include "microprofile.h"
-
 #include "graphics.h"
+
+#include "engine.h"
+#include "microprofile.h"
 #include "window.h"
 #include "mesh.h"
 #include "device.h"
@@ -10,27 +11,34 @@
 #include "scene.h"
 #include "colors.h"
 
+
+extern tre::Engine* pEngine;
+
 namespace tre {
 
-Graphics::Graphics(ID3D11Device* _device, ID3D11DeviceContext* _context, HWND window) : _device(_device), _context(_context) {
+Graphics::Graphics() {
+	this->init();
+}
+
+void Graphics::init() {
 	_factory.create();
-	_swapchain.create(_factory.dxgiFactory6, _device, window);
-	_blendstate.create(_device);
-	_rasterizer.create(_device);
-	_depthbuffer.create(_device, tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);
-	_sampler.create(_device);
+	_swapchain.create(_factory.dxgiFactory6, pEngine->device->device, pEngine->window->hwnd);
+	_blendstate.create(pEngine->device->device.Get());
+	_rasterizer.create(pEngine->device->device.Get());
+	_depthbuffer.create(pEngine->device->device.Get(), tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);
+	_sampler.create(pEngine->device->device.Get());
 	_viewport.create(tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);
 	
 	std::wstring basePathWstr = tre::Utility::getBasePathWstr();
 
 	VertexShader _vertexShader;
-	_vertexShader.create(basePathWstr + L"shaders\\bin\\vertex_shader.bin", _device);
-	_inputLayout.create(_device, &_vertexShader);
+	_vertexShader.create(basePathWstr + L"shaders\\bin\\vertex_shader.bin", pEngine->device->device.Get());
+	_inputLayout.create(pEngine->device->device.Get(), &_vertexShader);
 
-	_gBuffer.create(_device);
-	_ssao.create(_device, _context);
-	_hdrBuffer.create(_device, _context);
-	_instanceBuffer.createBuffer(_device, _context);
+	_gBuffer.create(pEngine->device->device.Get());
+	_ssao.create(pEngine->device->device.Get(), pEngine->device->context.Get());
+	_hdrBuffer.create(pEngine->device->device.Get(), pEngine->device->context.Get());
+	_instanceBuffer.createBuffer(pEngine->device->device.Get(), pEngine->device->context.Get());
 }
 
 void Graphics::clean() {
@@ -42,19 +50,18 @@ void Graphics::clean() {
 		currBuffer->Release();
 	}
 
-	_context->ClearState();
-	_context->PSSetSamplers(0, 1, _sampler.pSamplerStateLinear.GetAddressOf());
-	_context->PSSetSamplers(1, 1, _sampler.pSamplerStateMipPtWhiteBorder.GetAddressOf());
-	_context->PSSetSamplers(2, 1, _sampler.pSamplerStateMipPtWrap.GetAddressOf());
-	_context->PSSetSamplers(3, 1, _sampler.pSamplerStateMipPtClamp.GetAddressOf());
-	_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	_context->ClearRenderTargetView(_ssao.ssaoBlurredTexture2dRTV.Get(), Colors::Transparent);
-	_context->ClearRenderTargetView(_gBuffer.pRenderTargetViewDeferredAlbedo.Get(), tre::BACKGROUND_BLACK);
-	_context->ClearRenderTargetView(_gBuffer.pRenderTargetViewDeferredNormal.Get(), tre::BACKGROUND_BLACK);
-	_context->ClearRenderTargetView(_hdrBuffer.pRenderTargetViewHdrTexture.Get(), Colors::Transparent);
-	_context->ClearDepthStencilView(_depthbuffer.pDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-	_context->ClearDepthStencilView(_depthbuffer.pShadowDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+	pEngine->device->context.Get()->ClearState();
+	pEngine->device->context.Get()->PSSetSamplers(0, 1, _sampler.pSamplerStateLinear.GetAddressOf());
+	pEngine->device->context.Get()->PSSetSamplers(1, 1, _sampler.pSamplerStateMipPtWhiteBorder.GetAddressOf());
+	pEngine->device->context.Get()->PSSetSamplers(2, 1, _sampler.pSamplerStateMipPtWrap.GetAddressOf());
+	pEngine->device->context.Get()->PSSetSamplers(3, 1, _sampler.pSamplerStateMipPtClamp.GetAddressOf());
+	pEngine->device->context.Get()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	pEngine->device->context.Get()->ClearRenderTargetView(_ssao.ssaoBlurredTexture2dRTV.Get(), Colors::Transparent);
+	pEngine->device->context.Get()->ClearRenderTargetView(_gBuffer.pRenderTargetViewDeferredAlbedo.Get(), tre::BACKGROUND_BLACK);
+	pEngine->device->context.Get()->ClearRenderTargetView(_gBuffer.pRenderTargetViewDeferredNormal.Get(), tre::BACKGROUND_BLACK);
+	pEngine->device->context.Get()->ClearRenderTargetView(_hdrBuffer.pRenderTargetViewHdrTexture.Get(), Colors::Transparent);
+	pEngine->device->context.Get()->ClearDepthStencilView(_depthbuffer.pDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+	pEngine->device->context.Get()->ClearDepthStencilView(_depthbuffer.pShadowDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 	this->clearSwapChainBuffer();
 }
@@ -70,12 +77,12 @@ void Graphics::clearSwapChainBuffer() {
 		currBackBuffer, __uuidof(ID3D11Texture2D), (LPVOID*)&backBuffer
 	));
 
-	CHECK_DX_ERROR(_device->CreateRenderTargetView(
+	CHECK_DX_ERROR(pEngine->device->device.Get()->CreateRenderTargetView(
 		backBuffer.Get(), NULL, currRenderTargetView.GetAddressOf()
 	));
 	
 	// Set draw target to Screen
-	_context->ClearRenderTargetView(currRenderTargetView.Get(), tre::BACKGROUND_GREY);
+	pEngine->device->context.Get()->ClearRenderTargetView(currRenderTargetView.Get(), tre::BACKGROUND_GREY);
 }
 
 void Graphics::present() {

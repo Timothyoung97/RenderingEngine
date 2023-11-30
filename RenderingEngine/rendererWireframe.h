@@ -9,9 +9,6 @@ namespace tre {
 
 class RendererWireframe {
 public:
-	ID3D11Device* _device;
-	ID3D11DeviceContext* _context;
-
 	// Wireframe Meshes
 	Mesh wireframeSphere;
 	Mesh wireframeCube;
@@ -23,7 +20,9 @@ public:
 	VertexShader _vertexShaderInstanced;
 	PixelShader _debugPixelShaderInstanced;
 
-	RendererWireframe(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
+	RendererWireframe();
+
+	void init();
 
 	Mesh* selectWireframeMesh(BoundVolumeEnum typeOfBound);
 

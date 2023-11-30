@@ -14,7 +14,6 @@ namespace tre {
 
 class ModelLoader {
 public:
-
 	std::unordered_map<int, Mesh> _meshes;
 	std::unordered_map<std::string, Texture> _textures;
 	std::unordered_map<int, Material> _materials;

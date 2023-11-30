@@ -1,13 +1,21 @@
 #include "rendererSSAO.h"
+
 #include "utility.h"
+#include "engine.h"
+
+extern tre::Engine* pEngine;
 
 namespace tre {
 
-RendererSSAO::RendererSSAO(ID3D11Device* pDevice, ID3D11DeviceContext* pContext) : _device(pDevice), _context(pContext) {
+RendererSSAO::RendererSSAO() {
+	this->init();
+}
+
+void RendererSSAO::init() {
 	std::wstring basePathWstr = tre::Utility::getBasePathWstr();
-	_vertexShaderFullscreenQuad.create(basePathWstr + L"shaders\\bin\\vertex_shader_fullscreen.bin", _device);
-	_ssaoPixelShader.create(basePathWstr + L"shaders\\bin\\pixel_shader_ssao_rendering.bin", _device);
-	_textureBlurPixelShader.create(basePathWstr + L"shaders\\bin\\pixel_shader_texture_blur.bin", _device);
+	_vertexShaderFullscreenQuad.create(basePathWstr + L"shaders\\bin\\vertex_shader_fullscreen.bin", pEngine->device->device.Get());
+	_ssaoPixelShader.create(basePathWstr + L"shaders\\bin\\pixel_shader_ssao_rendering.bin", pEngine->device->device.Get());
+	_textureBlurPixelShader.create(basePathWstr + L"shaders\\bin\\pixel_shader_texture_blur.bin", pEngine->device->device.Get());
 }
 
 SSAOKernalStruct RendererSSAO::createSSAOKernalStruct(const std::vector<XMFLOAT4>& kernalSamples, float sampleRadius) {
@@ -26,41 +34,41 @@ void RendererSSAO::fullscreenPass(Graphics& graphics, const Scene& scene, const 
 	PROFILE_GPU_SCOPED("Fullscreen Pass");
 
 	// set const buffer for global info
-	ID3D11Buffer* constBufferGlobalInfo = tre::Buffer::createConstBuffer(_device, (UINT)sizeof(tre::GlobalInfoStruct));
+	ID3D11Buffer* constBufferGlobalInfo = tre::Buffer::createConstBuffer(pEngine->device->device.Get(), (UINT)sizeof(tre::GlobalInfoStruct));
 	{
 		// Create struct info and submit data to constant buffer
 		tre::GlobalInfoStruct globalInfoStruct = tre::CommonStructUtility::createGlobalInfoStruct(cam.camPositionV, cam.camViewProjection, scene.viewProjs, graphics.setting.csmPlaneIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), graphics.setting.csmDebugSwitch, graphics.setting.ssaoSwitch);
-		tre::Buffer::updateConstBufferData(_context, constBufferGlobalInfo, &globalInfoStruct, (UINT)sizeof(tre::GlobalInfoStruct));
+		tre::Buffer::updateConstBufferData(pEngine->device->context.Get(), constBufferGlobalInfo, &globalInfoStruct, (UINT)sizeof(tre::GlobalInfoStruct));
 	}
 
 	// Set const buffer for SSAO Kernal
-	ID3D11Buffer* constBufferSSAOKernal = tre::Buffer::createConstBuffer(_device, (UINT)sizeof(tre::SSAOKernalStruct));
+	ID3D11Buffer* constBufferSSAOKernal = tre::Buffer::createConstBuffer(pEngine->device->device.Get(), (UINT)sizeof(tre::SSAOKernalStruct));
 	{
 		tre::SSAOKernalStruct ssaoKernalStruct = createSSAOKernalStruct(graphics._ssao.ssaoKernalSamples, graphics.setting.ssaoSampleRadius);
-		tre::Buffer::updateConstBufferData(_context, constBufferSSAOKernal, &ssaoKernalStruct, (UINT)sizeof(tre::SSAOKernalStruct));
+		tre::Buffer::updateConstBufferData(pEngine->device->context.Get(), constBufferSSAOKernal, &ssaoKernalStruct, (UINT)sizeof(tre::SSAOKernalStruct));
 	}
 
 	// Context Configuration
 	{
-		_context->IASetInputLayout(nullptr);
-		_context->VSSetShader(_vertexShaderFullscreenQuad.pShader.Get(), NULL, 0u);
+		pEngine->device->context.Get()->IASetInputLayout(nullptr);
+		pEngine->device->context.Get()->VSSetShader(_vertexShaderFullscreenQuad.pShader.Get(), NULL, 0u);
 
-		_context->RSSetViewports(1, &graphics._viewport.defaultViewport);
-		_context->RSSetState(graphics._rasterizer.pRasterizerStateFCCW.Get());
+		pEngine->device->context.Get()->RSSetViewports(1, &graphics._viewport.defaultViewport);
+		pEngine->device->context.Get()->RSSetState(graphics._rasterizer.pRasterizerStateFCCW.Get());
 
-		_context->OMSetRenderTargets(0, nullptr, nullptr);
-		_context->PSSetShader(_ssaoPixelShader.pShader.Get(), NULL, 0u);
-		_context->PSSetConstantBuffers(0u, 1u, &constBufferGlobalInfo);
-		_context->PSSetConstantBuffers(3u, 1u, &constBufferSSAOKernal);
-		_context->PSSetShaderResources(1, 1, graphics._gBuffer.pShaderResViewDeferredNormal.GetAddressOf()); // normal
-		_context->PSSetShaderResources(4, 1, graphics._depthbuffer.pDepthStencilShaderRescView.GetAddressOf()); //depth
+		pEngine->device->context.Get()->OMSetRenderTargets(0, nullptr, nullptr);
+		pEngine->device->context.Get()->PSSetShader(_ssaoPixelShader.pShader.Get(), NULL, 0u);
+		pEngine->device->context.Get()->PSSetConstantBuffers(0u, 1u, &constBufferGlobalInfo);
+		pEngine->device->context.Get()->PSSetConstantBuffers(3u, 1u, &constBufferSSAOKernal);
+		pEngine->device->context.Get()->PSSetShaderResources(1, 1, graphics._gBuffer.pShaderResViewDeferredNormal.GetAddressOf()); // normal
+		pEngine->device->context.Get()->PSSetShaderResources(4, 1, graphics._depthbuffer.pDepthStencilShaderRescView.GetAddressOf()); //depth
 
-		_context->OMSetBlendState(graphics._blendstate.opaque.Get(), NULL, 0xffffffff);
-		_context->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0); // by default: read only depth test
-		_context->OMSetRenderTargets(1, graphics._ssao.ssaoResultTexture2dRTV.GetAddressOf(), nullptr);
+		pEngine->device->context.Get()->OMSetBlendState(graphics._blendstate.opaque.Get(), NULL, 0xffffffff);
+		pEngine->device->context.Get()->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0); // by default: read only depth test
+		pEngine->device->context.Get()->OMSetRenderTargets(1, graphics._ssao.ssaoResultTexture2dRTV.GetAddressOf(), nullptr);
 	}
 
-	_context->Draw(6, 0);
+	pEngine->device->context.Get()->Draw(6, 0);
 
 	// clean up
 	{
@@ -77,22 +85,22 @@ void RendererSSAO::fullscreenBlurPass(const Graphics& graphics) {
 	PROFILE_GPU_SCOPED("Fullscreen Pass");
 
 	{
-		_context->IASetInputLayout(nullptr);
-		_context->VSSetShader(_vertexShaderFullscreenQuad.pShader.Get(), NULL, 0u);
+		pEngine->device->context.Get()->IASetInputLayout(nullptr);
+		pEngine->device->context.Get()->VSSetShader(_vertexShaderFullscreenQuad.pShader.Get(), NULL, 0u);
 
-		_context->RSSetViewports(1, &graphics._viewport.defaultViewport);
-		_context->RSSetState(graphics._rasterizer.pRasterizerStateFCCW.Get());
+		pEngine->device->context.Get()->RSSetViewports(1, &graphics._viewport.defaultViewport);
+		pEngine->device->context.Get()->RSSetState(graphics._rasterizer.pRasterizerStateFCCW.Get());
 
-		_context->OMSetRenderTargets(0, nullptr, nullptr);
-		_context->PSSetShader(_textureBlurPixelShader.pShader.Get(), NULL, 0u);
-		_context->PSSetShaderResources(6, 1, graphics._ssao.ssaoResultTexture2dSRV.GetAddressOf()); // normal
+		pEngine->device->context.Get()->OMSetRenderTargets(0, nullptr, nullptr);
+		pEngine->device->context.Get()->PSSetShader(_textureBlurPixelShader.pShader.Get(), NULL, 0u);
+		pEngine->device->context.Get()->PSSetShaderResources(6, 1, graphics._ssao.ssaoResultTexture2dSRV.GetAddressOf()); // normal
 
-		_context->OMSetBlendState(graphics._blendstate.opaque.Get(), NULL, 0xffffffff);
-		_context->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0); // by default: read only depth test
-		_context->OMSetRenderTargets(1, graphics._ssao.ssaoBlurredTexture2dRTV.GetAddressOf(), nullptr);
+		pEngine->device->context.Get()->OMSetBlendState(graphics._blendstate.opaque.Get(), NULL, 0xffffffff);
+		pEngine->device->context.Get()->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0); // by default: read only depth test
+		pEngine->device->context.Get()->OMSetRenderTargets(1, graphics._ssao.ssaoBlurredTexture2dRTV.GetAddressOf(), nullptr);
 	}
 
-	_context->Draw(6, 0);
+	pEngine->device->context.Get()->Draw(6, 0);
 }
 
 void RendererSSAO::render(Graphics& graphics, const Scene& scene, const Camera& cam) {

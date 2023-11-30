@@ -7,13 +7,12 @@ namespace tre {
 class RendererLocalLighting {
 public:
 
-	ID3D11Device* _device;
-	ID3D11DeviceContext* _context;
-
 	VertexShader _vertexShader;
 	PixelShader _deferredShaderLightingLocal;
 
-	RendererLocalLighting(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
+	RendererLocalLighting();
+
+	void init();
 
 	void render(Graphics& graphics, const Scene& secne, const Camera& cam);
 };

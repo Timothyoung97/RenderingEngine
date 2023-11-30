@@ -3,21 +3,27 @@
 #include <set>
 
 #include "utility.h"
+#include "engine.h"
+
+extern tre::Engine* pEngine;
 
 namespace tre {
 
-// Constructor: Create and allocate 
-RendererWireframe::RendererWireframe(ID3D11Device* pDevice, ID3D11DeviceContext* pContext) : _device(pDevice), _context(pContext) {
+RendererWireframe::RendererWireframe() {
+	this->init();
+}
+
+void RendererWireframe::init() {
 	
-	wireframeCube = CubeMesh(_device);
-	wireframeSphere = SphereMesh(_device, 10, 10);
+	wireframeCube = CubeMesh(pEngine->device->device.Get());
+	wireframeSphere = SphereMesh(pEngine->device->device.Get(), 10, 10);
 	
 	std::wstring basePathWstr = tre::Utility::getBasePathWstr();
-	_vertexShader.create(basePathWstr + L"shaders\\bin\\vertex_shader.bin", _device);
-	_debugPixelShader.create(basePathWstr + L"shaders\\bin\\pixel_shader_debug.bin", _device);
+	_vertexShader.create(basePathWstr + L"shaders\\bin\\vertex_shader.bin", pEngine->device->device.Get());
+	_debugPixelShader.create(basePathWstr + L"shaders\\bin\\pixel_shader_debug.bin", pEngine->device->device.Get());
 
-	_vertexShaderInstanced.create(basePathWstr + L"shaders\\bin\\vertex_shader_instancedRendering.bin", _device);
-	_debugPixelShaderInstanced.create(basePathWstr + L"shaders\\bin\\pixel_shader_instanced_wireframe.bin", _device);
+	_vertexShaderInstanced.create(basePathWstr + L"shaders\\bin\\vertex_shader_instancedRendering.bin", pEngine->device->device.Get());
+	_debugPixelShaderInstanced.create(basePathWstr + L"shaders\\bin\\pixel_shader_instanced_wireframe.bin", pEngine->device->device.Get());
 }
 
 Mesh* RendererWireframe::selectWireframeMesh(BoundVolumeEnum typeOfBound) {
@@ -35,13 +41,13 @@ Mesh* RendererWireframe::selectWireframeMesh(BoundVolumeEnum typeOfBound) {
 
 void RendererWireframe::setConstBufferCamViewProj(Graphics& graphic, const Camera& cam) {
 	if (!graphic.setting.showBoundingVolume) return;
-	ID3D11Buffer* constBufferCamViewProj = tre::Buffer::createConstBuffer(_device, (UINT)sizeof(tre::ViewProjectionStruct));
+	ID3D11Buffer* constBufferCamViewProj = tre::Buffer::createConstBuffer(pEngine->device->device.Get(), (UINT)sizeof(tre::ViewProjectionStruct));
 	{
 		// Update const buffer and binding
 		tre::ViewProjectionStruct vpStruct = tre::CommonStructUtility::createViewProjectionStruct(cam.camViewProjection);
-		tre::Buffer::updateConstBufferData(_context, constBufferCamViewProj, &vpStruct, (UINT)sizeof(tre::ViewProjectionStruct));
+		tre::Buffer::updateConstBufferData(pEngine->device->context.Get(), constBufferCamViewProj, &vpStruct, (UINT)sizeof(tre::ViewProjectionStruct));
 
-		_context->VSSetConstantBuffers(0u, 1u, &constBufferCamViewProj);
+		pEngine->device->context.Get()->VSSetConstantBuffers(0u, 1u, &constBufferCamViewProj);
 	}
 	graphic.bufferQueue.push_back(constBufferCamViewProj);
 }
@@ -60,27 +66,27 @@ void RendererWireframe::draw(Graphics& graphics, const std::vector<Object*>& obj
 	{
 		// Input Assembler
 		UINT vertexStride = sizeof(Vertex), offset = 0u;
-		_context->IASetInputLayout(graphics._inputLayout.vertLayout.Get());
-		_context->IASetVertexBuffers(0, 1, meshToRender->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
-		_context->IASetIndexBuffer(meshToRender->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+		pEngine->device->context.Get()->IASetInputLayout(graphics._inputLayout.vertLayout.Get());
+		pEngine->device->context.Get()->IASetVertexBuffers(0, 1, meshToRender->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
+		pEngine->device->context.Get()->IASetIndexBuffer(meshToRender->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
-		_context->VSSetShader(_vertexShader.pShader.Get(), NULL, 0u);
+		pEngine->device->context.Get()->VSSetShader(_vertexShader.pShader.Get(), NULL, 0u);
 
-		_context->RSSetViewports(1, &graphics._viewport.defaultViewport);
-		_context->RSSetState(graphics._rasterizer.pRasterizerStateWireFrame.Get());
+		pEngine->device->context.Get()->RSSetViewports(1, &graphics._viewport.defaultViewport);
+		pEngine->device->context.Get()->RSSetState(graphics._rasterizer.pRasterizerStateWireFrame.Get());
 
-		_context->PSSetShader(_debugPixelShader.pShader.Get(), NULL, 0u);
+		pEngine->device->context.Get()->PSSetShader(_debugPixelShader.pShader.Get(), NULL, 0u);
 
-		_context->OMSetBlendState(graphics._blendstate.transparency.Get(), NULL, 0xffffffff);
-		_context->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithoutDepthT.Get(), 0);
-		_context->OMSetRenderTargets(1, graphics.currRenderTargetView.GetAddressOf(), nullptr);
+		pEngine->device->context.Get()->OMSetBlendState(graphics._blendstate.transparency.Get(), NULL, 0xffffffff);
+		pEngine->device->context.Get()->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithoutDepthT.Get(), 0);
+		pEngine->device->context.Get()->OMSetRenderTargets(1, graphics.currRenderTargetView.GetAddressOf(), nullptr);
 	}
 
 	// Create empty const buffer and pre bind the constant buffer
-	ID3D11Buffer* constBufferModelInfo = tre::Buffer::createConstBuffer(_device, sizeof(tre::ModelInfoStruct));
+	ID3D11Buffer* constBufferModelInfo = tre::Buffer::createConstBuffer(pEngine->device->device.Get(), sizeof(tre::ModelInfoStruct));
 	{
-		_context->VSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
-		_context->PSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
+		pEngine->device->context.Get()->VSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
+		pEngine->device->context.Get()->PSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
 	}
 
 	std::set<Object*> processed;
@@ -101,10 +107,10 @@ void RendererWireframe::draw(Graphics& graphics, const std::vector<Object*>& obj
 			// Submit each object's data to const buffer
 			{
 				tre::ModelInfoStruct modelInfoStruct = tre::CommonStructUtility::createModelInfoStruct(currObj->_boundingVolumeTransformation[j], currObj->_boundingVolumeColor[j], 0u, 0u);
-				tre::Buffer::updateConstBufferData(_context, constBufferModelInfo, &modelInfoStruct, sizeof(tre::ModelInfoStruct));
+				tre::Buffer::updateConstBufferData(pEngine->device->context.Get(), constBufferModelInfo, &modelInfoStruct, sizeof(tre::ModelInfoStruct));
 			}
 
-			_context->DrawIndexed(meshToRender->indexSize, 0u, 0u);
+			pEngine->device->context.Get()->DrawIndexed(meshToRender->indexSize, 0u, 0u);
 		}
 	}
 
@@ -131,38 +137,38 @@ void RendererWireframe::drawInstanced(Graphics& graphics, const std::vector<Obje
 
 	{
 		UINT vertexStride = sizeof(Vertex), offset = 0;
-		_context->IASetInputLayout(graphics._inputLayout.vertLayout.Get());
-		_context->IASetVertexBuffers(0, 1, meshToRender->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
-		_context->IASetIndexBuffer(meshToRender->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+		pEngine->device->context.Get()->IASetInputLayout(graphics._inputLayout.vertLayout.Get());
+		pEngine->device->context.Get()->IASetVertexBuffers(0, 1, meshToRender->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
+		pEngine->device->context.Get()->IASetIndexBuffer(meshToRender->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
-		_context->VSSetShader(_vertexShaderInstanced.pShader.Get(), NULL, 0u);
-		_context->VSSetShaderResources(0u, 1, graphics._instanceBuffer.pInstanceBufferSRV.GetAddressOf()); // to do
+		pEngine->device->context.Get()->VSSetShader(_vertexShaderInstanced.pShader.Get(), NULL, 0u);
+		pEngine->device->context.Get()->VSSetShaderResources(0u, 1, graphics._instanceBuffer.pInstanceBufferSRV.GetAddressOf()); // to do
 
-		_context->RSSetViewports(1, &graphics._viewport.defaultViewport);
-		_context->RSSetState(graphics._rasterizer.pRasterizerStateWireFrame.Get());
+		pEngine->device->context.Get()->RSSetViewports(1, &graphics._viewport.defaultViewport);
+		pEngine->device->context.Get()->RSSetState(graphics._rasterizer.pRasterizerStateWireFrame.Get());
 
-		_context->PSSetShader(_debugPixelShaderInstanced.pShader.Get(), NULL, 0u);
+		pEngine->device->context.Get()->PSSetShader(_debugPixelShaderInstanced.pShader.Get(), NULL, 0u);
 
-		_context->OMSetBlendState(graphics._blendstate.transparency.Get(), NULL, 0xffffffff);
-		_context->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithoutDepthT.Get(), 0);
-		_context->OMSetRenderTargets(1, graphics.currRenderTargetView.GetAddressOf(), nullptr);
+		pEngine->device->context.Get()->OMSetBlendState(graphics._blendstate.transparency.Get(), NULL, 0xffffffff);
+		pEngine->device->context.Get()->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithoutDepthT.Get(), 0);
+		pEngine->device->context.Get()->OMSetRenderTargets(1, graphics.currRenderTargetView.GetAddressOf(), nullptr);
 	}
 
 	// Create an empty const buffer 
-	ID3D11Buffer* constBufferBatchInfo = tre::Buffer::createConstBuffer(_device, (UINT)sizeof(tre::BatchInfoStruct));
+	ID3D11Buffer* constBufferBatchInfo = tre::Buffer::createConstBuffer(pEngine->device->device.Get(), (UINT)sizeof(tre::BatchInfoStruct));
 
 	InstanceBatchInfo currBatchInfo = graphics._instanceBuffer.instanceBatchQueue[0];
 
 	// update constant buffer for instanced draw call
 	{
 		tre::BatchInfoStruct bInfo = tre::CommonStructUtility::createBatchInfoStruct(currBatchInfo.batchStartIdx);
-		tre::Buffer::updateConstBufferData(_context, constBufferBatchInfo, &bInfo, (UINT)sizeof(tre::BatchInfoStruct));
+		tre::Buffer::updateConstBufferData(pEngine->device->context.Get(), constBufferBatchInfo, &bInfo, (UINT)sizeof(tre::BatchInfoStruct));
 
-		_context->VSSetConstantBuffers(1u, 1u, &constBufferBatchInfo);
+		pEngine->device->context.Get()->VSSetConstantBuffers(1u, 1u, &constBufferBatchInfo);
 	}
 
 	// Draw call
-	_context->DrawIndexedInstanced(currBatchInfo.pBatchMesh->indexSize, currBatchInfo.quantity, 0u, 0u, 0u);
+	pEngine->device->context.Get()->DrawIndexedInstanced(currBatchInfo.pBatchMesh->indexSize, currBatchInfo.quantity, 0u, 0u, 0u);
 
 	// push into buffer for cleaning in the next frame
 	{

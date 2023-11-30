@@ -63,33 +63,14 @@ int main()
 			pfd::opt::force_path
 		);
 
-		tre::ModelLoader ml;
 		if (f.result().size()) {
-			ml.load(e.device->device.Get(), f.result()[0]);
+			e.ml->load(e.device->device.Get(), f.result()[0]);
 
-			for (int i = 0; i < ml._objectWithMesh.size(); i++) {
-				tre::Object* pObj = ml._objectWithMesh[i];
+			for (int i = 0; i < e.ml->_objectWithMesh.size(); i++) {
+				tre::Object* pObj = e.ml->_objectWithMesh[i];
 				e.scene->_pObjQ.push_back(pObj);
 			}
 		}
-
-		//Create Renderer
-		tre::Graphics graphics(e.device->device.Get(), e.device->context.Get(), e.window->getWindowHandle());
-		tre::RendererCSM rendererCSM(e.device->device.Get(), e.device->context.Get());
-		tre::RendererEnvironmentLighting rendererEnvLighting(e.device->device.Get(), e.device->context.Get());
-		tre::RendererGBuffer rendererGBuffer(e.device->device.Get(), e.device->context.Get());
-		tre::RendererHDR rendererHDR(e.device->device.Get(), e.device->context.Get());
-		tre::RendererLocalLighting rendererLocalLighting(e.device->device.Get(), e.device->context.Get());
-		tre::RendererSSAO rendererSSAO(e.device->device.Get(), e.device->context.Get());
-		tre::RendererTransparency rendererTransparency(e.device->device.Get(), e.device->context.Get());
-		tre::RendererWireframe rendererWireframe(e.device->device.Get(), e.device->context.Get());
-
-		// Create Computer 
-		tre::ComputerPointLight computerPtLight(e.device->device.Get(), e.device->context.Get());
-
-		// Input Handler
-		tre::Input input;
-		tre::Control control;
 
 		// Delta Time between frame
 		float deltaTime = 0;
@@ -115,47 +96,47 @@ int main()
 		// Stats Update
 		for (int i = 0; i < e.scene->_pObjQ.size(); i++) {
 			for (int j = 0; j < e.scene->_pObjQ[i]->pObjMeshes.size(); j++) {
-				graphics.stats.totalMeshCount++;
+				e.graphics->stats.totalMeshCount++;
 				tre::Mesh* pMesh = e.scene->_pObjQ[i]->pObjMeshes[j];
 				if ((pMesh->pMaterial->objTexture != nullptr && pMesh->pMaterial->objTexture->hasAlphaChannel)
 					|| (pMesh->pMaterial->objTexture == nullptr && pMesh->pMaterial->baseColor.w < 1.0f)) {
-					graphics.stats.transparentMeshCount++;
+					e.graphics->stats.transparentMeshCount++;
 				}
 				else {
-					graphics.stats.opaqueMeshCount++;
+					e.graphics->stats.opaqueMeshCount++;
 				}
 			}
 		}
 
 		// create imgui
-		ImguiHelper imguiHelper(e.device->device.Get(), e.device->context.Get(), e.window, e.scene, &graphics.setting, &graphics.stats, e.cam, pDebugModel);
+		ImguiHelper imguiHelper(e.device->device.Get(), e.device->context.Get(), e.window, e.scene, &e.graphics->setting, &e.graphics->stats, e.cam, pDebugModel);
 
 		// main loop
-		while (!input.shouldQuit())
+		while (!e.input->shouldQuit())
 		{
 			MICROPROFILE_SCOPE_CSTR("Frame");
 
 			tre::Timer timer;
-			graphics.clean();											// Clear buffer + clean up
-			input.updateInputEvent();									// Update input event
-			control.update(input, graphics, *e.scene, *e.cam, deltaTime);		// Update control
+			e.graphics->clean();											// Clear buffer + clean up
+			e.input->updateInputEvent();									// Update input event
+			e.control->update(*e.input, *e.graphics, *e.scene, *e.cam, deltaTime);		// Update control
 			e.cam->updateCamera();											// Update Camera
-			computerPtLight.compute(graphics, *e.scene, *e.cam);				// Compute Pt Light's position
-			e.scene->update(graphics, *e.cam);								// Update Scene
-			rendererCSM.render(graphics, *e.scene, *e.cam);					// CSM Shadow Pass
-			rendererGBuffer.render(graphics, *e.scene, *e.cam);				// G-Buffer: Deferred normal, albedo and depth
-			rendererSSAO.render(graphics, *e.scene, *e.cam);					// SSAO Pass
-			rendererEnvLighting.render(graphics, *e.scene, *e.cam);			// Environment Lighting Pass
-			rendererTransparency.render(graphics, *e.scene, *e.cam);			// Transparency Object Pass
-			rendererLocalLighting.render(graphics, *e.scene, *e.cam);			// Local Lighting Pass
-			rendererHDR.render(graphics);								// HDR Pass
-			rendererWireframe.render(graphics, *e.cam, *e.scene);				// Wireframe Debug Pass
+			e.computerPtLight->compute(*e.graphics, *e.scene, *e.cam);				// Compute Pt Light's position
+			e.scene->update(*e.graphics, *e.cam);								// Update Scene
+			e.rendererCSM->render(*e.graphics, *e.scene, *e.cam);					// CSM Shadow Pass
+			e.rendererGBuffer->render(*e.graphics, *e.scene, *e.cam);				// G-Buffer: Deferred normal, albedo and depth
+			e.rendererSSAO->render(*e.graphics, *e.scene, *e.cam);					// SSAO Pass
+			e.rendererEnvLighting->render(*e.graphics, *e.scene, *e.cam);			// Environment Lighting Pass
+			e.rendererTransparency->render(*e.graphics, *e.scene, *e.cam);			// Transparency Object Pass
+			e.rendererLocalLighting->render(*e.graphics, *e.scene, *e.cam);			// Local Lighting Pass
+			e.rendererHDR->render(*e.graphics);								// HDR Pass
+			e.rendererWireframe->render(*e.graphics, *e.cam, *e.scene);				// Wireframe Debug Pass
 			imguiHelper.render();										// IMGUI tool
-			graphics.present();											// Present final frame image
+			e.graphics->present();											// Present final frame image
 			timer.spinWait();											// framerate control
 			deltaTime = timer.getDeltaTime();							// Update frame time
 			e.profiler->recordFrame();										// record each frame
-			e.profiler->storeToDisk(control.toDumpFile);					// Store profiel log into disk
+			e.profiler->storeToDisk(e.control->toDumpFile);					// Store profiel log into disk
 		}
 
 		// Clean up

@@ -23,16 +23,15 @@ struct LuminanceStruct {
 
 class RendererHDR {
 public:
-	ID3D11Device* _device;
-	ID3D11DeviceContext* _context;
-
 	ComputeShader _computeShaderLuminancehistogram;
 	ComputeShader _computeShaderLuminanceAverage;
 
 	VertexShader _vertexShaderFullscreenQuad;
 	PixelShader _hdrPixelShader;
 
-	RendererHDR(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
+	RendererHDR();
+
+	void init();
 
 	static HDRStruct createHDRStruct(float middleGrey);
 	static LuminanceStruct createLuminanceStruct(const XMFLOAT2& luminance, float timeCoeff);

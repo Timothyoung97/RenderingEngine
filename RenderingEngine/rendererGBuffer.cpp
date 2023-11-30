@@ -1,14 +1,21 @@
 #include "rendererGBuffer.h"
 
 #include "utility.h"
+#include "engine.h"
+
+extern tre::Engine* pEngine;
 
 namespace tre { 
 
-RendererGBuffer::RendererGBuffer(ID3D11Device* pDevice, ID3D11DeviceContext* pContext) : _device(pDevice), _context(pContext) {
+RendererGBuffer::RendererGBuffer() {
+	this->init();
+}
+
+void RendererGBuffer::init() {
 	
 	std::wstring basePathWstr = tre::Utility::getBasePathWstr();
-	_vertexShaderInstanced.create(basePathWstr + L"shaders\\bin\\vertex_shader_instancedRendering.bin", _device);
-	_pixelShaderInstanced.create(basePathWstr + L"shaders\\bin\\pixel_shader_instanced_gbuffer.bin", _device);
+	_vertexShaderInstanced.create(basePathWstr + L"shaders\\bin\\vertex_shader_instancedRendering.bin", pEngine->device->device.Get());
+	_pixelShaderInstanced.create(basePathWstr + L"shaders\\bin\\pixel_shader_instanced_gbuffer.bin", pEngine->device->device.Get());
 }
 
 void RendererGBuffer::render(Graphics& graphics, Scene& scene, Camera& cam) {
@@ -18,13 +25,13 @@ void RendererGBuffer::render(Graphics& graphics, Scene& scene, Camera& cam) {
 	MICROPROFILE_SCOPE_CSTR(name);
 
 	// View Projection Const Buffer
-	ID3D11Buffer* constBufferCamViewProj = tre::Buffer::createConstBuffer(_device, (UINT)sizeof(tre::ViewProjectionStruct));
+	ID3D11Buffer* constBufferCamViewProj = tre::Buffer::createConstBuffer(pEngine->device->device.Get(), (UINT)sizeof(tre::ViewProjectionStruct));
 	{
 		// Update const buffer and binding
 		{
 			tre::ViewProjectionStruct vpStruct = tre::CommonStructUtility::createViewProjectionStruct(cam.camViewProjection);
-			tre::Buffer::updateConstBufferData(_context, constBufferCamViewProj, &vpStruct, (UINT)sizeof(tre::ViewProjectionStruct));
-			_context->VSSetConstantBuffers(0u, 1u, &constBufferCamViewProj);
+			tre::Buffer::updateConstBufferData(pEngine->device->context.Get(), constBufferCamViewProj, &vpStruct, (UINT)sizeof(tre::ViewProjectionStruct));
+			pEngine->device->context.Get()->VSSetConstantBuffers(0u, 1u, &constBufferCamViewProj);
 		}
 	}
 
@@ -32,25 +39,25 @@ void RendererGBuffer::render(Graphics& graphics, Scene& scene, Camera& cam) {
 	graphics._instanceBuffer.updateBuffer(scene._culledOpaqueObjQ[scene.camViewIdx]);
 
 	// Create an empty const buffer 
-	ID3D11Buffer* constBufferBatchInfo = tre::Buffer::createConstBuffer(_device, (UINT)sizeof(tre::BatchInfoStruct));
+	ID3D11Buffer* constBufferBatchInfo = tre::Buffer::createConstBuffer(pEngine->device->device.Get(), (UINT)sizeof(tre::BatchInfoStruct));
 
 	{
-		_context->IASetInputLayout(graphics._inputLayout.vertLayout.Get());
-		_context->VSSetShader(_vertexShaderInstanced.pShader.Get(), NULL, 0u);
-		_context->VSSetShaderResources(0u, 1, graphics._instanceBuffer.pInstanceBufferSRV.GetAddressOf());
-		_context->VSSetConstantBuffers(1u, 1u, &constBufferBatchInfo);
+		pEngine->device->context.Get()->IASetInputLayout(graphics._inputLayout.vertLayout.Get());
+		pEngine->device->context.Get()->VSSetShader(_vertexShaderInstanced.pShader.Get(), NULL, 0u);
+		pEngine->device->context.Get()->VSSetShaderResources(0u, 1, graphics._instanceBuffer.pInstanceBufferSRV.GetAddressOf());
+		pEngine->device->context.Get()->VSSetConstantBuffers(1u, 1u, &constBufferBatchInfo);
 
-		_context->RSSetViewports(1, &graphics._viewport.defaultViewport);
-		_context->RSSetState(graphics._rasterizer.pRasterizerStateFCCW.Get());
+		pEngine->device->context.Get()->RSSetViewports(1, &graphics._viewport.defaultViewport);
+		pEngine->device->context.Get()->RSSetState(graphics._rasterizer.pRasterizerStateFCCW.Get());
 
 		// unbind depth buffer as a shader resource, so that we can write to it
-		_context->OMSetRenderTargets(0, nullptr, nullptr);
-		_context->PSSetShader(_pixelShaderInstanced.pShader.Get(), NULL, 0u);
-		_context->PSSetShaderResources(4, 1, graphics.nullSRV);
+		pEngine->device->context.Get()->OMSetRenderTargets(0, nullptr, nullptr);
+		pEngine->device->context.Get()->PSSetShader(_pixelShaderInstanced.pShader.Get(), NULL, 0u);
+		pEngine->device->context.Get()->PSSetShaderResources(4, 1, graphics.nullSRV);
 
-		_context->OMSetBlendState(graphics._blendstate.opaque.Get(), NULL, 0xffffffff);
-		_context->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
-		_context->OMSetRenderTargets(2, graphics._gBuffer.rtvs, graphics._depthbuffer.pDepthStencilView.Get());
+		pEngine->device->context.Get()->OMSetBlendState(graphics._blendstate.opaque.Get(), NULL, 0xffffffff);
+		pEngine->device->context.Get()->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
+		pEngine->device->context.Get()->OMSetRenderTargets(2, graphics._gBuffer.rtvs, graphics._depthbuffer.pDepthStencilView.Get());
 	}
 
 	UINT vertexStride = sizeof(Vertex);
@@ -63,26 +70,26 @@ void RendererGBuffer::render(Graphics& graphics, Scene& scene, Camera& cam) {
 		// update constant buffer for each instanced draw call
 		{
 			tre::BatchInfoStruct bInfo = tre::CommonStructUtility::createBatchInfoStruct(currBatchInfo.batchStartIdx);
-			tre::Buffer::updateConstBufferData(_context, constBufferBatchInfo, &bInfo, (UINT)sizeof(tre::BatchInfoStruct));
+			tre::Buffer::updateConstBufferData(pEngine->device->context.Get(), constBufferBatchInfo, &bInfo, (UINT)sizeof(tre::BatchInfoStruct));
 		}
 
 		// Update mesh vertex information
-		_context->IASetVertexBuffers(0, 1, currBatchInfo.pBatchMesh->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
-		_context->IASetIndexBuffer(currBatchInfo.pBatchMesh->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+		pEngine->device->context.Get()->IASetVertexBuffers(0, 1, currBatchInfo.pBatchMesh->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
+		pEngine->device->context.Get()->IASetIndexBuffer(currBatchInfo.pBatchMesh->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
 		// Update texture information
-		_context->PSSetShaderResources(0u, 1u, graphics.nullSRV);
+		pEngine->device->context.Get()->PSSetShaderResources(0u, 1u, graphics.nullSRV);
 		if (currBatchInfo.isWithTexture) {
-			_context->PSSetShaderResources(0u, 1u, currBatchInfo.pBatchTexture->pShaderResView.GetAddressOf());
+			pEngine->device->context.Get()->PSSetShaderResources(0u, 1u, currBatchInfo.pBatchTexture->pShaderResView.GetAddressOf());
 		}
 
-		_context->PSSetShaderResources(1u, 1u, graphics.nullSRV);
+		pEngine->device->context.Get()->PSSetShaderResources(1u, 1u, graphics.nullSRV);
 		if (currBatchInfo.hasNormMap) {
-			_context->PSSetShaderResources(1u, 1u, currBatchInfo.pBatchNormalMap->pShaderResView.GetAddressOf());
+			pEngine->device->context.Get()->PSSetShaderResources(1u, 1u, currBatchInfo.pBatchNormalMap->pShaderResView.GetAddressOf());
 		}
 
 		// Draw call
-		_context->DrawIndexedInstanced(currBatchInfo.pBatchMesh->indexSize, currBatchInfo.quantity, 0u, 0u, 0u);
+		pEngine->device->context.Get()->DrawIndexedInstanced(currBatchInfo.pBatchMesh->indexSize, currBatchInfo.quantity, 0u, 0u, 0u);
 	}
 
 	// clean up

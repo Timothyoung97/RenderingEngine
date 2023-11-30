@@ -78,9 +78,6 @@ struct GraphicsStats {
 
 class Graphics {
 public:
-
-	ID3D11Device* _device;
-	ID3D11DeviceContext* _context;
 	Factory _factory;
 	Swapchain _swapchain;
 
@@ -109,7 +106,9 @@ public:
 
 	ComPtr<ID3D11RenderTargetView> currRenderTargetView;
 
-	Graphics(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, HWND window);
+	Graphics();
+
+	void init();
 
 	void clean();
 	void clearSwapChainBuffer();

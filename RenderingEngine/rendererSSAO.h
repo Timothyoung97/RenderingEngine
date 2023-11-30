@@ -14,14 +14,13 @@ struct SSAOKernalStruct {
 class RendererSSAO {
 public:
 
-	ID3D11Device* _device;
-	ID3D11DeviceContext* _context;
-
 	VertexShader _vertexShaderFullscreenQuad;
 	PixelShader _ssaoPixelShader;
 	PixelShader _textureBlurPixelShader;
 
-	RendererSSAO(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
+	RendererSSAO();
+
+	void init();
 
 	static SSAOKernalStruct createSSAOKernalStruct(const std::vector<XMFLOAT4>& kernalSamples, float sampleRadius);
 
