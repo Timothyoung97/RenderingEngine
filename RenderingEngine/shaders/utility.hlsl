@@ -51,9 +51,12 @@ float3 rodriguesRotate (float3 v, float3 n, float a) {
 	return v * cos(a) + cross(n, v) * sin(a) + n * dot(n, v) * (1. - cos(a));
 }
 
-float nrand(float2 uv)
-{
+float nrand(float2 uv) {
     return frac(sin(dot(uv, float2(12.9898, 78.233))) * 43758.5453);
+}
+
+bool isNaN(float x) {
+    return (asuint(x) & 0x7fffffff) > 0x7f800000;
 }
 
 // Generate a random 32-bit integer

@@ -1,3 +1,5 @@
+#include "utility.hlsl"
+
 struct LuminanceConfig {
     float2 luminance; // x = min, y = max
     float timeCoeff;
@@ -44,6 +46,6 @@ void cs_luminAverage(
         
         float adaptedLum = lumLastFrame + (weightedAvgLum - lumLastFrame) * luminConfig.timeCoeff;
 
-        luminAvg[0] = adaptedLum;
+        luminAvg[0] = isNaN(adaptedLum) ? 0.f : adaptedLum;
     }
 }
