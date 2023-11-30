@@ -120,7 +120,7 @@ void RendererCSM::render(Graphics& graphics, Scene& scene, const Camera& cam) {
 					pEngine->device->context.Get()->VSSetConstantBuffers(0u, 1u, &constBufferCSMViewProj);
 				}
 
-				graphics.stats.shadowCascadeOpaqueObjs[scene.csmViewBeginIdx + viewIdx] = scene._culledOpaqueObjQ.size();
+				graphics.stats.shadowCascadeOpaqueObjs[viewIdx] = scene._culledOpaqueObjQ[scene.csmViewBeginIdx + viewIdx].size();
 			}
 
 			// draw shadow only for opaque objects

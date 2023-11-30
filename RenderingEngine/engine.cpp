@@ -56,7 +56,7 @@ void Engine::init() {
 
 void Engine::run() {
 	// Loading Models
-	std::string basePathStr = tre::Utility::getBasePathStr();													// File path
+	std::string basePathStr = tre::Utility::getBasePathStr();													
 	pfd::open_file f = pfd::open_file("Choose files to read", basePathStr,
 		{
 			"All Files", "*" ,
@@ -80,11 +80,9 @@ void Engine::run() {
 		for (int j = 0; j < scene->_pObjQ[i]->pObjMeshes.size(); j++) {
 			graphics->stats.totalMeshCount++;
 			tre::Mesh* pMesh = scene->_pObjQ[i]->pObjMeshes[j];
-			if ((pMesh->pMaterial->objTexture != nullptr && pMesh->pMaterial->objTexture->hasAlphaChannel)
-				|| (pMesh->pMaterial->objTexture == nullptr && pMesh->pMaterial->baseColor.w < 1.0f)) {
+			if (pMesh->pMaterial->isTransparent()) {
 				graphics->stats.transparentMeshCount++;
-			}
-			else {
+			} else {
 				graphics->stats.opaqueMeshCount++;
 			}
 		}

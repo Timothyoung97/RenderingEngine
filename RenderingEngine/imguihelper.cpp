@@ -171,7 +171,7 @@ void ImguiHelper::render() {
 
 	{	// Stats
 		ImGui::SeparatorText("Debug Info");
-		ImGui::Text("Within Frustcum/Total: %d / %d", pScene->_culledOpaqueObjQ.size() + pScene->_culledTransparentObjQ.size(), pScene->_pObjQ.size());
+		ImGui::Text("Within Frustcum/Total: %d / %d", pScene->_culledOpaqueObjQ[pScene->camViewIdx].size() + pScene->_culledTransparentObjQ.size(), pScene->_pObjQ.size());
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 	}
 
