@@ -1,9 +1,9 @@
 #include "utility.hlsl"
 
 struct LuminanceConfig {
-    float2 luminance; // x = min, y = max
+    float2 log2luminance; // x = min, y = max
     float timeCoeff;
-    int numPixels;
+    uint numPixels;
     uint2 viewportDimension;
     uint2 pad;
 };
@@ -38,14 +38,14 @@ void cs_luminAverage(
     }
 
     if (dispatchThreadID.x == 0) {
-        float weightedLogAverage = (localGroupHistogram[0] / max(luminConfig.numPixels - float(bucketValue), 1.0f)) - 1.0f;
+        float weightedLogAverage = (localGroupHistogram[0] / max(luminConfig.numPixels - bucketValue, 1)) - 1.0f;
 
-        float weightedAvgLum = exp2(((weightedLogAverage / 254.f) * (log2(luminConfig.luminance.y) - log2(luminConfig.luminance.x))) + log2(luminConfig.luminance.x));
+        float weightedAvgLum = exp2((weightedLogAverage / 254.f) * (luminConfig.log2luminance.y - luminConfig.log2luminance.x) + luminConfig.log2luminance.x);
 
         float lumLastFrame = luminAvg[0];
         
         float adaptedLum = lumLastFrame + (weightedAvgLum - lumLastFrame) * luminConfig.timeCoeff;
 
-        luminAvg[0] = isNaN(adaptedLum) ? 0.f : adaptedLum;
+        luminAvg[0] = adaptedLum;
     }
 }

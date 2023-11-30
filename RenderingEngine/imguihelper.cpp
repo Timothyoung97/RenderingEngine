@@ -61,8 +61,8 @@ void ImguiHelper::render() {
 	{	// HDR
 		ImGui::SeparatorText("HDR");
 		ImGui::SliderFloat("Middle Grey", &pRendererSetting->middleGrey, .000f, 10.f, "%.3f");
-		ImGui::SliderFloat("Luminance Min", &pRendererSetting->luminaceMin, .001f, 10.f, "%.3f");
-		ImGui::SliderFloat("Luminance Max", &pRendererSetting->luminanceMax, pRendererSetting->luminaceMin, 100.f, "%.3f");
+		ImGui::SliderFloat("Luminance Min", &pRendererSetting->luminaceMin, .001f, 10.f, "%.4f");
+		ImGui::SliderFloat("Luminance Max", &pRendererSetting->luminanceMax, pRendererSetting->luminaceMin, 100.f, "%.4f");
 		ImGui::SliderFloat("TimeCoeff", &pRendererSetting->timeCoeff, .001f, 1.f, "%.9f");
 	}
 

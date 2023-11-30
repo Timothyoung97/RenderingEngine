@@ -30,7 +30,7 @@ HDRStruct RendererHDR::createHDRStruct(float middleGrey) {
 
 LuminanceStruct RendererHDR::createLuminanceStruct(const XMFLOAT2& luminance, float timeCoeff) {
 	LuminanceStruct constBufferLumin;
-	constBufferLumin.luminance = luminance;
+	constBufferLumin.log2luminance = XMFLOAT2(log2f(luminance.x), log2f(luminance.y));
 	constBufferLumin.timeCoeff = timeCoeff;
 	constBufferLumin.numPixel = SCREEN_HEIGHT * SCREEN_WIDTH;
 	constBufferLumin.viewportDimension = XMINT2(SCREEN_WIDTH, SCREEN_HEIGHT);

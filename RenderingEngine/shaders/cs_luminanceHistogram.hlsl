@@ -2,7 +2,7 @@
 #define RGB_TO_LUM float3(0.2125, .07154, 0.0721)
 
 struct LuminanceConfig {
-    float2 luminance; // x = min, y = max
+    float2 log2luminance; // x = min, y = max
     float timeCoeff;
     int numPixels;
     uint2 viewportDimension;
@@ -44,7 +44,7 @@ void cs_genHistogram(
     if (dispatchThreadID.x < luminConfig.viewportDimension.x || dispatchThreadID.y < luminConfig.viewportDimension.y) {
 
         float4 hdrColor = hdrTexture.Load(int3(dispatchThreadID.xy, 0));
-        uint bucketIdx = colorToBucket(hdrColor.xyz, log2(luminConfig.luminance.x), 1.f / (log2(luminConfig.luminance.y) - log2(luminConfig.luminance.x)));
+        uint bucketIdx = colorToBucket(hdrColor.xyz, luminConfig.log2luminance.x, 1.f / (luminConfig.log2luminance.y - luminConfig.log2luminance.x));
         InterlockedAdd(localGroupHistogram[bucketIdx], 1);
     }
 

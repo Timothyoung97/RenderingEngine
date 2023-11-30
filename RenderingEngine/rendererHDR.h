@@ -14,7 +14,7 @@ struct HDRStruct {
 };
 
 struct LuminanceStruct {
-	XMFLOAT2 luminance;
+	XMFLOAT2 log2luminance;
 	float timeCoeff;
 	int numPixel;
 	XMINT2 viewportDimension;
