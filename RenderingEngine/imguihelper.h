@@ -12,10 +12,12 @@
 #include "scene.h"
 #include "object.h"
 
+namespace tre {
+
 class ImguiHelper {
 public:
 	
-	ImguiHelper(ID3D11Device* device, ID3D11DeviceContext* context, tre::Window* window, tre::Scene* scene, tre::GraphicsSetting* renSetting, tre::GraphicsStats* renStats, tre::Camera* cam, tre::Object* debugObj);
+	ImguiHelper();
 
 	// Setting
 	bool show_demo_window = false;
@@ -23,8 +25,11 @@ public:
 	tre::GraphicsStats* pRendererStats;
 	tre::Scene* pScene;
 	tre::Camera* pCam;
-	tre::Object* pDebugModel;
+
+	void init();
 
 	void render();
 	void cleanup();
 };
+
+}

@@ -84,6 +84,23 @@ void Scene::createFloor() {
 	_pObjQ.push_back(&_floor);
 }
 
+void Scene::createDebugObject() {
+	tre::Object debugModel;
+	debugModel.pObjMeshes = { &_debugMeshes[4] };
+	debugModel.pObjMeshes[0]->pMaterial = &_debugMaterials[4];
+	debugModel.objPos = XMFLOAT3(.0f, .5f, .0f);
+	debugModel.objScale = XMFLOAT3(1.f, 1.f, 1.f);
+	debugModel.objRotation = XMFLOAT3(.0f, .0f, .0f);
+	debugModel.ritterBs = { debugModel.pObjMeshes[0]->ritterSphere };
+	debugModel.naiveBs = { debugModel.pObjMeshes[0]->naiveSphere };
+	debugModel.aabb = { debugModel.pObjMeshes[0]->aabb };
+	debugModel._boundingVolumeColor = { tre::colorF(Colors::LightGreen) };
+	debugModel.isInView = { true };
+	_objQ.push_back(debugModel);
+	_pObjQ.push_back(&_objQ.back());
+	_debugObject = _pObjQ.back();
+}
+
 void Scene::createViewProjections(const Graphics& graphics, const Camera& cam) {
 	MICROPROFILE_SCOPE_CSTR("Update View Projections");
 

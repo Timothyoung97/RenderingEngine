@@ -55,12 +55,15 @@ public:
 	bool _toRecalDistFromCam = true; // when scene is init, to calculate distance from camera
 
 	tre::Object _floor;
+	tre::Object* _debugObject = nullptr;
+
 	tre::Object* addRandomObj();
 
 	Scene();
 	void init();
 
 	void createFloor();
+	void createDebugObject();
 	void createViewProjections(const Graphics& graphics, const Camera& cam);
 
 	void cullObject(std::vector<Frustum>& frustum, BoundVolumeEnum typeOfBound);

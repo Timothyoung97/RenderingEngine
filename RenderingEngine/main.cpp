@@ -72,27 +72,6 @@ int main()
 			}
 		}
 
-		// Delta Time between frame
-		float deltaTime = 0;
-
-		// Testing Obj
-		{
-			tre::Object debugModel;	
-			debugModel.pObjMeshes = { &e.scene->_debugMeshes[4] };
-			debugModel.pObjMeshes[0]->pMaterial = &e.scene->_debugMaterials[4];
-			debugModel.objPos = XMFLOAT3(.0f, .5f, .0f);
-			debugModel.objScale = XMFLOAT3(1.f, 1.f, 1.f);
-			debugModel.objRotation = XMFLOAT3(.0f, .0f, .0f);
-			debugModel.ritterBs = { debugModel.pObjMeshes[0]->ritterSphere };
-			debugModel.naiveBs = { debugModel.pObjMeshes[0]->naiveSphere };
-			debugModel.aabb = { debugModel.pObjMeshes[0]->aabb };
-			debugModel._boundingVolumeColor = { tre::colorF(Colors::LightGreen) };
-			debugModel.isInView = { true };
-			e.scene->_objQ.push_back(debugModel);
-			e.scene->_pObjQ.push_back(&e.scene->_objQ.back());
-		}
-		tre::Object* pDebugModel = e.scene->_pObjQ.back();
-
 		// Stats Update
 		for (int i = 0; i < e.scene->_pObjQ.size(); i++) {
 			for (int j = 0; j < e.scene->_pObjQ[i]->pObjMeshes.size(); j++) {
@@ -108,8 +87,8 @@ int main()
 			}
 		}
 
-		// create imgui
-		ImguiHelper imguiHelper(e.device->device.Get(), e.device->context.Get(), e.window, e.scene, &e.graphics->setting, &e.graphics->stats, e.cam, pDebugModel);
+		// Delta Time between frame
+		float deltaTime = 0;
 
 		// main loop
 		while (!e.input->shouldQuit())
@@ -117,31 +96,30 @@ int main()
 			MICROPROFILE_SCOPE_CSTR("Frame");
 
 			tre::Timer timer;
-			e.graphics->clean();											// Clear buffer + clean up
-			e.input->updateInputEvent();									// Update input event
-			e.control->update(*e.input, *e.graphics, *e.scene, *e.cam, deltaTime);		// Update control
-			e.cam->updateCamera();											// Update Camera
-			e.computerPtLight->compute(*e.graphics, *e.scene, *e.cam);				// Compute Pt Light's position
-			e.scene->update(*e.graphics, *e.cam);								// Update Scene
-			e.rendererCSM->render(*e.graphics, *e.scene, *e.cam);					// CSM Shadow Pass
-			e.rendererGBuffer->render(*e.graphics, *e.scene, *e.cam);				// G-Buffer: Deferred normal, albedo and depth
-			e.rendererSSAO->render(*e.graphics, *e.scene, *e.cam);					// SSAO Pass
-			e.rendererEnvLighting->render(*e.graphics, *e.scene, *e.cam);			// Environment Lighting Pass
-			e.rendererTransparency->render(*e.graphics, *e.scene, *e.cam);			// Transparency Object Pass
-			e.rendererLocalLighting->render(*e.graphics, *e.scene, *e.cam);			// Local Lighting Pass
-			e.rendererHDR->render(*e.graphics);								// HDR Pass
-			e.rendererWireframe->render(*e.graphics, *e.cam, *e.scene);				// Wireframe Debug Pass
-			imguiHelper.render();										// IMGUI tool
-			e.graphics->present();											// Present final frame image
-			timer.spinWait();											// framerate control
-			deltaTime = timer.getDeltaTime();							// Update frame time
-			e.profiler->recordFrame();										// record each frame
-			e.profiler->storeToDisk(e.control->toDumpFile);					// Store profiel log into disk
+			e.graphics->clean();											
+			e.input->updateInputEvent();									
+			e.control->update(*e.input, *e.graphics, *e.scene, *e.cam, deltaTime);		
+			e.cam->updateCamera();											
+			e.computerPtLight->compute(*e.graphics, *e.scene, *e.cam);				
+			e.scene->update(*e.graphics, *e.cam);								
+			e.rendererCSM->render(*e.graphics, *e.scene, *e.cam);					
+			e.rendererGBuffer->render(*e.graphics, *e.scene, *e.cam);	
+			e.rendererSSAO->render(*e.graphics, *e.scene, *e.cam);			
+			e.rendererEnvLighting->render(*e.graphics, *e.scene, *e.cam);		
+			e.rendererTransparency->render(*e.graphics, *e.scene, *e.cam);			
+			e.rendererLocalLighting->render(*e.graphics, *e.scene, *e.cam);		
+			e.rendererHDR->render(*e.graphics);							
+			e.rendererWireframe->render(*e.graphics, *e.cam, *e.scene);			
+			e.imguihelper->render();
+			e.graphics->present();										
+			timer.spinWait();											
+			deltaTime = timer.getDeltaTime();							
+			e.profiler->recordFrame();										
+			e.profiler->storeToDisk(e.control->toDumpFile);				
 		}
 
 		// Clean up
 		{
-			imguiHelper.cleanup();
 			e.close();
 		}
 	}

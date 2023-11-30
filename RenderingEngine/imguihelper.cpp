@@ -1,8 +1,17 @@
 #include "imguihelper.h"
 
 #include "utility.h"
+#include "engine.h"
 
-ImguiHelper::ImguiHelper(ID3D11Device* device, ID3D11DeviceContext* context, tre::Window* window, tre::Scene* scene, tre::GraphicsSetting* renSetting, tre::GraphicsStats* renStats, tre::Camera* cam, tre::Object* debugObj) {
+extern tre::Engine* pEngine;
+
+namespace tre {
+
+ImguiHelper::ImguiHelper() {
+	this->init();
+}
+
+void ImguiHelper::init() {
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -14,15 +23,14 @@ ImguiHelper::ImguiHelper(ID3D11Device* device, ID3D11DeviceContext* context, tre
 	ImGui::StyleColorsDark();
 
 	// Setup Platform/Renderer backends
-	ImGui_ImplSDL2_InitForD3D(window->window);
-	ImGui_ImplDX11_Init(device, context);
+	ImGui_ImplSDL2_InitForD3D(pEngine->window->window);
+	ImGui_ImplDX11_Init(pEngine->device->device.Get(), pEngine->device->context.Get());
 
 	// assign pointers
-	pScene = scene;
-	pRendererSetting = renSetting;
-	pRendererStats = renStats;
-	pCam = cam;
-	pDebugModel = debugObj;
+	pScene = pEngine->scene;
+	pRendererSetting = &pEngine->graphics->setting;
+	pRendererStats = &pEngine->graphics->stats;
+	pCam = pEngine->cam;
 }
 
 void ImguiHelper::render() {
@@ -62,18 +70,25 @@ void ImguiHelper::render() {
 
 		ImGui::SeparatorText("Test Object Control");
 
-		float translation[3] = { pDebugModel->objPos.x, pDebugModel->objPos.y,  pDebugModel->objPos.z };
-		ImGui::SliderFloat3("Translation", translation, .0f, 20.f);
-		pDebugModel->objPos = XMFLOAT3(translation);
+		if (!pScene->_debugObject) {
+			if (ImGui::Button("Add debug object")) {
+				pScene->createDebugObject();
+			}
+		}
+		else {
+			float translation[3] = { pScene->_debugObject->objPos.x, pScene->_debugObject->objPos.y,  pScene->_debugObject->objPos.z };
+			ImGui::SliderFloat3("Translation", translation, .0f, 20.f);
+			pScene->_debugObject->objPos = XMFLOAT3(translation);
 
-		float rotationXYZ[3] = { pDebugModel->objRotation.x, pDebugModel->objRotation.y, pDebugModel->objRotation.z };
-		ImGui::SliderFloat3("Rotation", rotationXYZ, .0f, 360.f);
-		pDebugModel->objRotation = XMFLOAT3(rotationXYZ);
+			float rotationXYZ[3] = { pScene->_debugObject->objRotation.x, pScene->_debugObject->objRotation.y, pScene->_debugObject->objRotation.z };
+			ImGui::SliderFloat3("Rotation", rotationXYZ, .0f, 360.f);
+			pScene->_debugObject->objRotation = XMFLOAT3(rotationXYZ);
 
-		float scaleXYZ = pDebugModel->objScale.x;
-		ImGui::SliderFloat("Scale", &scaleXYZ, .1f, 3.f);
-		pDebugModel->objScale = XMFLOAT3(scaleXYZ, scaleXYZ, scaleXYZ);
-		pDebugModel->_transformationFinal = tre::Maths::createTransformationMatrix(pDebugModel->objScale, pDebugModel->objRotation, pDebugModel->objPos);
+			float scaleXYZ = pScene->_debugObject->objScale.x;
+			ImGui::SliderFloat("Scale", &scaleXYZ, .1f, 3.f);
+			pScene->_debugObject->objScale = XMFLOAT3(scaleXYZ, scaleXYZ, scaleXYZ);
+			pScene->_debugObject->_transformationFinal = tre::Maths::createTransformationMatrix(pScene->_debugObject->objScale, pScene->_debugObject->objRotation, pScene->_debugObject->objPos);
+		}
 	}
 
 	{	// Camera Setting
@@ -170,4 +185,5 @@ void ImguiHelper::cleanup() {
 	ImGui_ImplDX11_Shutdown();
 	ImGui_ImplSDL2_Shutdown();
 	ImGui::DestroyContext();
+}
 }

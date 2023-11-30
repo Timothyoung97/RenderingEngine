@@ -20,6 +20,7 @@ class RendererWireframe;
 class ComputerPointLight;
 class Input;
 class Control;
+class ImguiHelper;
 
 class Engine {
 public:
@@ -42,8 +43,10 @@ public:
 	ComputerPointLight* computerPtLight;
 	Input* input;
 	Control* control;
+	ImguiHelper* imguihelper;
 
 	void init();
+	void run();
 	void close();
 
 };

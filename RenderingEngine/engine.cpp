@@ -48,9 +48,13 @@ void Engine::init() {
 	computerPtLight =  new ComputerPointLight;
 	input =  new Input;
 	control =  new Control;
+	imguihelper = new ImguiHelper;
 }
 
 void Engine::close() {
+	imguihelper->cleanup();
+	delete imguihelper;
+
 	delete input;
 	delete control;
 	
