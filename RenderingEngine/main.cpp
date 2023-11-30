@@ -37,7 +37,7 @@
 
 using namespace DirectX;
 
-tre::Engine* g_Engine;
+tre::Engine* pEngine;
 
 int main()
 {
@@ -49,14 +49,12 @@ int main()
 
 	{
 		tre::Engine e;
-		g_Engine = &e;
+		pEngine = &e;
 		e.init();
 
 		// Crate Global Resource
 		srand((uint32_t)time(NULL));																	// set random seed
-		tre::Device deviceAndContext; 																	// Create Device 
-		tre::MicroProfiler profiler(deviceAndContext.device.Get(), deviceAndContext.context.Get()); 	// Create Profiler
-		tre::Scene scene(deviceAndContext.device.Get(), deviceAndContext.context.Get()); 				// Create Scene
+		tre::Scene scene(e.device->device.Get(), e.device->context.Get()); 								// Create Scene
 		tre::Camera cam(tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT);											// Create Camera
 
 		// Loading Models
@@ -72,7 +70,7 @@ int main()
 
 		tre::ModelLoader ml;
 		if (f.result().size()) {
-			ml.load(deviceAndContext.device.Get(), f.result()[0]);
+			ml.load(e.device->device.Get(), f.result()[0]);
 
 			for (int i = 0; i < ml._objectWithMesh.size(); i++) {
 				tre::Object* pObj = ml._objectWithMesh[i];
@@ -81,18 +79,18 @@ int main()
 		}
 
 		//Create Renderer
-		tre::Graphics graphics(deviceAndContext.device.Get(), deviceAndContext.context.Get(), e.window->getWindowHandle());
-		tre::RendererCSM rendererCSM(deviceAndContext.device.Get(), deviceAndContext.context.Get());
-		tre::RendererEnvironmentLighting rendererEnvLighting(deviceAndContext.device.Get(), deviceAndContext.context.Get());
-		tre::RendererGBuffer rendererGBuffer(deviceAndContext.device.Get(), deviceAndContext.context.Get());
-		tre::RendererHDR rendererHDR(deviceAndContext.device.Get(), deviceAndContext.context.Get());
-		tre::RendererLocalLighting rendererLocalLighting(deviceAndContext.device.Get(), deviceAndContext.context.Get());
-		tre::RendererSSAO rendererSSAO(deviceAndContext.device.Get(), deviceAndContext.context.Get());
-		tre::RendererTransparency rendererTransparency(deviceAndContext.device.Get(), deviceAndContext.context.Get());
-		tre::RendererWireframe rendererWireframe(deviceAndContext.device.Get(), deviceAndContext.context.Get());
+		tre::Graphics graphics(e.device->device.Get(), e.device->context.Get(), e.window->getWindowHandle());
+		tre::RendererCSM rendererCSM(e.device->device.Get(), e.device->context.Get());
+		tre::RendererEnvironmentLighting rendererEnvLighting(e.device->device.Get(), e.device->context.Get());
+		tre::RendererGBuffer rendererGBuffer(e.device->device.Get(), e.device->context.Get());
+		tre::RendererHDR rendererHDR(e.device->device.Get(), e.device->context.Get());
+		tre::RendererLocalLighting rendererLocalLighting(e.device->device.Get(), e.device->context.Get());
+		tre::RendererSSAO rendererSSAO(e.device->device.Get(), e.device->context.Get());
+		tre::RendererTransparency rendererTransparency(e.device->device.Get(), e.device->context.Get());
+		tre::RendererWireframe rendererWireframe(e.device->device.Get(), e.device->context.Get());
 
 		// Create Computer 
-		tre::ComputerPointLight computerPtLight(deviceAndContext.device.Get(), deviceAndContext.context.Get());
+		tre::ComputerPointLight computerPtLight(e.device->device.Get(), e.device->context.Get());
 
 		// Input Handler
 		tre::Input input;
@@ -135,7 +133,7 @@ int main()
 		}
 
 		// create imgui
-		ImguiHelper imguiHelper(deviceAndContext.device.Get(), deviceAndContext.context.Get(), e.window, &scene, &graphics.setting, &graphics.stats, &cam, pDebugModel);
+		ImguiHelper imguiHelper(e.device->device.Get(), e.device->context.Get(), e.window, &scene, &graphics.setting, &graphics.stats, &cam, pDebugModel);
 
 		// main loop
 		while (!input.shouldQuit())
@@ -161,15 +159,13 @@ int main()
 			graphics.present();											// Present final frame image
 			timer.spinWait();											// framerate control
 			deltaTime = timer.getDeltaTime();							// Update frame time
-			profiler.recordFrame();										// record each frame
-			profiler.storeToDisk(control.toDumpFile);					// Store profiel log into disk
+			e.profiler->recordFrame();										// record each frame
+			e.profiler->storeToDisk(control.toDumpFile);					// Store profiel log into disk
 		}
 
 		// Clean up
 		{
-			profiler.cleanup();
 			imguiHelper.cleanup();
-			//window.cleanup();
 			e.close();
 		}
 	}

@@ -4,20 +4,30 @@
 
 #include <stdio.h>
 
+#include "engine.h"
+#include "device.h"
+
+extern tre::Engine* pEngine;
+
 namespace tre {
 
-MicroProfiler::MicroProfiler(ID3D11Device* pDevice, ID3D11DeviceContext* pContext) : _device(pDevice), _context(pContext) {
+MicroProfiler::MicroProfiler() {
+	this->init();
+}
+
+void MicroProfiler::init() {
 	MicroProfileOnThreadCreate("Main");
 	MicroProfileSetEnableAllGroups(true);
 	MicroProfileSetForceMetaCounters(true);
 
-	MicroProfileGpuInitD3D11(_device, _context);
-	MICROPROFILE_GPU_SET_CONTEXT(_context, MicroProfileGetGlobalGpuThreadLog());
+
+	MicroProfileGpuInitD3D11(pEngine->device->device.Get(), pEngine->device->context.Get());
+	MICROPROFILE_GPU_SET_CONTEXT(pEngine->device->context.Get(), MicroProfileGetGlobalGpuThreadLog());
 	MicroProfileStartContextSwitchTrace();
 }
 
 void MicroProfiler::recordFrame() {
-	MicroProfileFlip(_context);
+	MicroProfileFlip(pEngine->device->context.Get());
 }
 
 void MicroProfiler::cleanup() {
@@ -28,7 +38,7 @@ void MicroProfiler::cleanup() {
 void MicroProfiler::storeToDisk(bool& toStore) {
 	if (toStore) {
 		printf("Profiling\n");
-		MicroProfileDumpFileImmediately("profile.html", nullptr, _context);
+		MicroProfileDumpFileImmediately("profile.html", nullptr, pEngine->device->context.Get());
 		toStore = false;
 	}
 }
