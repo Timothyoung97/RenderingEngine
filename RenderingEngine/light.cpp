@@ -84,7 +84,7 @@ void LightResource::updateComputeShaderBuffer(PointLight newPointLight) {
 	D3D11_BUFFER_UAV lightBufferUAV;
 	lightBufferUAV.NumElements = numOfLights;
 	lightBufferUAV.FirstElement = 0;
-	lightBufferUAV.Flags = D3D11_BUFFER_UAV_FLAG_COUNTER;
+	lightBufferUAV.Flags = 0u;
 
 	D3D11_UNORDERED_ACCESS_VIEW_DESC lightUnorderAccessViewDesc;
 	lightUnorderAccessViewDesc.Format = DXGI_FORMAT_UNKNOWN;
