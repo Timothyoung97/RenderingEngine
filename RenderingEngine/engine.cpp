@@ -1,5 +1,8 @@
 #include "engine.h"
 
+#include "portable-file-dialogs.h"
+
+#define SDL_MAIN_HANDLED
 #include "camera.h"
 #include "colors.h"
 #include "computerPointLight.h"
@@ -49,6 +52,74 @@ void Engine::init() {
 	input =  new Input;
 	control =  new Control;
 	imguihelper = new ImguiHelper;
+}
+
+void Engine::run() {
+	// Loading Models
+	std::string basePathStr = tre::Utility::getBasePathStr();													// File path
+	pfd::open_file f = pfd::open_file("Choose files to read", basePathStr,
+		{
+			"All Files", "*" ,
+			"glTF Files (.gltf)", "*.gltf",
+			"obj Files (.obj)", "*.obj",
+		},
+		pfd::opt::force_path
+		);
+
+	if (f.result().size()) {
+		ml->load(device->device.Get(), f.result()[0]);
+
+		for (int i = 0; i < ml->_objectWithMesh.size(); i++) {
+			tre::Object* pObj = ml->_objectWithMesh[i];
+			scene->_pObjQ.push_back(pObj);
+		}
+	}
+
+	// Stats Update
+	for (int i = 0; i < scene->_pObjQ.size(); i++) {
+		for (int j = 0; j < scene->_pObjQ[i]->pObjMeshes.size(); j++) {
+			graphics->stats.totalMeshCount++;
+			tre::Mesh* pMesh = scene->_pObjQ[i]->pObjMeshes[j];
+			if ((pMesh->pMaterial->objTexture != nullptr && pMesh->pMaterial->objTexture->hasAlphaChannel)
+				|| (pMesh->pMaterial->objTexture == nullptr && pMesh->pMaterial->baseColor.w < 1.0f)) {
+				graphics->stats.transparentMeshCount++;
+			}
+			else {
+				graphics->stats.opaqueMeshCount++;
+			}
+		}
+	}
+
+	// Delta Time between frame
+	float deltaTime = 0;
+
+	// main loop
+	while (!input->shouldQuit())
+	{
+		MICROPROFILE_SCOPE_CSTR("Frame");
+
+		tre::Timer timer;
+		graphics->clean();
+		input->updateInputEvent();
+		control->update(*input, *graphics, *scene, *cam, deltaTime);
+		cam->updateCamera();
+		computerPtLight->compute(*graphics, *scene, *cam);
+		scene->update(*graphics, *cam);
+		rendererCSM->render(*graphics, *scene, *cam);
+		rendererGBuffer->render(*graphics, *scene, *cam);
+		rendererSSAO->render(*graphics, *scene, *cam);
+		rendererEnvLighting->render(*graphics, *scene, *cam);
+		rendererTransparency->render(*graphics, *scene, *cam);
+		rendererLocalLighting->render(*graphics, *scene, *cam);
+		rendererHDR->render(*graphics);
+		rendererWireframe->render(*graphics, *cam, *scene);
+		imguihelper->render();
+		graphics->present();
+		timer.spinWait();
+		deltaTime = timer.getDeltaTime();
+		profiler->recordFrame();
+		profiler->storeToDisk(control->toDumpFile);
+	}
 }
 
 void Engine::close() {
