@@ -54,6 +54,5 @@ void Sampler::create(ID3D11Device* device) {
 		&samplerDesc, pSamplerStateMinMagMipLinearClamp.GetAddressOf()
 	));
 
-
 }
 }
