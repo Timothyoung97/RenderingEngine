@@ -51,7 +51,7 @@ void Sampler::create(ID3D11Device* device) {
 	// Create sampler state used for bloom downscaling
 	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 	CHECK_DX_ERROR(device->CreateSamplerState(
-		&samplerDesc, 
+		&samplerDesc, pSamplerStateMinMagMipLinearClamp.GetAddressOf()
 	));
 
 

@@ -14,6 +14,7 @@ public:
 	ComPtr<ID3D11SamplerState> pSamplerStateMinMagMipLinearGreaterEqualBorder;
 	ComPtr<ID3D11SamplerState> pSamplerStateMinMagMipPtWrap;
 	ComPtr<ID3D11SamplerState> pSamplerStateMinMagMipPtClamp;
+	ComPtr<ID3D11SamplerState> pSamplerStateMinMagMipLinearClamp;
 
 	void create(ID3D11Device* device);
 };
