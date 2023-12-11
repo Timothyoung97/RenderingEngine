@@ -51,10 +51,10 @@ void Graphics::clean() {
 	}
 
 	pEngine->device->context.Get()->ClearState();
-	pEngine->device->context.Get()->PSSetSamplers(0, 1, _sampler.pSamplerStateLinear.GetAddressOf());
-	pEngine->device->context.Get()->PSSetSamplers(1, 1, _sampler.pSamplerStateMipPtWhiteBorder.GetAddressOf());
-	pEngine->device->context.Get()->PSSetSamplers(2, 1, _sampler.pSamplerStateMipPtWrap.GetAddressOf());
-	pEngine->device->context.Get()->PSSetSamplers(3, 1, _sampler.pSamplerStateMipPtClamp.GetAddressOf());
+	pEngine->device->context.Get()->PSSetSamplers(0, 1, _sampler.pSamplerStateMinMagMipLinearWrap.GetAddressOf());
+	pEngine->device->context.Get()->PSSetSamplers(1, 1, _sampler.pSamplerStateMinMagMipLinearGreaterEqualBorder.GetAddressOf());
+	pEngine->device->context.Get()->PSSetSamplers(2, 1, _sampler.pSamplerStateMinMagMipPtWrap.GetAddressOf());
+	pEngine->device->context.Get()->PSSetSamplers(3, 1, _sampler.pSamplerStateMinMagMipPtClamp.GetAddressOf());
 	pEngine->device->context.Get()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	pEngine->device->context.Get()->ClearRenderTargetView(_ssao.ssaoBlurredTexture2dRTV.Get(), Colors::Transparent);
 	pEngine->device->context.Get()->ClearRenderTargetView(_gBuffer.pRenderTargetViewDeferredAlbedo.Get(), tre::BACKGROUND_BLACK);
