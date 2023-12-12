@@ -9,8 +9,8 @@ namespace tre {
 
 class BloomBuffer {
 public:
-	ComPtr<ID3D11Texture2D> bloomTexture2D;
+	ComPtr<ID3D11Texture2D> bloomTexture2D[2];
 
-	BloomBuffer(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
+	void create(ID3D11Device* pDevice);
 };
 }

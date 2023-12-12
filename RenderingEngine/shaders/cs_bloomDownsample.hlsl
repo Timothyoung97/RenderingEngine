@@ -1,8 +1,6 @@
 struct BloomConfig {
     uint2 srcViewportDimension;
     uint2 destViewportDimension;
-    float2 invSrcViewportDimension;
-    float2 invDestViewportDimension;
     float sampleRadius;
     float3 pad;
 };
@@ -50,7 +48,7 @@ float3 downsample(float2 texcoord, float2 textureCoordOffset) {
     return res;
 }
 
-[numthreads(16, 16, 1)]
+[numthreads(8, 8, 1)]
 void cs_bloomDownsample (
     uint3 dispatchThreadID : SV_DispatchThreadID
 ) {
@@ -58,10 +56,12 @@ void cs_bloomDownsample (
         return;
     }
 
-    // multiply by 2 to restore to sample texture size, then multiply by invViewDimension to get texcoord
-    float2 texcoord = dispatchThreadID.xy * 2.0f * bloomConfig.invSrcViewportDimension; 
+    float2 invSrcViewportDimension = 1.f / bloomConfig.srcViewportDimension;
 
-    float3 downsampledRes = downsample(texcoord, bloomConfig.invSrcViewportDimension);
+    // multiply by 2 to restore to sample texture size, then multiply by invViewDimension to get texcoord
+    float2 texcoord = (dispatchThreadID.xy * 2.0f + float2(.5f, .5f)) * invSrcViewportDimension; 
+
+    float3 downsampledRes = downsample(texcoord, invSrcViewportDimension);
 
     downsampleTextures[dispatchThreadID.xy] = downsampledRes;
 }

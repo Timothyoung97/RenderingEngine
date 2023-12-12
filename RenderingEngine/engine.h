@@ -18,6 +18,7 @@ class RendererSSAO;
 class RendererTransparency;
 class RendererWireframe;
 class ComputerPointLight;
+class ComputerBloom;
 class Input;
 class Control;
 class ImguiHelper;
@@ -41,6 +42,7 @@ public:
 	RendererTransparency* rendererTransparency;
 	RendererWireframe* rendererWireframe;
 	ComputerPointLight* computerPtLight;
+	ComputerBloom* computerBloom;
 	Input* input;
 	Control* control;
 	ImguiHelper* imguihelper;

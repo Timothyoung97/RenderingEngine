@@ -18,6 +18,7 @@
 #include "ssao.h"
 #include "hdr.h"
 #include "instanceBuffer.h"
+#include "bloomBuffer.h"
 
 namespace tre {
 
@@ -94,6 +95,7 @@ public:
 	SSAO _ssao;
 	HdrBuffer _hdrBuffer;
 	InstanceBuffer _instanceBuffer;
+	BloomBuffer _bloomBuffer;
 
 	ID3D11UnorderedAccessView* nullUAV[1] = { nullptr };
 	ID3D11ShaderResourceView* nullSRV[1] = { nullptr };

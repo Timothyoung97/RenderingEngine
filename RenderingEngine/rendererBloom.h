@@ -9,14 +9,18 @@ using namespace DirectX;
 namespace tre {
 
 struct BloomConstBufferStruct {
-	int currMipLevel;
-	XMINT3 pad;
+    XMINT2 srcViewportDimension;
+    XMINT2 destViewportDimension;
+    XMFLOAT2 invSrcViewportDimension;
+    XMFLOAT2 invDestViewportDimension;
+    float sampleRadius;
+    XMFLOAT3 pad;
 };
 
-class RendererBloom {
+class ComputerBloom {
 public:
 
-	RendererBloom();
+    ComputerBloom();
 
 	void init();
 

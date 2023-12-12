@@ -6,6 +6,7 @@
 #include "camera.h"
 #include "colors.h"
 #include "computerPointLight.h"
+#include "computerBloom.h"
 #include "control.h"
 #include "dxdebug.h"
 #include "device.h"
@@ -49,6 +50,7 @@ void Engine::init() {
 	rendererTransparency =  new RendererTransparency;
 	rendererWireframe =  new RendererWireframe;
 	computerPtLight =  new ComputerPointLight;
+	computerBloom = new ComputerBloom;
 	input =  new Input;
 	control =  new Control;
 	imguihelper = new ImguiHelper;
@@ -110,6 +112,7 @@ void Engine::run() {
 		rendererTransparency->render(*graphics, *scene, *cam);
 		rendererLocalLighting->render(*graphics, *scene, *cam);
 		rendererHDR->render(*graphics);
+		computerBloom->compute(*graphics);
 		rendererWireframe->render(*graphics, *cam, *scene);
 		imguihelper->render();
 		graphics->present();

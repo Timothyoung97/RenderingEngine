@@ -39,6 +39,7 @@ void Graphics::init() {
 	_ssao.create(pEngine->device->device.Get(), pEngine->device->context.Get());
 	_hdrBuffer.create(pEngine->device->device.Get(), pEngine->device->context.Get());
 	_instanceBuffer.createBuffer(pEngine->device->device.Get(), pEngine->device->context.Get());
+	_bloomBuffer.create(pEngine->device->device.Get());
 }
 
 void Graphics::clean() {

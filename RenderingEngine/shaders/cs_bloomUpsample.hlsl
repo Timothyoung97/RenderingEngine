@@ -1,8 +1,6 @@
 struct BloomConfig {
     uint2 srcViewportDimension;
     uint2 destViewportDimension;
-    float2 invSrcViewportDimension;
-    float2 invDestViewportDimension;
     float sampleRadius;
     float3 pad;
 };
@@ -42,7 +40,7 @@ float3 upsample(float2 texcoord, float radius) {
     return res;
 }
 
-[numthreads(16, 16, 1)]
+[numthreads(8, 8, 1)]
 void cs_bloomUpsample (
     uint3 dispatchThreadID : SV_DispatchThreadID
 ) {
@@ -50,8 +48,10 @@ void cs_bloomUpsample (
         return;
     }
 
+    float2 invSrcViewportDimension = 1.f / bloomConfig.srcViewportDimension;
+
     // sampling a 1 level lower mips, then obtain the texcoord
-    float2 texcoord = dispatchThreadID.xy * .5f * bloomConfig.invSrcViewportDimension; 
+    float2 texcoord = (dispatchThreadID.xy * .5f + float2(.5f, .5f)) * invSrcViewportDimension; 
 
     float3 upsampledRes = upsample(texcoord, bloomConfig.sampleRadius);
 
