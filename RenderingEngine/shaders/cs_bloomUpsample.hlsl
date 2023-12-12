@@ -1,7 +1,9 @@
 struct BloomConfig {
     uint2 srcViewportDimension;
     uint2 destViewportDimension;
-    uint readIdx;
+    float2 invSrcViewportDimension;
+    float2 invDestViewportDimension;
+    float sampleRadius;
     float3 pad;
 };
 
@@ -9,29 +11,33 @@ cbuffer constBufferBloomConfig : register (b0) {
     BloomConfig bloomConfig;
 };
 
-RWTexture2DArray<float4> upsampleTextures : register(u0);
+Texture2D<float3> sampleTexture : register(t0);
+SamplerState ssMinMagMipLinearClamp : register(s0);
 
-float3 upsample(uint2 texelLocation, uint readIndex, float radius) {
+RWTexture2D<float3> upsampleTexture : register(u0);
+
+float3 upsample(float2 texcoord, float radius) {
     // Take 9 samples around current texel:
     // a - b - c
     // d - e - f
     // g - h - i
     // === ('e' is the current texel) ===
-    float3 a = upsampleTextures[int3(texelLocation.x - radius,  texelLocation.y + radius,   readIdx)];
-    float3 b = upsampleTextures[int3(texelLocation.x,           texelLocation.y + radius,   readIdx)];
-    float3 c = upsampleTextures[int3(texelLocation.x + radius,  texelLocation.y + radius,   readIdx)];
+    float3 a = sampleTexture.SampleLevel(ssMinMagMipLinearClamp, float2(texcoord.x - radius,  texcoord.y + radius), 0).xyz;
+    float3 b = sampleTexture.SampleLevel(ssMinMagMipLinearClamp, float2(texcoord.x,           texcoord.y + radius), 0).xyz;
+    float3 c = sampleTexture.SampleLevel(ssMinMagMipLinearClamp, float2(texcoord.x + radius,  texcoord.y + radius), 0).xyz;
 
-    float3 d = upsampleTextures[int3(texelLocation.x - radius,  texelLocation.y,            readIdx)];
-    float3 e = upsampleTextures[int3(texelLocation.x,           texelLocation.y,            readIdx)];
-    float3 f = upsampleTextures[int3(texelLocation.x + radius,  texelLocation.y,            readIdx)];
+    float3 d = sampleTexture.SampleLevel(ssMinMagMipLinearClamp, float2(texcoord.x - radius,  texcoord.y         ), 0).xyz;
+    float3 e = sampleTexture.SampleLevel(ssMinMagMipLinearClamp, float2(texcoord.x,           texcoord.y         ), 0).xyz;
+    float3 f = sampleTexture.SampleLevel(ssMinMagMipLinearClamp, float2(texcoord.x + radius,  texcoord.y         ), 0).xyz;
 
-    float3 g = upsampleTextures[int3(texelLocation.x - radius,  texelLocation.y - radius,   readIdx)];
-    float3 h = upsampleTextures[int3(texelLocation.x,           texelLocation.y - radius,   readIdx)];
-    float3 i = upsampleTextures[int3(texelLocation.x + radius,  texelLocation.y - radius,   readIdx)];
+    float3 g = sampleTexture.SampleLevel(ssMinMagMipLinearClamp, float2(texcoord.x - radius,  texcoord.y - radius), 0).xyz;
+    float3 h = sampleTexture.SampleLevel(ssMinMagMipLinearClamp, float2(texcoord.x,           texcoord.y - radius), 0).xyz;
+    float3 i = sampleTexture.SampleLevel(ssMinMagMipLinearClamp, float2(texcoord.x + radius,  texcoord.y - radius), 0).xyz;
 
     float3 res = e * 4.f;
     res += (b + d + f + h) * 2.f;
-    res += 
+    res += (a + c + g + i);
+    res *= 1.f / 16.f;
 
     return res;
 }
@@ -44,8 +50,11 @@ void cs_bloomUpsample (
         return;
     }
 
+    // sampling a 1 level lower mips, then obtain the texcoord
+    float2 texcoord = dispatchThreadID.xy * .5f * bloomConfig.invSrcViewportDimension; 
 
+    float3 upsampledRes = upsample(texcoord, bloomConfig.sampleRadius);
+
+    upsampleTexture[dispatchThreadID.xy] = upsampledRes;
     
-
-
 }

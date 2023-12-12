@@ -22,4 +22,5 @@ del /s /q bin\*.bin
 "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\fxc.exe" /nologo /E cs_genHistogram                /T cs_5_0 /Fo ./bin/compute_shader_lumin_histogram.bin          cs_luminanceHistogram.hlsl
 "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\fxc.exe" /nologo /E cs_luminAverage                /T cs_5_0 /Fo ./bin/compute_shader_lumin_average.bin            cs_luminanceAverage.hlsl
 "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\fxc.exe" /nologo /E cs_bloomDownsample             /T cs_5_0 /Fo ./bin/compute_shader_bloom_downsample.bin         cs_bloomDownsample.hlsl
+"C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\fxc.exe" /nologo /E cs_bloomUpsample               /T cs_5_0 /Fo ./bin/compute_shader_bloom_upsample.bin           cs_bloomUpsample.hlsl
  
