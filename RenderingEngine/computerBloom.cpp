@@ -48,7 +48,7 @@ void ComputerBloom::singleDownsample(Graphics& graphics, ID3D11Resource* pSample
 	{
 		// Create struct info and submit data to constant buffer
 		tre::BloomConstBufferStruct bloomConfig = {
-			 sampleViewDimension,
+			 XMINT2(tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT),
 			 XMINT2(sampleViewDimension.x * .5f, sampleViewDimension.y * .5f),
 			 2.f,
 			 XMFLOAT3(.0f, .0f, .0f)
