@@ -51,7 +51,7 @@ void ComputerBloom::singleDownsample(Graphics& graphics, ID3D11Resource* pSample
 		tre::BloomConstBufferStruct bloomConfig = {
 			 XMINT2(tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT),
 			 XMINT2(sampleViewDimension.x * .5f, sampleViewDimension.y * .5f),
-			 0.005f,
+			 0.01f,
 			 XMFLOAT3(.0f, .0f, .0f)
 		};
 
@@ -121,7 +121,7 @@ void ComputerBloom::singleUpsample(Graphics& graphics, ID3D11Resource* pSampleTe
 		tre::BloomConstBufferStruct bloomConfig = {
 			 XMINT2(tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT),
 			 XMINT2(sampleViewDimension.x, sampleViewDimension.y),
-			 0.005f,
+			 0.01f,
 			 XMFLOAT3(.0f, .0f, .0f)
 		};
 
@@ -142,20 +142,6 @@ void ComputerBloom::singleUpsample(Graphics& graphics, ID3D11Resource* pSampleTe
 		graphics.bufferQueue.push_back(consBufferBloomConfig);
 		pEngine->device->context.Get()->CSSetShaderResources(0u, 1u, graphics.nullSRV);
 		pEngine->device->context.Get()->CSSetUnorderedAccessViews(0, 1u, graphics.nullUAV, nullptr);
-
-		{	// clear sample texture for next texture draw
-			D3D11_UNORDERED_ACCESS_VIEW_DESC sampleTextureUAVDesc;
-			sampleTextureUAVDesc.Format = DXGI_FORMAT_R11G11B10_FLOAT;
-			sampleTextureUAVDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
-			sampleTextureUAVDesc.Texture2D = D3D11_TEX2D_UAV(0u);
-
-			ComPtr<ID3D11UnorderedAccessView> sampleTextureUAV;
-			CHECK_DX_ERROR(pEngine->device->device.Get()->CreateUnorderedAccessView(
-				pSampleTexture, &sampleTextureUAVDesc, sampleTextureUAV.GetAddressOf()
-			));
-
-			pEngine->device->context.Get()->ClearUnorderedAccessViewFloat(sampleTextureUAV.Get(), Colors::Black);
-		}
 	}
 }
 
