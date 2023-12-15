@@ -51,7 +51,7 @@ void ComputerBloom::singleDownsample(Graphics& graphics, ID3D11Resource* pSample
 		tre::BloomConstBufferStruct bloomConfig = {
 			 XMINT2(tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT),
 			 XMINT2(sampleViewDimension.x * .5f, sampleViewDimension.y * .5f),
-			 0.01f,
+			 graphics.setting.bloomUpsampleRadius,
 			 XMFLOAT3(.0f, .0f, .0f)
 		};
 
@@ -121,7 +121,7 @@ void ComputerBloom::singleUpsample(Graphics& graphics, ID3D11Resource* pSampleTe
 		tre::BloomConstBufferStruct bloomConfig = {
 			 XMINT2(tre::SCREEN_WIDTH, tre::SCREEN_HEIGHT),
 			 XMINT2(sampleViewDimension.x, sampleViewDimension.y),
-			 0.01f,
+			 graphics.setting.bloomUpsampleRadius,
 			 XMFLOAT3(.0f, .0f, .0f)
 		};
 

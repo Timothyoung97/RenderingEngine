@@ -67,6 +67,8 @@ struct GraphicsSetting {
 	bool csmDebugSwitch = false;
 	float csmPlaneIntervals[5] = { 1.0f, 20.f, 100.f, 250.f, 500.f };
 	float middleGrey = .05;
+	float bloomStrength = .2f;
+	float bloomUpsampleRadius = .001f;
 	float luminaceMin = 1.f / 256.f, luminanceMax = powf(2.f, 3.5f);
 	float timeCoeff = 0.05f;
 	XMFLOAT4 csmPlaneIntervalsF = { csmPlaneIntervals[1], csmPlaneIntervals[2], csmPlaneIntervals[3], csmPlaneIntervals[4] };

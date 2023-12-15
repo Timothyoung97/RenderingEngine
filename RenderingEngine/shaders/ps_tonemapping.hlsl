@@ -6,7 +6,8 @@ Texture2D bloomTexture : register(t2);
 
 cbuffer constBufferHDR : register(b0) {
     float middleGrey;
-    float3 pad_hdr;
+    float bloomStrength;
+    float2 pad_hdr;
 };
 
 void ps_tonemap(
@@ -19,7 +20,7 @@ void ps_tonemap(
 
     float4 currColor = hdrTexture.Load(int3(outPosition.xy, 0));
     float4 bloomColor = bloomTexture.Load(int3(outPosition.xy, 0));
-    float4 finalColor = lerp(currColor, bloomColor, .3f);
+    float4 finalColor = lerp(currColor, bloomColor, bloomStrength);
 
     float fLumScale = middleGrey / luminAvg[0];
 

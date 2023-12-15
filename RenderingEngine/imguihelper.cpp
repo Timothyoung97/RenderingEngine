@@ -66,6 +66,12 @@ void ImguiHelper::render() {
 		ImGui::SliderFloat("TimeCoeff", &pRendererSetting->timeCoeff, .001f, 1.f, "%.9f");
 	}
 
+	{	// Bloom
+		ImGui::SeparatorText("Bloom");
+		ImGui::SliderFloat("BloomStrength", &pRendererSetting->bloomStrength, .0f, 1.0f, "%.4f");
+		ImGui::SliderFloat("Upsample Radius", &pRendererSetting->bloomUpsampleRadius, .0f, .5f, "%.5f");
+	}
+
 	{	// Control for import models
 
 		ImGui::SeparatorText("Test Object Control");

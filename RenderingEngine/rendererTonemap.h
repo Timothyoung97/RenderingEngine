@@ -8,9 +8,10 @@ using namespace DirectX;
 
 namespace tre {
 
-struct HDRStruct {
+struct TonemapStruct {
 	float middleGrey;
-	XMFLOAT3 pad;
+	float bloomStrength;
+	XMFLOAT2 pad;
 };
 
 class RendererTonemap {
@@ -22,9 +23,9 @@ public:
 
 	void init();
 
-	static HDRStruct createHDRStruct(float middleGrey);
+	static TonemapStruct createTonemapStruct(float middleGrey, float bloomStrength);
 
-	void setConstBufferHDR(Graphics& graphics);
+	void setConstBufferTonemap(Graphics& graphics);
 
 	void fullscreenPass(const Graphics& graphics);
 

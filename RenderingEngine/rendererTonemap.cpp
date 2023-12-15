@@ -19,23 +19,23 @@ void RendererTonemap::init() {
 	_tonemapPixelShader.create(basePathWstr + L"shaders\\bin\\pixel_shader_tone_map.bin", pEngine->device->device.Get());
 }
 
-HDRStruct RendererTonemap::createHDRStruct(float middleGrey) {
-	HDRStruct hdrStruct;
-	hdrStruct.middleGrey = middleGrey;
-
-	return hdrStruct;
+TonemapStruct RendererTonemap::createTonemapStruct(float middleGrey, float bloomStrength) {
+	TonemapStruct tonemapStruct;
+	tonemapStruct.middleGrey = middleGrey;
+	tonemapStruct.bloomStrength = bloomStrength;
+	return tonemapStruct;
 }
 
-void RendererTonemap::setConstBufferHDR(Graphics& graphics) {
+void RendererTonemap::setConstBufferTonemap(Graphics& graphics) {
 	// HDR Middle Grey
-	ID3D11Buffer* constBufferHDR = tre::Buffer::createConstBuffer(pEngine->device->device.Get(), (UINT)sizeof(tre::HDRStruct));
+	ID3D11Buffer* constBufferTonemap = tre::Buffer::createConstBuffer(pEngine->device->device.Get(), (UINT)sizeof(tre::TonemapStruct));
 	{
 		// HDR const buffer update and binding
-		tre::HDRStruct hdrStruct = createHDRStruct(graphics.setting.middleGrey);
-		tre::Buffer::updateConstBufferData(pEngine->device->context.Get(), constBufferHDR, &hdrStruct, (UINT)sizeof(tre::HDRStruct));
-		pEngine->device->context.Get()->PSSetConstantBuffers(0u, 1u, &constBufferHDR);
+		tre::TonemapStruct tonemapStruct = createTonemapStruct(graphics.setting.middleGrey, graphics.setting.bloomStrength);
+		tre::Buffer::updateConstBufferData(pEngine->device->context.Get(), constBufferTonemap, &tonemapStruct, (UINT)sizeof(tre::TonemapStruct));
+		pEngine->device->context.Get()->PSSetConstantBuffers(0u, 1u, &constBufferTonemap);
 	}
-	graphics.bufferQueue.push_back(constBufferHDR);
+	graphics.bufferQueue.push_back(constBufferTonemap);
 }
 
 void RendererTonemap::fullscreenPass(const Graphics& graphics) {
@@ -78,8 +78,8 @@ void RendererTonemap::fullscreenPass(const Graphics& graphics) {
 void RendererTonemap::render(Graphics& graphics) {
 	// Tone Mapping
 	{
-		PROFILE_GPU_SCOPED("HDR");
-		setConstBufferHDR(graphics);
+		PROFILE_GPU_SCOPED("Tonemap");
+		setConstBufferTonemap(graphics);
 		fullscreenPass(graphics);
 	}
 }
