@@ -34,7 +34,9 @@ enum RENDER_MODE {
 	DEFERRED_LIGHTING_LOCAL_M,
 	SSAO_FULLSCREEN_PASS,
 	SSAO_BLURRING_PASS,
-	TONE_MAPPING_PASS
+	TONE_MAPPING_PASS,
+	BLOOM_COMPUTE_PASS,
+	HDR_COMPUTE_PASS
 };
 
 inline const char* ToString(RENDER_MODE rm)
@@ -53,6 +55,8 @@ inline const char* ToString(RENDER_MODE rm)
 	case SSAO_FULLSCREEN_PASS:				return "SSAO";
 	case SSAO_BLURRING_PASS:				return "SSAO Blur";
 	case TONE_MAPPING_PASS:					return "Tone mapping";
+	case BLOOM_COMPUTE_PASS:				return "Bloom Compute Pass";
+	case HDR_COMPUTE_PASS:					return "HDR Compute Pass";
 	default:								return "[Unknown Rendering Mode]";
 	}
 }

@@ -33,8 +33,5 @@ public:
     void singleUpsample(Graphics& graphics, ID3D11Resource* pSampleTexture, ID3D11Resource* pDownsampleTexture, XMINT2 sampleViewDimension);
 
 	void compute(Graphics& graphics);
-
-    void render();
-
 };
 }

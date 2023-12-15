@@ -21,6 +21,8 @@ void ComputerBloom::init() {
 }
 
 void ComputerBloom::singleDownsample(Graphics& graphics, ID3D11Resource* pSampleTexture, ID3D11Resource* pDownsampleTexture, XMINT2 sampleViewDimension) {
+	PROFILE_GPU_SCOPED("Bloom Single Downsample");
+	MICROPROFILE_SCOPE_CSTR("Bloom Single Downsample");
 
 	// create shader resource view for initial hdr texture
 	D3D11_SHADER_RESOURCE_VIEW_DESC sampleTextureSRVDesc;
@@ -63,6 +65,7 @@ void ComputerBloom::singleDownsample(Graphics& graphics, ID3D11Resource* pSample
 	pEngine->device->context.Get()->CSSetSamplers(0u, 1u, graphics._sampler.pSamplerStateMinMagMipLinearClamp.GetAddressOf());
 	pEngine->device->context.Get()->CSSetConstantBuffers(0u, 1u, &consBufferBloomConfig);
 	pEngine->device->context.Get()->CSSetShaderResources(0u, 1u, sampleTextureSRV.GetAddressOf());
+	pEngine->device->context.Get()->CSSetShaderResources(1u, 1u, graphics._hdrBuffer.pLuminAvgSRV.GetAddressOf());
 	pEngine->device->context.Get()->CSSetUnorderedAccessViews(0, 1u, downsampleTextureUAV.GetAddressOf(), nullptr);
 
 	pEngine->device->context.Get()->Dispatch(tre::Maths::divideAndRoundUp(sampleViewDimension.x *.5f, 4u), tre::Maths::divideAndRoundUp(sampleViewDimension.y * .5f, 4u), 1u);
@@ -76,7 +79,9 @@ void ComputerBloom::singleDownsample(Graphics& graphics, ID3D11Resource* pSample
 }
 
 void ComputerBloom::downsample(Graphics& graphics) {
-	
+	PROFILE_GPU_SCOPED("Bloom Downsample");
+	MICROPROFILE_SCOPE_CSTR("Bloom Downsample");
+
 	int writeIdx = 0;
 	ID3D11Resource* pSrcResc = graphics._hdrBuffer.pHdrBufferTexture.Get();
 	ID3D11Resource* pDestDesc = graphics._bloomBuffer.bloomTexture2D[writeIdx].Get();
@@ -92,6 +97,9 @@ void ComputerBloom::downsample(Graphics& graphics) {
 }
 
 void ComputerBloom::singleUpsample(Graphics& graphics, ID3D11Resource* pSampleTexture, ID3D11Resource* pUpsampleTexture, XMINT2 sampleViewDimension) {
+	PROFILE_GPU_SCOPED("Bloom Single Upsample");
+	MICROPROFILE_SCOPE_CSTR("Bloom Single Upsample");
+
 	// create shader resource view for initial hdr texture
 	D3D11_SHADER_RESOURCE_VIEW_DESC sampleTextureSRVDesc;
 	sampleTextureSRVDesc.Format = DXGI_FORMAT_R11G11B10_FLOAT;
@@ -146,6 +154,9 @@ void ComputerBloom::singleUpsample(Graphics& graphics, ID3D11Resource* pSampleTe
 }
 
 void ComputerBloom::upsample(Graphics& graphics) {
+	PROFILE_GPU_SCOPED("Bloom Upsample");
+	MICROPROFILE_SCOPE_CSTR("Bloom Upsample");
+
 	int writeIdx = 1;
 	ID3D11Resource* pSrcResc = graphics._bloomBuffer.bloomTexture2D[1^writeIdx].Get();
 	ID3D11Resource* pDestDesc = graphics._bloomBuffer.bloomTexture2D[writeIdx].Get();
@@ -161,6 +172,8 @@ void ComputerBloom::upsample(Graphics& graphics) {
 }
 
 void ComputerBloom::compute(Graphics& graphics) {
+	PROFILE_GPU_SCOPED("Bloom Compute");
+	MICROPROFILE_SCOPE_CSTR("Bloom Compute");
 	downsample(graphics);
 	upsample(graphics);
 }

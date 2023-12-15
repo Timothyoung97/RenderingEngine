@@ -15,7 +15,6 @@ void ps_tonemap(
     in float2 outTexCoord: TEXCOORD0,
     out float4 outTarget: SV_TARGET
 ){
-
     const float gamma = 2.2f;
 
     float4 currColor = hdrTexture.Load(int3(outPosition.xy, 0));

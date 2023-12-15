@@ -1,3 +1,5 @@
+#define RGB_TO_LUM float3(0.2125, .07154, 0.0721)
+
 struct BloomConfig {
     uint2 srcViewportDimension;
     uint2 destViewportDimension;
@@ -11,6 +13,7 @@ cbuffer constBufferBloomConfig : register (b0) {
 
 Texture2D<float3> sampleTexture : register(t0);
 SamplerState ssMinMagMipLinearClamp : register(s0);
+Buffer<float> luminAverage : register(t1);
 
 RWTexture2D<float3> downsampleTextures : register(u0);
 
@@ -48,7 +51,7 @@ float3 downsample(float2 texcoord, float2 textureCoordOffset, float2 sampleViewD
     res += (b + d + f + h) * .0625f;
     res += (j + k + l + m) * .125f;
 
-    return res;
+    return dot(res, RGB_TO_LUM) > luminAverage[0] ? res : 0;
 }
 
 [numthreads(8, 8, 1)]

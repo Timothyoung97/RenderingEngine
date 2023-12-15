@@ -67,12 +67,10 @@ void ComputerHDR::dispatchAverage(const Graphics& graphics){
 void ComputerHDR::compute(Graphics& graphics) {
 	pEngine->device->context.Get()->OMSetRenderTargets(0, nullptr, nullptr);
 	// Luminance Histogram
-	{
-		PROFILE_GPU_SCOPED("CS: Luminance Histogram");
-		setConstBufferLuminSetting(graphics);
-		dispatchHistogram(graphics);
-		dispatchAverage(graphics);
-	}
+	PROFILE_GPU_SCOPED("HDR Compute");
+	PROFILE_GPU_SCOPED("HDR Compute");
+	setConstBufferLuminSetting(graphics);
+	dispatchHistogram(graphics);
+	dispatchAverage(graphics);
 }
-
 }

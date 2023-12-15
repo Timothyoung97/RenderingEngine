@@ -76,12 +76,9 @@ void RendererTonemap::fullscreenPass(const Graphics& graphics) {
 }
 
 void RendererTonemap::render(Graphics& graphics) {
-	// Tone Mapping
-	{
-		PROFILE_GPU_SCOPED("Tonemap");
-		setConstBufferTonemap(graphics);
-		fullscreenPass(graphics);
-	}
+	PROFILE_GPU_SCOPED("Tonemap");
+	MICROPROFILE_SCOPE_CSTR("Tonemap");
+	setConstBufferTonemap(graphics);
+	fullscreenPass(graphics);
 }
-
 }
