@@ -8,11 +8,6 @@ using namespace DirectX;
 
 namespace tre {
 
-struct HDRStruct {
-	float middleGrey;
-	XMFLOAT3 pad;
-};
-
 struct LuminanceStruct {
 	XMFLOAT2 log2luminance;
 	float timeCoeff;
@@ -21,28 +16,22 @@ struct LuminanceStruct {
 	XMINT2 pad;
 };
 
-class RendererHDR {
+class ComputerHDR {
 public:
 	ComputeShader _computeShaderLuminancehistogram;
 	ComputeShader _computeShaderLuminanceAverage;
 
-	VertexShader _vertexShaderFullscreenQuad;
-	PixelShader _hdrPixelShader;
-
-	RendererHDR();
+	ComputerHDR();
 
 	void init();
 
-	static HDRStruct createHDRStruct(float middleGrey);
 	static LuminanceStruct createLuminanceStruct(const XMFLOAT2& luminance, float timeCoeff);
 
 	void setConstBufferLuminSetting(Graphics& graphics);
-	void setConstBufferHDR(Graphics& graphics);
 
 	void dispatchHistogram(const Graphics& graphics);
 	void dispatchAverage(const Graphics& graphics);
-	void fullscreenPass(const Graphics& graphics);
 
-	void render(Graphics& graphics);
+	void compute(Graphics& graphics);
 };
 }

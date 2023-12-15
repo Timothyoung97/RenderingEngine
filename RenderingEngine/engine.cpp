@@ -5,8 +5,9 @@
 #define SDL_MAIN_HANDLED
 #include "camera.h"
 #include "colors.h"
-#include "computerPointLight.h"
 #include "computerBloom.h"
+#include "computerHDR.h"
+#include "computerPointLight.h"
 #include "control.h"
 #include "dxdebug.h"
 #include "device.h"
@@ -20,7 +21,7 @@
 #include "rendererCSM.h"
 #include "rendererEnvironmentLighting.h"
 #include "rendererGBuffer.h"
-#include "rendererHDR.h"
+#include "rendererTonemap.h"
 #include "rendererLocalLighting.h"
 #include "rendererSSAO.h"
 #include "rendererTransparency.h"
@@ -44,8 +45,9 @@ void Engine::init() {
 	rendererCSM =  new RendererCSM;
 	rendererEnvLighting =  new RendererEnvironmentLighting;
 	rendererGBuffer =  new RendererGBuffer;
-	rendererHDR =  new RendererHDR;
 	rendererLocalLighting =  new RendererLocalLighting;
+	computerHDR =  new ComputerHDR;
+	rendererTonemap = new RendererTonemap;
 	rendererSSAO =  new RendererSSAO;
 	rendererTransparency =  new RendererTransparency;
 	rendererWireframe =  new RendererWireframe;
@@ -111,8 +113,9 @@ void Engine::run() {
 		rendererEnvLighting->render(*graphics, *scene, *cam);
 		rendererTransparency->render(*graphics, *scene, *cam);
 		rendererLocalLighting->render(*graphics, *scene, *cam);
-		rendererHDR->render(*graphics);
+		computerHDR->compute(*graphics);
 		computerBloom->compute(*graphics);
+		rendererTonemap->render(*graphics);
 		rendererWireframe->render(*graphics, *cam, *scene);
 		imguihelper->render();
 		graphics->present();
@@ -133,7 +136,7 @@ void Engine::close() {
 	delete rendererCSM;
 	delete rendererEnvLighting;
 	delete rendererGBuffer;
-	delete rendererHDR;
+	delete computerHDR;
 	delete rendererLocalLighting;
 	delete rendererSSAO;
 	delete rendererTransparency;
