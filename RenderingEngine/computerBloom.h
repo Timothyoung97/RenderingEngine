@@ -17,7 +17,6 @@ struct BloomConstBufferStruct {
 
 class ComputerBloom {
 public:
-
     ComputeShader computeShaderDownsample;
     ComputeShader computeShaderUpsample;
 

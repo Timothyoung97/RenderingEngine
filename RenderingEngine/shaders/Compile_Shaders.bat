@@ -14,7 +14,7 @@ del /s /q bin\*.bin
 "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\fxc.exe" /nologo /E ps_lightingLocalPass           /T ps_5_0 /Fo ./bin/pixel_shader_deferred_lighting_local.bin    ps_deferredRenderingLightingLocal.hlsl
 "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\fxc.exe" /nologo /E ps_ssao                        /T ps_5_0 /Fo ./bin/pixel_shader_ssao_rendering.bin             ps_ssaoRendering.hlsl
 "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\fxc.exe" /nologo /E ps_texture_blur                /T ps_5_0 /Fo ./bin/pixel_shader_texture_blur.bin               ps_textureBlur.hlsl
-"C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\fxc.exe" /nologo /E ps_hdr_tonedown                /T ps_5_0 /Fo ./bin/pixel_shader_hdr_rendering.bin              ps_hdrRendering.hlsl
+"C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\fxc.exe" /nologo /E ps_tonemap                     /T ps_5_0 /Fo ./bin/pixel_shader_tone_map.bin                   ps_tonemapping.hlsl
 "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\fxc.exe" /nologo /E ps_instanced_deferred_gbuffer  /T ps_5_0 /Fo ./bin/pixel_shader_instanced_gbuffer.bin          ps_instancedDeferredRendering.hlsl
 "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\fxc.exe" /nologo /E ps_instanced_wireframe         /T ps_5_0 /Fo ./bin/pixel_shader_instanced_wireframe.bin        ps_instancedWireframeRendering.hlsl
 

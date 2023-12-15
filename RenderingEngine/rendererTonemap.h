@@ -16,7 +16,7 @@ struct HDRStruct {
 class RendererTonemap {
 public:
 	VertexShader _vertexShaderFullscreenQuad;
-	PixelShader _hdrPixelShader;
+	PixelShader _tonemapPixelShader;
 
 	RendererTonemap();
 
