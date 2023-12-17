@@ -11,11 +11,6 @@ Graphics Tasks:
     • Energy conserving for Diffuse
     • Microfacet surface model for Specular
     • Physically based BRDF (Bidirectional Reflective Distribution Function)
-• Bloom
-    • Simple blur-based bloom
-    • Extract bright pixels (based on luminance threshold above avg scene luimnance) from lighting RT
-    • Perform full screen blur
-    • Additively blend back to lighting RT
 
 Stretch Graphic Tasks:
 • Multi-Thread
@@ -119,6 +114,11 @@ Done:
     • tonemap to LDR RGB8 format, with manual camera exposure control
     • Gamma Correction
     • improve with auto-exposure via luminance histogram
+• Bloom
+    • Simple blur-based bloom
+    • Extract bright pixels (based on luminance threshold above avg scene luimnance) from lighting RT
+    • Perform full screen blur
+    • Additively blend back to lighting RT
 
 //////////////////////////////////////////////////////////////////////////////
 
