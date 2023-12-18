@@ -38,6 +38,9 @@ void Device::InitDXDevice() {
 };
 
 void Device::executeCommandList() {
-	contextI->ExecuteCommandList(commandList.Get(), false);
+	for (int i = 0; i < 11; i++) {
+		if (commandListQueue[i] == nullptr) continue;
+		contextI->ExecuteCommandList(commandListQueue[i].Get(), false);
+	}
 }
 }

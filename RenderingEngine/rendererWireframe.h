@@ -1,5 +1,6 @@
 #pragma once
 
+#include "rendererBase.h"
 #include "graphics.h"
 #include "mesh.h"
 #include "camera.h"
@@ -7,7 +8,7 @@
 
 namespace tre {
 
-class RendererWireframe {
+class RendererWireframe : public RendererBase {
 public:
 	// Wireframe Meshes
 	Mesh wireframeSphere;
