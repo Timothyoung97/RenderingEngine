@@ -29,7 +29,7 @@ void RendererLocalLighting::render(Graphics& graphics, const Scene& scene, const
 	{
 		// Create struct info and submit data to constant buffer
 		tre::GlobalInfoStruct globalInfoStruct = tre::CommonStructUtility::createGlobalInfoStruct(cam.camPositionV, cam.camViewProjection, scene.viewProjs, graphics.setting.csmPlaneIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), graphics.setting.csmDebugSwitch, graphics.setting.ssaoSwitch);
-		tre::Buffer::updateConstBufferData(pEngine->device->context.Get(), constBufferGlobalInfo, &globalInfoStruct, (UINT)sizeof(tre::GlobalInfoStruct));
+		tre::Buffer::updateConstBufferData(pEngine->device->contextI.Get(), constBufferGlobalInfo, &globalInfoStruct, (UINT)sizeof(tre::GlobalInfoStruct));
 	}
 
 	// Create empty const buffer and pre bind the constant buffer
@@ -37,37 +37,37 @@ void RendererLocalLighting::render(Graphics& graphics, const Scene& scene, const
 	ID3D11Buffer* constBufferPtLightInfo = tre::Buffer::createConstBuffer(pEngine->device->device.Get(), sizeof(tre::PointLightInfoStruct));
 
 	{
-		pEngine->device->context.Get()->IASetInputLayout(graphics._inputLayout.vertLayout.Get());
-		pEngine->device->context.Get()->VSSetShader(_vertexShader.pShader.Get(), NULL, 0u);
-		pEngine->device->context.Get()->VSSetConstantBuffers(0u, 1u, &constBufferGlobalInfo);
-		pEngine->device->context.Get()->VSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
+		pEngine->device->contextI.Get()->IASetInputLayout(graphics._inputLayout.vertLayout.Get());
+		pEngine->device->contextI.Get()->VSSetShader(_vertexShader.pShader.Get(), NULL, 0u);
+		pEngine->device->contextI.Get()->VSSetConstantBuffers(0u, 1u, &constBufferGlobalInfo);
+		pEngine->device->contextI.Get()->VSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
 
-		pEngine->device->context.Get()->RSSetViewports(1, &graphics._viewport.defaultViewport);
-		pEngine->device->context.Get()->RSSetState(graphics._rasterizer.pRasterizerStateFCCW.Get()); // by default: render only front face
+		pEngine->device->contextI.Get()->RSSetViewports(1, &graphics._viewport.defaultViewport);
+		pEngine->device->contextI.Get()->RSSetState(graphics._rasterizer.pRasterizerStateFCCW.Get()); // by default: render only front face
 
-		pEngine->device->context.Get()->OMSetRenderTargets(0, nullptr, nullptr);
-		pEngine->device->context.Get()->PSSetShader(_deferredShaderLightingLocal.pShader.Get(), NULL, 0u);
-		pEngine->device->context.Get()->PSSetConstantBuffers(0u, 1u, &constBufferGlobalInfo);
-		pEngine->device->context.Get()->PSSetConstantBuffers(2u, 1u, &constBufferPtLightInfo);
-		pEngine->device->context.Get()->PSSetShaderResources(0, 1, graphics._gBuffer.pShaderResViewDeferredAlbedo.GetAddressOf()); // albedo
-		pEngine->device->context.Get()->PSSetShaderResources(1, 1, graphics._gBuffer.pShaderResViewDeferredNormal.GetAddressOf()); // normal
-		pEngine->device->context.Get()->PSSetShaderResources(2, 1, scene.lightResc.pLightShaderRescView.GetAddressOf());			// point light info
-		pEngine->device->context.Get()->CopyResource(graphics._depthbuffer.pDepthStencilReadOnlyTexture.Get(), graphics._depthbuffer.pDepthStencilTexture.Get());
-		pEngine->device->context.Get()->PSSetShaderResources(4, 1, graphics._depthbuffer.pDepthStencilReadOnlyShaderRescView.GetAddressOf()); //depth
+		pEngine->device->contextI.Get()->OMSetRenderTargets(0, nullptr, nullptr);
+		pEngine->device->contextI.Get()->PSSetShader(_deferredShaderLightingLocal.pShader.Get(), NULL, 0u);
+		pEngine->device->contextI.Get()->PSSetConstantBuffers(0u, 1u, &constBufferGlobalInfo);
+		pEngine->device->contextI.Get()->PSSetConstantBuffers(2u, 1u, &constBufferPtLightInfo);
+		pEngine->device->contextI.Get()->PSSetShaderResources(0, 1, graphics._gBuffer.pShaderResViewDeferredAlbedo.GetAddressOf()); // albedo
+		pEngine->device->contextI.Get()->PSSetShaderResources(1, 1, graphics._gBuffer.pShaderResViewDeferredNormal.GetAddressOf()); // normal
+		pEngine->device->contextI.Get()->PSSetShaderResources(2, 1, scene.lightResc.pLightShaderRescView.GetAddressOf());			// point light info
+		pEngine->device->contextI.Get()->CopyResource(graphics._depthbuffer.pDepthStencilReadOnlyTexture.Get(), graphics._depthbuffer.pDepthStencilTexture.Get());
+		pEngine->device->contextI.Get()->PSSetShaderResources(4, 1, graphics._depthbuffer.pDepthStencilReadOnlyShaderRescView.GetAddressOf()); //depth
 
-		pEngine->device->context.Get()->OMSetBlendState(graphics._blendstate.lighting.Get(), NULL, 0xffffffff);
-		pEngine->device->context.Get()->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0); // by default: read only depth test
-		pEngine->device->context.Get()->OMSetRenderTargets(1, graphics._hdrBuffer.pRenderTargetViewHdrTexture.GetAddressOf(), graphics._depthbuffer.pDepthStencilView.Get()); // draw to HDR floating point buffer
+		pEngine->device->contextI.Get()->OMSetBlendState(graphics._blendstate.lighting.Get(), NULL, 0xffffffff);
+		pEngine->device->contextI.Get()->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0); // by default: read only depth test
+		pEngine->device->contextI.Get()->OMSetRenderTargets(1, graphics._hdrBuffer.pRenderTargetViewHdrTexture.GetAddressOf(), graphics._depthbuffer.pDepthStencilView.Get()); // draw to HDR floating point buffer
 	}
 
 	UINT vertexStride = sizeof(Vertex);
 	UINT offset = 0;
 
 	//Set vertex buffer
-	pEngine->device->context.Get()->IASetVertexBuffers(0, 1, scene._wireframeObjQ[0]->pObjMeshes[0]->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
+	pEngine->device->contextI.Get()->IASetVertexBuffers(0, 1, scene._wireframeObjQ[0]->pObjMeshes[0]->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
 
 	//Set index buffer
-	pEngine->device->context.Get()->IASetIndexBuffer(scene._wireframeObjQ[0]->pObjMeshes[0]->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+	pEngine->device->contextI.Get()->IASetIndexBuffer(scene._wireframeObjQ[0]->pObjMeshes[0]->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
 
 	for (int i = 0; i < scene._wireframeObjQ.size(); i++) {
@@ -75,24 +75,24 @@ void RendererLocalLighting::render(Graphics& graphics, const Scene& scene, const
 		// Submit each object's data to const buffer
 		{
 			tre::ModelInfoStruct modelInfoStruct = tre::CommonStructUtility::createModelInfoStruct(scene._wireframeObjQ[i]->_transformationFinal, scene._wireframeObjQ[i]->pObjMeshes[0]->pMaterial->baseColor, 0u, 0u);
-			tre::Buffer::updateConstBufferData(pEngine->device->context.Get(), constBufferModelInfo, &modelInfoStruct, sizeof(tre::ModelInfoStruct));
+			tre::Buffer::updateConstBufferData(pEngine->device->contextI.Get(), constBufferModelInfo, &modelInfoStruct, sizeof(tre::ModelInfoStruct));
 		}
 
 		// Submit point light's idx to const buffer
 		{
 			tre::PointLightInfoStruct ptLightInfoStruct = tre::CommonStructUtility::createPointLightInfoStruct(i);
-			tre::Buffer::updateConstBufferData(pEngine->device->context.Get(), constBufferPtLightInfo, &ptLightInfoStruct, sizeof(tre::PointLightInfoStruct));
+			tre::Buffer::updateConstBufferData(pEngine->device->contextI.Get(), constBufferPtLightInfo, &ptLightInfoStruct, sizeof(tre::PointLightInfoStruct));
 		}
 
 		float distFromObjToCam = tre::Maths::distBetweentObjToCam(scene._wireframeObjQ[i]->objPos, cam.camPositionV);
 
 		// if the camera is inside the light sphere
 		if (distFromObjToCam < scene._wireframeObjQ[i]->objScale.x) {
-			pEngine->device->context.Get()->RSSetState(graphics._rasterizer.pRasterizerStateFCW.Get()); // render only back face
-			pEngine->device->context.Get()->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithoutDepthT.Get(), 0); // all depth test pass to render the sphere
+			pEngine->device->contextI.Get()->RSSetState(graphics._rasterizer.pRasterizerStateFCW.Get()); // render only back face
+			pEngine->device->contextI.Get()->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithoutDepthT.Get(), 0); // all depth test pass to render the sphere
 		}
 
-		pEngine->device->context.Get()->DrawIndexed(scene._wireframeObjQ[i]->pObjMeshes[0]->indexSize, 0, 0);
+		pEngine->device->contextI.Get()->DrawIndexed(scene._wireframeObjQ[i]->pObjMeshes[0]->indexSize, 0, 0);
 	}
 
 	// clean up

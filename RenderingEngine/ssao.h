@@ -25,7 +25,7 @@ public:
 	ComPtr<ID3D11ShaderResourceView> ssaoBlurredTexture2dSRV;
 	ComPtr<ID3D11RenderTargetView> ssaoBlurredTexture2dRTV;
 
-	void create(ID3D11Device* device, ID3D11DeviceContext* context);
+	void create(ID3D11Device* device, ID3D11DeviceContext* contextI);
 
 };
 }

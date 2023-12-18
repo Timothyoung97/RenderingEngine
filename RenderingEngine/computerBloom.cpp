@@ -57,24 +57,24 @@ void ComputerBloom::singleDownsample(Graphics& graphics, ID3D11Resource* pSample
 			 XMFLOAT3(.0f, .0f, .0f)
 		};
 
-		tre::Buffer::updateConstBufferData(pEngine->device->context.Get(), consBufferBloomConfig, &bloomConfig, (UINT)sizeof(tre::BloomConstBufferStruct));
+		tre::Buffer::updateConstBufferData(pEngine->device->contextI.Get(), consBufferBloomConfig, &bloomConfig, (UINT)sizeof(tre::BloomConstBufferStruct));
 	}
 
 	// binding
-	pEngine->device->context.Get()->CSSetShader(computeShaderDownsample.pShader.Get(), NULL, 0u);
-	pEngine->device->context.Get()->CSSetSamplers(0u, 1u, graphics._sampler.pSamplerStateMinMagMipLinearClamp.GetAddressOf());
-	pEngine->device->context.Get()->CSSetConstantBuffers(0u, 1u, &consBufferBloomConfig);
-	pEngine->device->context.Get()->CSSetShaderResources(0u, 1u, sampleTextureSRV.GetAddressOf());
-	pEngine->device->context.Get()->CSSetShaderResources(1u, 1u, graphics._hdrBuffer.pLuminAvgSRV.GetAddressOf());
-	pEngine->device->context.Get()->CSSetUnorderedAccessViews(0, 1u, downsampleTextureUAV.GetAddressOf(), nullptr);
+	pEngine->device->contextI.Get()->CSSetShader(computeShaderDownsample.pShader.Get(), NULL, 0u);
+	pEngine->device->contextI.Get()->CSSetSamplers(0u, 1u, graphics._sampler.pSamplerStateMinMagMipLinearClamp.GetAddressOf());
+	pEngine->device->contextI.Get()->CSSetConstantBuffers(0u, 1u, &consBufferBloomConfig);
+	pEngine->device->contextI.Get()->CSSetShaderResources(0u, 1u, sampleTextureSRV.GetAddressOf());
+	pEngine->device->contextI.Get()->CSSetShaderResources(1u, 1u, graphics._hdrBuffer.pLuminAvgSRV.GetAddressOf());
+	pEngine->device->contextI.Get()->CSSetUnorderedAccessViews(0, 1u, downsampleTextureUAV.GetAddressOf(), nullptr);
 
-	pEngine->device->context.Get()->Dispatch(tre::Maths::divideAndRoundUp(sampleViewDimension.x *.5f, 4u), tre::Maths::divideAndRoundUp(sampleViewDimension.y * .5f, 4u), 1u);
+	pEngine->device->contextI.Get()->Dispatch(tre::Maths::divideAndRoundUp(sampleViewDimension.x *.5f, 4u), tre::Maths::divideAndRoundUp(sampleViewDimension.y * .5f, 4u), 1u);
 
 	// clean up
 	{
 		graphics.bufferQueue.push_back(consBufferBloomConfig);
-		pEngine->device->context.Get()->CSSetShaderResources(0u, 1u, graphics.nullSRV);
-		pEngine->device->context.Get()->CSSetUnorderedAccessViews(0, 1u, graphics.nullUAV, nullptr);
+		pEngine->device->contextI.Get()->CSSetShaderResources(0u, 1u, graphics.nullSRV);
+		pEngine->device->contextI.Get()->CSSetUnorderedAccessViews(0, 1u, graphics.nullUAV, nullptr);
 	}
 }
 
@@ -133,23 +133,23 @@ void ComputerBloom::singleUpsample(Graphics& graphics, ID3D11Resource* pSampleTe
 			 XMFLOAT3(.0f, .0f, .0f)
 		};
 
-		tre::Buffer::updateConstBufferData(pEngine->device->context.Get(), consBufferBloomConfig, &bloomConfig, (UINT)sizeof(tre::BloomConstBufferStruct));
+		tre::Buffer::updateConstBufferData(pEngine->device->contextI.Get(), consBufferBloomConfig, &bloomConfig, (UINT)sizeof(tre::BloomConstBufferStruct));
 	}
 
 	// binding
-	pEngine->device->context.Get()->CSSetShader(computeShaderUpsample.pShader.Get(), NULL, 0u);
-	pEngine->device->context.Get()->CSSetSamplers(0u, 1u, graphics._sampler.pSamplerStateMinMagMipLinearClamp.GetAddressOf());
-	pEngine->device->context.Get()->CSSetConstantBuffers(0u, 1u, &consBufferBloomConfig);
-	pEngine->device->context.Get()->CSSetShaderResources(0u, 1u, sampleTextureSRV.GetAddressOf());
-	pEngine->device->context.Get()->CSSetUnorderedAccessViews(0, 1u, upsampleTextureUAV.GetAddressOf(), nullptr);
+	pEngine->device->contextI.Get()->CSSetShader(computeShaderUpsample.pShader.Get(), NULL, 0u);
+	pEngine->device->contextI.Get()->CSSetSamplers(0u, 1u, graphics._sampler.pSamplerStateMinMagMipLinearClamp.GetAddressOf());
+	pEngine->device->contextI.Get()->CSSetConstantBuffers(0u, 1u, &consBufferBloomConfig);
+	pEngine->device->contextI.Get()->CSSetShaderResources(0u, 1u, sampleTextureSRV.GetAddressOf());
+	pEngine->device->contextI.Get()->CSSetUnorderedAccessViews(0, 1u, upsampleTextureUAV.GetAddressOf(), nullptr);
 
-	pEngine->device->context.Get()->Dispatch(tre::Maths::divideAndRoundUp(sampleViewDimension.x, 8u), tre::Maths::divideAndRoundUp(sampleViewDimension.y, 8u), 1u);
+	pEngine->device->contextI.Get()->Dispatch(tre::Maths::divideAndRoundUp(sampleViewDimension.x, 8u), tre::Maths::divideAndRoundUp(sampleViewDimension.y, 8u), 1u);
 
 	// clean up
 	{
 		graphics.bufferQueue.push_back(consBufferBloomConfig);
-		pEngine->device->context.Get()->CSSetShaderResources(0u, 1u, graphics.nullSRV);
-		pEngine->device->context.Get()->CSSetUnorderedAccessViews(0, 1u, graphics.nullUAV, nullptr);
+		pEngine->device->contextI.Get()->CSSetShaderResources(0u, 1u, graphics.nullSRV);
+		pEngine->device->contextI.Get()->CSSetUnorderedAccessViews(0, 1u, graphics.nullUAV, nullptr);
 	}
 }
 

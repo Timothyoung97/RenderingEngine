@@ -7,10 +7,10 @@
 
 namespace tre {
 
-void HdrBuffer::create(ID3D11Device* device, ID3D11DeviceContext* context) {
+void HdrBuffer::create(ID3D11Device* device, ID3D11DeviceContext* contextI) {
 
 	_device = device;
-	_context = context;
+	_context = contextI;
 
 	// HDR Texture to be rendered
 	D3D11_TEXTURE2D_DESC hdrBufferDesc;

@@ -32,8 +32,8 @@ void RendererTonemap::setConstBufferTonemap(Graphics& graphics) {
 	{
 		// HDR const buffer update and binding
 		tre::TonemapStruct tonemapStruct = createTonemapStruct(graphics.setting.middleGrey, graphics.setting.bloomStrength);
-		tre::Buffer::updateConstBufferData(pEngine->device->context.Get(), constBufferTonemap, &tonemapStruct, (UINT)sizeof(tre::TonemapStruct));
-		pEngine->device->context.Get()->PSSetConstantBuffers(0u, 1u, &constBufferTonemap);
+		tre::Buffer::updateConstBufferData(pEngine->device->contextI.Get(), constBufferTonemap, &tonemapStruct, (UINT)sizeof(tre::TonemapStruct));
+		pEngine->device->contextI.Get()->PSSetConstantBuffers(0u, 1u, &constBufferTonemap);
 	}
 	graphics.bufferQueue.push_back(constBufferTonemap);
 }
@@ -55,24 +55,24 @@ void RendererTonemap::fullscreenPass(const Graphics& graphics) {
 
 	// Context Confiuration
 	{
-		pEngine->device->context.Get()->IASetInputLayout(nullptr);
-		pEngine->device->context.Get()->VSSetShader(_vertexShaderFullscreenQuad.pShader.Get(), NULL, 0u);
+		pEngine->device->contextI.Get()->IASetInputLayout(nullptr);
+		pEngine->device->contextI.Get()->VSSetShader(_vertexShaderFullscreenQuad.pShader.Get(), NULL, 0u);
 
-		pEngine->device->context.Get()->RSSetViewports(1, &graphics._viewport.defaultViewport);
-		pEngine->device->context.Get()->RSSetState(graphics._rasterizer.pRasterizerStateFCCW.Get());
+		pEngine->device->contextI.Get()->RSSetViewports(1, &graphics._viewport.defaultViewport);
+		pEngine->device->contextI.Get()->RSSetState(graphics._rasterizer.pRasterizerStateFCCW.Get());
 
-		pEngine->device->context.Get()->OMSetRenderTargets(0, nullptr, nullptr);
-		pEngine->device->context.Get()->PSSetShader(_tonemapPixelShader.pShader.Get(), NULL, 0u);
-		pEngine->device->context.Get()->PSSetShaderResources(0u, 1u, graphics._hdrBuffer.pShaderResViewHdrTexture.GetAddressOf()); // hdr texture
-		pEngine->device->context.Get()->PSSetShaderResources(1u, 1u, graphics._hdrBuffer.pLuminAvgSRV.GetAddressOf());
-		pEngine->device->context.Get()->PSSetShaderResources(2u, 1u, sampleBloomTextureSRV.GetAddressOf());
+		pEngine->device->contextI.Get()->OMSetRenderTargets(0, nullptr, nullptr);
+		pEngine->device->contextI.Get()->PSSetShader(_tonemapPixelShader.pShader.Get(), NULL, 0u);
+		pEngine->device->contextI.Get()->PSSetShaderResources(0u, 1u, graphics._hdrBuffer.pShaderResViewHdrTexture.GetAddressOf()); // hdr texture
+		pEngine->device->contextI.Get()->PSSetShaderResources(1u, 1u, graphics._hdrBuffer.pLuminAvgSRV.GetAddressOf());
+		pEngine->device->contextI.Get()->PSSetShaderResources(2u, 1u, sampleBloomTextureSRV.GetAddressOf());
 
-		pEngine->device->context.Get()->OMSetBlendState(graphics._blendstate.opaque.Get(), NULL, 0xffffffff);
-		pEngine->device->context.Get()->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0); // by default: read only depth test
-		pEngine->device->context.Get()->OMSetRenderTargets(1, graphics.currRenderTargetView.GetAddressOf(), nullptr);
+		pEngine->device->contextI.Get()->OMSetBlendState(graphics._blendstate.opaque.Get(), NULL, 0xffffffff);
+		pEngine->device->contextI.Get()->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0); // by default: read only depth test
+		pEngine->device->contextI.Get()->OMSetRenderTargets(1, graphics.currRenderTargetView.GetAddressOf(), nullptr);
 	}
 
-	pEngine->device->context.Get()->Draw(6, 0);
+	pEngine->device->contextI.Get()->Draw(6, 0);
 }
 
 void RendererTonemap::render(Graphics& graphics) {

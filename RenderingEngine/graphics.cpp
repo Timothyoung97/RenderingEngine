@@ -36,9 +36,9 @@ void Graphics::init() {
 	_inputLayout.create(pEngine->device->device.Get(), &_vertexShader);
 
 	_gBuffer.create(pEngine->device->device.Get());
-	_ssao.create(pEngine->device->device.Get(), pEngine->device->context.Get());
-	_hdrBuffer.create(pEngine->device->device.Get(), pEngine->device->context.Get());
-	_instanceBuffer.createBuffer(pEngine->device->device.Get(), pEngine->device->context.Get());
+	_ssao.create(pEngine->device->device.Get(), pEngine->device->contextI.Get());
+	_hdrBuffer.create(pEngine->device->device.Get(), pEngine->device->contextI.Get());
+	_instanceBuffer.createBuffer(pEngine->device->device.Get(), pEngine->device->contextI.Get());
 	_bloomBuffer.create(pEngine->device->device.Get());
 }
 
@@ -51,18 +51,18 @@ void Graphics::clean() {
 		currBuffer->Release();
 	}
 
-	pEngine->device->context.Get()->ClearState();
-	pEngine->device->context.Get()->PSSetSamplers(0, 1, _sampler.pSamplerStateMinMagMipLinearWrap.GetAddressOf());
-	pEngine->device->context.Get()->PSSetSamplers(1, 1, _sampler.pSamplerStateMinMagMipLinearGreaterEqualBorder.GetAddressOf());
-	pEngine->device->context.Get()->PSSetSamplers(2, 1, _sampler.pSamplerStateMinMagMipPtWrap.GetAddressOf());
-	pEngine->device->context.Get()->PSSetSamplers(3, 1, _sampler.pSamplerStateMinMagMipPtClamp.GetAddressOf());
-	pEngine->device->context.Get()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	pEngine->device->context.Get()->ClearRenderTargetView(_ssao.ssaoBlurredTexture2dRTV.Get(), Colors::Transparent);
-	pEngine->device->context.Get()->ClearRenderTargetView(_gBuffer.pRenderTargetViewDeferredAlbedo.Get(), tre::BACKGROUND_BLACK);
-	pEngine->device->context.Get()->ClearRenderTargetView(_gBuffer.pRenderTargetViewDeferredNormal.Get(), tre::BACKGROUND_BLACK);
-	pEngine->device->context.Get()->ClearRenderTargetView(_hdrBuffer.pRenderTargetViewHdrTexture.Get(), Colors::Transparent);
-	pEngine->device->context.Get()->ClearDepthStencilView(_depthbuffer.pDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-	pEngine->device->context.Get()->ClearDepthStencilView(_depthbuffer.pShadowDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+	pEngine->device->contextI.Get()->ClearState();
+	pEngine->device->contextI.Get()->PSSetSamplers(0, 1, _sampler.pSamplerStateMinMagMipLinearWrap.GetAddressOf());
+	pEngine->device->contextI.Get()->PSSetSamplers(1, 1, _sampler.pSamplerStateMinMagMipLinearGreaterEqualBorder.GetAddressOf());
+	pEngine->device->contextI.Get()->PSSetSamplers(2, 1, _sampler.pSamplerStateMinMagMipPtWrap.GetAddressOf());
+	pEngine->device->contextI.Get()->PSSetSamplers(3, 1, _sampler.pSamplerStateMinMagMipPtClamp.GetAddressOf());
+	pEngine->device->contextI.Get()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	pEngine->device->contextI.Get()->ClearRenderTargetView(_ssao.ssaoBlurredTexture2dRTV.Get(), Colors::Transparent);
+	pEngine->device->contextI.Get()->ClearRenderTargetView(_gBuffer.pRenderTargetViewDeferredAlbedo.Get(), tre::BACKGROUND_BLACK);
+	pEngine->device->contextI.Get()->ClearRenderTargetView(_gBuffer.pRenderTargetViewDeferredNormal.Get(), tre::BACKGROUND_BLACK);
+	pEngine->device->contextI.Get()->ClearRenderTargetView(_hdrBuffer.pRenderTargetViewHdrTexture.Get(), Colors::Transparent);
+	pEngine->device->contextI.Get()->ClearDepthStencilView(_depthbuffer.pDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+	pEngine->device->contextI.Get()->ClearDepthStencilView(_depthbuffer.pShadowDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 	this->clearSwapChainBuffer();
 }
@@ -83,7 +83,7 @@ void Graphics::clearSwapChainBuffer() {
 	));
 	
 	// Set draw target to Screen
-	pEngine->device->context.Get()->ClearRenderTargetView(currRenderTargetView.Get(), tre::BACKGROUND_GREY);
+	pEngine->device->contextI.Get()->ClearRenderTargetView(currRenderTargetView.Get(), tre::BACKGROUND_GREY);
 }
 
 void Graphics::present() {

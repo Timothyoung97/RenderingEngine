@@ -24,7 +24,7 @@ void ImguiHelper::init() {
 
 	// Setup Platform/Renderer backends
 	ImGui_ImplSDL2_InitForD3D(pEngine->window->window);
-	ImGui_ImplDX11_Init(pEngine->device->device.Get(), pEngine->device->context.Get());
+	ImGui_ImplDX11_Init(pEngine->device->device.Get(), pEngine->device->contextI.Get());
 
 	// assign pointers
 	pScene = pEngine->scene;

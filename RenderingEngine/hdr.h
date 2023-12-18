@@ -26,7 +26,7 @@ public:
 	ComPtr<ID3D11ShaderResourceView> pLuminAvgSRV;
 	ComPtr<ID3D11UnorderedAccessView> pLuminAvgUAV;
 
-	void create(ID3D11Device* device, ID3D11DeviceContext* context);
+	void create(ID3D11Device* device, ID3D11DeviceContext* contextI);
 
 };
 }

@@ -10,7 +10,7 @@ class Device {
 
 public:
 	ComPtr<ID3D11Device> device;
-	ComPtr<ID3D11DeviceContext> context;
+	ComPtr<ID3D11DeviceContext> contextI;
 
 	Device();
 

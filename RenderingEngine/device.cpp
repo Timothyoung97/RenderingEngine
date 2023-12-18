@@ -16,7 +16,7 @@ void Device::InitDXDevice() {
 	D3D_FEATURE_LEVEL featureLevel;
 
 	CHECK_DX_ERROR( D3D11CreateDevice(
-		nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, creationFlags, nullptr, 0, D3D11_SDK_VERSION, &device, &featureLevel, &context
+		nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, creationFlags, nullptr, 0, D3D11_SDK_VERSION, &device, &featureLevel, &contextI
 	));
 
 	//Create D3D11 debug layer
