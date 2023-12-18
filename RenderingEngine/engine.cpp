@@ -56,6 +56,16 @@ void Engine::init() {
 	input =  new Input;
 	control =  new Control;
 	imguihelper = new ImguiHelper;
+
+#ifdef _DEBUG
+	D3D11_FEATURE_DATA_THREADING featureCheckStruct;
+	CHECK_DX_ERROR(device->device.Get()->CheckFeatureSupport(
+		D3D11_FEATURE_THREADING, &featureCheckStruct, (UINT)sizeof(D3D11_FEATURE_DATA_THREADING)
+	));
+
+	printf("Command List Support: %s\n", featureCheckStruct.DriverCommandLists ? "True" : "False");
+	printf("Concurrent Create Supported: %s\n", featureCheckStruct.DriverConcurrentCreates ? "True" : "False");
+#endif
 }
 
 void Engine::run() {
