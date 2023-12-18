@@ -1,6 +1,7 @@
 #include "scene.h"
 
 #include <format>
+#include <taskflow/taskflow.hpp>
 
 #include "microprofile.h"
 #include "colors.h"

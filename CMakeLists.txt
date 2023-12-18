@@ -23,6 +23,8 @@ target_include_directories(RenderingEngine PUBLIC "${CMAKE_CURRENT_LIST_DIR}/ext
 target_include_directories(RenderingEngine PUBLIC "${CMAKE_CURRENT_LIST_DIR}/external/imgui")
 target_include_directories(RenderingEngine PUBLIC "${CMAKE_CURRENT_LIST_DIR}/external/portable-file-dialogs")
 target_include_directories(RenderingEngine PUBLIC "${CMAKE_CURRENT_LIST_DIR}/external/microprofile")
+target_include_directories(RenderingEngine PUBLIC "${CMAKE_CURRENT_LIST_DIR}/external/taskflow")
+
 
 # link to static lib
 target_link_libraries(RenderingEngine ${CMAKE_CURRENT_LIST_DIR}/external/SDL2/lib/x64/SDL2.lib)
