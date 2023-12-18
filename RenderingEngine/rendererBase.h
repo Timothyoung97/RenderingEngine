@@ -4,6 +4,7 @@
 #include <wrl/client.h>
 
 #include "device.h"
+#include "graphics.h"
 
 using Microsoft::WRL::ComPtr;
 
@@ -14,6 +15,6 @@ public:
 
 	RendererBase();
 
-	void initCommon()
+	virtual void init();
 };
 }

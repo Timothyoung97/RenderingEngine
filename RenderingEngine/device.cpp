@@ -36,4 +36,8 @@ void Device::InitDXDevice() {
 	d3dInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_ERROR, true);
 	d3dInfoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_WARNING, true);
 };
+
+void Device::executeCommandList() {
+	contextI->ExecuteCommandList(commandList.Get(), false);
+}
 }

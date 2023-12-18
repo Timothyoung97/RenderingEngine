@@ -8,7 +8,7 @@ extern tre::Engine* pEngine;
 
 namespace tre {
 
-RendererTonemap::RendererTonemap() {
+RendererTonemap::RendererTonemap() : RendererBase() {
 	this->init();
 }
 
@@ -32,8 +32,8 @@ void RendererTonemap::setConstBufferTonemap(Graphics& graphics) {
 	{
 		// HDR const buffer update and binding
 		tre::TonemapStruct tonemapStruct = createTonemapStruct(graphics.setting.middleGrey, graphics.setting.bloomStrength);
-		tre::Buffer::updateConstBufferData(pEngine->device->contextI.Get(), constBufferTonemap, &tonemapStruct, (UINT)sizeof(tre::TonemapStruct));
-		pEngine->device->contextI.Get()->PSSetConstantBuffers(0u, 1u, &constBufferTonemap);
+		tre::Buffer::updateConstBufferData(contextD.Get(), constBufferTonemap, &tonemapStruct, (UINT)sizeof(tre::TonemapStruct));
+		contextD.Get()->PSSetConstantBuffers(0u, 1u, &constBufferTonemap);
 	}
 	graphics.bufferQueue.push_back(constBufferTonemap);
 }
@@ -55,24 +55,25 @@ void RendererTonemap::fullscreenPass(const Graphics& graphics) {
 
 	// Context Confiuration
 	{
-		pEngine->device->contextI.Get()->IASetInputLayout(nullptr);
-		pEngine->device->contextI.Get()->VSSetShader(_vertexShaderFullscreenQuad.pShader.Get(), NULL, 0u);
+		contextD.Get()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		contextD.Get()->IASetInputLayout(nullptr);
+		contextD.Get()->VSSetShader(_vertexShaderFullscreenQuad.pShader.Get(), NULL, 0u);
 
-		pEngine->device->contextI.Get()->RSSetViewports(1, &graphics._viewport.defaultViewport);
-		pEngine->device->contextI.Get()->RSSetState(graphics._rasterizer.pRasterizerStateFCCW.Get());
+		contextD.Get()->RSSetViewports(1, &graphics._viewport.defaultViewport);
+		contextD.Get()->RSSetState(graphics._rasterizer.pRasterizerStateFCCW.Get());
 
-		pEngine->device->contextI.Get()->OMSetRenderTargets(0, nullptr, nullptr);
-		pEngine->device->contextI.Get()->PSSetShader(_tonemapPixelShader.pShader.Get(), NULL, 0u);
-		pEngine->device->contextI.Get()->PSSetShaderResources(0u, 1u, graphics._hdrBuffer.pShaderResViewHdrTexture.GetAddressOf()); // hdr texture
-		pEngine->device->contextI.Get()->PSSetShaderResources(1u, 1u, graphics._hdrBuffer.pLuminAvgSRV.GetAddressOf());
-		pEngine->device->contextI.Get()->PSSetShaderResources(2u, 1u, sampleBloomTextureSRV.GetAddressOf());
+		contextD.Get()->OMSetRenderTargets(0, nullptr, nullptr);
+		contextD.Get()->PSSetShader(_tonemapPixelShader.pShader.Get(), NULL, 0u);
+		contextD.Get()->PSSetShaderResources(0u, 1u, graphics._hdrBuffer.pShaderResViewHdrTexture.GetAddressOf()); // hdr texture
+		contextD.Get()->PSSetShaderResources(1u, 1u, graphics._hdrBuffer.pLuminAvgSRV.GetAddressOf());
+		contextD.Get()->PSSetShaderResources(2u, 1u, sampleBloomTextureSRV.GetAddressOf());
 
-		pEngine->device->contextI.Get()->OMSetBlendState(graphics._blendstate.opaque.Get(), NULL, 0xffffffff);
-		pEngine->device->contextI.Get()->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0); // by default: read only depth test
-		pEngine->device->contextI.Get()->OMSetRenderTargets(1, graphics.currRenderTargetView.GetAddressOf(), nullptr);
+		contextD.Get()->OMSetBlendState(graphics._blendstate.opaque.Get(), NULL, 0xffffffff);
+		contextD.Get()->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0); // by default: read only depth test
+		contextD.Get()->OMSetRenderTargets(1, graphics.currRenderTargetView.GetAddressOf(), nullptr);
 	}
 
-	pEngine->device->contextI.Get()->Draw(6, 0);
+	contextD.Get()->Draw(6, 0);
 }
 
 void RendererTonemap::render(Graphics& graphics) {
@@ -80,5 +81,9 @@ void RendererTonemap::render(Graphics& graphics) {
 	MICROPROFILE_SCOPE_CSTR("Tonemap");
 	setConstBufferTonemap(graphics);
 	fullscreenPass(graphics);
+
+	CHECK_DX_ERROR(contextD->FinishCommandList(
+		false, pEngine->device->commandList.GetAddressOf()
+	));
 }
 }

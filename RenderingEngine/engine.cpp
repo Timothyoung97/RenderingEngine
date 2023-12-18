@@ -127,7 +127,8 @@ void Engine::run() {
 		computerBloom->compute(*graphics);
 		rendererTonemap->render(*graphics);
 		rendererWireframe->render(*graphics, *cam, *scene);
-		imguihelper->render();
+		//imguihelper->render();
+		device->executeCommandList();
 		graphics->present();
 		timer.spinWait();
 		deltaTime = timer.getDeltaTime();

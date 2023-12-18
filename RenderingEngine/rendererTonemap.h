@@ -1,6 +1,8 @@
 #pragma once
 
 #include <d3d11.h>
+
+#include "rendererBase.h"
 #include "graphics.h"
 #include "constbuffer.h"
 
@@ -14,14 +16,14 @@ struct TonemapStruct {
 	XMFLOAT2 pad;
 };
 
-class RendererTonemap {
+class RendererTonemap : public RendererBase {
 public:
 	VertexShader _vertexShaderFullscreenQuad;
 	PixelShader _tonemapPixelShader;
 
 	RendererTonemap();
 
-	void init();
+	void init() override;
 
 	static TonemapStruct createTonemapStruct(float middleGrey, float bloomStrength);
 

@@ -8,13 +8,12 @@ extern tre::Engine* pEngine;
 namespace tre {
 
 RendererBase::RendererBase() {
-	this->initCommon();
+	this->init();
 }
 
-void RendererBase::initCommon() {
+void RendererBase::init() {
 	CHECK_DX_ERROR(pEngine->device->device.Get()->CreateDeferredContext(
 		0u, contextD.GetAddressOf()
 	));
 }
-
 }
