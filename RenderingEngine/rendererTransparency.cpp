@@ -12,7 +12,6 @@ RendererTransparency::RendererTransparency() {
 }
 
 void RendererTransparency::init() {
-	
 	std::wstring basePathWstr = tre::Utility::getBasePathWstr();
 	_vertexShader.create(basePathWstr + L"shaders\\bin\\vertex_shader.bin", pEngine->device->device.Get());
 	_forwardShader.create(basePathWstr + L"shaders\\bin\\pixel_shader_forward.bin", pEngine->device->device.Get());
@@ -30,7 +29,7 @@ void RendererTransparency::render(Graphics& graphics, const Scene& scene, const 
 	{
 		// Create struct info and submit data to constant buffer
 		tre::GlobalInfoStruct globalInfoStruct = tre::CommonStructUtility::createGlobalInfoStruct(cam.camPositionV, cam.camViewProjection, scene.viewProjs, graphics.setting.csmPlaneIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), graphics.setting.csmDebugSwitch, graphics.setting.ssaoSwitch);
-		tre::Buffer::updateConstBufferData(pEngine->device->contextI.Get(), constBufferGlobalInfo, &globalInfoStruct, (UINT)sizeof(tre::GlobalInfoStruct));
+		tre::Buffer::updateConstBufferData(contextD.Get(), constBufferGlobalInfo, &globalInfoStruct, (UINT)sizeof(tre::GlobalInfoStruct));
 	}
 
 	// Create empty const buffer and pre bind the constant buffer
@@ -38,23 +37,26 @@ void RendererTransparency::render(Graphics& graphics, const Scene& scene, const 
 
 	// Context Configuration
 	{
-		pEngine->device->contextI.Get()->IASetInputLayout(graphics._inputLayout.vertLayout.Get());
-		pEngine->device->contextI.Get()->VSSetShader(_vertexShader.pShader.Get(), NULL, 0u);
-		pEngine->device->contextI.Get()->VSSetConstantBuffers(0u, 1u, &constBufferGlobalInfo);
-		pEngine->device->contextI.Get()->VSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
+		contextD.Get()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		contextD.Get()->IASetInputLayout(graphics._inputLayout.vertLayout.Get());
+		contextD.Get()->VSSetShader(_vertexShader.pShader.Get(), NULL, 0u);
+		contextD.Get()->VSSetConstantBuffers(0u, 1u, &constBufferGlobalInfo);
+		contextD.Get()->VSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
 
-		pEngine->device->contextI.Get()->RSSetViewports(1, &graphics._viewport.defaultViewport);
-		pEngine->device->contextI.Get()->RSSetState(graphics._rasterizer.pRasterizerStateFCCW.Get());
+		contextD.Get()->RSSetViewports(1, &graphics._viewport.defaultViewport);
+		contextD.Get()->RSSetState(graphics._rasterizer.pRasterizerStateFCCW.Get());
 
-		pEngine->device->contextI.Get()->PSSetShader(_forwardShader.pShader.Get(), NULL, 0u);
-		pEngine->device->contextI.Get()->PSSetConstantBuffers(0u, 1u, &constBufferGlobalInfo);
-		pEngine->device->contextI.Get()->PSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
-		pEngine->device->contextI.Get()->PSSetShaderResources(3, 1, graphics._depthbuffer.pShadowShaderRescView.GetAddressOf()); // shadow
-		pEngine->device->contextI.Get()->PSSetShaderResources(4, 1, graphics.nullSRV);
+		contextD.Get()->PSSetShader(_forwardShader.pShader.Get(), NULL, 0u);
+		contextD.Get()->PSSetConstantBuffers(0u, 1u, &constBufferGlobalInfo);
+		contextD.Get()->PSSetConstantBuffers(1u, 1u, &constBufferModelInfo);
+		contextD.Get()->PSSetSamplers(0, 1, graphics._sampler.pSamplerStateMinMagMipLinearWrap.GetAddressOf());
+		contextD.Get()->PSSetSamplers(1, 1, graphics._sampler.pSamplerStateMinMagMipLinearGreaterEqualBorder.GetAddressOf());
+		contextD.Get()->PSSetShaderResources(3, 1, graphics._depthbuffer.pShadowShaderRescView.GetAddressOf()); // shadow
+		contextD.Get()->PSSetShaderResources(4, 1, graphics.nullSRV);
 
-		pEngine->device->contextI.Get()->OMSetBlendState(graphics._blendstate.transparency.Get(), NULL, 0xffffffff);
-		pEngine->device->contextI.Get()->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0);
-		pEngine->device->contextI.Get()->OMSetRenderTargets(1, graphics._hdrBuffer.pRenderTargetViewHdrTexture.GetAddressOf(), graphics._depthbuffer.pDepthStencilView.Get());
+		contextD.Get()->OMSetBlendState(graphics._blendstate.transparency.Get(), NULL, 0xffffffff);
+		contextD.Get()->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0);
+		contextD.Get()->OMSetRenderTargets(1, graphics._hdrBuffer.pRenderTargetViewHdrTexture.GetAddressOf(), graphics._depthbuffer.pDepthStencilView.Get());
 	}
 
 	for (int i = 0; i < scene._culledTransparentObjQ.size(); i++) {
@@ -63,38 +65,44 @@ void RendererTransparency::render(Graphics& graphics, const Scene& scene, const 
 		UINT offset = 0;
 
 		//Set vertex buffer
-		pEngine->device->contextI.Get()->IASetVertexBuffers(0, 1, scene._culledTransparentObjQ[i].second->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
+		contextD.Get()->IASetVertexBuffers(0, 1, scene._culledTransparentObjQ[i].second->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
 
 		//Set index buffer
-		pEngine->device->contextI.Get()->IASetIndexBuffer(scene._culledTransparentObjQ[i].second->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+		contextD.Get()->IASetIndexBuffer(scene._culledTransparentObjQ[i].second->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
 		//set shader resc view and sampler
 		bool hasTexture = 0;
 		bool hasNormal = 0;
 		if (scene._culledTransparentObjQ[i].second->pMaterial->objTexture != nullptr) {
-			pEngine->device->contextI.Get()->PSSetShaderResources(0, 1, scene._culledTransparentObjQ[i].second->pMaterial->objTexture->pShaderResView.GetAddressOf());
+			contextD.Get()->PSSetShaderResources(0, 1, scene._culledTransparentObjQ[i].second->pMaterial->objTexture->pShaderResView.GetAddressOf());
 			hasTexture = 1;
 		}
 
 		// set normal map
 		if (scene._culledTransparentObjQ[i].second->pMaterial->objNormalMap != nullptr) {
-			pEngine->device->contextI.Get()->PSSetShaderResources(1, 1, scene._culledTransparentObjQ[i].second->pMaterial->objNormalMap->pShaderResView.GetAddressOf());
+			contextD.Get()->PSSetShaderResources(1, 1, scene._culledTransparentObjQ[i].second->pMaterial->objNormalMap->pShaderResView.GetAddressOf());
 			hasNormal = 1;
 		}
 
 		// Submit each object's data to const buffer
 		{
 			tre::ModelInfoStruct modelInfoStruct = tre::CommonStructUtility::createModelInfoStruct(scene._culledTransparentObjQ[i].first->_transformationFinal, scene._culledTransparentObjQ[i].second->pMaterial->baseColor, hasTexture, hasNormal);
-			tre::Buffer::updateConstBufferData(pEngine->device->contextI.Get(), constBufferModelInfo, &modelInfoStruct, sizeof(tre::ModelInfoStruct));
+			tre::Buffer::updateConstBufferData(contextD.Get(), constBufferModelInfo, &modelInfoStruct, sizeof(tre::ModelInfoStruct));
 		}
 
-		pEngine->device->contextI.Get()->DrawIndexed(scene._culledTransparentObjQ[i].second->indexSize, 0, 0);
+		contextD.Get()->DrawIndexed(scene._culledTransparentObjQ[i].second->indexSize, 0, 0);
 	}
 
 	// clean up
 	{
 		graphics.bufferQueue.push_back(constBufferGlobalInfo);
 		graphics.bufferQueue.push_back(constBufferModelInfo);
+	}
+
+	{	
+		CHECK_DX_ERROR(contextD->FinishCommandList(
+			false, &commandList
+		));
 	}
 }
 

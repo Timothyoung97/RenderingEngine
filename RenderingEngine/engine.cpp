@@ -69,6 +69,11 @@ void Engine::init() {
 }
 
 void Engine::executeCommandList() {
+	if (scene->_culledTransparentObjQ.size()) {
+		device->contextI->ExecuteCommandList(rendererTransparency->commandList, false);
+		rendererTransparency->commandList->Release();
+	}
+
 	if (scene->lightResc.numOfLights) {
 		device->contextI->ExecuteCommandList(rendererLocalLighting->commandList, false);
 		rendererLocalLighting->commandList->Release();
@@ -142,8 +147,8 @@ void Engine::run() {
 		rendererGBuffer->render(*graphics, *scene, *cam);
 		rendererSSAO->render(*graphics, *scene, *cam);
 		rendererEnvLighting->render(*graphics, *scene, *cam);
-		rendererTransparency->render(*graphics, *scene, *cam);
 
+		rendererTransparency->render(*graphics, *scene, *cam);
 		rendererLocalLighting->render(*graphics, *scene, *cam);
 		computerHDR->compute(*graphics);
 		computerBloom->compute(*graphics);
