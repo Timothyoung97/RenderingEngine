@@ -38,6 +38,7 @@ void ImguiHelper::render() {
 	MICROPROFILE_SCOPE_CSTR("IMGUI");
 	PROFILE_GPU_SCOPED("IMGUI");
 
+	// Bind the swapchain buffer for ImGui to render
 	pEngine->device->contextI.Get()->OMSetRenderTargets(1u, pEngine->graphics->currRenderTargetView.GetAddressOf(), nullptr);
 
 	ImGuiIO& io = ImGui::GetIO();

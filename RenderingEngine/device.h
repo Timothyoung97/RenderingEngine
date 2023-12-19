@@ -13,7 +13,7 @@ public:
 	ComPtr<ID3D11Device> device;
 	ComPtr<ID3D11DeviceContext> contextI;
 
-	ComPtr<ID3D11CommandList> commandListQueue[11] = { nullptr };
+	ID3D11CommandList* commandListQueue[11] = { nullptr };
 
 	Device();
 
