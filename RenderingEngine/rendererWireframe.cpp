@@ -41,7 +41,6 @@ Mesh* RendererWireframe::selectWireframeMesh(BoundVolumeEnum typeOfBound) {
 }
 
 void RendererWireframe::setConstBufferCamViewProj(Graphics& graphic, const Camera& cam) {
-	if (!graphic.setting.showBoundingVolume) return;
 	ID3D11Buffer* constBufferCamViewProj = tre::Buffer::createConstBuffer(pEngine->device->device.Get(), (UINT)sizeof(tre::ViewProjectionStruct));
 	{
 		// Update const buffer and binding
@@ -134,7 +133,6 @@ void RendererWireframe::drawInstanced(Graphics& graphics, const std::vector<Obje
 	// Update instance buffer with wireframe mesh
 	{
 		graphics._instanceBuffer.updateBuffer(objQ, meshToRender);
-		if (graphics._instanceBuffer.instanceBatchQueue.empty()) return;
 	}
 
 	{
@@ -181,6 +179,8 @@ void RendererWireframe::drawInstanced(Graphics& graphics, const std::vector<Obje
 }
 
 void RendererWireframe::render(Graphics& graphics, const Camera& cam, const Scene& scene) {
+	if (!graphics.setting.showBoundingVolume) return;
+
 	PROFILE_GPU_SCOPED("Render Bounding Volume Wireframe");
 	setConstBufferCamViewProj(graphics, cam);
 
