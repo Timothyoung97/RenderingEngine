@@ -70,6 +70,8 @@ void Engine::init() {
 
 void Engine::executeCommandList() {
 
+	device->contextI->ExecuteCommandList(rendererCSM->commandList, false);
+	rendererCSM->commandList->Release();
 
 	if (scene->_culledOpaqueObjQ[scene->camViewIdx].size()) {
 		device->contextI->ExecuteCommandList(rendererGBuffer->commandList, false);
@@ -158,8 +160,8 @@ void Engine::run() {
 		cam->updateCamera();
 		computerPtLight->compute(*graphics, *scene, *cam);
 		scene->update(*graphics, *cam);
-		rendererCSM->render(*graphics, *scene, *cam);
 
+		rendererCSM->render(*graphics, *scene, *cam);
 		rendererGBuffer->render(*graphics, *scene, *cam);
 		rendererSSAO->render(*graphics, *scene, *cam);
 		rendererEnvLighting->render(*graphics, *scene, *cam);

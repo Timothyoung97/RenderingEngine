@@ -21,8 +21,8 @@ void RendererCSM::init() {
 void RendererCSM::setCSMViewport(Graphics& graphics, int idx) {
 	graphics._viewport.shadowViewport.TopLeftX = graphics._rasterizer.rectArr[idx].left;
 	graphics._viewport.shadowViewport.TopLeftY = graphics._rasterizer.rectArr[idx].top;
-	pEngine->device->contextI.Get()->RSSetViewports(1, &graphics._viewport.shadowViewport);
-	pEngine->device->contextI.Get()->RSSetScissorRects(1, &graphics._rasterizer.rectArr[idx]);
+	contextD.Get()->RSSetViewports(1, &graphics._viewport.shadowViewport);
+	contextD.Get()->RSSetScissorRects(1, &graphics._rasterizer.rectArr[idx]);
 }
 
 void RendererCSM::drawInstanced(Graphics& graphics, const std::vector<std::pair<Object*, Mesh*>>& objQ, int csmIdx) {
@@ -38,20 +38,21 @@ void RendererCSM::drawInstanced(Graphics& graphics, const std::vector<std::pair<
 
 	// Configure context for CMS Drawc call
 	{
-		pEngine->device->contextI.Get()->IASetInputLayout(graphics._inputLayout.vertLayout.Get());
-		pEngine->device->contextI.Get()->VSSetShader(_vertexShaderInstanced.pShader.Get(), NULL, 0u);
-		pEngine->device->contextI.Get()->VSSetShaderResources(0u, 1, graphics._instanceBufferCSM[csmIdx].pInstanceBufferSRV.GetAddressOf());
+		contextD.Get()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		contextD.Get()->IASetInputLayout(graphics._inputLayout.vertLayout.Get());
+		contextD.Get()->VSSetShader(_vertexShaderInstanced.pShader.Get(), NULL, 0u);
+		contextD.Get()->VSSetShaderResources(0u, 1, graphics._instanceBufferCSM[csmIdx].pInstanceBufferSRV.GetAddressOf());
 
 		// use setShadowBufferDrawSection to select draw section
-		pEngine->device->contextI.Get()->RSSetState(graphics._rasterizer.pShadowRasterizerState.Get());
+		contextD.Get()->RSSetState(graphics._rasterizer.pShadowRasterizerState.Get());
 
 		// unbind shadow buffer as a resource, so that we can write to it
-		pEngine->device->contextI.Get()->PSSetShader(nullptr, NULL, 0u);
-		pEngine->device->contextI.Get()->PSSetShaderResources(3, 1, graphics.nullSRV);
+		contextD.Get()->PSSetShader(nullptr, NULL, 0u);
+		contextD.Get()->PSSetShaderResources(3, 1, graphics.nullSRV);
 
-		pEngine->device->contextI.Get()->OMSetBlendState(graphics._blendstate.opaque.Get(), NULL, 0xffffffff);
-		pEngine->device->contextI.Get()->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
-		pEngine->device->contextI.Get()->OMSetRenderTargets(0, nullptr, graphics._depthbuffer.pShadowDepthStencilView.Get());
+		contextD.Get()->OMSetBlendState(graphics._blendstate.opaque.Get(), NULL, 0xffffffff);
+		contextD.Get()->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
+		contextD.Get()->OMSetRenderTargets(0, nullptr, graphics._depthbuffer.pShadowDepthStencilView.Get());
 	}
 
 	UINT vertexStride = sizeof(Vertex);
@@ -59,7 +60,7 @@ void RendererCSM::drawInstanced(Graphics& graphics, const std::vector<std::pair<
 
 	// Create an empty const buffer 
 	ID3D11Buffer* constBufferBatchInfo = tre::Buffer::createConstBuffer(pEngine->device->device.Get(), (UINT)sizeof(tre::BatchInfoStruct));
-	pEngine->device->contextI.Get()->VSSetConstantBuffers(1u, 1u, &constBufferBatchInfo);
+	contextD.Get()->VSSetConstantBuffers(1u, 1u, &constBufferBatchInfo);
 
 	for (int i = 0; i < graphics._instanceBufferCSM[csmIdx].instanceBatchQueue.size(); i++) {
 		InstanceBatchInfo currBatchInfo = graphics._instanceBufferCSM[csmIdx].instanceBatchQueue[i];
@@ -67,28 +68,28 @@ void RendererCSM::drawInstanced(Graphics& graphics, const std::vector<std::pair<
 		// update constant buffer for each instanced draw call
 		{
 			tre::BatchInfoStruct bInfo = tre::CommonStructUtility::createBatchInfoStruct(currBatchInfo.batchStartIdx);
-			tre::Buffer::updateConstBufferData(pEngine->device->contextI.Get(), constBufferBatchInfo, &bInfo, (UINT)sizeof(tre::BatchInfoStruct));
+			tre::Buffer::updateConstBufferData(contextD.Get(), constBufferBatchInfo, &bInfo, (UINT)sizeof(tre::BatchInfoStruct));
 		}
 
 		// Update mesh vertex information
 		{
-			pEngine->device->contextI.Get()->IASetVertexBuffers(0, 1, currBatchInfo.pBatchMesh->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
-			pEngine->device->contextI.Get()->IASetIndexBuffer(currBatchInfo.pBatchMesh->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+			contextD.Get()->IASetVertexBuffers(0, 1, currBatchInfo.pBatchMesh->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
+			contextD.Get()->IASetIndexBuffer(currBatchInfo.pBatchMesh->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 		}
 
 		// Update texture information
-		pEngine->device->contextI.Get()->PSSetShaderResources(0u, 1u, graphics.nullSRV);
+		contextD.Get()->PSSetShaderResources(0u, 1u, graphics.nullSRV);
 		if (currBatchInfo.isWithTexture) {
-			pEngine->device->contextI.Get()->PSSetShaderResources(0u, 1u, currBatchInfo.pBatchTexture->pShaderResView.GetAddressOf());
+			contextD.Get()->PSSetShaderResources(0u, 1u, currBatchInfo.pBatchTexture->pShaderResView.GetAddressOf());
 		}
 
-		pEngine->device->contextI.Get()->PSSetShaderResources(1u, 1u, graphics.nullSRV);
+		contextD.Get()->PSSetShaderResources(1u, 1u, graphics.nullSRV);
 		if (currBatchInfo.hasNormMap) {
-			pEngine->device->contextI.Get()->PSSetShaderResources(1u, 1u, currBatchInfo.pBatchNormalMap->pShaderResView.GetAddressOf());
+			contextD.Get()->PSSetShaderResources(1u, 1u, currBatchInfo.pBatchNormalMap->pShaderResView.GetAddressOf());
 		}
 
 		// Draw call
-		pEngine->device->contextI.Get()->DrawIndexedInstanced(currBatchInfo.pBatchMesh->indexSize, currBatchInfo.quantity, 0u, 0u, 0u);
+		contextD.Get()->DrawIndexedInstanced(currBatchInfo.pBatchMesh->indexSize, currBatchInfo.quantity, 0u, 0u, 0u);
 	}
 
 	// Pushing used const buffer to queue for cleaning
@@ -114,10 +115,10 @@ void RendererCSM::render(Graphics& graphics, Scene& scene, const Camera& cam) {
 				{
 					// Create struct info and submit data to const buffer
 					tre::ViewProjectionStruct csmViewProjStruct = tre::CommonStructUtility::createViewProjectionStruct(scene.viewProjs[scene.csmViewBeginIdx + viewIdx]);
-					tre::Buffer::updateConstBufferData(pEngine->device->contextI.Get(), constBufferCSMViewProj, &csmViewProjStruct, (UINT)sizeof(tre::ViewProjectionStruct));
+					tre::Buffer::updateConstBufferData(contextD.Get(), constBufferCSMViewProj, &csmViewProjStruct, (UINT)sizeof(tre::ViewProjectionStruct));
 
 					// Binding 
-					pEngine->device->contextI.Get()->VSSetConstantBuffers(0u, 1u, &constBufferCSMViewProj);
+					contextD.Get()->VSSetConstantBuffers(0u, 1u, &constBufferCSMViewProj);
 				}
 
 				graphics.stats.shadowCascadeOpaqueObjs[viewIdx] = scene._culledOpaqueObjQ[scene.csmViewBeginIdx + viewIdx].size();
@@ -132,6 +133,12 @@ void RendererCSM::render(Graphics& graphics, Scene& scene, const Camera& cam) {
 	// Pushing used const buffer to queue for cleaning
 	{
 		graphics.bufferQueue.push_back(constBufferCSMViewProj);
+	}
+
+	{
+		CHECK_DX_ERROR(contextD->FinishCommandList(
+			false, &commandList
+		));
 	}
 }
 

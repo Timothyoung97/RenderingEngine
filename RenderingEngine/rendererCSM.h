@@ -1,12 +1,13 @@
 #pragma once
 
+#include "rendererBase.h"
 #include "graphics.h"
 #include "scene.h"
 #include "camera.h"
 
 namespace tre {
 
-class RendererCSM{
+class RendererCSM : public RendererBase {
 public:
 	VertexShader _vertexShaderInstanced;
 
