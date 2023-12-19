@@ -38,8 +38,13 @@ void Graphics::init() {
 	_gBuffer.create(pEngine->device->device.Get());
 	_ssao.create(pEngine->device->device.Get(), pEngine->device->contextI.Get());
 	_hdrBuffer.create(pEngine->device->device.Get(), pEngine->device->contextI.Get());
-	_instanceBuffer.createBuffer(pEngine->device->device.Get(), pEngine->device->contextI.Get());
 	_bloomBuffer.create(pEngine->device->device.Get());
+	_instanceBufferMainView.createBuffer(pEngine->device->device.Get(), pEngine->device->contextI.Get());
+	_instanceBufferPointlights.createBuffer(pEngine->device->device.Get(), pEngine->device->contextI.Get());
+
+	for (int i = 0; i < 4; i++) {
+		_instanceBufferCSM[i].createBuffer(pEngine->device->device.Get(), pEngine->device->contextI.Get());
+	}
 }
 
 void Graphics::clean() {

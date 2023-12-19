@@ -36,7 +36,7 @@ void RendererGBuffer::render(Graphics& graphics, Scene& scene, Camera& cam) {
 	}
 
 	// Batching
-	graphics._instanceBuffer.updateBuffer(scene._culledOpaqueObjQ[scene.camViewIdx]);
+	graphics._instanceBufferMainView.updateBuffer(scene._culledOpaqueObjQ[scene.camViewIdx]);
 
 	// Create an empty const buffer 
 	ID3D11Buffer* constBufferBatchInfo = tre::Buffer::createConstBuffer(pEngine->device->device.Get(), (UINT)sizeof(tre::BatchInfoStruct));
@@ -44,7 +44,7 @@ void RendererGBuffer::render(Graphics& graphics, Scene& scene, Camera& cam) {
 	{
 		pEngine->device->contextI.Get()->IASetInputLayout(graphics._inputLayout.vertLayout.Get());
 		pEngine->device->contextI.Get()->VSSetShader(_vertexShaderInstanced.pShader.Get(), NULL, 0u);
-		pEngine->device->contextI.Get()->VSSetShaderResources(0u, 1, graphics._instanceBuffer.pInstanceBufferSRV.GetAddressOf());
+		pEngine->device->contextI.Get()->VSSetShaderResources(0u, 1, graphics._instanceBufferMainView.pInstanceBufferSRV.GetAddressOf());
 		pEngine->device->contextI.Get()->VSSetConstantBuffers(1u, 1u, &constBufferBatchInfo);
 
 		pEngine->device->contextI.Get()->RSSetViewports(1, &graphics._viewport.defaultViewport);
@@ -64,8 +64,8 @@ void RendererGBuffer::render(Graphics& graphics, Scene& scene, Camera& cam) {
 	UINT offset = 0;
 
 	PROFILE_GPU_SCOPED("G-Buffer Instanced Draw");
-	for (int i = 0; i < graphics._instanceBuffer.instanceBatchQueue.size(); i++) {
-		InstanceBatchInfo currBatchInfo = graphics._instanceBuffer.instanceBatchQueue[i];
+	for (int i = 0; i < graphics._instanceBufferMainView.instanceBatchQueue.size(); i++) {
+		InstanceBatchInfo currBatchInfo = graphics._instanceBufferMainView.instanceBatchQueue[i];
 
 		// update constant buffer for each instanced draw call
 		{

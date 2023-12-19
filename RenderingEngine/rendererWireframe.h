@@ -31,7 +31,7 @@ public:
 
 	void draw(Graphics& graphics, const std::vector<Object*>& renderQ);
 
-	void drawInstanced(Graphics& graphics, const std::vector<Object*>& renderQ);
+	void drawInstanced(Graphics& graphics, const std::vector<Object*>& renderQ, InstanceBuffer& targetInstanceBuffer);
 
 	void render(Graphics& graphics, const Camera& cam, const Scene& scene);
 

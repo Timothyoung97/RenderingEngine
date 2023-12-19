@@ -25,7 +25,7 @@ void RendererCSM::setCSMViewport(Graphics& graphics, int idx) {
 	pEngine->device->contextI.Get()->RSSetScissorRects(1, &graphics._rasterizer.rectArr[idx]);
 }
 
-void RendererCSM::drawInstanced(Graphics& graphics, const std::vector<std::pair<Object*, Mesh*>>& objQ) {
+void RendererCSM::drawInstanced(Graphics& graphics, const std::vector<std::pair<Object*, Mesh*>>& objQ, int csmIdx) {
 	if (objQ.size() == 0) return;
 
 	// Profiling
@@ -34,13 +34,13 @@ void RendererCSM::drawInstanced(Graphics& graphics, const std::vector<std::pair<
 	PROFILE_GPU_SCOPED("CSM Instanced Draw");
 
 	// Update structured buffer for instanced draw call
-	graphics._instanceBuffer.updateBuffer(objQ);
+	graphics._instanceBufferCSM[csmIdx].updateBuffer(objQ);
 
 	// Configure context for CMS Drawc call
 	{
 		pEngine->device->contextI.Get()->IASetInputLayout(graphics._inputLayout.vertLayout.Get());
 		pEngine->device->contextI.Get()->VSSetShader(_vertexShaderInstanced.pShader.Get(), NULL, 0u);
-		pEngine->device->contextI.Get()->VSSetShaderResources(0u, 1, graphics._instanceBuffer.pInstanceBufferSRV.GetAddressOf());
+		pEngine->device->contextI.Get()->VSSetShaderResources(0u, 1, graphics._instanceBufferCSM[csmIdx].pInstanceBufferSRV.GetAddressOf());
 
 		// use setShadowBufferDrawSection to select draw section
 		pEngine->device->contextI.Get()->RSSetState(graphics._rasterizer.pShadowRasterizerState.Get());
@@ -61,8 +61,8 @@ void RendererCSM::drawInstanced(Graphics& graphics, const std::vector<std::pair<
 	ID3D11Buffer* constBufferBatchInfo = tre::Buffer::createConstBuffer(pEngine->device->device.Get(), (UINT)sizeof(tre::BatchInfoStruct));
 	pEngine->device->contextI.Get()->VSSetConstantBuffers(1u, 1u, &constBufferBatchInfo);
 
-	for (int i = 0; i < graphics._instanceBuffer.instanceBatchQueue.size(); i++) {
-		InstanceBatchInfo currBatchInfo = graphics._instanceBuffer.instanceBatchQueue[i];
+	for (int i = 0; i < graphics._instanceBufferCSM[csmIdx].instanceBatchQueue.size(); i++) {
+		InstanceBatchInfo currBatchInfo = graphics._instanceBufferCSM[csmIdx].instanceBatchQueue[i];
 
 		// update constant buffer for each instanced draw call
 		{
@@ -125,7 +125,7 @@ void RendererCSM::render(Graphics& graphics, Scene& scene, const Camera& cam) {
 
 			// draw shadow only for opaque objects
 			//renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_MODE::SHADOW_M); // non instanced
-			drawInstanced(graphics, scene._culledOpaqueObjQ[scene.csmViewBeginIdx + viewIdx]); // instanced
+			drawInstanced(graphics, scene._culledOpaqueObjQ[scene.csmViewBeginIdx + viewIdx], scene.csmViewBeginIdx + viewIdx); // instanced
 		}
 	}
 

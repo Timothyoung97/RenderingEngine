@@ -121,7 +121,7 @@ void RendererWireframe::draw(Graphics& graphics, const std::vector<Object*>& obj
 	}
 }
 
-void RendererWireframe::drawInstanced(Graphics& graphics, const std::vector<Object*>& objQ) {
+void RendererWireframe::drawInstanced(Graphics& graphics, const std::vector<Object*>& objQ, InstanceBuffer& targetInstanceBuffer) {
 	if (objQ.size() == 0 || !graphics.setting.showBoundingVolume) return;
 	const char* name = ToString(tre::RENDER_MODE::WIREFRAME_M);
 	MICROPROFILE_SCOPE_CSTR(name);
@@ -132,7 +132,7 @@ void RendererWireframe::drawInstanced(Graphics& graphics, const std::vector<Obje
 
 	// Update instance buffer with wireframe mesh
 	{
-		graphics._instanceBuffer.updateBuffer(objQ, meshToRender);
+		targetInstanceBuffer.updateBuffer(objQ, meshToRender);
 	}
 
 	{
@@ -143,7 +143,7 @@ void RendererWireframe::drawInstanced(Graphics& graphics, const std::vector<Obje
 		contextD.Get()->IASetIndexBuffer(meshToRender->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
 		contextD.Get()->VSSetShader(_vertexShaderInstanced.pShader.Get(), NULL, 0u);
-		contextD.Get()->VSSetShaderResources(0u, 1, graphics._instanceBuffer.pInstanceBufferSRV.GetAddressOf()); // to do
+		contextD.Get()->VSSetShaderResources(0u, 1, targetInstanceBuffer.pInstanceBufferSRV.GetAddressOf()); // to do
 
 		contextD.Get()->RSSetViewports(1, &graphics._viewport.defaultViewport);
 		contextD.Get()->RSSetState(graphics._rasterizer.pRasterizerStateWireFrame.Get());
@@ -158,7 +158,7 @@ void RendererWireframe::drawInstanced(Graphics& graphics, const std::vector<Obje
 	// Create an empty const buffer 
 	ID3D11Buffer* constBufferBatchInfo = tre::Buffer::createConstBuffer(pEngine->device->device.Get(), (UINT)sizeof(tre::BatchInfoStruct));
 
-	InstanceBatchInfo currBatchInfo = graphics._instanceBuffer.instanceBatchQueue[0];
+	InstanceBatchInfo currBatchInfo = targetInstanceBuffer.instanceBatchQueue[0];
 
 	// update constant buffer for instanced draw call
 	{
@@ -184,11 +184,8 @@ void RendererWireframe::render(Graphics& graphics, const Camera& cam, const Scen
 	PROFILE_GPU_SCOPED("Render Bounding Volume Wireframe");
 	setConstBufferCamViewProj(graphics, cam);
 
-	std::vector<tre::Object*> renderQueue; // merge all objects (points lights, opaque objects, transparent objects) as 1 batch render
-	renderQueue.insert(renderQueue.end(), scene._wireframeObjQ.begin(), scene._wireframeObjQ.end());
-	renderQueue.insert(renderQueue.end(), scene._pObjQ.begin(), scene._pObjQ.end());
-
-	drawInstanced(graphics, renderQueue);
+	drawInstanced(graphics, scene._wireframeObjQ, graphics._instanceBufferPointlights);
+	drawInstanced(graphics, scene._pObjQ, graphics._instanceBufferMainView);
 	{
 		CHECK_DX_ERROR(contextD->FinishCommandList(
 			false, &pEngine->device->commandListQueue[10]
