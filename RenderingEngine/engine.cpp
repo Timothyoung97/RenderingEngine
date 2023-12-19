@@ -69,6 +69,11 @@ void Engine::init() {
 }
 
 void Engine::executeCommandList() {
+	if (graphics->setting.ssaoSwitch) {
+		device->contextI->ExecuteCommandList(rendererSSAO->commandList, false);
+		rendererSSAO->commandList->Release();
+	}
+
 	device->contextI->ExecuteCommandList(rendererEnvLighting->commandList, false);
 	rendererEnvLighting->commandList->Release();
 
@@ -148,8 +153,8 @@ void Engine::run() {
 		scene->update(*graphics, *cam);
 		rendererCSM->render(*graphics, *scene, *cam);
 		rendererGBuffer->render(*graphics, *scene, *cam);
-		rendererSSAO->render(*graphics, *scene, *cam);
 
+		rendererSSAO->render(*graphics, *scene, *cam);
 		rendererEnvLighting->render(*graphics, *scene, *cam);
 		rendererTransparency->render(*graphics, *scene, *cam);
 		rendererLocalLighting->render(*graphics, *scene, *cam);

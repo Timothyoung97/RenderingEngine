@@ -1,5 +1,6 @@
 #pragma once
 
+#include "rendererBase.h"
 #include "graphics.h"
 #include "scene.h"
 
@@ -11,7 +12,7 @@ struct SSAOKernalStruct {
 	XMFLOAT3 pad;
 };
 
-class RendererSSAO {
+class RendererSSAO : public RendererBase {
 public:
 
 	VertexShader _vertexShaderFullscreenQuad;
