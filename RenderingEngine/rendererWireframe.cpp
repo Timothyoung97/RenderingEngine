@@ -177,18 +177,23 @@ void RendererWireframe::drawInstanced(Graphics& graphics, const std::vector<Obje
 	{
 		graphics.bufferQueue.push_back(constBufferBatchInfo);
 	}
+
 }
 
 void RendererWireframe::render(Graphics& graphics, const Camera& cam, const Scene& scene) {
 	PROFILE_GPU_SCOPED("Render Bounding Volume Wireframe");
 	setConstBufferCamViewProj(graphics, cam);
 
-	drawInstanced(graphics, scene._wireframeObjQ);		// for point lights
-	drawInstanced(graphics, scene._pObjQ);				// for all opaque + transparent objects
+	std::vector<tre::Object*> renderQueue; // merge all objects (points lights, opaque objects, transparent objects) as 1 batch render
+	renderQueue.insert(renderQueue.end(), scene._wireframeObjQ.begin(), scene._wireframeObjQ.end());
+	renderQueue.insert(renderQueue.end(), scene._pObjQ.begin(), scene._pObjQ.end());
 
-	CHECK_DX_ERROR(contextD->FinishCommandList(
-		false, &pEngine->device->commandListQueue[10]
-	));
+	drawInstanced(graphics, renderQueue);
+	{
+		CHECK_DX_ERROR(contextD->FinishCommandList(
+			false, &pEngine->device->commandListQueue[10]
+		));
+	}
 }
 
 }
