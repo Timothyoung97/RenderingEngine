@@ -13,7 +13,6 @@ class HdrBuffer {
 
 public:
 	ID3D11Device* _device;
-	ID3D11DeviceContext* _context;
 
 	ComPtr<ID3D11Texture2D> pHdrBufferTexture;
 	ComPtr<ID3D11ShaderResourceView> pShaderResViewHdrTexture;
@@ -26,7 +25,7 @@ public:
 	ComPtr<ID3D11ShaderResourceView> pLuminAvgSRV;
 	ComPtr<ID3D11UnorderedAccessView> pLuminAvgUAV;
 
-	void create(ID3D11Device* device, ID3D11DeviceContext* contextI);
+	void create(ID3D11Device* device);
 
 };
 }

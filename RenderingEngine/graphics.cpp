@@ -36,8 +36,8 @@ void Graphics::init() {
 	_inputLayout.create(pEngine->device->device.Get(), &_vertexShader);
 
 	_gBuffer.create(pEngine->device->device.Get());
-	_ssao.create(pEngine->device->device.Get(), pEngine->device->contextI.Get());
-	_hdrBuffer.create(pEngine->device->device.Get(), pEngine->device->contextI.Get());
+	_ssao.create(pEngine->device->device.Get());
+	_hdrBuffer.create(pEngine->device->device.Get());
 	_bloomBuffer.create(pEngine->device->device.Get());
 	_instanceBufferMainView.createBuffer(pEngine->device->device.Get(), pEngine->device->contextI.Get());
 	_instanceBufferPointlights.createBuffer(pEngine->device->device.Get(), pEngine->device->contextI.Get());

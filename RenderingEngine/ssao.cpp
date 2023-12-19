@@ -12,9 +12,8 @@ using namespace DirectX;
 
 namespace tre {
 
-void SSAO::create(ID3D11Device* device, ID3D11DeviceContext* contextI) {
+void SSAO::create(ID3D11Device* device) {
 	_device = device;
-	_context = contextI;
 
 	// create ssaoKernal, to be sent in as const buffer
 	for (int i = 0; i < 64; i++) {

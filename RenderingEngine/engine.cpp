@@ -30,6 +30,7 @@
 #include "timer.h"
 #include "utility.h"
 #include "window.h"
+#include "taskflow/taskflow.hpp"
 
 namespace tre {
 
@@ -150,20 +151,28 @@ void Engine::run() {
 	// Delta Time between frame
 	float deltaTime = 0;
 
+	tf::Executor executor;
+
 	// main loop
 	while (!input->shouldQuit())
 	{
 		MICROPROFILE_SCOPE_CSTR("Frame");
 
 		tre::Timer timer;
+		tf::Taskflow taskflow;
+
 		graphics->clean();
 		input->updateInputEvent();
 		control->update(*input, *graphics, *scene, *cam, deltaTime);
 		cam->updateCamera();
 		scene->update(*graphics, *cam);
 		
+		taskflow.emplace(
+			[this]() { rendererCSM->render(*graphics, *scene, *cam); }
+		);
+
 		{
-			rendererCSM->render(*graphics, *scene, *cam);
+			//rendererCSM->render(*graphics, *scene, *cam);
 			rendererGBuffer->render(*graphics, *scene, *cam);
 			rendererSSAO->render(*graphics, *scene, *cam);
 			rendererEnvLighting->render(*graphics, *scene, *cam);
@@ -176,6 +185,7 @@ void Engine::run() {
 			rendererWireframe->render(*graphics, *cam, *scene);
 		}
 
+		executor.run(taskflow).wait();
 		// to wait for all threads to finish before execute
 		executeCommandList();
 
