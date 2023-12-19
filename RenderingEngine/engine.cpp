@@ -69,7 +69,6 @@ void Engine::init() {
 }
 
 void Engine::executeCommandList() {
-
 	device->contextI->ExecuteCommandList(rendererCSM->commandList, false);
 	rendererCSM->commandList->Release();
 
@@ -94,6 +93,9 @@ void Engine::executeCommandList() {
 	if (scene->lightResc.numOfLights) {
 		device->contextI->ExecuteCommandList(rendererLocalLighting->commandList, false);
 		rendererLocalLighting->commandList->Release();
+
+		device->contextI->ExecuteCommandList(computerPtLight->commandList, false);
+		computerPtLight->commandList->Release();
 	}
 
 	device->contextI->ExecuteCommandList(computerHDR->commandList, false);
@@ -158,19 +160,21 @@ void Engine::run() {
 		input->updateInputEvent();
 		control->update(*input, *graphics, *scene, *cam, deltaTime);
 		cam->updateCamera();
-		computerPtLight->compute(*graphics, *scene, *cam);
 		scene->update(*graphics, *cam);
-
-		rendererCSM->render(*graphics, *scene, *cam);
-		rendererGBuffer->render(*graphics, *scene, *cam);
-		rendererSSAO->render(*graphics, *scene, *cam);
-		rendererEnvLighting->render(*graphics, *scene, *cam);
-		rendererTransparency->render(*graphics, *scene, *cam);
-		rendererLocalLighting->render(*graphics, *scene, *cam);
-		computerHDR->compute(*graphics);
-		computerBloom->compute(*graphics);
-		rendererTonemap->render(*graphics);
-		rendererWireframe->render(*graphics, *cam, *scene);
+		
+		{
+			rendererCSM->render(*graphics, *scene, *cam);
+			rendererGBuffer->render(*graphics, *scene, *cam);
+			rendererSSAO->render(*graphics, *scene, *cam);
+			rendererEnvLighting->render(*graphics, *scene, *cam);
+			rendererTransparency->render(*graphics, *scene, *cam);
+			rendererLocalLighting->render(*graphics, *scene, *cam);
+			computerPtLight->compute(*graphics, *scene, *cam);
+			computerHDR->compute(*graphics);
+			computerBloom->compute(*graphics);
+			rendererTonemap->render(*graphics);
+			rendererWireframe->render(*graphics, *cam, *scene);
+		}
 
 		// to wait for all threads to finish before execute
 		executeCommandList();

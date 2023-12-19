@@ -52,8 +52,7 @@ public:
 	std::vector<PointLight> readOnlyPointLightQ;
 
 	void create(ID3D11Device* device, ID3D11DeviceContext* context);
-
-	PointLight addPointLight(XMFLOAT3 pos, XMFLOAT3 att, XMFLOAT4 diffuse, XMFLOAT2 yawPitch);
+	void addPointLight(XMFLOAT3 pos, XMFLOAT3 att, XMFLOAT4 diffuse, XMFLOAT2 yawPitch);
 	void addRandPointLight();
 	void updateComputeShaderBuffer(PointLight newPointLight);
 	void updatePixelShaderBuffer();

@@ -108,7 +108,7 @@ void LightResource::addRandPointLight() {
 	}
 }
 
-PointLight LightResource::addPointLight(XMFLOAT3 pos, XMFLOAT3 att, XMFLOAT4 diffuse, XMFLOAT2 yawPitch) {
+void LightResource::addPointLight(XMFLOAT3 pos, XMFLOAT3 att, XMFLOAT4 diffuse, XMFLOAT2 yawPitch) {
 
 	PointLight newPtLight;
 
@@ -127,7 +127,6 @@ PointLight LightResource::addPointLight(XMFLOAT3 pos, XMFLOAT3 att, XMFLOAT4 dif
 	updateComputeShaderBuffer(newPtLight);
 	updatePixelShaderBuffer();
 
-	return newPtLight;
 }
 
 void LightResource::updatePtLightCPU() {
