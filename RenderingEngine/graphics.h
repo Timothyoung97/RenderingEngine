@@ -104,6 +104,7 @@ public:
 	InstanceBuffer _instanceBufferMainView;
 	InstanceBuffer _instanceBufferCSM[4];
 	InstanceBuffer _instanceBufferPointlights;
+	InstanceBuffer _instanceBufferWireframes;
 
 	ID3D11UnorderedAccessView* nullUAV[1] = { nullptr };
 	ID3D11ShaderResourceView* nullSRV[1] = { nullptr };

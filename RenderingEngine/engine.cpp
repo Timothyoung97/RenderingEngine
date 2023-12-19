@@ -69,6 +69,13 @@ void Engine::init() {
 }
 
 void Engine::executeCommandList() {
+
+
+	if (scene->_culledOpaqueObjQ[scene->camViewIdx].size()) {
+		device->contextI->ExecuteCommandList(rendererGBuffer->commandList, false);
+		rendererGBuffer->commandList->Release();
+	}
+
 	if (graphics->setting.ssaoSwitch) {
 		device->contextI->ExecuteCommandList(rendererSSAO->commandList, false);
 		rendererSSAO->commandList->Release();
@@ -152,8 +159,8 @@ void Engine::run() {
 		computerPtLight->compute(*graphics, *scene, *cam);
 		scene->update(*graphics, *cam);
 		rendererCSM->render(*graphics, *scene, *cam);
-		rendererGBuffer->render(*graphics, *scene, *cam);
 
+		rendererGBuffer->render(*graphics, *scene, *cam);
 		rendererSSAO->render(*graphics, *scene, *cam);
 		rendererEnvLighting->render(*graphics, *scene, *cam);
 		rendererTransparency->render(*graphics, *scene, *cam);

@@ -185,7 +185,7 @@ void RendererWireframe::render(Graphics& graphics, const Camera& cam, const Scen
 	setConstBufferCamViewProj(graphics, cam);
 
 	drawInstanced(graphics, scene._wireframeObjQ, graphics._instanceBufferPointlights);
-	drawInstanced(graphics, scene._pObjQ, graphics._instanceBufferMainView);
+	drawInstanced(graphics, scene._pObjQ, graphics._instanceBufferWireframes);
 	{
 		CHECK_DX_ERROR(contextD->FinishCommandList(
 			false, &commandList
