@@ -1,10 +1,11 @@
 #pragma once
 
+#include "rendererBase.h"
 #include "graphics.h"
 #include "scene.h"
 
 namespace tre {
-class RendererLocalLighting {
+class RendererLocalLighting : public RendererBase {
 public:
 
 	VertexShader _vertexShader;

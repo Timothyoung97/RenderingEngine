@@ -69,6 +69,11 @@ void Engine::init() {
 }
 
 void Engine::executeCommandList() {
+	if (scene->lightResc.numOfLights) {
+		device->contextI->ExecuteCommandList(rendererLocalLighting->commandList, false);
+		rendererLocalLighting->commandList->Release();
+	}
+
 	device->contextI->ExecuteCommandList(computerHDR->commandList, false);
 	computerHDR->commandList->Release();
 
@@ -138,8 +143,8 @@ void Engine::run() {
 		rendererSSAO->render(*graphics, *scene, *cam);
 		rendererEnvLighting->render(*graphics, *scene, *cam);
 		rendererTransparency->render(*graphics, *scene, *cam);
-		rendererLocalLighting->render(*graphics, *scene, *cam);
 
+		rendererLocalLighting->render(*graphics, *scene, *cam);
 		computerHDR->compute(*graphics);
 		computerBloom->compute(*graphics);
 		rendererTonemap->render(*graphics);
