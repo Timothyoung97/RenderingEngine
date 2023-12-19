@@ -27,35 +27,44 @@ void RendererEnvironmentLighting::render(Graphics& graphics, const Scene& scene,
 	{
 		// Create struct info and submit data to constant buffer
 		tre::GlobalInfoStruct globalInfoStruct = tre::CommonStructUtility::createGlobalInfoStruct(cam.camPositionV, cam.camViewProjection, scene.viewProjs, graphics.setting.csmPlaneIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), graphics.setting.csmDebugSwitch, graphics.setting.ssaoSwitch);
-		tre::Buffer::updateConstBufferData(pEngine->device->contextI.Get(), constBufferGlobalInfo, &globalInfoStruct, (UINT)sizeof(tre::GlobalInfoStruct));
+		tre::Buffer::updateConstBufferData(contextD.Get(), constBufferGlobalInfo, &globalInfoStruct, (UINT)sizeof(tre::GlobalInfoStruct));
 	}
 
 	// Context Configuration
 	{
-		pEngine->device->contextI.Get()->IASetInputLayout(nullptr);
-		pEngine->device->contextI.Get()->VSSetShader(_vertexShaderFullscreenQuad.pShader.Get(), NULL, 0u);
+		contextD.Get()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		contextD.Get()->IASetInputLayout(nullptr);
+		contextD.Get()->VSSetShader(_vertexShaderFullscreenQuad.pShader.Get(), NULL, 0u);
 
-		pEngine->device->contextI.Get()->RSSetViewports(1, &graphics._viewport.defaultViewport);
-		pEngine->device->contextI.Get()->RSSetState(graphics._rasterizer.pRasterizerStateFCCW.Get());
+		contextD.Get()->RSSetViewports(1, &graphics._viewport.defaultViewport);
+		contextD.Get()->RSSetState(graphics._rasterizer.pRasterizerStateFCCW.Get());
 
-		pEngine->device->contextI.Get()->OMSetRenderTargets(0, nullptr, nullptr);
-		pEngine->device->contextI.Get()->PSSetShader(_deferredShaderLightingEnv.pShader.Get(), NULL, 0u);
-		pEngine->device->contextI.Get()->PSSetConstantBuffers(0u, 1u, &constBufferGlobalInfo);
-		pEngine->device->contextI.Get()->PSSetShaderResources(0, 1, graphics._gBuffer.pShaderResViewDeferredAlbedo.GetAddressOf()); // albedo
-		pEngine->device->contextI.Get()->PSSetShaderResources(1, 1, graphics._gBuffer.pShaderResViewDeferredNormal.GetAddressOf()); // normal
-		pEngine->device->contextI.Get()->PSSetShaderResources(3, 1, graphics._depthbuffer.pShadowShaderRescView.GetAddressOf()); // shadow
-		pEngine->device->contextI.Get()->PSSetShaderResources(4, 1, graphics._depthbuffer.pDepthStencilShaderRescView.GetAddressOf()); //depth
-		pEngine->device->contextI.Get()->PSSetShaderResources(7, 1, graphics._ssao.ssaoBlurredTexture2dSRV.GetAddressOf()); // ssao
+		contextD.Get()->OMSetRenderTargets(0, nullptr, nullptr);
+		contextD.Get()->PSSetShader(_deferredShaderLightingEnv.pShader.Get(), NULL, 0u);
+		contextD.Get()->PSSetConstantBuffers(0u, 1u, &constBufferGlobalInfo);
+		contextD.Get()->PSSetShaderResources(0, 1, graphics._gBuffer.pShaderResViewDeferredAlbedo.GetAddressOf()); // albedo
+		contextD.Get()->PSSetShaderResources(1, 1, graphics._gBuffer.pShaderResViewDeferredNormal.GetAddressOf()); // normal
+		contextD.Get()->PSSetShaderResources(3, 1, graphics._depthbuffer.pShadowShaderRescView.GetAddressOf()); // shadow
+		contextD.Get()->PSSetShaderResources(4, 1, graphics._depthbuffer.pDepthStencilShaderRescView.GetAddressOf()); //depth
+		contextD.Get()->PSSetShaderResources(7, 1, graphics._ssao.ssaoBlurredTexture2dSRV.GetAddressOf()); // ssao
+		contextD.Get()->PSSetSamplers(0, 1, graphics._sampler.pSamplerStateMinMagMipLinearWrap.GetAddressOf());
+		contextD.Get()->PSSetSamplers(1, 1, graphics._sampler.pSamplerStateMinMagMipLinearGreaterEqualBorder.GetAddressOf());
 
-		pEngine->device->contextI.Get()->OMSetRenderTargets(1, graphics._hdrBuffer.pRenderTargetViewHdrTexture.GetAddressOf(), nullptr);
-		pEngine->device->contextI.Get()->OMSetBlendState(graphics._blendstate.opaque.Get(), NULL, 0xffffffff);
-		pEngine->device->contextI.Get()->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
+		contextD.Get()->OMSetRenderTargets(1, graphics._hdrBuffer.pRenderTargetViewHdrTexture.GetAddressOf(), nullptr);
+		contextD.Get()->OMSetBlendState(graphics._blendstate.opaque.Get(), NULL, 0xffffffff);
+		contextD.Get()->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
 	}
 
-	pEngine->device->contextI.Get()->Draw(6, 0);
+	contextD.Get()->Draw(6, 0);
 
 	{
 		graphics.bufferQueue.push_back(constBufferGlobalInfo);
+	}
+
+	{
+		CHECK_DX_ERROR(contextD->FinishCommandList(
+			false, &commandList
+		));
 	}
 }
 } 

@@ -1,11 +1,12 @@
 #pragma once
 
+#include "rendererBase.h"
 #include "graphics.h"
 #include "scene.h"
 
 namespace tre {
 
-class RendererEnvironmentLighting {
+class RendererEnvironmentLighting : public RendererBase {
 public:
 	VertexShader _vertexShaderFullscreenQuad;
 	PixelShader _deferredShaderLightingEnv;
