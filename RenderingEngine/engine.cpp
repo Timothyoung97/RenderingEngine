@@ -68,6 +68,22 @@ void Engine::init() {
 #endif
 }
 
+void Engine::executeCommandList() {
+	device->contextI->ExecuteCommandList(computerHDR->commandList, false);
+	computerHDR->commandList->Release();
+
+	device->contextI->ExecuteCommandList(computerBloom->commandList, false);
+	computerBloom->commandList->Release();
+
+	device->contextI->ExecuteCommandList(rendererTonemap->commandList, false);
+	rendererTonemap->commandList->Release();
+
+	if (graphics->setting.showBoundingVolume) {
+		device->contextI->ExecuteCommandList(rendererWireframe->commandList, false);
+		rendererWireframe->commandList->Release();
+	}
+}
+
 void Engine::run() {
 	// Loading Models
 	std::string basePathStr = tre::Utility::getBasePathStr();													
@@ -123,11 +139,15 @@ void Engine::run() {
 		rendererEnvLighting->render(*graphics, *scene, *cam);
 		rendererTransparency->render(*graphics, *scene, *cam);
 		rendererLocalLighting->render(*graphics, *scene, *cam);
+
 		computerHDR->compute(*graphics);
 		computerBloom->compute(*graphics);
 		rendererTonemap->render(*graphics);
 		rendererWireframe->render(*graphics, *cam, *scene);
-		device->executeCommandList();
+
+		// to wait for all threads to finish before execute
+		executeCommandList();
+
 		imguihelper->render();
 		graphics->present();
 		timer.spinWait();

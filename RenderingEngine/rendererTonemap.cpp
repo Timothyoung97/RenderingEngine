@@ -83,7 +83,7 @@ void RendererTonemap::render(Graphics& graphics) {
 	fullscreenPass(graphics);
 
 	CHECK_DX_ERROR(contextD->FinishCommandList(
-		false, &pEngine->device->commandListQueue[9]
+		false, &commandList
 	));
 }
 }

@@ -12,6 +12,7 @@ namespace tre {
 class RendererBase {
 public:
 	ComPtr<ID3D11DeviceContext> contextD;
+	ID3D11CommandList* commandList;
 
 	RendererBase();
 

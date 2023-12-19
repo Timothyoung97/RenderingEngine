@@ -51,6 +51,7 @@ public:
 
 	void init();
 	void run();
+	void executeCommandList();
 	void close();
 
 };

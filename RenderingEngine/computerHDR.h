@@ -1,6 +1,8 @@
 #pragma once
 
 #include <d3d11.h>
+
+#include "rendererBase.h"
 #include "graphics.h"
 #include "constbuffer.h"
 
@@ -16,7 +18,7 @@ struct LuminanceStruct {
 	XMINT2 pad;
 };
 
-class ComputerHDR {
+class ComputerHDR : public RendererBase {
 public:
 	ComputeShader _computeShaderLuminancehistogram;
 	ComputeShader _computeShaderLuminanceAverage;

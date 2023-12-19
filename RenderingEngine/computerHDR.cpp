@@ -34,43 +34,47 @@ void ComputerHDR::setConstBufferLuminSetting(Graphics& graphics) {
 	{
 		// Luminance Histogram Const Buffer update and binding
 		tre::LuminanceStruct luminStruct = createLuminanceStruct(XMFLOAT2(graphics.setting.luminaceMin, graphics.setting.luminanceMax), graphics.setting.timeCoeff);
-		tre::Buffer::updateConstBufferData(pEngine->device->contextI.Get(), constBufferLuminanceSetting, &luminStruct, (UINT)sizeof(tre::LuminanceStruct));
-		pEngine->device->contextI.Get()->CSSetConstantBuffers(0u, 1u, &constBufferLuminanceSetting);
+		tre::Buffer::updateConstBufferData(contextD.Get(), constBufferLuminanceSetting, &luminStruct, (UINT)sizeof(tre::LuminanceStruct));
+		contextD.Get()->CSSetConstantBuffers(0u, 1u, &constBufferLuminanceSetting);
 	}
 	graphics.bufferQueue.push_back(constBufferLuminanceSetting);
 }
 
 void ComputerHDR::dispatchHistogram(const Graphics& graphics){
-	pEngine->device->contextI.Get()->CSSetShader(_computeShaderLuminancehistogram.pShader.Get(), NULL, 0u);
-	pEngine->device->contextI.Get()->CSSetShaderResources(0u, 1u, graphics._hdrBuffer.pShaderResViewHdrTexture.GetAddressOf());
-	pEngine->device->contextI.Get()->CSSetUnorderedAccessViews(0u, 1u, graphics._hdrBuffer.pLuminHistogramUAV.GetAddressOf(), nullptr);
+	contextD.Get()->CSSetShader(_computeShaderLuminancehistogram.pShader.Get(), NULL, 0u);
+	contextD.Get()->CSSetShaderResources(0u, 1u, graphics._hdrBuffer.pShaderResViewHdrTexture.GetAddressOf());
+	contextD.Get()->CSSetUnorderedAccessViews(0u, 1u, graphics._hdrBuffer.pLuminHistogramUAV.GetAddressOf(), nullptr);
 	{
 		PROFILE_GPU_SCOPED("Compute Shader Luminace Histogram");
-		pEngine->device->contextI.Get()->Dispatch(tre::Maths::divideAndRoundUp(SCREEN_WIDTH, 16u), tre::Maths::divideAndRoundUp(SCREEN_HEIGHT, 16u), 1u);
+		contextD.Get()->Dispatch(tre::Maths::divideAndRoundUp(SCREEN_WIDTH, 16u), tre::Maths::divideAndRoundUp(SCREEN_HEIGHT, 16u), 1u);
 	}
-	pEngine->device->contextI.Get()->CSSetShaderResources(0u, 1u, graphics.nullSRV);
-	pEngine->device->contextI.Get()->CSSetUnorderedAccessViews(0u, 1u, graphics.nullUAV, nullptr);
+	contextD.Get()->CSSetShaderResources(0u, 1u, graphics.nullSRV);
+	contextD.Get()->CSSetUnorderedAccessViews(0u, 1u, graphics.nullUAV, nullptr);
 }
 
 void ComputerHDR::dispatchAverage(const Graphics& graphics){
-	pEngine->device->contextI.Get()->CSSetShader(_computeShaderLuminanceAverage.pShader.Get(), NULL, 0u);
-	pEngine->device->contextI.Get()->CSSetUnorderedAccessViews(0u, 1, graphics._hdrBuffer.pLuminHistogramUAV.GetAddressOf(), nullptr);
-	pEngine->device->contextI.Get()->CSSetUnorderedAccessViews(1u, 1, graphics._hdrBuffer.pLuminAvgUAV.GetAddressOf(), nullptr);
+	contextD.Get()->CSSetShader(_computeShaderLuminanceAverage.pShader.Get(), NULL, 0u);
+	contextD.Get()->CSSetUnorderedAccessViews(0u, 1, graphics._hdrBuffer.pLuminHistogramUAV.GetAddressOf(), nullptr);
+	contextD.Get()->CSSetUnorderedAccessViews(1u, 1, graphics._hdrBuffer.pLuminAvgUAV.GetAddressOf(), nullptr);
 	{
 		PROFILE_GPU_SCOPED("Compute Shader Luminace Average");
-		pEngine->device->contextI.Get()->Dispatch(1u, 1u, 1u);
+		contextD.Get()->Dispatch(1u, 1u, 1u);
 	}
-	pEngine->device->contextI.Get()->CSSetUnorderedAccessViews(0u, 1, graphics.nullUAV, nullptr);
-	pEngine->device->contextI.Get()->CSSetUnorderedAccessViews(1u, 1, graphics.nullUAV, nullptr);
+	contextD.Get()->CSSetUnorderedAccessViews(0u, 1, graphics.nullUAV, nullptr);
+	contextD.Get()->CSSetUnorderedAccessViews(1u, 1, graphics.nullUAV, nullptr);
 }
 
 void ComputerHDR::compute(Graphics& graphics) {
-	pEngine->device->contextI.Get()->OMSetRenderTargets(0, nullptr, nullptr);
+	contextD.Get()->OMSetRenderTargets(0, nullptr, nullptr);
 	// Luminance Histogram
 	PROFILE_GPU_SCOPED("HDR Compute");
 	PROFILE_GPU_SCOPED("HDR Compute");
 	setConstBufferLuminSetting(graphics);
 	dispatchHistogram(graphics);
 	dispatchAverage(graphics);
+
+	CHECK_DX_ERROR(contextD.Get()->FinishCommandList(
+		false, &commandList
+	));
 }
 }

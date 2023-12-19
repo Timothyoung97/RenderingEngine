@@ -188,7 +188,7 @@ void RendererWireframe::render(Graphics& graphics, const Camera& cam, const Scen
 	drawInstanced(graphics, scene._pObjQ, graphics._instanceBufferMainView);
 	{
 		CHECK_DX_ERROR(contextD->FinishCommandList(
-			false, &pEngine->device->commandListQueue[10]
+			false, &commandList
 		));
 	}
 }

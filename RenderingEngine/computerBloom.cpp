@@ -178,7 +178,7 @@ void ComputerBloom::compute(Graphics& graphics) {
 	upsample(graphics);
 
 	CHECK_DX_ERROR(contextD.Get()->FinishCommandList(
-		false, &pEngine->device->commandListQueue[8]
+		false, &commandList
 	));
 }
 
