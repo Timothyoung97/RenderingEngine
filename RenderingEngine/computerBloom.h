@@ -2,6 +2,7 @@
 
 #include <DirectXMath.h>
 
+#include "rendererBase.h"
 #include "graphics.h"
 
 using namespace DirectX;
@@ -15,7 +16,7 @@ struct BloomConstBufferStruct {
     XMFLOAT3 pad;
 };
 
-class ComputerBloom {
+class ComputerBloom : public RendererBase {
 public:
     ComputeShader computeShaderDownsample;
     ComputeShader computeShaderUpsample;
