@@ -224,6 +224,8 @@ void Engine::close() {
 	delete rendererTransparency;
 	delete rendererWireframe;
 	delete computerPtLight;
+	delete rendererTonemap;
+	delete computerBloom;
 
 	delete graphics;
 	
