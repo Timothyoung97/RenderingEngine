@@ -61,7 +61,7 @@ void RendererWireframe::draw(Graphics& graphics, const std::vector<Object*>& obj
 
 	const char* name = ToString(RENDER_MODE::WIREFRAME_M);
 	MICROPROFILE_SCOPE_CSTR(name);
-	PROFILE_GPU_SCOPED("Draw Wireframe");
+	//PROFILE_GPU_SCOPED("Draw Wireframe");
 
 	// Select mesh to render based on bounding methods
 	Mesh* meshToRender = selectWireframeMesh(graphics.setting.typeOfBound);
@@ -130,14 +130,14 @@ void RendererWireframe::drawInstanced(Graphics& graphics, const std::vector<Obje
 	if (objQ.size() == 0 || !graphics.setting.showBoundingVolume) return;
 	const char* name = ToString(tre::RENDER_MODE::WIREFRAME_M);
 	MICROPROFILE_SCOPE_CSTR(name);
-	PROFILE_GPU_SCOPED("Instanced Draw Wireframe");
+	//PROFILE_GPU_SCOPED("Instanced Draw Wireframe");
 
 	// Select mesh to render based on bounding methods
 	Mesh* meshToRender = selectWireframeMesh(graphics.setting.typeOfBound);
 
 	// Update instance buffer with wireframe mesh
 	{
-		targetInstanceBuffer.updateBuffer(objQ, meshToRender);
+		targetInstanceBuffer.updateBuffer(objQ, meshToRender, contextD.Get());
 	}
 
 	{
@@ -187,7 +187,7 @@ void RendererWireframe::drawInstanced(Graphics& graphics, const std::vector<Obje
 void RendererWireframe::render(Graphics& graphics, const Camera& cam, const Scene& scene) {
 	if (!graphics.setting.showBoundingVolume) return;
 
-	PROFILE_GPU_SCOPED("Render Bounding Volume Wireframe");
+	//PROFILE_GPU_SCOPED("Render Bounding Volume Wireframe");
 	setConstBufferCamViewProj(graphics, cam);
 
 	drawInstanced(graphics, scene._wireframeObjQ, graphics._instanceBufferPointlights);

@@ -39,12 +39,12 @@ void Graphics::init() {
 	_ssao.create(pEngine->device->device.Get());
 	_hdrBuffer.create(pEngine->device->device.Get());
 	_bloomBuffer.create(pEngine->device->device.Get());
-	_instanceBufferMainView.createBuffer(pEngine->device->device.Get(), pEngine->device->contextI.Get());
-	_instanceBufferPointlights.createBuffer(pEngine->device->device.Get(), pEngine->device->contextI.Get());
-	_instanceBufferWireframes.createBuffer(pEngine->device->device.Get(), pEngine->device->contextI.Get());
+	_instanceBufferMainView.createBuffer(pEngine->device->device.Get());
+	_instanceBufferPointlights.createBuffer(pEngine->device->device.Get());
+	_instanceBufferWireframes.createBuffer(pEngine->device->device.Get());
 
 	for (int i = 0; i < 4; i++) {
-		_instanceBufferCSM[i].createBuffer(pEngine->device->device.Get(), pEngine->device->contextI.Get());
+		_instanceBufferCSM[i].createBuffer(pEngine->device->device.Get());
 	}
 }
 

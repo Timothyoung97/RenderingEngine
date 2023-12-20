@@ -7,29 +7,40 @@
 
 namespace tre {
 
-void InstanceBuffer::createBuffer(ID3D11Device* pDevice, ID3D11DeviceContext* pContext) {
+void InstanceBuffer::createBuffer(ID3D11Device* pDevice) {
 
 	_device = pDevice;
-	_context = pContext;
 
-	// Staging Buffer
-	D3D11_BUFFER_DESC stagingInstancedBufferDesc;
-	stagingInstancedBufferDesc.BindFlags = 0;
-	stagingInstancedBufferDesc.Usage = D3D11_USAGE_STAGING;
-	stagingInstancedBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	stagingInstancedBufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-	stagingInstancedBufferDesc.ByteWidth = static_cast<UINT>(sizeof(tre::InstanceInfo) * currMaxInstanceCount);
-	stagingInstancedBufferDesc.StructureByteStride = static_cast<UINT>(sizeof(tre::InstanceInfo));
+	//// Staging Buffer
+	//D3D11_BUFFER_DESC stagingInstancedBufferDesc;
+	//stagingInstancedBufferDesc.BindFlags = 0;
+	//stagingInstancedBufferDesc.Usage = D3D11_USAGE_STAGING;
+	//stagingInstancedBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	//stagingInstancedBufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+	//stagingInstancedBufferDesc.ByteWidth = static_cast<UINT>(sizeof(tre::InstanceInfo) * currMaxInstanceCount);
+	//stagingInstancedBufferDesc.StructureByteStride = static_cast<UINT>(sizeof(tre::InstanceInfo));
 
-	CHECK_DX_ERROR(_device->CreateBuffer(
-		&stagingInstancedBufferDesc, nullptr, &pStagingInstanceBuffer
-	));
+	//CHECK_DX_ERROR(_device->CreateBuffer(
+	//	&stagingInstancedBufferDesc, nullptr, &pStagingInstanceBuffer
+	//));
 
 	// Persistent Buffer
+	//D3D11_BUFFER_DESC pInstanceBufferDesc;
+	//pInstanceBufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	//pInstanceBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	//pInstanceBufferDesc.CPUAccessFlags = 0u;
+	//pInstanceBufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+	//pInstanceBufferDesc.ByteWidth = static_cast<UINT>(sizeof(InstanceInfo) * currMaxInstanceCount); //hardcoded initial size
+	//pInstanceBufferDesc.StructureByteStride = static_cast<UINT>(sizeof(InstanceInfo));
+
+	//CHECK_DX_ERROR(_device->CreateBuffer(
+	//	&pInstanceBufferDesc, nullptr, pInstanceBuffer.GetAddressOf()
+	//));
+
 	D3D11_BUFFER_DESC pInstanceBufferDesc;
 	pInstanceBufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-	pInstanceBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	pInstanceBufferDesc.CPUAccessFlags = 0u;
+	pInstanceBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	pInstanceBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	pInstanceBufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
 	pInstanceBufferDesc.ByteWidth = static_cast<UINT>(sizeof(InstanceInfo) * currMaxInstanceCount); //hardcoded initial size
 	pInstanceBufferDesc.StructureByteStride = static_cast<UINT>(sizeof(InstanceInfo));
@@ -56,10 +67,10 @@ InstanceInfo InstanceBuffer::createInstanceInfo(XMMATRIX transformationLocal, XM
 };
 
 
-void InstanceBuffer::updateBuffer(const std::vector<std::pair<Object*, Mesh*>>& objQ) {
+void InstanceBuffer::updateBuffer(const std::vector<std::pair<Object*, Mesh*>>& objQ, ID3D11DeviceContext* deferredContext) {
 
 	MICROPROFILE_SCOPE_CSTR("Batching Instances");
-	PROFILE_GPU_SCOPED("GPU Batching Instances");
+	//PROFILE_GPU_SCOPED("GPU Batching Instances");
 
 	std::vector<InstanceInfo> instanceInfoQ;
 	instanceBatchQueue.clear();
@@ -115,50 +126,66 @@ void InstanceBuffer::updateBuffer(const std::vector<std::pair<Object*, Mesh*>>& 
 	// If structured buffer on GPU has insufficient size
 	if (currMaxInstanceCount < instanceInfoQ.size()) {
 		currMaxInstanceCount = instanceInfoQ.size();
-		pStagingInstanceBuffer.Reset();
+		//pStagingInstanceBuffer.Reset();
 		pInstanceBuffer.Reset();
 
-		// Staging Buffer
-		D3D11_BUFFER_DESC stagingInstancedBufferDesc;
-		stagingInstancedBufferDesc.BindFlags = 0;
-		stagingInstancedBufferDesc.Usage = D3D11_USAGE_STAGING;
-		stagingInstancedBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		stagingInstancedBufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-		stagingInstancedBufferDesc.ByteWidth = static_cast<UINT>(sizeof(InstanceInfo) * currMaxInstanceCount);
-		stagingInstancedBufferDesc.StructureByteStride = static_cast<UINT>(sizeof(tre::InstanceInfo));
+		//// Staging Buffer
+		//D3D11_BUFFER_DESC stagingInstancedBufferDesc;
+		//stagingInstancedBufferDesc.BindFlags = 0;
+		//stagingInstancedBufferDesc.Usage = D3D11_USAGE_STAGING;
+		//stagingInstancedBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		//stagingInstancedBufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+		//stagingInstancedBufferDesc.ByteWidth = static_cast<UINT>(sizeof(InstanceInfo) * currMaxInstanceCount);
+		//stagingInstancedBufferDesc.StructureByteStride = static_cast<UINT>(sizeof(tre::InstanceInfo));
+
+		//D3D11_SUBRESOURCE_DATA pInstanceBufferData = {};
+		//pInstanceBufferData.pSysMem = instanceInfoQ.data();
+
+		//CHECK_DX_ERROR(_device->CreateBuffer(
+		//	&stagingInstancedBufferDesc, &pInstanceBufferData, &pStagingInstanceBuffer
+		//));
+
+		//// GPU Buffer
+		//D3D11_BUFFER_DESC pInstanceBufferDesc;
+		//pInstanceBufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+		//pInstanceBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+		//pInstanceBufferDesc.CPUAccessFlags = 0u;
+		//pInstanceBufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+		//pInstanceBufferDesc.ByteWidth = static_cast<UINT>(sizeof(InstanceInfo) * currMaxInstanceCount);
+		//pInstanceBufferDesc.StructureByteStride = static_cast<UINT>(sizeof(tre::InstanceInfo));
+
+		//CHECK_DX_ERROR(_device->CreateBuffer(
+		//	&pInstanceBufferDesc, nullptr, pInstanceBuffer.GetAddressOf()
+		//));		
+		
+		// GPU Buffer
+		D3D11_BUFFER_DESC pInstanceBufferDesc;
+		pInstanceBufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+		pInstanceBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+		pInstanceBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		pInstanceBufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+		pInstanceBufferDesc.ByteWidth = static_cast<UINT>(sizeof(InstanceInfo) * currMaxInstanceCount);
+		pInstanceBufferDesc.StructureByteStride = static_cast<UINT>(sizeof(tre::InstanceInfo));
 
 		D3D11_SUBRESOURCE_DATA pInstanceBufferData = {};
 		pInstanceBufferData.pSysMem = instanceInfoQ.data();
 
 		CHECK_DX_ERROR(_device->CreateBuffer(
-			&stagingInstancedBufferDesc, &pInstanceBufferData, &pStagingInstanceBuffer
-		));
-
-		// GPU Buffer
-		D3D11_BUFFER_DESC pInstanceBufferDesc;
-		pInstanceBufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-		pInstanceBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-		pInstanceBufferDesc.CPUAccessFlags = 0u;
-		pInstanceBufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-		pInstanceBufferDesc.ByteWidth = static_cast<UINT>(sizeof(InstanceInfo) * currMaxInstanceCount);
-		pInstanceBufferDesc.StructureByteStride = static_cast<UINT>(sizeof(tre::InstanceInfo));
-
-		CHECK_DX_ERROR(_device->CreateBuffer(
-			&pInstanceBufferDesc, nullptr, pInstanceBuffer.GetAddressOf()
+			&pInstanceBufferDesc, &pInstanceBufferData, pInstanceBuffer.GetAddressOf()
 		));
 	} else {
 		// Update Subresource Data
 		D3D11_MAPPED_SUBRESOURCE previousInstancedData;
 		ZeroMemory(&previousInstancedData, sizeof(D3D11_MAPPED_SUBRESOURCE));
 
-		CHECK_DX_ERROR(_context->Map(pStagingInstanceBuffer.Get(), 0u, D3D11_MAP_WRITE, 0u, &previousInstancedData));
+		CHECK_DX_ERROR(deferredContext->Map(pInstanceBuffer.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &previousInstancedData));
 
 		memcpy(previousInstancedData.pData, instanceInfoQ.data(), static_cast<UINT>(sizeof(InstanceInfo) * instanceInfoQ.size()));
 
-		_context->Unmap(pStagingInstanceBuffer.Get(), 0u);
+		deferredContext->Unmap(pInstanceBuffer.Get(), 0u);
 	}
 
-	_context->CopyResource(pInstanceBuffer.Get(), pStagingInstanceBuffer.Get());
+	//_context->CopyResource(pInstanceBuffer.Get(), pStagingInstanceBuffer.Get());
 
 	// SRV
 	D3D11_BUFFER_SRV instanceBufferSRV;
@@ -176,12 +203,12 @@ void InstanceBuffer::updateBuffer(const std::vector<std::pair<Object*, Mesh*>>& 
 	));
 }
 
-void InstanceBuffer::updateBuffer(const std::vector<Object*>& objQ, Mesh* specifiedMesh) {
+void InstanceBuffer::updateBuffer(const std::vector<Object*>& objQ, Mesh* specifiedMesh, ID3D11DeviceContext* deferredContext) {
 
 	if (objQ.empty()) return;
 
 	MICROPROFILE_SCOPE_CSTR("Batching Instances Wireframe");
-	PROFILE_GPU_SCOPED("GPU Batching Instances Wireframe");
+	//PROFILE_GPU_SCOPED("GPU Batching Instances Wireframe");
 
 	std::vector<InstanceInfo> instanceInfoQ;
 	instanceBatchQueue.clear();
@@ -222,36 +249,52 @@ void InstanceBuffer::updateBuffer(const std::vector<Object*>& objQ, Mesh* specif
 	// If structured buffer on GPU has insufficient size
 	if (currMaxInstanceCount < instanceInfoQ.size()) {
 		currMaxInstanceCount = instanceInfoQ.size();
-		pStagingInstanceBuffer.Reset();
+		//pStagingInstanceBuffer.Reset();
 		pInstanceBuffer.Reset();
 
-		// Staging Buffer
-		D3D11_BUFFER_DESC stagingInstancedBufferDesc;
-		stagingInstancedBufferDesc.BindFlags = 0;
-		stagingInstancedBufferDesc.Usage = D3D11_USAGE_STAGING;
-		stagingInstancedBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		stagingInstancedBufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-		stagingInstancedBufferDesc.ByteWidth = static_cast<UINT>(sizeof(InstanceInfo) * currMaxInstanceCount);
-		stagingInstancedBufferDesc.StructureByteStride = static_cast<UINT>(sizeof(tre::InstanceInfo));
+		//// Staging Buffer
+		//D3D11_BUFFER_DESC stagingInstancedBufferDesc;
+		//stagingInstancedBufferDesc.BindFlags = 0;
+		//stagingInstancedBufferDesc.Usage = D3D11_USAGE_STAGING;
+		//stagingInstancedBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		//stagingInstancedBufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+		//stagingInstancedBufferDesc.ByteWidth = static_cast<UINT>(sizeof(InstanceInfo) * currMaxInstanceCount);
+		//stagingInstancedBufferDesc.StructureByteStride = static_cast<UINT>(sizeof(tre::InstanceInfo));
+
+		//D3D11_SUBRESOURCE_DATA pInstanceBufferData = {};
+		//pInstanceBufferData.pSysMem = instanceInfoQ.data();
+
+		//CHECK_DX_ERROR(_device->CreateBuffer(
+		//	&stagingInstancedBufferDesc, &pInstanceBufferData, &pStagingInstanceBuffer
+		//));
+
+		//// GPU Buffer
+		//D3D11_BUFFER_DESC pInstanceBufferDesc;
+		//pInstanceBufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+		//pInstanceBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+		//pInstanceBufferDesc.CPUAccessFlags = 0u;
+		//pInstanceBufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+		//pInstanceBufferDesc.ByteWidth = static_cast<UINT>(sizeof(InstanceInfo) * currMaxInstanceCount);
+		//pInstanceBufferDesc.StructureByteStride = static_cast<UINT>(sizeof(tre::InstanceInfo));
+
+		//CHECK_DX_ERROR(_device->CreateBuffer(
+		//	&pInstanceBufferDesc, nullptr, pInstanceBuffer.GetAddressOf()
+		//));
+
+		// GPU Buffer
+		D3D11_BUFFER_DESC pInstanceBufferDesc;
+		pInstanceBufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+		pInstanceBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+		pInstanceBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		pInstanceBufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+		pInstanceBufferDesc.ByteWidth = static_cast<UINT>(sizeof(InstanceInfo) * currMaxInstanceCount);
+		pInstanceBufferDesc.StructureByteStride = static_cast<UINT>(sizeof(tre::InstanceInfo));
 
 		D3D11_SUBRESOURCE_DATA pInstanceBufferData = {};
 		pInstanceBufferData.pSysMem = instanceInfoQ.data();
 
 		CHECK_DX_ERROR(_device->CreateBuffer(
-			&stagingInstancedBufferDesc, &pInstanceBufferData, &pStagingInstanceBuffer
-		));
-
-		// GPU Buffer
-		D3D11_BUFFER_DESC pInstanceBufferDesc;
-		pInstanceBufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-		pInstanceBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-		pInstanceBufferDesc.CPUAccessFlags = 0u;
-		pInstanceBufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-		pInstanceBufferDesc.ByteWidth = static_cast<UINT>(sizeof(InstanceInfo) * currMaxInstanceCount);
-		pInstanceBufferDesc.StructureByteStride = static_cast<UINT>(sizeof(tre::InstanceInfo));
-
-		CHECK_DX_ERROR(_device->CreateBuffer(
-			&pInstanceBufferDesc, nullptr, pInstanceBuffer.GetAddressOf()
+			&pInstanceBufferDesc, &pInstanceBufferData, pInstanceBuffer.GetAddressOf()
 		));
 	}
 	else {
@@ -259,14 +302,14 @@ void InstanceBuffer::updateBuffer(const std::vector<Object*>& objQ, Mesh* specif
 		D3D11_MAPPED_SUBRESOURCE previousInstancedData;
 		ZeroMemory(&previousInstancedData, sizeof(D3D11_MAPPED_SUBRESOURCE));
 
-		CHECK_DX_ERROR(_context->Map(pStagingInstanceBuffer.Get(), 0u, D3D11_MAP_WRITE, 0u, &previousInstancedData));
+		CHECK_DX_ERROR(deferredContext->Map(pInstanceBuffer.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &previousInstancedData));
 
 		memcpy(previousInstancedData.pData, instanceInfoQ.data(), static_cast<UINT>(sizeof(InstanceInfo) * instanceInfoQ.size()));
 
-		_context->Unmap(pStagingInstanceBuffer.Get(), 0u);
+		deferredContext->Unmap(pInstanceBuffer.Get(), 0u);
 	}
 
-	_context->CopyResource(pInstanceBuffer.Get(), pStagingInstanceBuffer.Get());
+	//_context->CopyResource(pInstanceBuffer.Get(), pStagingInstanceBuffer.Get());
 
 	// SRV
 	D3D11_BUFFER_SRV instanceBufferSRV;

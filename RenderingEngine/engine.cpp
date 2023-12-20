@@ -117,23 +117,23 @@ void Engine::executeCommandList() {
 void Engine::run() {
 	// Loading Models
 	std::string basePathStr = tre::Utility::getBasePathStr();													
-	pfd::open_file f = pfd::open_file("Choose files to read", basePathStr,
-		{
-			"All Files", "*" ,
-			"glTF Files (.gltf)", "*.gltf",
-			"obj Files (.obj)", "*.obj",
-		},
-		pfd::opt::force_path
-		);
+	//pfd::open_file f = pfd::open_file("Choose files to read", basePathStr,
+	//	{
+	//		"All Files", "*" ,
+	//		"glTF Files (.gltf)", "*.gltf",
+	//		"obj Files (.obj)", "*.obj",
+	//	},
+	//	pfd::opt::force_path
+	//);
 
-	if (f.result().size()) {
-		ml->load(device->device.Get(), f.result()[0]);
+	//if (f.result().size()) {
+	//	ml->load(device->device.Get(), f.result()[0]);
 
-		for (int i = 0; i < ml->_objectWithMesh.size(); i++) {
-			tre::Object* pObj = ml->_objectWithMesh[i];
-			scene->_pObjQ.push_back(pObj);
-		}
-	}
+	//	for (int i = 0; i < ml->_objectWithMesh.size(); i++) {
+	//		tre::Object* pObj = ml->_objectWithMesh[i];
+	//		scene->_pObjQ.push_back(pObj);
+	//	}
+	//}
 
 	// Stats Update
 	for (int i = 0; i < scene->_pObjQ.size(); i++) {
@@ -154,7 +154,7 @@ void Engine::run() {
 	tf::Executor executor;
 
 	// main loop
-	while (!input->shouldQuit())
+	//while (!input->shouldQuit())
 	{
 		MICROPROFILE_SCOPE_CSTR("Frame");
 
@@ -168,6 +168,8 @@ void Engine::run() {
 		scene->update(*graphics, *cam);
 		
 		taskflow.emplace(
+			[this]() { rendererCSM->render(*graphics, *scene, *cam); },
+			[this]() { rendererGBuffer->render(*graphics, *scene, *cam); },
 			[this]() { rendererSSAO->render(*graphics, *scene, *cam); },
 			[this]() { rendererEnvLighting->render(*graphics, *scene, *cam); },
 			[this]() { rendererTransparency->render(*graphics, *scene, *cam); },
@@ -175,12 +177,13 @@ void Engine::run() {
 			[this]() { computerPtLight->compute(*graphics, *scene, *cam); },
 			[this]() { rendererTonemap->render(*graphics); },
 			[this]() { computerHDR->compute(*graphics); },
-			[this]() { computerBloom->compute(*graphics); }
+			[this]() { computerBloom->compute(*graphics); },
+			[this]() { rendererWireframe->render(*graphics, *cam, *scene); }
 		);
 
 		{
-			rendererCSM->render(*graphics, *scene, *cam);
-			rendererGBuffer->render(*graphics, *scene, *cam);
+			//rendererCSM->render(*graphics, *scene, *cam);
+			//rendererGBuffer->render(*graphics, *scene, *cam);
 			//rendererSSAO->render(*graphics, *scene, *cam);
 			//rendererEnvLighting->render(*graphics, *scene, *cam);
 			//rendererTransparency->render(*graphics, *scene, *cam);
@@ -189,11 +192,10 @@ void Engine::run() {
 			//computerHDR->compute(*graphics);
 			//computerBloom->compute(*graphics);
 			//rendererTonemap->render(*graphics);
-			rendererWireframe->render(*graphics, *cam, *scene);
+			//rendererWireframe->render(*graphics, *cam, *scene);
 		}
 
-		executor.run(taskflow).wait();
-		// to wait for all threads to finish before execute
+		executor.run(taskflow).wait();	// to wait for all threads to finish before execute
 		executeCommandList();
 
 		imguihelper->render();
@@ -203,6 +205,7 @@ void Engine::run() {
 		profiler->recordFrame();
 		profiler->storeToDisk(control->toDumpFile);
 	}
+	graphics->clean();
 }
 
 void Engine::close() {

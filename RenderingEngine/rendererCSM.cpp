@@ -31,10 +31,10 @@ void RendererCSM::drawInstanced(Graphics& graphics, const std::vector<std::pair<
 	// Profiling
 	const char* name = ToString(RENDER_MODE::INSTANCED_SHADOW_M);
 	MICROPROFILE_SCOPE_CSTR(name);
-	PROFILE_GPU_SCOPED("CSM Instanced Draw");
+	//PROFILE_GPU_SCOPED("CSM Instanced Draw");
 
 	// Update structured buffer for instanced draw call
-	graphics._instanceBufferCSM[csmIdx].updateBuffer(objQ);
+	graphics._instanceBufferCSM[csmIdx].updateBuffer(objQ, contextD.Get());
 
 	// Configure context for CMS Drawc call
 	{
@@ -103,7 +103,7 @@ void RendererCSM::render(Graphics& graphics, Scene& scene, const Camera& cam) {
 
 	ID3D11Buffer* constBufferCSMViewProj = tre::Buffer::createConstBuffer(pEngine->device->device.Get(), (UINT)sizeof(tre::ViewProjectionStruct));
 	{
-		PROFILE_GPU_SCOPED("CSM Quad Draw");
+		//PROFILE_GPU_SCOPED("CSM Quad Draw");
 
 		for (int viewIdx = 0; viewIdx < 4; viewIdx++) {
 
