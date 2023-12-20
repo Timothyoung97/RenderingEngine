@@ -37,7 +37,11 @@ void ComputerHDR::setConstBufferLuminSetting(Graphics& graphics) {
 		tre::Buffer::updateConstBufferData(contextD.Get(), constBufferLuminanceSetting, &luminStruct, (UINT)sizeof(tre::LuminanceStruct));
 		contextD.Get()->CSSetConstantBuffers(0u, 1u, &constBufferLuminanceSetting);
 	}
-	graphics.bufferQueue.push_back(constBufferLuminanceSetting);
+
+	{
+		std::lock_guard<std::mutex> lock(graphics.bufferQueueMutex);
+		graphics.bufferQueue.push_back(constBufferLuminanceSetting);
+	}
 }
 
 void ComputerHDR::dispatchHistogram(const Graphics& graphics){
@@ -45,7 +49,7 @@ void ComputerHDR::dispatchHistogram(const Graphics& graphics){
 	contextD.Get()->CSSetShaderResources(0u, 1u, graphics._hdrBuffer.pShaderResViewHdrTexture.GetAddressOf());
 	contextD.Get()->CSSetUnorderedAccessViews(0u, 1u, graphics._hdrBuffer.pLuminHistogramUAV.GetAddressOf(), nullptr);
 	{
-		PROFILE_GPU_SCOPED("Compute Shader Luminace Histogram");
+		//PROFILE_GPU_SCOPED("Compute Shader Luminace Histogram");
 		contextD.Get()->Dispatch(tre::Maths::divideAndRoundUp(SCREEN_WIDTH, 16u), tre::Maths::divideAndRoundUp(SCREEN_HEIGHT, 16u), 1u);
 	}
 	contextD.Get()->CSSetShaderResources(0u, 1u, graphics.nullSRV);
@@ -57,7 +61,7 @@ void ComputerHDR::dispatchAverage(const Graphics& graphics){
 	contextD.Get()->CSSetUnorderedAccessViews(0u, 1, graphics._hdrBuffer.pLuminHistogramUAV.GetAddressOf(), nullptr);
 	contextD.Get()->CSSetUnorderedAccessViews(1u, 1, graphics._hdrBuffer.pLuminAvgUAV.GetAddressOf(), nullptr);
 	{
-		PROFILE_GPU_SCOPED("Compute Shader Luminace Average");
+		//PROFILE_GPU_SCOPED("Compute Shader Luminace Average");
 		contextD.Get()->Dispatch(1u, 1u, 1u);
 	}
 	contextD.Get()->CSSetUnorderedAccessViews(0u, 1, graphics.nullUAV, nullptr);
@@ -67,8 +71,7 @@ void ComputerHDR::dispatchAverage(const Graphics& graphics){
 void ComputerHDR::compute(Graphics& graphics) {
 	contextD.Get()->OMSetRenderTargets(0, nullptr, nullptr);
 	// Luminance Histogram
-	PROFILE_GPU_SCOPED("HDR Compute");
-	PROFILE_GPU_SCOPED("HDR Compute");
+	//PROFILE_GPU_SCOPED("HDR Compute");
 	setConstBufferLuminSetting(graphics);
 	dispatchHistogram(graphics);
 	dispatchAverage(graphics);

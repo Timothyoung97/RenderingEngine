@@ -49,7 +49,11 @@ void RendererWireframe::setConstBufferCamViewProj(Graphics& graphic, const Camer
 
 		contextD.Get()->VSSetConstantBuffers(0u, 1u, &constBufferCamViewProj);
 	}
-	graphic.bufferQueue.push_back(constBufferCamViewProj);
+
+	{
+		std::lock_guard<std::mutex> lock(graphic.bufferQueueMutex);
+		graphic.bufferQueue.push_back(constBufferCamViewProj);
+	}
 }
 
 void RendererWireframe::draw(Graphics& graphics, const std::vector<Object*>& objQ) {
@@ -117,6 +121,7 @@ void RendererWireframe::draw(Graphics& graphics, const std::vector<Object*>& obj
 
 	// push into buffer for cleaning in the next frame
 	{
+		std::lock_guard<std::mutex> lock(graphics.bufferQueueMutex);
 		graphics.bufferQueue.push_back(constBufferModelInfo);
 	}
 }
@@ -173,6 +178,7 @@ void RendererWireframe::drawInstanced(Graphics& graphics, const std::vector<Obje
 
 	// push into buffer for cleaning in the next frame
 	{
+		std::lock_guard<std::mutex> lock(graphics.bufferQueueMutex);
 		graphics.bufferQueue.push_back(constBufferBatchInfo);
 	}
 

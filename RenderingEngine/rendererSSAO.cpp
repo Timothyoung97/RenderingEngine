@@ -31,7 +31,7 @@ void RendererSSAO::fullscreenPass(Graphics& graphics, const Scene& scene, const 
 
 	const char* name = ToString(RENDER_MODE::SSAO_FULLSCREEN_PASS);
 	MICROPROFILE_SCOPE_CSTR(name);
-	PROFILE_GPU_SCOPED("Fullscreen Pass");
+	//PROFILE_GPU_SCOPED("Fullscreen Pass");
 
 	// set const buffer for global info
 	ID3D11Buffer* constBufferGlobalInfo = tre::Buffer::createConstBuffer(pEngine->device->device.Get(), (UINT)sizeof(tre::GlobalInfoStruct));
@@ -77,6 +77,7 @@ void RendererSSAO::fullscreenPass(Graphics& graphics, const Scene& scene, const 
 
 	// clean up
 	{
+		std::lock_guard<std::mutex> lock(graphics.bufferQueueMutex);
 		graphics.bufferQueue.push_back(constBufferGlobalInfo);
 		graphics.bufferQueue.push_back(constBufferSSAOKernal);
 	}
@@ -87,7 +88,7 @@ void RendererSSAO::fullscreenBlurPass(const Graphics& graphics) {
 
 	const char* name = ToString(RENDER_MODE::SSAO_BLURRING_PASS);
 	MICROPROFILE_SCOPE_CSTR(name);
-	PROFILE_GPU_SCOPED("Fullscreen Pass");
+	//PROFILE_GPU_SCOPED("Fullscreen Pass");
 
 	{
 		contextD.Get()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -115,7 +116,7 @@ void RendererSSAO::fullscreenBlurPass(const Graphics& graphics) {
 
 void RendererSSAO::render(Graphics& graphics, const Scene& scene, const Camera& cam) {
 	MICROPROFILE_SCOPE_CSTR("CPU SSAO PASS");
-	PROFILE_GPU_SCOPED("GPU SSAO Pass");
+	//PROFILE_GPU_SCOPED("GPU SSAO Pass");
 	fullscreenPass(graphics, scene, cam);
 	fullscreenBlurPass(graphics);
 

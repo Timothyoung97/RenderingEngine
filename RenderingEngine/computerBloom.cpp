@@ -21,7 +21,7 @@ void ComputerBloom::init() {
 }
 
 void ComputerBloom::singleDownsample(Graphics& graphics, ID3D11Resource* pSampleTexture, ID3D11Resource* pDownsampleTexture, XMINT2 sampleViewDimension) {
-	PROFILE_GPU_SCOPED("Bloom Single Downsample");
+	//PROFILE_GPU_SCOPED("Bloom Single Downsample");
 	MICROPROFILE_SCOPE_CSTR("Bloom Single Downsample");
 
 	// create shader resource view for initial hdr texture
@@ -72,14 +72,15 @@ void ComputerBloom::singleDownsample(Graphics& graphics, ID3D11Resource* pSample
 
 	// clean up
 	{
-		graphics.bufferQueue.push_back(consBufferBloomConfig);
 		contextD.Get()->CSSetShaderResources(0u, 1u, graphics.nullSRV);
 		contextD.Get()->CSSetUnorderedAccessViews(0, 1u, graphics.nullUAV, nullptr);
+		std::lock_guard<std::mutex> lock(graphics.bufferQueueMutex);
+		graphics.bufferQueue.push_back(consBufferBloomConfig);
 	}
 }
 
 void ComputerBloom::downsample(Graphics& graphics) {
-	PROFILE_GPU_SCOPED("Bloom Downsample");
+	//PROFILE_GPU_SCOPED("Bloom Downsample");
 	MICROPROFILE_SCOPE_CSTR("Bloom Downsample");
 
 	int writeIdx = 0;
@@ -97,7 +98,7 @@ void ComputerBloom::downsample(Graphics& graphics) {
 }
 
 void ComputerBloom::singleUpsample(Graphics& graphics, ID3D11Resource* pSampleTexture, ID3D11Resource* pUpsampleTexture, XMINT2 sampleViewDimension) {
-	PROFILE_GPU_SCOPED("Bloom Single Upsample");
+	//PROFILE_GPU_SCOPED("Bloom Single Upsample");
 	MICROPROFILE_SCOPE_CSTR("Bloom Single Upsample");
 
 	// create shader resource view for initial hdr texture
@@ -147,14 +148,15 @@ void ComputerBloom::singleUpsample(Graphics& graphics, ID3D11Resource* pSampleTe
 
 	// clean up
 	{
-		graphics.bufferQueue.push_back(consBufferBloomConfig);
 		contextD.Get()->CSSetShaderResources(0u, 1u, graphics.nullSRV);
 		contextD.Get()->CSSetUnorderedAccessViews(0, 1u, graphics.nullUAV, nullptr);
+		std::lock_guard<std::mutex> lock(graphics.bufferQueueMutex);
+		graphics.bufferQueue.push_back(consBufferBloomConfig);
 	}
 }
 
 void ComputerBloom::upsample(Graphics& graphics) {
-	PROFILE_GPU_SCOPED("Bloom Upsample");
+	//PROFILE_GPU_SCOPED("Bloom Upsample");
 	MICROPROFILE_SCOPE_CSTR("Bloom Upsample");
 
 	int writeIdx = 1;
@@ -172,7 +174,7 @@ void ComputerBloom::upsample(Graphics& graphics) {
 }
 
 void ComputerBloom::compute(Graphics& graphics) {
-	PROFILE_GPU_SCOPED("Bloom Compute");
+	//PROFILE_GPU_SCOPED("Bloom Compute");
 	MICROPROFILE_SCOPE_CSTR("Bloom Compute");
 	downsample(graphics);
 	upsample(graphics);

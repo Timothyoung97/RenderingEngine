@@ -94,6 +94,7 @@ void RendererCSM::drawInstanced(Graphics& graphics, const std::vector<std::pair<
 
 	// Pushing used const buffer to queue for cleaning
 	{
+		std::lock_guard<std::mutex> lock(graphics.bufferQueueMutex);
 		graphics.bufferQueue.push_back(constBufferBatchInfo);
 	}
 }
@@ -132,6 +133,7 @@ void RendererCSM::render(Graphics& graphics, Scene& scene, const Camera& cam) {
 
 	// Pushing used const buffer to queue for cleaning
 	{
+		std::lock_guard<std::mutex> lock(graphics.bufferQueueMutex);
 		graphics.bufferQueue.push_back(constBufferCSMViewProj);
 	}
 

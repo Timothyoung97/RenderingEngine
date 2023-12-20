@@ -50,11 +50,13 @@ void Graphics::init() {
 
 void Graphics::clean() {
 	MICROPROFILE_SCOPE_CSTR("Clean Up");
-
-	while (!bufferQueue.empty()) {
-		ID3D11Buffer* currBuffer = bufferQueue.back();
-		bufferQueue.pop_back();
-		currBuffer->Release();
+	{
+		std::lock_guard<std::mutex> lock(bufferQueueMutex);
+		while (!bufferQueue.empty()) {
+			ID3D11Buffer* currBuffer = bufferQueue.back();
+			bufferQueue.pop_back();
+			currBuffer->Release();
+		}
 	}
 
 	pEngine->device->contextI.Get()->ClearState();

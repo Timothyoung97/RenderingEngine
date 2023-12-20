@@ -97,6 +97,7 @@ void RendererGBuffer::render(Graphics& graphics, Scene& scene, Camera& cam) {
 
 	// clean up
 	{
+		std::lock_guard<std::mutex> lock(graphics.bufferQueueMutex);
 		graphics.bufferQueue.push_back(constBufferCamViewProj);
 		graphics.bufferQueue.push_back(constBufferBatchInfo);
 	}

@@ -22,7 +22,7 @@ void RendererTransparency::render(Graphics& graphics, const Scene& scene, const 
 
 	const char* name = ToString(RENDER_MODE::TRANSPARENT_M);
 	MICROPROFILE_SCOPE_CSTR(name);
-	PROFILE_GPU_SCOPED("Forward Tranparent Draw");
+	//PROFILE_GPU_SCOPED("Forward Tranparent Draw");
 
 	// set const buffer for global info
 	ID3D11Buffer* constBufferGlobalInfo = tre::Buffer::createConstBuffer(pEngine->device->device.Get(), (UINT)sizeof(tre::GlobalInfoStruct));
@@ -95,6 +95,7 @@ void RendererTransparency::render(Graphics& graphics, const Scene& scene, const 
 
 	// clean up
 	{
+		std::lock_guard<std::mutex> lock(graphics.bufferQueueMutex);
 		graphics.bufferQueue.push_back(constBufferGlobalInfo);
 		graphics.bufferQueue.push_back(constBufferModelInfo);
 	}

@@ -20,7 +20,7 @@ void RendererEnvironmentLighting::init() {
 void RendererEnvironmentLighting::render(Graphics& graphics, const Scene& scene, const Camera& cam) {
 	const char* name = ToString(RENDER_MODE::DEFERRED_OPAQUE_LIGHTING_ENV_M);
 	MICROPROFILE_SCOPE_CSTR(name);
-	PROFILE_GPU_SCOPED("Deferred Environment Lighting Pass");
+	//PROFILE_GPU_SCOPED("Deferred Environment Lighting Pass");
 
 	// set const buffer for global info
 	ID3D11Buffer* constBufferGlobalInfo = tre::Buffer::createConstBuffer(pEngine->device->device.Get(), (UINT)sizeof(tre::GlobalInfoStruct));
@@ -58,6 +58,7 @@ void RendererEnvironmentLighting::render(Graphics& graphics, const Scene& scene,
 	contextD.Get()->Draw(6, 0);
 
 	{
+		std::lock_guard<std::mutex> lock(graphics.bufferQueueMutex);
 		graphics.bufferQueue.push_back(constBufferGlobalInfo);
 	}
 

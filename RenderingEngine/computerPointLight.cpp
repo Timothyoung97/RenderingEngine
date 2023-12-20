@@ -32,13 +32,14 @@ void ComputerPointLight::compute(Graphics& graphics, const Scene& scene, const C
 	contextD.Get()->CSSetConstantBuffers(0u, 1u, &constBufferGlobalInfo);
 	contextD.Get()->CSSetUnorderedAccessViews(0, 1, scene.lightResc.pLightUnorderedAccessView.GetAddressOf(), nullptr);
 	{
-		PROFILE_GPU_SCOPED("Point Light Position Compute");
+		//PROFILE_GPU_SCOPED("Point Light Position Compute");
 		contextD.Get()->Dispatch(tre::Maths::divideAndRoundUp(scene.lightResc.numOfLights, 4u), 1u, 1u);
 	}
 
 	// Clean up
 	{
 		contextD.Get()->CSSetUnorderedAccessViews(0, 1, graphics.nullUAV, nullptr);
+		std::lock_guard<std::mutex> lock(graphics.bufferQueueMutex);
 		graphics.bufferQueue.push_back(constBufferGlobalInfo);
 	}
 

@@ -22,7 +22,7 @@ void RendererLocalLighting::render(Graphics& graphics, const Scene& scene, const
 
 	const char* name = ToString(DEFERRED_LIGHTING_LOCAL_M);
 	MICROPROFILE_SCOPE_CSTR(name);
-	PROFILE_GPU_SCOPED("Deferred Local Light Draw");
+	//PROFILE_GPU_SCOPED("Deferred Local Light Draw");
 
 	// set const buffer for global info
 	ID3D11Buffer* constBufferGlobalInfo = tre::Buffer::createConstBuffer(pEngine->device->device.Get(), (UINT)sizeof(tre::GlobalInfoStruct));
@@ -98,6 +98,7 @@ void RendererLocalLighting::render(Graphics& graphics, const Scene& scene, const
 
 	// clean up
 	{
+		std::lock_guard<std::mutex> lock(graphics.bufferQueueMutex);
 		graphics.bufferQueue.push_back(constBufferGlobalInfo);
 		graphics.bufferQueue.push_back(constBufferModelInfo);
 		graphics.bufferQueue.push_back(constBufferPtLightInfo);

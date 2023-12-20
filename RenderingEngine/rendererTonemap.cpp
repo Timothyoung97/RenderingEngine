@@ -35,13 +35,17 @@ void RendererTonemap::setConstBufferTonemap(Graphics& graphics) {
 		tre::Buffer::updateConstBufferData(contextD.Get(), constBufferTonemap, &tonemapStruct, (UINT)sizeof(tre::TonemapStruct));
 		contextD.Get()->PSSetConstantBuffers(0u, 1u, &constBufferTonemap);
 	}
-	graphics.bufferQueue.push_back(constBufferTonemap);
+
+	{
+		std::lock_guard<std::mutex> lock(graphics.bufferQueueMutex);
+		graphics.bufferQueue.push_back(constBufferTonemap);
+	}
 }
 
 void RendererTonemap::fullscreenPass(const Graphics& graphics) {
 	const char* name = ToString(RENDER_MODE::TONE_MAPPING_PASS);
 	MICROPROFILE_SCOPE_CSTR(name);
-	PROFILE_GPU_SCOPED("Tone Mapping Fullscreen Pass");
+	//PROFILE_GPU_SCOPED("Tone Mapping Fullscreen Pass");
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC sampleBloomTextureSRVDesc;
 	sampleBloomTextureSRVDesc.Format = DXGI_FORMAT_R11G11B10_FLOAT;
@@ -77,7 +81,7 @@ void RendererTonemap::fullscreenPass(const Graphics& graphics) {
 }
 
 void RendererTonemap::render(Graphics& graphics) {
-	PROFILE_GPU_SCOPED("Tonemap");
+	//PROFILE_GPU_SCOPED("Tonemap");
 	MICROPROFILE_SCOPE_CSTR("Tonemap");
 	setConstBufferTonemap(graphics);
 	fullscreenPass(graphics);

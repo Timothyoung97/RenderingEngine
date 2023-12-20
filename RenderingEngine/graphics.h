@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <mutex>
 
 #include "device.h"
 #include "object.h"
@@ -110,6 +111,7 @@ public:
 	ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
 
 	std::vector<ID3D11Buffer*> bufferQueue;
+	std::mutex bufferQueueMutex;
 
 	// Misc
 	GraphicsSetting setting;

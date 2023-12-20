@@ -168,20 +168,27 @@ void Engine::run() {
 		scene->update(*graphics, *cam);
 		
 		taskflow.emplace(
-			[this]() { rendererCSM->render(*graphics, *scene, *cam); }
+			[this]() { rendererSSAO->render(*graphics, *scene, *cam); },
+			[this]() { rendererEnvLighting->render(*graphics, *scene, *cam); },
+			[this]() { rendererTransparency->render(*graphics, *scene, *cam); },
+			[this]() { rendererLocalLighting->render(*graphics, *scene, *cam); },
+			[this]() { computerPtLight->compute(*graphics, *scene, *cam); },
+			[this]() { rendererTonemap->render(*graphics); },
+			[this]() { computerHDR->compute(*graphics); },
+			[this]() { computerBloom->compute(*graphics); }
 		);
 
 		{
-			//rendererCSM->render(*graphics, *scene, *cam);
+			rendererCSM->render(*graphics, *scene, *cam);
 			rendererGBuffer->render(*graphics, *scene, *cam);
-			rendererSSAO->render(*graphics, *scene, *cam);
-			rendererEnvLighting->render(*graphics, *scene, *cam);
-			rendererTransparency->render(*graphics, *scene, *cam);
-			rendererLocalLighting->render(*graphics, *scene, *cam);
-			computerPtLight->compute(*graphics, *scene, *cam);
-			computerHDR->compute(*graphics);
-			computerBloom->compute(*graphics);
-			rendererTonemap->render(*graphics);
+			//rendererSSAO->render(*graphics, *scene, *cam);
+			//rendererEnvLighting->render(*graphics, *scene, *cam);
+			//rendererTransparency->render(*graphics, *scene, *cam);
+			//rendererLocalLighting->render(*graphics, *scene, *cam);
+			//computerPtLight->compute(*graphics, *scene, *cam);
+			//computerHDR->compute(*graphics);
+			//computerBloom->compute(*graphics);
+			//rendererTonemap->render(*graphics);
 			rendererWireframe->render(*graphics, *cam, *scene);
 		}
 
