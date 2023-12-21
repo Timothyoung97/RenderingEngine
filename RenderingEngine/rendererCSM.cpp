@@ -79,14 +79,8 @@ void RendererCSM::drawInstanced(Graphics& graphics, const std::vector<std::pair<
 
 		// Update texture information
 		contextD.Get()->PSSetShaderResources(0u, 1u, graphics.nullSRV);
-		if (currBatchInfo.isWithTexture) {
-			contextD.Get()->PSSetShaderResources(0u, 1u, currBatchInfo.pBatchTexture->pShaderResView.GetAddressOf());
-		}
 
 		contextD.Get()->PSSetShaderResources(1u, 1u, graphics.nullSRV);
-		if (currBatchInfo.hasNormMap) {
-			contextD.Get()->PSSetShaderResources(1u, 1u, currBatchInfo.pBatchNormalMap->pShaderResView.GetAddressOf());
-		}
 
 		// Draw call
 		contextD.Get()->DrawIndexedInstanced(currBatchInfo.pBatchMesh->indexSize, currBatchInfo.quantity, 0u, 0u, 0u);
