@@ -109,7 +109,7 @@ void RendererGBuffer::render(Graphics& graphics, Scene& scene, Camera& cam) {
 
 			ComPtr<ID3D11ShaderResourceView> pNormalTextureSRV;
 			CHECK_DX_ERROR(pEngine->device->device.Get()->CreateShaderResourceView(
-				currBatchInfo.pBatchTexture->pTextureResource.Get(), &shaderResViewDesc, pNormalTextureSRV.GetAddressOf()
+				currBatchInfo.pBatchNormalMap->pTextureResource.Get(), &shaderResViewDesc, pNormalTextureSRV.GetAddressOf()
 			));
 
 			contextD.Get()->PSSetShaderResources(1u, 1u, pNormalTextureSRV.GetAddressOf());
