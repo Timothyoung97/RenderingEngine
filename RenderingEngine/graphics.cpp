@@ -56,7 +56,19 @@ void Graphics::clean() {
 	}
 
 	pEngine->device->contextI.Get()->ClearState();
-	pEngine->device->contextI.Get()->ClearRenderTargetView(_ssao.ssaoBlurredTexture2dRTV.Get(), Colors::Transparent);
+	{
+		ComPtr<ID3D11RenderTargetView> ssaoBlurredTexture2dRTV;
+		D3D11_RENDER_TARGET_VIEW_DESC ssaoResultTexture2dRTVDesc;
+		ZeroMemory(&ssaoResultTexture2dRTVDesc, sizeof(D3D11_RENDER_TARGET_VIEW_DESC));
+		ssaoResultTexture2dRTVDesc.Format = DXGI_FORMAT_R8_UNORM;
+		ssaoResultTexture2dRTVDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+		ssaoResultTexture2dRTVDesc.Texture2D.MipSlice = 0;
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateRenderTargetView(
+			_ssao.ssaoBlurredTexture2d.Get(), &ssaoResultTexture2dRTVDesc, ssaoBlurredTexture2dRTV.GetAddressOf()
+		));
+		pEngine->device->contextI.Get()->ClearRenderTargetView(ssaoBlurredTexture2dRTV.Get(), Colors::Transparent);
+	}
 	pEngine->device->contextI.Get()->ClearRenderTargetView(_gBuffer.pRenderTargetViewDeferredAlbedo.Get(), tre::BACKGROUND_BLACK);
 	pEngine->device->contextI.Get()->ClearRenderTargetView(_gBuffer.pRenderTargetViewDeferredNormal.Get(), tre::BACKGROUND_BLACK);
 	pEngine->device->contextI.Get()->ClearRenderTargetView(_hdrBuffer.pRenderTargetViewHdrTexture.Get(), Colors::Transparent);

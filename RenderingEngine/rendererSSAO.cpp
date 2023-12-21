@@ -48,6 +48,20 @@ void RendererSSAO::fullscreenPass(Graphics& graphics, const Scene& scene, const 
 		tre::Buffer::updateConstBufferData(contextD.Get(), constBufferSSAOKernal, &ssaoKernalStruct, (UINT)sizeof(tre::SSAOKernalStruct));
 	}
 
+	// View Creations
+	ComPtr<ID3D11RenderTargetView> ssaoResultTexture2dRTV;
+	{
+		D3D11_RENDER_TARGET_VIEW_DESC ssaoResultTexture2dRTVDesc;
+		ZeroMemory(&ssaoResultTexture2dRTVDesc, sizeof(D3D11_RENDER_TARGET_VIEW_DESC));
+		ssaoResultTexture2dRTVDesc.Format = DXGI_FORMAT_R8_UNORM;
+		ssaoResultTexture2dRTVDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+		ssaoResultTexture2dRTVDesc.Texture2D.MipSlice = 0;
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateRenderTargetView(
+			graphics._ssao.ssaoResultTexture2d.Get(), &ssaoResultTexture2dRTVDesc, ssaoResultTexture2dRTV.GetAddressOf()
+		));
+	}
+
 	// Context Configuration
 	{
 		contextD.Get()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -70,7 +84,7 @@ void RendererSSAO::fullscreenPass(Graphics& graphics, const Scene& scene, const 
 
 		contextD.Get()->OMSetBlendState(graphics._blendstate.opaque.Get(), NULL, 0xffffffff);
 		contextD.Get()->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0); // by default: read only depth test
-		contextD.Get()->OMSetRenderTargets(1, graphics._ssao.ssaoResultTexture2dRTV.GetAddressOf(), nullptr);
+		contextD.Get()->OMSetRenderTargets(1, ssaoResultTexture2dRTV.GetAddressOf(), nullptr);
 	}
 
 	contextD.Get()->Draw(6, 0);
@@ -90,6 +104,29 @@ void RendererSSAO::fullscreenBlurPass(const Graphics& graphics) {
 	MICROPROFILE_SCOPE_CSTR(name);
 	//PROFILE_GPU_SCOPED("Fullscreen Pass");
 
+	ComPtr<ID3D11ShaderResourceView> ssaoResultTexture2dSRV;
+	ComPtr<ID3D11RenderTargetView> ssaoBlurredTexture2dRTV;
+	{
+		D3D11_SHADER_RESOURCE_VIEW_DESC ssaoResultTexture2dSRVDesc;
+		ssaoResultTexture2dSRVDesc.Format = DXGI_FORMAT_R8_UNORM;
+		ssaoResultTexture2dSRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		ssaoResultTexture2dSRVDesc.Texture2D = D3D11_TEX2D_SRV(0, 1);
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateShaderResourceView(
+			graphics._ssao.ssaoResultTexture2d.Get(), &ssaoResultTexture2dSRVDesc, ssaoResultTexture2dSRV.GetAddressOf()
+		));
+
+		D3D11_RENDER_TARGET_VIEW_DESC ssaoResultTexture2dRTVDesc;
+		ZeroMemory(&ssaoResultTexture2dRTVDesc, sizeof(D3D11_RENDER_TARGET_VIEW_DESC));
+		ssaoResultTexture2dRTVDesc.Format = DXGI_FORMAT_R8_UNORM;
+		ssaoResultTexture2dRTVDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+		ssaoResultTexture2dRTVDesc.Texture2D.MipSlice = 0;
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateRenderTargetView(
+			graphics._ssao.ssaoBlurredTexture2d.Get(), &ssaoResultTexture2dRTVDesc, ssaoBlurredTexture2dRTV.GetAddressOf()
+		));
+	}
+
 	{
 		contextD.Get()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		contextD.Get()->IASetInputLayout(nullptr);
@@ -100,7 +137,7 @@ void RendererSSAO::fullscreenBlurPass(const Graphics& graphics) {
 
 		contextD.Get()->OMSetRenderTargets(0, nullptr, nullptr);
 		contextD.Get()->PSSetShader(_textureBlurPixelShader.pShader.Get(), NULL, 0u);
-		contextD.Get()->PSSetShaderResources(6, 1, graphics._ssao.ssaoResultTexture2dSRV.GetAddressOf()); // normal
+		contextD.Get()->PSSetShaderResources(6, 1, ssaoResultTexture2dSRV.GetAddressOf()); // normal
 		contextD.Get()->PSSetSamplers(0, 1, graphics._sampler.pSamplerStateMinMagMipLinearWrap.GetAddressOf());
 		contextD.Get()->PSSetSamplers(1, 1, graphics._sampler.pSamplerStateMinMagMipLinearGreaterEqualBorder.GetAddressOf());
 		contextD.Get()->PSSetSamplers(2, 1, graphics._sampler.pSamplerStateMinMagMipPtWrap.GetAddressOf());
@@ -108,7 +145,7 @@ void RendererSSAO::fullscreenBlurPass(const Graphics& graphics) {
 
 		contextD.Get()->OMSetBlendState(graphics._blendstate.opaque.Get(), NULL, 0xffffffff);
 		contextD.Get()->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0); // by default: read only depth test
-		contextD.Get()->OMSetRenderTargets(1, graphics._ssao.ssaoBlurredTexture2dRTV.GetAddressOf(), nullptr);
+		contextD.Get()->OMSetRenderTargets(1, ssaoBlurredTexture2dRTV.GetAddressOf(), nullptr);
 	}
 
 	contextD.Get()->Draw(6, 0);
