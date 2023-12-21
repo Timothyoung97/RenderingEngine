@@ -38,7 +38,6 @@ class InstanceBuffer {
 public:
 	ID3D11Device* _device;
 
-	ComPtr<ID3D11Buffer> pStagingInstanceBuffer;
 	ComPtr<ID3D11Buffer> pInstanceBuffer;
 	ComPtr<ID3D11ShaderResourceView> pInstanceBufferSRV;
 
