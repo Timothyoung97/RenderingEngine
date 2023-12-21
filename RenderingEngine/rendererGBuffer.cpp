@@ -83,12 +83,36 @@ void RendererGBuffer::render(Graphics& graphics, Scene& scene, Camera& cam) {
 		// Update texture information
 		contextD.Get()->PSSetShaderResources(0u, 1u, graphics.nullSRV);
 		if (currBatchInfo.isWithTexture) {
-			contextD.Get()->PSSetShaderResources(0u, 1u, currBatchInfo.pBatchTexture->pShaderResView.GetAddressOf());
+
+			// Create Shader Resource view
+			D3D11_SHADER_RESOURCE_VIEW_DESC shaderResViewDesc;
+			shaderResViewDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			shaderResViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+			shaderResViewDesc.Texture2D = D3D11_TEX2D_SRV(0, -1);
+
+			ComPtr<ID3D11ShaderResourceView> pTextureSRV;
+			CHECK_DX_ERROR(pEngine->device->device.Get()->CreateShaderResourceView(
+				currBatchInfo.pBatchTexture->pTextureResource.Get(), &shaderResViewDesc, pTextureSRV.GetAddressOf()
+			));
+
+			contextD.Get()->PSSetShaderResources(0u, 1u, pTextureSRV.GetAddressOf());
 		}
 
 		contextD.Get()->PSSetShaderResources(1u, 1u, graphics.nullSRV);
 		if (currBatchInfo.hasNormMap) {
-			contextD.Get()->PSSetShaderResources(1u, 1u, currBatchInfo.pBatchNormalMap->pShaderResView.GetAddressOf());
+
+			// Create Shader Resource view
+			D3D11_SHADER_RESOURCE_VIEW_DESC shaderResViewDesc;
+			shaderResViewDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			shaderResViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+			shaderResViewDesc.Texture2D = D3D11_TEX2D_SRV(0, -1);
+
+			ComPtr<ID3D11ShaderResourceView> pNormalTextureSRV;
+			CHECK_DX_ERROR(pEngine->device->device.Get()->CreateShaderResourceView(
+				currBatchInfo.pBatchTexture->pTextureResource.Get(), &shaderResViewDesc, pNormalTextureSRV.GetAddressOf()
+			));
+
+			contextD.Get()->PSSetShaderResources(1u, 1u, pNormalTextureSRV.GetAddressOf());
 		}
 
 		// Draw call

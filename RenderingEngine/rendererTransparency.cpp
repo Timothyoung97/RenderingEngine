@@ -74,13 +74,36 @@ void RendererTransparency::render(Graphics& graphics, const Scene& scene, const 
 		bool hasTexture = 0;
 		bool hasNormal = 0;
 		if (scene._culledTransparentObjQ[i].second->pMaterial->objTexture != nullptr) {
-			contextD.Get()->PSSetShaderResources(0, 1, scene._culledTransparentObjQ[i].second->pMaterial->objTexture->pShaderResView.GetAddressOf());
+			// Create Shader Resource view
+			D3D11_SHADER_RESOURCE_VIEW_DESC shaderResViewDesc;
+			shaderResViewDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			shaderResViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+			shaderResViewDesc.Texture2D = D3D11_TEX2D_SRV(0, -1);
+
+			ComPtr<ID3D11ShaderResourceView> pTextureSRV;
+			CHECK_DX_ERROR(pEngine->device->device.Get()->CreateShaderResourceView(
+				scene._culledTransparentObjQ[i].second->pMaterial->objTexture->pTextureResource.Get(), &shaderResViewDesc, pTextureSRV.GetAddressOf()
+			));
+
+			contextD.Get()->PSSetShaderResources(0, 1, pTextureSRV.GetAddressOf());
 			hasTexture = 1;
 		}
 
 		// set normal map
 		if (scene._culledTransparentObjQ[i].second->pMaterial->objNormalMap != nullptr) {
-			contextD.Get()->PSSetShaderResources(1, 1, scene._culledTransparentObjQ[i].second->pMaterial->objNormalMap->pShaderResView.GetAddressOf());
+
+			// Create Shader Resource view
+			D3D11_SHADER_RESOURCE_VIEW_DESC shaderResViewDesc;
+			shaderResViewDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			shaderResViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+			shaderResViewDesc.Texture2D = D3D11_TEX2D_SRV(0, -1);
+
+			ComPtr<ID3D11ShaderResourceView> pNormalTextureSRV;
+			CHECK_DX_ERROR(pEngine->device->device.Get()->CreateShaderResourceView(
+				scene._culledTransparentObjQ[i].second->pMaterial->objNormalMap->pTextureResource.Get(), &shaderResViewDesc, pNormalTextureSRV.GetAddressOf()
+			));
+
+			contextD.Get()->PSSetShaderResources(1, 1, pNormalTextureSRV.GetAddressOf());
 			hasNormal = 1;
 		}
 

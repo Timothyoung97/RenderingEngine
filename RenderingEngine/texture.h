@@ -4,7 +4,6 @@
 #include <wrl/client.h>
 
 #include <string>
-#include <assimp/material.h>
 
 using Microsoft::WRL::ComPtr;
 
@@ -12,7 +11,7 @@ namespace tre {
 
 struct Texture {
 	bool hasAlphaChannel = false;
-	ComPtr<ID3D11ShaderResourceView> pShaderResView;
+	ComPtr<ID3D11Texture2D> pTextureResource;
 };
 
 class TextureLoader {
