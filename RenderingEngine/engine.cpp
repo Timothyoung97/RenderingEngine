@@ -117,23 +117,23 @@ void Engine::executeCommandList() {
 void Engine::run() {
 	// Loading Models
 	std::string basePathStr = tre::Utility::getBasePathStr();													
-	//pfd::open_file f = pfd::open_file("Choose files to read", basePathStr,
-	//	{
-	//		"All Files", "*" ,
-	//		"glTF Files (.gltf)", "*.gltf",
-	//		"obj Files (.obj)", "*.obj",
-	//	},
-	//	pfd::opt::force_path
-	//);
+	pfd::open_file f = pfd::open_file("Choose files to read", basePathStr,
+		{
+			"All Files", "*" ,
+			"glTF Files (.gltf)", "*.gltf",
+			"obj Files (.obj)", "*.obj",
+		},
+		pfd::opt::force_path
+	);
 
-	//if (f.result().size()) {
-	//	ml->load(device->device.Get(), f.result()[0]);
+	if (f.result().size()) {
+		ml->load(device->device.Get(), f.result()[0]);
 
-	//	for (int i = 0; i < ml->_objectWithMesh.size(); i++) {
-	//		tre::Object* pObj = ml->_objectWithMesh[i];
-	//		scene->_pObjQ.push_back(pObj);
-	//	}
-	//}
+		for (int i = 0; i < ml->_objectWithMesh.size(); i++) {
+			tre::Object* pObj = ml->_objectWithMesh[i];
+			scene->_pObjQ.push_back(pObj);
+		}
+	}
 
 	// Stats Update
 	for (int i = 0; i < scene->_pObjQ.size(); i++) {
@@ -154,7 +154,7 @@ void Engine::run() {
 	tf::Executor executor;
 
 	// main loop
-	//while (!input->shouldQuit())
+	while (!input->shouldQuit())
 	{
 		MICROPROFILE_SCOPE_CSTR("Frame");
 
@@ -205,7 +205,6 @@ void Engine::run() {
 		profiler->recordFrame();
 		profiler->storeToDisk(control->toDumpFile);
 	}
-	graphics->clean();
 }
 
 void Engine::close() {
@@ -227,6 +226,7 @@ void Engine::close() {
 	delete rendererTonemap;
 	delete computerBloom;
 
+	graphics->clean();
 	delete graphics;
 	
 	delete ml;
