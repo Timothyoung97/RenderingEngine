@@ -6,7 +6,6 @@
 #include "mesh.h"
 #include "device.h"
 #include "dxdebug.h"
-#include "maths.h"
 #include "utility.h"
 #include "scene.h"
 #include "colors.h"
