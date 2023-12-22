@@ -58,6 +58,15 @@ void Engine::init() {
 	control =  new Control;
 	imguihelper = new ImguiHelper;
 
+	renderers = {
+		rendererCSM, rendererGBuffer,
+		rendererSSAO, rendererEnvLighting,
+		rendererTransparency, rendererLocalLighting,
+		computerPtLight, computerHDR,
+		computerBloom, rendererTonemap,
+		rendererWireframe
+	};
+
 #ifdef _DEBUG
 	D3D11_FEATURE_DATA_THREADING featureCheckStruct;
 	CHECK_DX_ERROR(device->device.Get()->CheckFeatureSupport(
@@ -70,47 +79,20 @@ void Engine::init() {
 }
 
 void Engine::executeCommandList() {
-	device->contextI->ExecuteCommandList(rendererCSM->commandList, false);
-	rendererCSM->commandList->Release();
-
-	if (scene->_culledOpaqueObjQ[scene->camViewIdx].size()) {
-		device->contextI->ExecuteCommandList(rendererGBuffer->commandList, false);
-		rendererGBuffer->commandList->Release();
+	for(int i = 0; i < renderers.size(); i++) {
+		if (renderers[i]->commandList != nullptr) {
+			device->contextI->ExecuteCommandList(renderers[i]->commandList, false);
+		}
 	}
+}
 
-	if (graphics->setting.ssaoSwitch) {
-		device->contextI->ExecuteCommandList(rendererSSAO->commandList, false);
-		rendererSSAO->commandList->Release();
-	}
 
-	device->contextI->ExecuteCommandList(rendererEnvLighting->commandList, false);
-	rendererEnvLighting->commandList->Release();
-
-	if (scene->_culledTransparentObjQ.size()) {
-		device->contextI->ExecuteCommandList(rendererTransparency->commandList, false);
-		rendererTransparency->commandList->Release();
-	}
-
-	if (scene->lightResc.numOfLights) {
-		device->contextI->ExecuteCommandList(rendererLocalLighting->commandList, false);
-		rendererLocalLighting->commandList->Release();
-
-		device->contextI->ExecuteCommandList(computerPtLight->commandList, false);
-		computerPtLight->commandList->Release();
-	}
-
-	device->contextI->ExecuteCommandList(computerHDR->commandList, false);
-	computerHDR->commandList->Release();
-
-	device->contextI->ExecuteCommandList(computerBloom->commandList, false);
-	computerBloom->commandList->Release();
-
-	device->contextI->ExecuteCommandList(rendererTonemap->commandList, false);
-	rendererTonemap->commandList->Release();
-
-	if (graphics->setting.showBoundingVolume) {
-		device->contextI->ExecuteCommandList(rendererWireframe->commandList, false);
-		rendererWireframe->commandList->Release();
+void Engine::deleteCommandList() {
+	for (int i = 0; i < renderers.size(); i++) {
+		if (renderers[i]->commandList != nullptr) {
+			renderers[i]->commandList->Release();
+			renderers[i]->commandList = nullptr;
+		}
 	}
 }
 
@@ -151,7 +133,7 @@ void Engine::run() {
 	// Delta Time between frame
 	float deltaTime = 0;
 
-	tf::Executor executor;
+	tf::Executor executor(11);
 
 	// main loop
 	while (!input->shouldQuit())
@@ -165,7 +147,9 @@ void Engine::run() {
 		control->update(*input, *graphics, *scene, *cam, deltaTime);
 		cam->updateCamera();
 		scene->update(*graphics, *cam);
-		
+
+		this->deleteCommandList();
+
 		tf::Taskflow taskflow;
 		taskflow.emplace(
 			[this]() { rendererCSM->render(*graphics, *scene, *cam); },
@@ -180,9 +164,9 @@ void Engine::run() {
 			[this]() { computerBloom->compute(*graphics); },
 			[this]() { rendererWireframe->render(*graphics, *cam, *scene); }
 		);
-
 		executor.run(taskflow).wait();	// to wait for all threads to finish before execute
-		executeCommandList();
+
+		this->executeCommandList();
 
 		imguihelper->render();
 		graphics->present();

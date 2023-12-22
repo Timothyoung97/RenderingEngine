@@ -1,4 +1,5 @@
 #pragma once
+#include <vector>
 
 namespace tre {
 
@@ -9,6 +10,7 @@ class Scene;
 class Camera;
 class ModelLoader;
 class Graphics;
+class RendererBase;
 class RendererCSM;
 class RendererEnvironmentLighting;
 class RendererGBuffer;
@@ -49,8 +51,11 @@ public:
 	Control* control;
 	ImguiHelper* imguihelper;
 
+	std::vector<RendererBase*> renderers;
+
 	void init();
 	void run();
+	void deleteCommandList();
 	void executeCommandList();
 	void close();
 
