@@ -29,25 +29,6 @@ void HdrBuffer::create(ID3D11Device* device) {
 		&hdrBufferDesc, nullptr, pHdrBufferTexture.GetAddressOf()
 	));
 
-	D3D11_SHADER_RESOURCE_VIEW_DESC shaderResViewDesc;
-	shaderResViewDesc.Format = DXGI_FORMAT_R11G11B10_FLOAT;
-	shaderResViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-	shaderResViewDesc.Texture2D = D3D11_TEX2D_SRV(0, 1);
-	
-	CHECK_DX_ERROR(_device->CreateShaderResourceView(
-		pHdrBufferTexture.Get(), &shaderResViewDesc, pShaderResViewHdrTexture.GetAddressOf()
-	));
-
-	D3D11_RENDER_TARGET_VIEW_DESC rtvd;
-	ZeroMemory(&rtvd, sizeof(D3D11_RENDER_TARGET_VIEW_DESC));
-	rtvd.Format = DXGI_FORMAT_R11G11B10_FLOAT;
-	rtvd.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-	rtvd.Texture2D.MipSlice = 0;
-	
-	CHECK_DX_ERROR(_device->CreateRenderTargetView(
-		pHdrBufferTexture.Get(), &rtvd, pRenderTargetViewHdrTexture.GetAddressOf()
-	));
-
 	// Luminance Histogram
 	D3D11_BUFFER_DESC pLuminHistogramBufferDesc;
 	pLuminHistogramBufferDesc.BindFlags = D3D11_BIND_UNORDERED_ACCESS;
@@ -63,20 +44,6 @@ void HdrBuffer::create(ID3D11Device* device) {
 
 	CHECK_DX_ERROR(_device->CreateBuffer(
 		&pLuminHistogramBufferDesc, &histogramData, pLuminHistogram.GetAddressOf()
-	));
-
-	D3D11_BUFFER_UAV pLuminHistogramBufferUAV;
-	pLuminHistogramBufferUAV.NumElements = 256;
-	pLuminHistogramBufferUAV.FirstElement = 0;
-	pLuminHistogramBufferUAV.Flags = 0u;
-
-	D3D11_UNORDERED_ACCESS_VIEW_DESC pLuminHistogramUAVDesc;
-	pLuminHistogramUAVDesc.Format = DXGI_FORMAT_R32_UINT;
-	pLuminHistogramUAVDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
-	pLuminHistogramUAVDesc.Buffer = pLuminHistogramBufferUAV;
-
-	CHECK_DX_ERROR(_device->CreateUnorderedAccessView(
-		pLuminHistogram.Get(), &pLuminHistogramUAVDesc, pLuminHistogramUAV.GetAddressOf()
 	));
 
 	// Luminance Average
@@ -96,31 +63,5 @@ void HdrBuffer::create(ID3D11Device* device) {
 		&pLuminAvgBufferDesc, &luminAvgData, pLuminAvg.GetAddressOf()
 	));
 
-	D3D11_BUFFER_SRV pLuminAvgBufferSRV;
-	pLuminAvgBufferSRV.NumElements = 1;
-	pLuminAvgBufferSRV.FirstElement = 0;
-
-	D3D11_SHADER_RESOURCE_VIEW_DESC pLuminAvgSRVResc;
-	pLuminAvgSRVResc.Format = DXGI_FORMAT_R16_FLOAT;
-	pLuminAvgSRVResc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
-	pLuminAvgSRVResc.Buffer = pLuminAvgBufferSRV;
-
-	CHECK_DX_ERROR(_device->CreateShaderResourceView(
-		pLuminAvg.Get(), &pLuminAvgSRVResc, pLuminAvgSRV.GetAddressOf()
-	));
-
-	D3D11_BUFFER_UAV pLuminAvgBufferUAV;
-	pLuminAvgBufferUAV.NumElements = 1;
-	pLuminAvgBufferUAV.FirstElement = 0;
-	pLuminAvgBufferUAV.Flags = 0u;
-
-	D3D11_UNORDERED_ACCESS_VIEW_DESC pLuminAvgUAVDesc;
-	pLuminAvgUAVDesc.Format = DXGI_FORMAT_R16_FLOAT;
-	pLuminAvgUAVDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
-	pLuminAvgUAVDesc.Buffer = pLuminAvgBufferUAV;
-
-	CHECK_DX_ERROR(_device->CreateUnorderedAccessView(
-		pLuminAvg.Get(), &pLuminAvgUAVDesc, pLuminAvgUAV.GetAddressOf()
-	));
 }
 }

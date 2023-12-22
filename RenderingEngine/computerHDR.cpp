@@ -45,9 +45,40 @@ void ComputerHDR::setConstBufferLuminSetting(Graphics& graphics) {
 }
 
 void ComputerHDR::dispatchHistogram(const Graphics& graphics){
+
+	// Create views
+	ComPtr<ID3D11ShaderResourceView> shaderResViewHdrTexture;
+	{
+		D3D11_SHADER_RESOURCE_VIEW_DESC shaderResViewDesc;
+		shaderResViewDesc.Format = DXGI_FORMAT_R11G11B10_FLOAT;
+		shaderResViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		shaderResViewDesc.Texture2D = D3D11_TEX2D_SRV(0, 1);
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateShaderResourceView(
+			graphics._hdrBuffer.pHdrBufferTexture.Get(), &shaderResViewDesc, shaderResViewHdrTexture.GetAddressOf()
+		));
+	}
+
+	ComPtr<ID3D11UnorderedAccessView> luminHistogramUAV;
+	{
+		D3D11_BUFFER_UAV pLuminHistogramBufferUAV;
+		pLuminHistogramBufferUAV.NumElements = 256;
+		pLuminHistogramBufferUAV.FirstElement = 0;
+		pLuminHistogramBufferUAV.Flags = 0u;
+
+		D3D11_UNORDERED_ACCESS_VIEW_DESC pLuminHistogramUAVDesc;
+		pLuminHistogramUAVDesc.Format = DXGI_FORMAT_R32_UINT;
+		pLuminHistogramUAVDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
+		pLuminHistogramUAVDesc.Buffer = pLuminHistogramBufferUAV;
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateUnorderedAccessView(
+			graphics._hdrBuffer.pLuminHistogram.Get(), &pLuminHistogramUAVDesc, luminHistogramUAV.GetAddressOf()
+		));
+	}
+
 	contextD.Get()->CSSetShader(_computeShaderLuminancehistogram.pShader.Get(), NULL, 0u);
-	contextD.Get()->CSSetShaderResources(0u, 1u, graphics._hdrBuffer.pShaderResViewHdrTexture.GetAddressOf());
-	contextD.Get()->CSSetUnorderedAccessViews(0u, 1u, graphics._hdrBuffer.pLuminHistogramUAV.GetAddressOf(), nullptr);
+	contextD.Get()->CSSetShaderResources(0u, 1u, shaderResViewHdrTexture.GetAddressOf());
+	contextD.Get()->CSSetUnorderedAccessViews(0u, 1u, luminHistogramUAV.GetAddressOf(), nullptr);
 	{
 		//PROFILE_GPU_SCOPED("Compute Shader Luminace Histogram");
 		contextD.Get()->Dispatch(tre::Maths::divideAndRoundUp(SCREEN_WIDTH, 16u), tre::Maths::divideAndRoundUp(SCREEN_HEIGHT, 16u), 1u);
@@ -57,9 +88,44 @@ void ComputerHDR::dispatchHistogram(const Graphics& graphics){
 }
 
 void ComputerHDR::dispatchAverage(const Graphics& graphics){
+
+	ComPtr<ID3D11UnorderedAccessView> luminHistogramUAV;
+	{
+		D3D11_BUFFER_UAV pLuminHistogramBufferUAV;
+		pLuminHistogramBufferUAV.NumElements = 256;
+		pLuminHistogramBufferUAV.FirstElement = 0;
+		pLuminHistogramBufferUAV.Flags = 0u;
+
+		D3D11_UNORDERED_ACCESS_VIEW_DESC pLuminHistogramUAVDesc;
+		pLuminHistogramUAVDesc.Format = DXGI_FORMAT_R32_UINT;
+		pLuminHistogramUAVDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
+		pLuminHistogramUAVDesc.Buffer = pLuminHistogramBufferUAV;
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateUnorderedAccessView(
+			graphics._hdrBuffer.pLuminHistogram.Get(), &pLuminHistogramUAVDesc, luminHistogramUAV.GetAddressOf()
+		));
+	}
+
+	ComPtr<ID3D11UnorderedAccessView> luminAvgUAV;
+	{
+		D3D11_BUFFER_UAV pLuminAvgBufferUAV;
+		pLuminAvgBufferUAV.NumElements = 1;
+		pLuminAvgBufferUAV.FirstElement = 0;
+		pLuminAvgBufferUAV.Flags = 0u;
+
+		D3D11_UNORDERED_ACCESS_VIEW_DESC pLuminAvgUAVDesc;
+		pLuminAvgUAVDesc.Format = DXGI_FORMAT_R16_FLOAT;
+		pLuminAvgUAVDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
+		pLuminAvgUAVDesc.Buffer = pLuminAvgBufferUAV;
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateUnorderedAccessView(
+			graphics._hdrBuffer.pLuminAvg.Get(), &pLuminAvgUAVDesc, luminAvgUAV.GetAddressOf()
+		));
+	}
+
 	contextD.Get()->CSSetShader(_computeShaderLuminanceAverage.pShader.Get(), NULL, 0u);
-	contextD.Get()->CSSetUnorderedAccessViews(0u, 1, graphics._hdrBuffer.pLuminHistogramUAV.GetAddressOf(), nullptr);
-	contextD.Get()->CSSetUnorderedAccessViews(1u, 1, graphics._hdrBuffer.pLuminAvgUAV.GetAddressOf(), nullptr);
+	contextD.Get()->CSSetUnorderedAccessViews(0u, 1, luminHistogramUAV.GetAddressOf(), nullptr);
+	contextD.Get()->CSSetUnorderedAccessViews(1u, 1, luminAvgUAV.GetAddressOf(), nullptr);
 	{
 		//PROFILE_GPU_SCOPED("Compute Shader Luminace Average");
 		contextD.Get()->Dispatch(1u, 1u, 1u);

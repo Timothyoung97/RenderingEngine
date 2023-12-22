@@ -69,6 +69,19 @@ void RendererEnvironmentLighting::render(Graphics& graphics, const Scene& scene,
 		));
 	}
 
+	ComPtr<ID3D11RenderTargetView> hdrRTV;
+	{
+		D3D11_RENDER_TARGET_VIEW_DESC hdrRTVDesc;
+		ZeroMemory(&hdrRTVDesc, sizeof(D3D11_RENDER_TARGET_VIEW_DESC));
+		hdrRTVDesc.Format = DXGI_FORMAT_R11G11B10_FLOAT;
+		hdrRTVDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+		hdrRTVDesc.Texture2D.MipSlice = 0;
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateRenderTargetView(
+			graphics._hdrBuffer.pHdrBufferTexture.Get(), &hdrRTVDesc, hdrRTV.GetAddressOf()
+		));
+	}
+
 	// Context Configuration
 	{
 		contextD.Get()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -89,7 +102,7 @@ void RendererEnvironmentLighting::render(Graphics& graphics, const Scene& scene,
 		contextD.Get()->PSSetSamplers(0, 1, graphics._sampler.pSamplerStateMinMagMipLinearWrap.GetAddressOf());
 		contextD.Get()->PSSetSamplers(1, 1, graphics._sampler.pSamplerStateMinMagMipLinearGreaterEqualBorder.GetAddressOf());
 
-		contextD.Get()->OMSetRenderTargets(1, graphics._hdrBuffer.pRenderTargetViewHdrTexture.GetAddressOf(), nullptr);
+		contextD.Get()->OMSetRenderTargets(1, hdrRTV.GetAddressOf(), nullptr);
 		contextD.Get()->OMSetBlendState(graphics._blendstate.opaque.Get(), NULL, 0xffffffff);
 		contextD.Get()->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
 	}

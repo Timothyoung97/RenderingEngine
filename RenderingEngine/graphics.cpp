@@ -99,9 +99,22 @@ void Graphics::clean() {
 		pEngine->device->contextI.Get()->ClearDepthStencilView(depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 	}
 
+	{
+		ComPtr<ID3D11RenderTargetView> hdrRTV;
+		D3D11_RENDER_TARGET_VIEW_DESC hdrRTVDesc;
+		ZeroMemory(&hdrRTVDesc, sizeof(D3D11_RENDER_TARGET_VIEW_DESC));
+		hdrRTVDesc.Format = DXGI_FORMAT_R11G11B10_FLOAT;
+		hdrRTVDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+		hdrRTVDesc.Texture2D.MipSlice = 0;
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateRenderTargetView(
+			_hdrBuffer.pHdrBufferTexture.Get(), &hdrRTVDesc, hdrRTV.GetAddressOf()
+		));
+		pEngine->device->contextI.Get()->ClearRenderTargetView(hdrRTV.Get(), Colors::Transparent);
+	}
+
 	pEngine->device->contextI.Get()->ClearRenderTargetView(_gBuffer.pRenderTargetViewDeferredAlbedo.Get(), tre::BACKGROUND_BLACK);
 	pEngine->device->contextI.Get()->ClearRenderTargetView(_gBuffer.pRenderTargetViewDeferredNormal.Get(), tre::BACKGROUND_BLACK);
-	pEngine->device->contextI.Get()->ClearRenderTargetView(_hdrBuffer.pRenderTargetViewHdrTexture.Get(), Colors::Transparent);
 
 	this->clearSwapChainBuffer();
 }

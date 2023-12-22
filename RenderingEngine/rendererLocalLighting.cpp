@@ -82,6 +82,19 @@ void RendererLocalLighting::render(Graphics& graphics, const Scene& scene, const
 		));
 	}
 
+	ComPtr<ID3D11RenderTargetView> hdrRTV;
+	{
+		D3D11_RENDER_TARGET_VIEW_DESC hdrRTVDesc;
+		ZeroMemory(&hdrRTVDesc, sizeof(D3D11_RENDER_TARGET_VIEW_DESC));
+		hdrRTVDesc.Format = DXGI_FORMAT_R11G11B10_FLOAT;
+		hdrRTVDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+		hdrRTVDesc.Texture2D.MipSlice = 0;
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateRenderTargetView(
+			graphics._hdrBuffer.pHdrBufferTexture.Get(), &hdrRTVDesc, hdrRTV.GetAddressOf()
+		));
+	}
+
 	{
 		contextD.Get()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		contextD.Get()->IASetInputLayout(graphics._inputLayout.vertLayout.Get());
@@ -103,7 +116,7 @@ void RendererLocalLighting::render(Graphics& graphics, const Scene& scene, const
 
 		contextD.Get()->OMSetBlendState(graphics._blendstate.lighting.Get(), NULL, 0xffffffff);
 		contextD.Get()->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0); // by default: read only depth test
-		contextD.Get()->OMSetRenderTargets(1, graphics._hdrBuffer.pRenderTargetViewHdrTexture.GetAddressOf(), depthStencilView.Get()); // draw to HDR floating point buffer
+		contextD.Get()->OMSetRenderTargets(1, hdrRTV.GetAddressOf(), depthStencilView.Get()); // draw to HDR floating point buffer
 	}
 
 	UINT vertexStride = sizeof(Vertex);
