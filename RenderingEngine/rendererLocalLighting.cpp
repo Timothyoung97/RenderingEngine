@@ -65,6 +65,22 @@ void RendererLocalLighting::render(Graphics& graphics, const Scene& scene, const
 		));
 	}
 
+	ComPtr<ID3D11ShaderResourceView> lightShaderRescView;
+	{
+		// update GPU on buffer
+		D3D11_BUFFER_SRV lightBufferSRV;
+		lightBufferSRV.NumElements = scene.lightResc.numOfLights;
+		lightBufferSRV.FirstElement = 0;
+
+		D3D11_SHADER_RESOURCE_VIEW_DESC lightShaderResc;
+		lightShaderResc.Format = DXGI_FORMAT_UNKNOWN;
+		lightShaderResc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+		lightShaderResc.Buffer = lightBufferSRV;
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateShaderResourceView(
+			scene.lightResc.pLightBufferGPU.Get(), &lightShaderResc, lightShaderRescView.GetAddressOf()
+		));
+	}
 
 	{
 		contextD.Get()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -82,7 +98,7 @@ void RendererLocalLighting::render(Graphics& graphics, const Scene& scene, const
 		contextD.Get()->PSSetConstantBuffers(2u, 1u, &constBufferPtLightInfo);
 		contextD.Get()->PSSetShaderResources(0, 1, graphics._gBuffer.pShaderResViewDeferredAlbedo.GetAddressOf()); // albedo
 		contextD.Get()->PSSetShaderResources(1, 1, graphics._gBuffer.pShaderResViewDeferredNormal.GetAddressOf()); // normal
-		contextD.Get()->PSSetShaderResources(2, 1, scene.lightResc.pLightShaderRescView.GetAddressOf());			// point light info
+		contextD.Get()->PSSetShaderResources(2, 1, lightShaderRescView.GetAddressOf());			// point light info
 		contextD.Get()->PSSetShaderResources(4, 1, depthStencilReadOnlyShaderRescView.GetAddressOf()); //depth
 
 		contextD.Get()->OMSetBlendState(graphics._blendstate.lighting.Get(), NULL, 0xffffffff);

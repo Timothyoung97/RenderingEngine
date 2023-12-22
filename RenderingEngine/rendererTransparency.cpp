@@ -52,6 +52,7 @@ void RendererTransparency::render(Graphics& graphics, const Scene& scene, const 
 	ComPtr<ID3D11ShaderResourceView> shadowShaderRescView;
 	{
 		D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc;
+		ZeroMemory(&shaderResourceViewDesc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
 		shaderResourceViewDesc.Format = DXGI_FORMAT_R32_FLOAT;
 		shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 		shaderResourceViewDesc.Texture2D.MipLevels = 1;
