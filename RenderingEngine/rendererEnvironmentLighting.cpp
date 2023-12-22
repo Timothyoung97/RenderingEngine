@@ -30,6 +30,7 @@ void RendererEnvironmentLighting::render(Graphics& graphics, const Scene& scene,
 		tre::Buffer::updateConstBufferData(contextD.Get(), constBufferGlobalInfo, &globalInfoStruct, (UINT)sizeof(tre::GlobalInfoStruct));
 	}
 
+	// Create Views
 	ComPtr<ID3D11ShaderResourceView> ssaoBlurredTexture2dSRV;
 	{
 		D3D11_SHADER_RESOURCE_VIEW_DESC ssaoResultTexture2dSRVDesc;
@@ -39,6 +40,32 @@ void RendererEnvironmentLighting::render(Graphics& graphics, const Scene& scene,
 
 		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateShaderResourceView(
 			graphics._ssao.ssaoBlurredTexture2d.Get(), &ssaoResultTexture2dSRVDesc, ssaoBlurredTexture2dSRV.GetAddressOf()
+		));
+	}
+
+	ComPtr<ID3D11ShaderResourceView> depthStencilShaderRescView;
+	{
+		D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc;
+		ZeroMemory(&shaderResourceViewDesc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
+		shaderResourceViewDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+		shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		shaderResourceViewDesc.Texture2D.MipLevels = 1;
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateShaderResourceView(
+			graphics._depthbuffer.pDepthStencilTexture.Get(), &shaderResourceViewDesc, depthStencilShaderRescView.GetAddressOf()
+		));
+	}
+
+	ComPtr<ID3D11ShaderResourceView> shadowShaderRescView;
+	{
+		D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc;
+		ZeroMemory(&shaderResourceViewDesc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
+		shaderResourceViewDesc.Format = DXGI_FORMAT_R32_FLOAT;
+		shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		shaderResourceViewDesc.Texture2D.MipLevels = 1;
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateShaderResourceView(
+			graphics._depthbuffer.pShadowMapTexture.Get(), &shaderResourceViewDesc, shadowShaderRescView.GetAddressOf()
 		));
 	}
 
@@ -56,8 +83,8 @@ void RendererEnvironmentLighting::render(Graphics& graphics, const Scene& scene,
 		contextD.Get()->PSSetConstantBuffers(0u, 1u, &constBufferGlobalInfo);
 		contextD.Get()->PSSetShaderResources(0, 1, graphics._gBuffer.pShaderResViewDeferredAlbedo.GetAddressOf()); // albedo
 		contextD.Get()->PSSetShaderResources(1, 1, graphics._gBuffer.pShaderResViewDeferredNormal.GetAddressOf()); // normal
-		contextD.Get()->PSSetShaderResources(3, 1, graphics._depthbuffer.pShadowShaderRescView.GetAddressOf()); // shadow
-		contextD.Get()->PSSetShaderResources(4, 1, graphics._depthbuffer.pDepthStencilShaderRescView.GetAddressOf()); //depth
+		contextD.Get()->PSSetShaderResources(3, 1, shadowShaderRescView.GetAddressOf()); // shadow
+		contextD.Get()->PSSetShaderResources(4, 1, depthStencilShaderRescView.GetAddressOf()); //depth
 		contextD.Get()->PSSetShaderResources(7, 1, ssaoBlurredTexture2dSRV.GetAddressOf()); // ssao
 		contextD.Get()->PSSetSamplers(0, 1, graphics._sampler.pSamplerStateMinMagMipLinearWrap.GetAddressOf());
 		contextD.Get()->PSSetSamplers(1, 1, graphics._sampler.pSamplerStateMinMagMipLinearGreaterEqualBorder.GetAddressOf());

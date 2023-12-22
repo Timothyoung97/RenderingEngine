@@ -69,11 +69,39 @@ void Graphics::clean() {
 		));
 		pEngine->device->contextI.Get()->ClearRenderTargetView(ssaoBlurredTexture2dRTV.Get(), Colors::Transparent);
 	}
+
+	{
+		ComPtr<ID3D11DepthStencilView> shadowDepthStencilView;
+		D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
+		ZeroMemory(&depthStencilViewDesc, sizeof(D3D11_DEPTH_STENCIL_VIEW_DESC));
+		depthStencilViewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+		depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+		depthStencilViewDesc.Texture2D.MipSlice = 0;
+		depthStencilViewDesc.Format = DXGI_FORMAT_D32_FLOAT;
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateDepthStencilView(
+			_depthbuffer.pShadowMapTexture.Get(), &depthStencilViewDesc, shadowDepthStencilView.GetAddressOf()
+		));
+		pEngine->device->contextI.Get()->ClearDepthStencilView(shadowDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+	}
+
+	{
+		ComPtr<ID3D11DepthStencilView> depthStencilView;
+		D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
+		ZeroMemory(&depthStencilViewDesc, sizeof(D3D11_DEPTH_STENCIL_VIEW_DESC));
+		depthStencilViewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+		depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+		depthStencilViewDesc.Texture2D.MipSlice = 0;
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateDepthStencilView(
+			_depthbuffer.pDepthStencilTexture.Get(), &depthStencilViewDesc, depthStencilView.GetAddressOf()
+		));
+		pEngine->device->contextI.Get()->ClearDepthStencilView(depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+	}
+
 	pEngine->device->contextI.Get()->ClearRenderTargetView(_gBuffer.pRenderTargetViewDeferredAlbedo.Get(), tre::BACKGROUND_BLACK);
 	pEngine->device->contextI.Get()->ClearRenderTargetView(_gBuffer.pRenderTargetViewDeferredNormal.Get(), tre::BACKGROUND_BLACK);
 	pEngine->device->contextI.Get()->ClearRenderTargetView(_hdrBuffer.pRenderTargetViewHdrTexture.Get(), Colors::Transparent);
-	pEngine->device->contextI.Get()->ClearDepthStencilView(_depthbuffer.pDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-	pEngine->device->contextI.Get()->ClearDepthStencilView(_depthbuffer.pShadowDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 
 	this->clearSwapChainBuffer();
 }

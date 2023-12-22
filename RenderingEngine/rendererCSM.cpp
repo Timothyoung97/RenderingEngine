@@ -36,7 +36,21 @@ void RendererCSM::drawInstanced(Graphics& graphics, const std::vector<std::pair<
 	// Update structured buffer for instanced draw call
 	graphics._instanceBufferCSM[csmIdx].updateBuffer(objQ, contextD.Get());
 
-	// Configure context for CMS Drawc call
+	ComPtr<ID3D11DepthStencilView> shadowDepthStencilView;
+	{
+		D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
+		ZeroMemory(&depthStencilViewDesc, sizeof(D3D11_DEPTH_STENCIL_VIEW_DESC));
+		depthStencilViewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+		depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+		depthStencilViewDesc.Texture2D.MipSlice = 0;
+		depthStencilViewDesc.Format = DXGI_FORMAT_D32_FLOAT;
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateDepthStencilView(
+			graphics._depthbuffer.pShadowMapTexture.Get(), &depthStencilViewDesc, shadowDepthStencilView.GetAddressOf()
+		));
+	}
+
+	// Configure context for CMS Draw call
 	{
 		contextD.Get()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		contextD.Get()->IASetInputLayout(graphics._inputLayout.vertLayout.Get());
@@ -52,7 +66,7 @@ void RendererCSM::drawInstanced(Graphics& graphics, const std::vector<std::pair<
 
 		contextD.Get()->OMSetBlendState(graphics._blendstate.opaque.Get(), NULL, 0xffffffff);
 		contextD.Get()->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
-		contextD.Get()->OMSetRenderTargets(0, nullptr, graphics._depthbuffer.pShadowDepthStencilView.Get());
+		contextD.Get()->OMSetRenderTargets(0, nullptr, shadowDepthStencilView.Get());
 	}
 
 	UINT vertexStride = sizeof(Vertex);

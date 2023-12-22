@@ -62,6 +62,19 @@ void RendererSSAO::fullscreenPass(Graphics& graphics, const Scene& scene, const 
 		));
 	}
 
+	ComPtr<ID3D11ShaderResourceView> depthStencilShaderRescView;
+	{
+		D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc;
+		ZeroMemory(&shaderResourceViewDesc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
+		shaderResourceViewDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+		shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		shaderResourceViewDesc.Texture2D.MipLevels = 1;
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateShaderResourceView(
+			graphics._depthbuffer.pDepthStencilTexture.Get(), &shaderResourceViewDesc, depthStencilShaderRescView.GetAddressOf()
+		));
+	}
+
 	// Context Configuration
 	{
 		contextD.Get()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -76,7 +89,7 @@ void RendererSSAO::fullscreenPass(Graphics& graphics, const Scene& scene, const 
 		contextD.Get()->PSSetConstantBuffers(0u, 1u, &constBufferGlobalInfo);
 		contextD.Get()->PSSetConstantBuffers(3u, 1u, &constBufferSSAOKernal);
 		contextD.Get()->PSSetShaderResources(1, 1, graphics._gBuffer.pShaderResViewDeferredNormal.GetAddressOf()); // normal
-		contextD.Get()->PSSetShaderResources(4, 1, graphics._depthbuffer.pDepthStencilShaderRescView.GetAddressOf()); //depth
+		contextD.Get()->PSSetShaderResources(4, 1, depthStencilShaderRescView.GetAddressOf()); //depth
 		contextD.Get()->PSSetSamplers(0, 1, graphics._sampler.pSamplerStateMinMagMipLinearWrap.GetAddressOf());
 		contextD.Get()->PSSetSamplers(1, 1, graphics._sampler.pSamplerStateMinMagMipLinearGreaterEqualBorder.GetAddressOf());
 		contextD.Get()->PSSetSamplers(2, 1, graphics._sampler.pSamplerStateMinMagMipPtWrap.GetAddressOf());

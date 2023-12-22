@@ -41,6 +41,20 @@ void RendererGBuffer::render(Graphics& graphics, Scene& scene, Camera& cam) {
 	// Create an empty const buffer 
 	ID3D11Buffer* constBufferBatchInfo = tre::Buffer::createConstBuffer(pEngine->device->device.Get(), (UINT)sizeof(tre::BatchInfoStruct));
 
+	//Create View
+	ComPtr<ID3D11DepthStencilView> depthStencilView;
+	{
+		D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
+		ZeroMemory(&depthStencilViewDesc, sizeof(D3D11_DEPTH_STENCIL_VIEW_DESC));
+		depthStencilViewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+		depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+		depthStencilViewDesc.Texture2D.MipSlice = 0;
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateDepthStencilView(
+			graphics._depthbuffer.pDepthStencilTexture.Get(), &depthStencilViewDesc, depthStencilView.GetAddressOf()
+		));
+	}
+
 	{
 		contextD.Get()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		contextD.Get()->IASetInputLayout(graphics._inputLayout.vertLayout.Get());
@@ -60,7 +74,7 @@ void RendererGBuffer::render(Graphics& graphics, Scene& scene, Camera& cam) {
 
 		contextD.Get()->OMSetBlendState(graphics._blendstate.opaque.Get(), NULL, 0xffffffff);
 		contextD.Get()->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
-		contextD.Get()->OMSetRenderTargets(2, graphics._gBuffer.rtvs, graphics._depthbuffer.pDepthStencilView.Get());
+		contextD.Get()->OMSetRenderTargets(2, graphics._gBuffer.rtvs, depthStencilView.Get());
 	}
 
 	UINT vertexStride = sizeof(Vertex);

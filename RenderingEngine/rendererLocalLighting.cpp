@@ -36,6 +36,36 @@ void RendererLocalLighting::render(Graphics& graphics, const Scene& scene, const
 	ID3D11Buffer* constBufferModelInfo = tre::Buffer::createConstBuffer(pEngine->device->device.Get(), sizeof(tre::ModelInfoStruct));
 	ID3D11Buffer* constBufferPtLightInfo = tre::Buffer::createConstBuffer(pEngine->device->device.Get(), sizeof(tre::PointLightInfoStruct));
 
+	// Create Views
+	ComPtr<ID3D11DepthStencilView> depthStencilView;
+	{
+		D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
+		ZeroMemory(&depthStencilViewDesc, sizeof(D3D11_DEPTH_STENCIL_VIEW_DESC));
+		depthStencilViewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+		depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+		depthStencilViewDesc.Texture2D.MipSlice = 0;
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateDepthStencilView(
+			graphics._depthbuffer.pDepthStencilTexture.Get(), &depthStencilViewDesc, depthStencilView.GetAddressOf()
+		));
+	}
+
+	ComPtr<ID3D11ShaderResourceView> depthStencilReadOnlyShaderRescView;
+	{
+		contextD.Get()->CopyResource(graphics._depthbuffer.pDepthStencilReadOnlyTexture.Get(), graphics._depthbuffer.pDepthStencilTexture.Get());
+
+		D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc;
+		ZeroMemory(&shaderResourceViewDesc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
+		shaderResourceViewDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+		shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		shaderResourceViewDesc.Texture2D.MipLevels = 1;
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateShaderResourceView(
+			graphics._depthbuffer.pDepthStencilReadOnlyTexture.Get(), &shaderResourceViewDesc, depthStencilReadOnlyShaderRescView.GetAddressOf()
+		));
+	}
+
+
 	{
 		contextD.Get()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		contextD.Get()->IASetInputLayout(graphics._inputLayout.vertLayout.Get());
@@ -53,12 +83,11 @@ void RendererLocalLighting::render(Graphics& graphics, const Scene& scene, const
 		contextD.Get()->PSSetShaderResources(0, 1, graphics._gBuffer.pShaderResViewDeferredAlbedo.GetAddressOf()); // albedo
 		contextD.Get()->PSSetShaderResources(1, 1, graphics._gBuffer.pShaderResViewDeferredNormal.GetAddressOf()); // normal
 		contextD.Get()->PSSetShaderResources(2, 1, scene.lightResc.pLightShaderRescView.GetAddressOf());			// point light info
-		contextD.Get()->CopyResource(graphics._depthbuffer.pDepthStencilReadOnlyTexture.Get(), graphics._depthbuffer.pDepthStencilTexture.Get());
-		contextD.Get()->PSSetShaderResources(4, 1, graphics._depthbuffer.pDepthStencilReadOnlyShaderRescView.GetAddressOf()); //depth
+		contextD.Get()->PSSetShaderResources(4, 1, depthStencilReadOnlyShaderRescView.GetAddressOf()); //depth
 
 		contextD.Get()->OMSetBlendState(graphics._blendstate.lighting.Get(), NULL, 0xffffffff);
 		contextD.Get()->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0); // by default: read only depth test
-		contextD.Get()->OMSetRenderTargets(1, graphics._hdrBuffer.pRenderTargetViewHdrTexture.GetAddressOf(), graphics._depthbuffer.pDepthStencilView.Get()); // draw to HDR floating point buffer
+		contextD.Get()->OMSetRenderTargets(1, graphics._hdrBuffer.pRenderTargetViewHdrTexture.GetAddressOf(), depthStencilView.Get()); // draw to HDR floating point buffer
 	}
 
 	UINT vertexStride = sizeof(Vertex);

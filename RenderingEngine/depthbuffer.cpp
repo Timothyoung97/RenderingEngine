@@ -26,30 +26,6 @@ void DepthBuffer::create(ID3D11Device* device, int screenW, int screenH) {
 		&depthStencilDesc, nullptr, pDepthStencilReadOnlyTexture.GetAddressOf()
 	));
 
-	D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
-	ZeroMemory(&depthStencilViewDesc, sizeof(D3D11_DEPTH_STENCIL_VIEW_DESC));
-	depthStencilViewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-	depthStencilViewDesc.Texture2D.MipSlice = 0;
-
-	CHECK_DX_ERROR(device->CreateDepthStencilView(
-		pDepthStencilTexture.Get(), &depthStencilViewDesc, pDepthStencilView.GetAddressOf()
-	));
-
-	D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc;
-	ZeroMemory(&shaderResourceViewDesc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
-	shaderResourceViewDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
-	shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-	shaderResourceViewDesc.Texture2D.MipLevels = 1;
-
-	CHECK_DX_ERROR(device->CreateShaderResourceView(
-		pDepthStencilTexture.Get(), &shaderResourceViewDesc, pDepthStencilShaderRescView.GetAddressOf()
-	));	
-	
-	CHECK_DX_ERROR(device->CreateShaderResourceView(
-		pDepthStencilReadOnlyTexture.Get(), &shaderResourceViewDesc, pDepthStencilReadOnlyShaderRescView.GetAddressOf()
-	));
-
 	// For shadow
 	depthStencilDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_DEPTH_STENCIL;
 	depthStencilDesc.Height = static_cast<UINT>(4096);
@@ -58,16 +34,6 @@ void DepthBuffer::create(ID3D11Device* device, int screenW, int screenH) {
 
 	CHECK_DX_ERROR(device->CreateTexture2D(
 		&depthStencilDesc, nullptr, pShadowMapTexture.GetAddressOf()
-	));
-
-	depthStencilViewDesc.Format = DXGI_FORMAT_D32_FLOAT;
-	CHECK_DX_ERROR(device->CreateDepthStencilView(
-		pShadowMapTexture.Get(), &depthStencilViewDesc, pShadowDepthStencilView.GetAddressOf()
-	));
-
-	shaderResourceViewDesc.Format = DXGI_FORMAT_R32_FLOAT;
-	CHECK_DX_ERROR(device->CreateShaderResourceView(
-		pShadowMapTexture.Get(), &shaderResourceViewDesc, pShadowShaderRescView.GetAddressOf()
 	));
 
 	D3D11_DEPTH_STENCIL_DESC ddsd;
