@@ -113,8 +113,33 @@ void Graphics::clean() {
 		pEngine->device->contextI.Get()->ClearRenderTargetView(hdrRTV.Get(), Colors::Transparent);
 	}
 
-	pEngine->device->contextI.Get()->ClearRenderTargetView(_gBuffer.pRenderTargetViewDeferredAlbedo.Get(), tre::BACKGROUND_BLACK);
-	pEngine->device->contextI.Get()->ClearRenderTargetView(_gBuffer.pRenderTargetViewDeferredNormal.Get(), tre::BACKGROUND_BLACK);
+	{
+		ComPtr<ID3D11RenderTargetView> pRenderTargetViewDeferredAlbedo;
+		D3D11_RENDER_TARGET_VIEW_DESC rtvd;
+		ZeroMemory(&rtvd, sizeof(D3D11_RENDER_TARGET_VIEW_DESC));
+		rtvd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		rtvd.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+		rtvd.Texture2D.MipSlice = 0;
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateRenderTargetView(
+			_gBuffer.pGBufferTextureAlbedo.Get(), &rtvd, pRenderTargetViewDeferredAlbedo.GetAddressOf()
+		));
+		pEngine->device->contextI.Get()->ClearRenderTargetView(pRenderTargetViewDeferredAlbedo.Get(), tre::BACKGROUND_BLACK);
+	}
+
+	{
+		ComPtr<ID3D11RenderTargetView> pRenderTargetViewDeferredNormal;
+		D3D11_RENDER_TARGET_VIEW_DESC rtvd;
+		ZeroMemory(&rtvd, sizeof(D3D11_RENDER_TARGET_VIEW_DESC));
+		rtvd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		rtvd.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+		rtvd.Texture2D.MipSlice = 0;
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateRenderTargetView(
+			_gBuffer.pGBufferTextureNormal.Get(), &rtvd, pRenderTargetViewDeferredNormal.GetAddressOf()
+		));
+		pEngine->device->contextI.Get()->ClearRenderTargetView(pRenderTargetViewDeferredNormal.Get(), tre::BACKGROUND_BLACK);
+	}
 
 	this->clearSwapChainBuffer();
 }

@@ -95,6 +95,30 @@ void RendererLocalLighting::render(Graphics& graphics, const Scene& scene, const
 		));
 	}
 
+	ComPtr<ID3D11ShaderResourceView> deferredAlbedoSRV;
+	{
+		D3D11_SHADER_RESOURCE_VIEW_DESC shaderResViewDesc;
+		shaderResViewDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		shaderResViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		shaderResViewDesc.Texture2D = D3D11_TEX2D_SRV(0, 1);
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateShaderResourceView(
+			graphics._gBuffer.pGBufferTextureAlbedo.Get(), &shaderResViewDesc, deferredAlbedoSRV.GetAddressOf()
+		));
+	}
+
+	ComPtr<ID3D11ShaderResourceView> deferredNormalSRV;
+	{
+		D3D11_SHADER_RESOURCE_VIEW_DESC shaderResViewDesc;
+		shaderResViewDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		shaderResViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		shaderResViewDesc.Texture2D = D3D11_TEX2D_SRV(0, 1);
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateShaderResourceView(
+			graphics._gBuffer.pGBufferTextureNormal.Get(), &shaderResViewDesc, deferredNormalSRV.GetAddressOf()
+		));
+	}
+
 	{
 		contextD.Get()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		contextD.Get()->IASetInputLayout(graphics._inputLayout.vertLayout.Get());
@@ -109,8 +133,8 @@ void RendererLocalLighting::render(Graphics& graphics, const Scene& scene, const
 		contextD.Get()->PSSetShader(_deferredShaderLightingLocal.pShader.Get(), NULL, 0u);
 		contextD.Get()->PSSetConstantBuffers(0u, 1u, &constBufferGlobalInfo);
 		contextD.Get()->PSSetConstantBuffers(2u, 1u, &constBufferPtLightInfo);
-		contextD.Get()->PSSetShaderResources(0, 1, graphics._gBuffer.pShaderResViewDeferredAlbedo.GetAddressOf()); // albedo
-		contextD.Get()->PSSetShaderResources(1, 1, graphics._gBuffer.pShaderResViewDeferredNormal.GetAddressOf()); // normal
+		contextD.Get()->PSSetShaderResources(0, 1, deferredAlbedoSRV.GetAddressOf()); // albedo
+		contextD.Get()->PSSetShaderResources(1, 1, deferredNormalSRV.GetAddressOf()); // normal
 		contextD.Get()->PSSetShaderResources(2, 1, lightShaderRescView.GetAddressOf());			// point light info
 		contextD.Get()->PSSetShaderResources(4, 1, depthStencilReadOnlyShaderRescView.GetAddressOf()); //depth
 

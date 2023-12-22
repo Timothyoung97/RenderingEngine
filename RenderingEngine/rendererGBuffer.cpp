@@ -55,6 +55,27 @@ void RendererGBuffer::render(Graphics& graphics, Scene& scene, Camera& cam) {
 		));
 	}
 
+	ID3D11RenderTargetView* rtvs[2] = { nullptr, nullptr };
+	ComPtr<ID3D11RenderTargetView> pRenderTargetViewDeferredAlbedo;
+	ComPtr<ID3D11RenderTargetView> pRenderTargetViewDeferredNormal;
+	{
+		D3D11_RENDER_TARGET_VIEW_DESC rtvd;
+		ZeroMemory(&rtvd, sizeof(D3D11_RENDER_TARGET_VIEW_DESC));
+		rtvd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		rtvd.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+		rtvd.Texture2D.MipSlice = 0;
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateRenderTargetView(
+			graphics._gBuffer.pGBufferTextureAlbedo.Get(), &rtvd, pRenderTargetViewDeferredAlbedo.GetAddressOf()
+		));
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateRenderTargetView(
+			graphics._gBuffer.pGBufferTextureNormal.Get(), &rtvd, pRenderTargetViewDeferredNormal.GetAddressOf()
+		));
+
+		rtvs[0] = pRenderTargetViewDeferredAlbedo.Get(), rtvs[1] = pRenderTargetViewDeferredNormal.Get();
+	}
+
 	{
 		contextD.Get()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		contextD.Get()->IASetInputLayout(graphics._inputLayout.vertLayout.Get());
@@ -74,7 +95,7 @@ void RendererGBuffer::render(Graphics& graphics, Scene& scene, Camera& cam) {
 
 		contextD.Get()->OMSetBlendState(graphics._blendstate.opaque.Get(), NULL, 0xffffffff);
 		contextD.Get()->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
-		contextD.Get()->OMSetRenderTargets(2, graphics._gBuffer.rtvs, depthStencilView.Get());
+		contextD.Get()->OMSetRenderTargets(2, rtvs, depthStencilView.Get());
 	}
 
 	UINT vertexStride = sizeof(Vertex);
