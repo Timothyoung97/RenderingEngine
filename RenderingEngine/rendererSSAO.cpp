@@ -27,8 +27,6 @@ SSAOKernalStruct RendererSSAO::createSSAOKernalStruct(const std::vector<XMFLOAT4
 }
 
 void RendererSSAO::fullscreenPass(Graphics& graphics, const Scene& scene, const Camera& cam) {
-	if (!graphics.setting.ssaoSwitch) return;
-
 	const char* name = ToString(RENDER_MODE::SSAO_FULLSCREEN_PASS);
 	MICROPROFILE_SCOPE_CSTR(name);
 	//PROFILE_GPU_SCOPED("Fullscreen Pass");
@@ -123,8 +121,6 @@ void RendererSSAO::fullscreenPass(Graphics& graphics, const Scene& scene, const 
 }
 
 void RendererSSAO::fullscreenBlurPass(const Graphics& graphics) {
-	if (!graphics.setting.ssaoSwitch) return;
-
 	const char* name = ToString(RENDER_MODE::SSAO_BLURRING_PASS);
 	MICROPROFILE_SCOPE_CSTR(name);
 	//PROFILE_GPU_SCOPED("Fullscreen Pass");
@@ -177,6 +173,8 @@ void RendererSSAO::fullscreenBlurPass(const Graphics& graphics) {
 }
 
 void RendererSSAO::render(Graphics& graphics, const Scene& scene, const Camera& cam) {
+	if (!graphics.setting.ssaoSwitch) return;
+
 	MICROPROFILE_SCOPE_CSTR("CPU SSAO PASS");
 	//PROFILE_GPU_SCOPED("GPU SSAO Pass");
 	fullscreenPass(graphics, scene, cam);

@@ -18,7 +18,7 @@ void RendererTransparency::init() {
 }
 
 void RendererTransparency::render(Graphics& graphics, const Scene& scene, const Camera& cam) {
-	if (scene._culledTransparentObjQ.size() == 0) return;
+	if (scene._culledTransparentObjQ.empty()) return;
 
 	const char* name = ToString(RENDER_MODE::TRANSPARENT_M);
 	MICROPROFILE_SCOPE_CSTR(name);
