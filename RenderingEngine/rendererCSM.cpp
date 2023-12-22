@@ -34,7 +34,7 @@ void RendererCSM::drawInstanced(Graphics& graphics, const std::vector<std::pair<
 	//PROFILE_GPU_SCOPED("CSM Instanced Draw");
 
 	// Update structured buffer for instanced draw call
-	graphics._instanceBufferCSM[csmIdx].updateBuffer(objQ, contextD.Get());
+	int numOfInstances = graphics._instanceBufferCSM[csmIdx].updateBuffer(objQ, contextD.Get());
 
 	ComPtr<ID3D11DepthStencilView> shadowDepthStencilView;
 	{
@@ -50,12 +50,29 @@ void RendererCSM::drawInstanced(Graphics& graphics, const std::vector<std::pair<
 		));
 	}
 
+	ComPtr<ID3D11ShaderResourceView> instanceInfoBufferSRV;
+	{
+		D3D11_BUFFER_SRV instanceBufferSRV;
+		ZeroMemory(&instanceBufferSRV, sizeof(D3D11_BUFFER_SRV));
+		instanceBufferSRV.FirstElement = 0u;
+		instanceBufferSRV.NumElements = numOfInstances;
+
+		D3D11_SHADER_RESOURCE_VIEW_DESC instanceBufferSRVDesc;
+		instanceBufferSRVDesc.Format = DXGI_FORMAT_UNKNOWN;
+		instanceBufferSRVDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+		instanceBufferSRVDesc.Buffer = instanceBufferSRV;
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateShaderResourceView(
+			graphics._instanceBufferCSM[csmIdx].pInstanceBuffer.Get(), &instanceBufferSRVDesc, instanceInfoBufferSRV.GetAddressOf()
+		));
+	}
+
 	// Configure context for CMS Draw call
 	{
 		contextD.Get()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		contextD.Get()->IASetInputLayout(graphics._inputLayout.vertLayout.Get());
 		contextD.Get()->VSSetShader(_vertexShaderInstanced.pShader.Get(), NULL, 0u);
-		contextD.Get()->VSSetShaderResources(0u, 1, graphics._instanceBufferCSM[csmIdx].pInstanceBufferSRV.GetAddressOf());
+		contextD.Get()->VSSetShaderResources(0u, 1, instanceInfoBufferSRV.GetAddressOf());
 
 		// use setShadowBufferDrawSection to select draw section
 		contextD.Get()->RSSetState(graphics._rasterizer.pShadowRasterizerState.Get());

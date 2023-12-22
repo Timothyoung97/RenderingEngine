@@ -39,7 +39,6 @@ public:
 	ID3D11Device* _device;
 
 	ComPtr<ID3D11Buffer> pInstanceBuffer;
-	ComPtr<ID3D11ShaderResourceView> pInstanceBufferSRV;
 
 	std::vector<InstanceBatchInfo> instanceBatchQueue;
 
@@ -48,7 +47,7 @@ public:
 	void createBuffer(ID3D11Device*);
 
 	// to be called per frame before opaque draw calls
-	void updateBuffer(const std::vector<std::pair<Object*, Mesh*>>& objQ, ID3D11DeviceContext* deferredContext);
+	int updateBuffer(const std::vector<std::pair<Object*, Mesh*>>& objQ, ID3D11DeviceContext* deferredContext);
 
 	/// <summary>
 	/// Use for batching a single instance with the same mesh but no texture/normal, typically used in wireframe draw where all meshes are the same
@@ -56,7 +55,7 @@ public:
 	/// </summary>
 	/// <param name="objQ"></param>
 	/// <param name="specifiedMesh"></param>
-	void updateBuffer(const std::vector<Object*>& objQ, Mesh* specifiedMesh, ID3D11DeviceContext* deferredContext);
+	int updateBuffer(const std::vector<Object*>& objQ, Mesh* specifiedMesh, ID3D11DeviceContext* deferredContext);
 
 	InstanceInfo createInstanceInfo(XMMATRIX transformationLocal, XMFLOAT4 color, UINT isWithTexture, UINT hasNormalMap);
 };

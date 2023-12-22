@@ -42,7 +42,7 @@ InstanceInfo InstanceBuffer::createInstanceInfo(XMMATRIX transformationLocal, XM
 };
 
 
-void InstanceBuffer::updateBuffer(const std::vector<std::pair<Object*, Mesh*>>& objQ, ID3D11DeviceContext* deferredContext) {
+int InstanceBuffer::updateBuffer(const std::vector<std::pair<Object*, Mesh*>>& objQ, ID3D11DeviceContext* deferredContext) {
 
 	MICROPROFILE_SCOPE_CSTR("Batching Instances");
 	//PROFILE_GPU_SCOPED("GPU Batching Instances");
@@ -117,7 +117,7 @@ void InstanceBuffer::updateBuffer(const std::vector<std::pair<Object*, Mesh*>>& 
 
 	// If structured buffer on GPU has insufficient size
 	if (currMaxInstanceCount < instanceInfoQ.size()) {
-		currMaxInstanceCount = instanceInfoQ.size();
+		currMaxInstanceCount = instanceInfoQ.size() * 2;
 		pInstanceBuffer.Reset();
 
 		// GPU Buffer
@@ -136,25 +136,12 @@ void InstanceBuffer::updateBuffer(const std::vector<std::pair<Object*, Mesh*>>& 
 
 	deferredContext->CopySubresourceRegion(pInstanceBuffer.Get(), 0u, 0u, 0u, 0u, pStagingInstanceBuffer.Get(), 0u, nullptr);
 
-	// SRV
-	D3D11_BUFFER_SRV instanceBufferSRV;
-	ZeroMemory(&instanceBufferSRV, sizeof(D3D11_BUFFER_SRV));
-	instanceBufferSRV.FirstElement = 0u;
-	instanceBufferSRV.NumElements = instanceInfoQ.size();
-
-	D3D11_SHADER_RESOURCE_VIEW_DESC instanceBufferSRVDesc;
-	instanceBufferSRVDesc.Format = DXGI_FORMAT_UNKNOWN;
-	instanceBufferSRVDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
-	instanceBufferSRVDesc.Buffer = instanceBufferSRV;
-
-	CHECK_DX_ERROR(_device->CreateShaderResourceView(
-		pInstanceBuffer.Get(), &instanceBufferSRVDesc, pInstanceBufferSRV.GetAddressOf()
-	));
+	return instanceInfoQ.size();
 }
 
-void InstanceBuffer::updateBuffer(const std::vector<Object*>& objQ, Mesh* specifiedMesh, ID3D11DeviceContext* deferredContext) {
+int InstanceBuffer::updateBuffer(const std::vector<Object*>& objQ, Mesh* specifiedMesh, ID3D11DeviceContext* deferredContext) {
 
-	if (objQ.empty()) return;
+	if (objQ.empty()) return 0;
 
 	MICROPROFILE_SCOPE_CSTR("Batching Instances Wireframe");
 	//PROFILE_GPU_SCOPED("GPU Batching Instances Wireframe");
@@ -183,7 +170,7 @@ void InstanceBuffer::updateBuffer(const std::vector<Object*>& objQ, Mesh* specif
 		}
 	}
 
-	if (!quantity) return;
+	if (!quantity) return 0;
 
 	InstanceBatchInfo singleBatch;
 	singleBatch.batchStartIdx = 0;
@@ -214,7 +201,7 @@ void InstanceBuffer::updateBuffer(const std::vector<Object*>& objQ, Mesh* specif
 
 	// If structured buffer on GPU has insufficient size
 	if (currMaxInstanceCount < instanceInfoQ.size()) {
-		currMaxInstanceCount = instanceInfoQ.size();
+		currMaxInstanceCount = instanceInfoQ.size() * 2;
 		pInstanceBuffer.Reset();
 
 		// GPU Buffer
@@ -233,20 +220,7 @@ void InstanceBuffer::updateBuffer(const std::vector<Object*>& objQ, Mesh* specif
 
 	deferredContext->CopySubresourceRegion(pInstanceBuffer.Get(), 0u, 0u, 0u, 0u, pStagingInstanceBuffer.Get(), 0u, nullptr);
 
-	// SRV
-	D3D11_BUFFER_SRV instanceBufferSRV;
-	ZeroMemory(&instanceBufferSRV, sizeof(D3D11_BUFFER_SRV));
-	instanceBufferSRV.FirstElement = 0u;
-	instanceBufferSRV.NumElements = instanceInfoQ.size();
-
-	D3D11_SHADER_RESOURCE_VIEW_DESC instanceBufferSRVDesc;
-	instanceBufferSRVDesc.Format = DXGI_FORMAT_UNKNOWN;
-	instanceBufferSRVDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
-	instanceBufferSRVDesc.Buffer = instanceBufferSRV;
-
-	CHECK_DX_ERROR(_device->CreateShaderResourceView(
-		pInstanceBuffer.Get(), &instanceBufferSRVDesc, pInstanceBufferSRV.GetAddressOf()
-	));
+	return instanceInfoQ.size();
 }
 
 }

@@ -8,7 +8,7 @@ extern tre::Engine* pEngine;
 
 namespace tre {
 
-RendererTonemap::RendererTonemap() : RendererBase() {
+RendererTonemap::RendererTonemap() {
 	this->init();
 }
 

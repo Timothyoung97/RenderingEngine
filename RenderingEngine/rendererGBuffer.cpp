@@ -36,7 +36,7 @@ void RendererGBuffer::render(Graphics& graphics, Scene& scene, Camera& cam) {
 	}
 
 	// Batching
-	graphics._instanceBufferMainView.updateBuffer(scene._culledOpaqueObjQ[scene.camViewIdx], contextD.Get());
+	int numOfInstances = graphics._instanceBufferMainView.updateBuffer(scene._culledOpaqueObjQ[scene.camViewIdx], contextD.Get());
 
 	// Create an empty const buffer 
 	ID3D11Buffer* constBufferBatchInfo = tre::Buffer::createConstBuffer(pEngine->device->device.Get(), (UINT)sizeof(tre::BatchInfoStruct));
@@ -52,6 +52,23 @@ void RendererGBuffer::render(Graphics& graphics, Scene& scene, Camera& cam) {
 
 		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateDepthStencilView(
 			graphics._depthbuffer.pDepthStencilTexture.Get(), &depthStencilViewDesc, depthStencilView.GetAddressOf()
+		));
+	}
+
+	ComPtr<ID3D11ShaderResourceView> instanceInfoBufferSRV;
+	{
+		D3D11_BUFFER_SRV instanceBufferSRV;
+		ZeroMemory(&instanceBufferSRV, sizeof(D3D11_BUFFER_SRV));
+		instanceBufferSRV.FirstElement = 0u;
+		instanceBufferSRV.NumElements = numOfInstances;
+
+		D3D11_SHADER_RESOURCE_VIEW_DESC instanceBufferSRVDesc;
+		instanceBufferSRVDesc.Format = DXGI_FORMAT_UNKNOWN;
+		instanceBufferSRVDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+		instanceBufferSRVDesc.Buffer = instanceBufferSRV;
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateShaderResourceView(
+			graphics._instanceBufferMainView.pInstanceBuffer.Get(), &instanceBufferSRVDesc, instanceInfoBufferSRV.GetAddressOf()
 		));
 	}
 
@@ -80,7 +97,7 @@ void RendererGBuffer::render(Graphics& graphics, Scene& scene, Camera& cam) {
 		contextD.Get()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		contextD.Get()->IASetInputLayout(graphics._inputLayout.vertLayout.Get());
 		contextD.Get()->VSSetShader(_vertexShaderInstanced.pShader.Get(), NULL, 0u);
-		contextD.Get()->VSSetShaderResources(0u, 1, graphics._instanceBufferMainView.pInstanceBufferSRV.GetAddressOf());
+		contextD.Get()->VSSetShaderResources(0u, 1, instanceInfoBufferSRV.GetAddressOf());
 		contextD.Get()->VSSetConstantBuffers(1u, 1u, &constBufferBatchInfo);
 
 		contextD.Get()->RSSetViewports(1, &graphics._viewport.defaultViewport);

@@ -136,8 +136,23 @@ void RendererWireframe::drawInstanced(Graphics& graphics, const std::vector<Obje
 	Mesh* meshToRender = selectWireframeMesh(graphics.setting.typeOfBound);
 
 	// Update instance buffer with wireframe mesh
+	int numOfInstances = targetInstanceBuffer.updateBuffer(objQ, meshToRender, contextD.Get());
+
+	ComPtr<ID3D11ShaderResourceView> instanceInfoBufferSRV;
 	{
-		targetInstanceBuffer.updateBuffer(objQ, meshToRender, contextD.Get());
+		D3D11_BUFFER_SRV instanceBufferSRV;
+		ZeroMemory(&instanceBufferSRV, sizeof(D3D11_BUFFER_SRV));
+		instanceBufferSRV.FirstElement = 0u;
+		instanceBufferSRV.NumElements = numOfInstances;
+
+		D3D11_SHADER_RESOURCE_VIEW_DESC instanceBufferSRVDesc;
+		instanceBufferSRVDesc.Format = DXGI_FORMAT_UNKNOWN;
+		instanceBufferSRVDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+		instanceBufferSRVDesc.Buffer = instanceBufferSRV;
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateShaderResourceView(
+			targetInstanceBuffer.pInstanceBuffer.Get(), &instanceBufferSRVDesc, instanceInfoBufferSRV.GetAddressOf()
+		));
 	}
 
 	{
@@ -148,7 +163,7 @@ void RendererWireframe::drawInstanced(Graphics& graphics, const std::vector<Obje
 		contextD.Get()->IASetIndexBuffer(meshToRender->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
 		contextD.Get()->VSSetShader(_vertexShaderInstanced.pShader.Get(), NULL, 0u);
-		contextD.Get()->VSSetShaderResources(0u, 1, targetInstanceBuffer.pInstanceBufferSRV.GetAddressOf()); // to do
+		contextD.Get()->VSSetShaderResources(0u, 1, instanceInfoBufferSRV.GetAddressOf()); // to do
 
 		contextD.Get()->RSSetViewports(1, &graphics._viewport.defaultViewport);
 		contextD.Get()->RSSetState(graphics._rasterizer.pRasterizerStateWireFrame.Get());

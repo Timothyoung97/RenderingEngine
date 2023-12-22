@@ -181,20 +181,6 @@ void Engine::run() {
 			[this]() { rendererWireframe->render(*graphics, *cam, *scene); }
 		);
 
-		//{
-		//	rendererCSM->render(*graphics, *scene, *cam);
-		//	rendererGBuffer->render(*graphics, *scene, *cam);
-		//	rendererSSAO->render(*graphics, *scene, *cam);
-		//	rendererEnvLighting->render(*graphics, *scene, *cam);
-		//	rendererTransparency->render(*graphics, *scene, *cam);
-		//	rendererLocalLighting->render(*graphics, *scene, *cam);
-		//	computerPtLight->compute(*graphics, *scene, *cam);
-		//	computerHDR->compute(*graphics);
-		//	computerBloom->compute(*graphics);
-		//	rendererTonemap->render(*graphics);
-		//	rendererWireframe->render(*graphics, *cam, *scene);
-		//}
-
 		executor.run(taskflow).wait();	// to wait for all threads to finish before execute
 		executeCommandList();
 
