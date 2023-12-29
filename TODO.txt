@@ -13,10 +13,6 @@ Graphics Tasks:
     • Physically based BRDF (Bidirectional Reflective Distribution Function)
 
 Stretch Graphic Tasks:
-• Multi-Thread
-    • Use a thread pool library: https://github.com/taskflow/taskflow
-    • D3D11 required deferred contexts: https://learn.microsoft.com/en-gb/windows/win32/direct3d11/overviews-direct3d-11-render-multi-thread
-    • Multi-thread all Renderers
 • Shadows for Point Lights
 • Height-map based terrain rendering
     • Start with high detail CPU-generated mesh
@@ -26,15 +22,9 @@ Stretch Graphic Tasks:
     • Biome/Height/Steepness based Terrain Albedo
 • Image Based Lighting
     • Physically correct variant of Spherical Environment Mapping
-• Physically-Based Bloom Post Process
 • Extend Space Partition to dynamic objects
 • Static Animations
 • Skinning
-
-(Side)
-• More sampler states -> to follow according to glTF's specfication
-• Rasterizer state's depth bias and slope scale depth bias to adjust according to CSM section (to reduce peter pan)
-• Convert to use DirectXCollision.h
 
 Done:
 • init d3d11 device/context, and clear swap chain to grey color
@@ -119,18 +109,19 @@ Done:
     • Extract bright pixels (based on luminance threshold above avg scene luimnance) from lighting RT
     • Perform full screen blur
     • Additively blend back to lighting RT
+• Physically-Based Bloom Post Process
+• Multi-Thread
+    • Use a thread pool library: https://github.com/taskflow/taskflow
+    • D3D11 required deferred contexts: https://learn.microsoft.com/en-gb/windows/win32/direct3d11/overviews-direct3d-11-render-multi-thread
+    • Multi-thread all Renderers
 
 //////////////////////////////////////////////////////////////////////////////
 
 Engine Tasks:
-• Assertions
 • Command line arguments
     • https://github.com/jarro2783/cxxopts
 • Text logging
     • https://github.com/gabime/spdlog
-• Basic Editor Suite
-    • https://github.com/ocornut/imgui
-    • https://github.com/samhocevar/portable-file-dialogs
 
 Done:
 • dont use SDL_PollEvent. use SDL_PeepEvents instead. see: https://wiki.libsdl.org/SDL2/SDL_PeepEvents
@@ -140,3 +131,7 @@ Done:
     • SDL header files should be in project & repo. Binary files must not.
 • Remove the Windows console for the application
 • Camera speed control using scroll
+• Assertions
+• Basic Editor Suite
+    • https://github.com/ocornut/imgui
+    • https://github.com/samhocevar/portable-file-dialogs
