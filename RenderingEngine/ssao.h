@@ -14,16 +14,8 @@ class SSAO {
 public:
 	ID3D11Device* _device;
 
-	std::vector<XMFLOAT4> ssaoKernalSamples;
-
 	ComPtr<ID3D11Texture2D> ssaoResultTexture2d;
 	ComPtr<ID3D11Texture2D> ssaoBlurredTexture2d;
-
-	//ComPtr<ID3D11ShaderResourceView> ssaoResultTexture2dSRV;
-	//ComPtr<ID3D11RenderTargetView> ssaoResultTexture2dRTV;
-
-	/*ComPtr<ID3D11ShaderResourceView> ssaoBlurredTexture2dSRV;
-	ComPtr<ID3D11RenderTargetView> ssaoBlurredTexture2dRTV;*/
 
 	void create(ID3D11Device* device);
 

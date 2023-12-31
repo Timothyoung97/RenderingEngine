@@ -1,7 +1,6 @@
 #include "forwardRendering.hlsl"
 
 cbuffer constBufferSSAO : register(b3) {
-    float4 kernalSamples[64];
     float sampleRadius;
     float3 ssaoPad;
 };

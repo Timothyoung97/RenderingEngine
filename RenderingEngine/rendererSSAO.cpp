@@ -18,9 +18,8 @@ void RendererSSAO::init() {
 	_textureBlurPixelShader.create(basePathWstr + L"shaders\\bin\\pixel_shader_texture_blur.bin", pEngine->device->device.Get());
 }
 
-SSAOKernalStruct RendererSSAO::createSSAOKernalStruct(const std::vector<XMFLOAT4>& kernalSamples, float sampleRadius) {
+SSAOKernalStruct RendererSSAO::createSSAOKernalStruct(float sampleRadius) {
 	SSAOKernalStruct ssaoKernalStruct;
-	std::copy(kernalSamples.begin(), kernalSamples.end(), ssaoKernalStruct.kernalSamples);
 	ssaoKernalStruct.sampleRadius = sampleRadius;
 
 	return ssaoKernalStruct;
@@ -42,7 +41,7 @@ void RendererSSAO::fullscreenPass(Graphics& graphics, const Scene& scene, const 
 	// Set const buffer for SSAO Kernal
 	ID3D11Buffer* constBufferSSAOKernal = tre::Buffer::createConstBuffer(pEngine->device->device.Get(), (UINT)sizeof(tre::SSAOKernalStruct));
 	{
-		tre::SSAOKernalStruct ssaoKernalStruct = createSSAOKernalStruct(graphics._ssao.ssaoKernalSamples, graphics.setting.ssaoSampleRadius);
+		tre::SSAOKernalStruct ssaoKernalStruct = createSSAOKernalStruct(graphics.setting.ssaoSampleRadius);
 		tre::Buffer::updateConstBufferData(contextD.Get(), constBufferSSAOKernal, &ssaoKernalStruct, (UINT)sizeof(tre::SSAOKernalStruct));
 	}
 
