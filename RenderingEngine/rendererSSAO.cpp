@@ -18,9 +18,10 @@ void RendererSSAO::init() {
 	_textureBlurPixelShader.create(basePathWstr + L"shaders\\bin\\pixel_shader_texture_blur.bin", pEngine->device->device.Get());
 }
 
-SSAOKernalStruct RendererSSAO::createSSAOKernalStruct(float sampleRadius) {
-	SSAOKernalStruct ssaoKernalStruct;
+SSAOStruct RendererSSAO::createSSAOKernalStruct(float sampleRadius) {
+	SSAOStruct ssaoKernalStruct;
 	ssaoKernalStruct.sampleRadius = sampleRadius;
+	ssaoKernalStruct.pad = XMFLOAT3(.0f, .0f, .0f);
 
 	return ssaoKernalStruct;
 }
@@ -39,10 +40,10 @@ void RendererSSAO::fullscreenPass(Graphics& graphics, const Scene& scene, const 
 	}
 
 	// Set const buffer for SSAO Kernal
-	ID3D11Buffer* constBufferSSAOKernal = tre::Buffer::createConstBuffer(pEngine->device->device.Get(), (UINT)sizeof(tre::SSAOKernalStruct));
+	ID3D11Buffer* constBufferSSAO = tre::Buffer::createConstBuffer(pEngine->device->device.Get(), (UINT)sizeof(tre::SSAOStruct));
 	{
-		tre::SSAOKernalStruct ssaoKernalStruct = createSSAOKernalStruct(graphics.setting.ssaoSampleRadius);
-		tre::Buffer::updateConstBufferData(contextD.Get(), constBufferSSAOKernal, &ssaoKernalStruct, (UINT)sizeof(tre::SSAOKernalStruct));
+		tre::SSAOStruct ssaoKernalStruct = createSSAOKernalStruct(graphics.setting.ssaoSampleRadius);
+		tre::Buffer::updateConstBufferData(contextD.Get(), constBufferSSAO, &ssaoKernalStruct, (UINT)sizeof(tre::SSAOStruct));
 	}
 
 	// View Creations
@@ -96,7 +97,7 @@ void RendererSSAO::fullscreenPass(Graphics& graphics, const Scene& scene, const 
 		contextD.Get()->OMSetRenderTargets(0, nullptr, nullptr);
 		contextD.Get()->PSSetShader(_ssaoPixelShader.pShader.Get(), NULL, 0u);
 		contextD.Get()->PSSetConstantBuffers(0u, 1u, &constBufferGlobalInfo);
-		contextD.Get()->PSSetConstantBuffers(3u, 1u, &constBufferSSAOKernal);
+		contextD.Get()->PSSetConstantBuffers(3u, 1u, &constBufferSSAO);
 		contextD.Get()->PSSetShaderResources(1, 1, deferredNormalSRV.GetAddressOf()); // normal
 		contextD.Get()->PSSetShaderResources(4, 1, depthStencilShaderRescView.GetAddressOf()); //depth
 		contextD.Get()->PSSetSamplers(0, 1, graphics._sampler.pSamplerStateMinMagMipLinearWrap.GetAddressOf());
@@ -115,7 +116,7 @@ void RendererSSAO::fullscreenPass(Graphics& graphics, const Scene& scene, const 
 	{
 		std::lock_guard<std::mutex> lock(graphics.bufferQueueMutex);
 		graphics.bufferQueue.push_back(constBufferGlobalInfo);
-		graphics.bufferQueue.push_back(constBufferSSAOKernal);
+		graphics.bufferQueue.push_back(constBufferSSAO);
 	}
 }
 

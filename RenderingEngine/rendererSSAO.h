@@ -6,7 +6,7 @@
 
 namespace tre {
 
-struct SSAOKernalStruct {
+struct SSAOStruct {
 	float sampleRadius;
 	XMFLOAT3 pad;
 };
@@ -22,7 +22,7 @@ public:
 
 	void init();
 
-	static SSAOKernalStruct createSSAOKernalStruct(float sampleRadius);
+	static SSAOStruct createSSAOKernalStruct(float sampleRadius);
 
 	void fullscreenPass(Graphics& graphics, const Scene& scene, const Camera& cam);
 	void fullscreenBlurPass(const Graphics& graphics);
