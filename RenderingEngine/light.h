@@ -37,8 +37,8 @@ public:
 	ID3D11DeviceContext* _context;
 	
 	ComPtr<ID3D11Buffer> pLightBufferGPU;
-	ComPtr<ID3D11ShaderResourceView> pLightShaderRescView;
-	ComPtr<ID3D11UnorderedAccessView> pLightUnorderedAccessView;
+	//ComPtr<ID3D11ShaderResourceView> pLightShaderRescView;
+	//ComPtr<ID3D11UnorderedAccessView> pLightUnorderedAccessView;
 
 	int readIndex = 0;
 	int writeIndex = readIndex ^ 1;
@@ -52,11 +52,9 @@ public:
 	std::vector<PointLight> readOnlyPointLightQ;
 
 	void create(ID3D11Device* device, ID3D11DeviceContext* context);
-
-	PointLight addPointLight(XMFLOAT3 pos, XMFLOAT3 att, XMFLOAT4 diffuse, XMFLOAT2 yawPitch);
+	void addPointLight(XMFLOAT3 pos, XMFLOAT3 att, XMFLOAT4 diffuse, XMFLOAT2 yawPitch);
 	void addRandPointLight();
 	void updateComputeShaderBuffer(PointLight newPointLight);
-	void updatePixelShaderBuffer();
 	void updatePtLightCPU();
 };
 }

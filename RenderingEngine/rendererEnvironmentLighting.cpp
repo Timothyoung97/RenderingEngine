@@ -20,42 +20,128 @@ void RendererEnvironmentLighting::init() {
 void RendererEnvironmentLighting::render(Graphics& graphics, const Scene& scene, const Camera& cam) {
 	const char* name = ToString(RENDER_MODE::DEFERRED_OPAQUE_LIGHTING_ENV_M);
 	MICROPROFILE_SCOPE_CSTR(name);
-	PROFILE_GPU_SCOPED("Deferred Environment Lighting Pass");
+	//PROFILE_GPU_SCOPED("Deferred Environment Lighting Pass");
 
 	// set const buffer for global info
 	ID3D11Buffer* constBufferGlobalInfo = tre::Buffer::createConstBuffer(pEngine->device->device.Get(), (UINT)sizeof(tre::GlobalInfoStruct));
 	{
 		// Create struct info and submit data to constant buffer
 		tre::GlobalInfoStruct globalInfoStruct = tre::CommonStructUtility::createGlobalInfoStruct(cam.camPositionV, cam.camViewProjection, scene.viewProjs, graphics.setting.csmPlaneIntervalsF, scene.dirlight, scene.lightResc.numOfLights, XMFLOAT2(4096, 4096), graphics.setting.csmDebugSwitch, graphics.setting.ssaoSwitch);
-		tre::Buffer::updateConstBufferData(pEngine->device->context.Get(), constBufferGlobalInfo, &globalInfoStruct, (UINT)sizeof(tre::GlobalInfoStruct));
+		tre::Buffer::updateConstBufferData(contextD.Get(), constBufferGlobalInfo, &globalInfoStruct, (UINT)sizeof(tre::GlobalInfoStruct));
+	}
+
+	// Create Views
+	ComPtr<ID3D11ShaderResourceView> ssaoBlurredTexture2dSRV;
+	{
+		D3D11_SHADER_RESOURCE_VIEW_DESC ssaoResultTexture2dSRVDesc;
+		ssaoResultTexture2dSRVDesc.Format = DXGI_FORMAT_R8_UNORM;
+		ssaoResultTexture2dSRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		ssaoResultTexture2dSRVDesc.Texture2D = D3D11_TEX2D_SRV(0, 1);
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateShaderResourceView(
+			graphics._ssao.ssaoBlurredTexture2d.Get(), &ssaoResultTexture2dSRVDesc, ssaoBlurredTexture2dSRV.GetAddressOf()
+		));
+	}
+
+	ComPtr<ID3D11ShaderResourceView> depthStencilShaderRescView;
+	{
+		D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc;
+		ZeroMemory(&shaderResourceViewDesc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
+		shaderResourceViewDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+		shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		shaderResourceViewDesc.Texture2D.MipLevels = 1;
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateShaderResourceView(
+			graphics._depthbuffer.pDepthStencilTexture.Get(), &shaderResourceViewDesc, depthStencilShaderRescView.GetAddressOf()
+		));
+	}
+
+	ComPtr<ID3D11ShaderResourceView> shadowShaderRescView;
+	{
+		D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc;
+		ZeroMemory(&shaderResourceViewDesc, sizeof(D3D11_SHADER_RESOURCE_VIEW_DESC));
+		shaderResourceViewDesc.Format = DXGI_FORMAT_R32_FLOAT;
+		shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		shaderResourceViewDesc.Texture2D.MipLevels = 1;
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateShaderResourceView(
+			graphics._depthbuffer.pShadowMapTexture.Get(), &shaderResourceViewDesc, shadowShaderRescView.GetAddressOf()
+		));
+	}
+
+	ComPtr<ID3D11RenderTargetView> hdrRTV;
+	{
+		D3D11_RENDER_TARGET_VIEW_DESC hdrRTVDesc;
+		ZeroMemory(&hdrRTVDesc, sizeof(D3D11_RENDER_TARGET_VIEW_DESC));
+		hdrRTVDesc.Format = DXGI_FORMAT_R11G11B10_FLOAT;
+		hdrRTVDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+		hdrRTVDesc.Texture2D.MipSlice = 0;
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateRenderTargetView(
+			graphics._hdrBuffer.pHdrBufferTexture.Get(), &hdrRTVDesc, hdrRTV.GetAddressOf()
+		));
+	}
+
+	ComPtr<ID3D11ShaderResourceView> deferredAlbedoSRV;
+	{
+		D3D11_SHADER_RESOURCE_VIEW_DESC shaderResViewDesc;
+		shaderResViewDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		shaderResViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		shaderResViewDesc.Texture2D = D3D11_TEX2D_SRV(0, 1);
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateShaderResourceView(
+			graphics._gBuffer.pGBufferTextureAlbedo.Get(), &shaderResViewDesc, deferredAlbedoSRV.GetAddressOf()
+		));
+	}
+
+	ComPtr<ID3D11ShaderResourceView> deferredNormalSRV;
+	{
+		D3D11_SHADER_RESOURCE_VIEW_DESC shaderResViewDesc;
+		shaderResViewDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		shaderResViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		shaderResViewDesc.Texture2D = D3D11_TEX2D_SRV(0, 1);
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateShaderResourceView(
+			graphics._gBuffer.pGBufferTextureNormal.Get(), &shaderResViewDesc, deferredNormalSRV.GetAddressOf()
+		));
 	}
 
 	// Context Configuration
 	{
-		pEngine->device->context.Get()->IASetInputLayout(nullptr);
-		pEngine->device->context.Get()->VSSetShader(_vertexShaderFullscreenQuad.pShader.Get(), NULL, 0u);
+		contextD.Get()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		contextD.Get()->IASetInputLayout(nullptr);
+		contextD.Get()->VSSetShader(_vertexShaderFullscreenQuad.pShader.Get(), NULL, 0u);
 
-		pEngine->device->context.Get()->RSSetViewports(1, &graphics._viewport.defaultViewport);
-		pEngine->device->context.Get()->RSSetState(graphics._rasterizer.pRasterizerStateFCCW.Get());
+		contextD.Get()->RSSetViewports(1, &graphics._viewport.defaultViewport);
+		contextD.Get()->RSSetState(graphics._rasterizer.pRasterizerStateFCCW.Get());
 
-		pEngine->device->context.Get()->OMSetRenderTargets(0, nullptr, nullptr);
-		pEngine->device->context.Get()->PSSetShader(_deferredShaderLightingEnv.pShader.Get(), NULL, 0u);
-		pEngine->device->context.Get()->PSSetConstantBuffers(0u, 1u, &constBufferGlobalInfo);
-		pEngine->device->context.Get()->PSSetShaderResources(0, 1, graphics._gBuffer.pShaderResViewDeferredAlbedo.GetAddressOf()); // albedo
-		pEngine->device->context.Get()->PSSetShaderResources(1, 1, graphics._gBuffer.pShaderResViewDeferredNormal.GetAddressOf()); // normal
-		pEngine->device->context.Get()->PSSetShaderResources(3, 1, graphics._depthbuffer.pShadowShaderRescView.GetAddressOf()); // shadow
-		pEngine->device->context.Get()->PSSetShaderResources(4, 1, graphics._depthbuffer.pDepthStencilShaderRescView.GetAddressOf()); //depth
-		pEngine->device->context.Get()->PSSetShaderResources(7, 1, graphics._ssao.ssaoBlurredTexture2dSRV.GetAddressOf()); // ssao
+		contextD.Get()->OMSetRenderTargets(0, nullptr, nullptr);
+		contextD.Get()->PSSetShader(_deferredShaderLightingEnv.pShader.Get(), NULL, 0u);
+		contextD.Get()->PSSetConstantBuffers(0u, 1u, &constBufferGlobalInfo);
+		contextD.Get()->PSSetShaderResources(0, 1, deferredAlbedoSRV.GetAddressOf()); // albedo
+		contextD.Get()->PSSetShaderResources(1, 1, deferredNormalSRV.GetAddressOf()); // normal
+		contextD.Get()->PSSetShaderResources(3, 1, shadowShaderRescView.GetAddressOf()); // shadow
+		contextD.Get()->PSSetShaderResources(4, 1, depthStencilShaderRescView.GetAddressOf()); //depth
+		contextD.Get()->PSSetShaderResources(7, 1, ssaoBlurredTexture2dSRV.GetAddressOf()); // ssao
+		contextD.Get()->PSSetSamplers(0, 1, graphics._sampler.pSamplerStateMinMagMipLinearWrap.GetAddressOf());
+		contextD.Get()->PSSetSamplers(1, 1, graphics._sampler.pSamplerStateMinMagMipLinearGreaterEqualBorder.GetAddressOf());
 
-		pEngine->device->context.Get()->OMSetRenderTargets(1, graphics._hdrBuffer.pRenderTargetViewHdrTexture.GetAddressOf(), nullptr);
-		pEngine->device->context.Get()->OMSetBlendState(graphics._blendstate.opaque.Get(), NULL, 0xffffffff);
-		pEngine->device->context.Get()->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
+		contextD.Get()->OMSetRenderTargets(1, hdrRTV.GetAddressOf(), nullptr);
+		contextD.Get()->OMSetBlendState(graphics._blendstate.opaque.Get(), NULL, 0xffffffff);
+		contextD.Get()->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
 	}
 
-	pEngine->device->context.Get()->Draw(6, 0);
+	contextD.Get()->Draw(6, 0);
 
 	{
+		std::lock_guard<std::mutex> lock(graphics.bufferQueueMutex);
 		graphics.bufferQueue.push_back(constBufferGlobalInfo);
+	}
+
+	{
+		CHECK_DX_ERROR(contextD->FinishCommandList(
+			false, &commandList
+		));
 	}
 }
 } 

@@ -1,17 +1,17 @@
 #pragma once
 
+#include "rendererBase.h"
 #include "graphics.h"
 #include "scene.h"
 
 namespace tre {
 
-struct SSAOKernalStruct {
-	XMFLOAT4 kernalSamples[64];
+struct SSAOStruct {
 	float sampleRadius;
 	XMFLOAT3 pad;
 };
 
-class RendererSSAO {
+class RendererSSAO : public RendererBase {
 public:
 
 	VertexShader _vertexShaderFullscreenQuad;
@@ -22,7 +22,7 @@ public:
 
 	void init();
 
-	static SSAOKernalStruct createSSAOKernalStruct(const std::vector<XMFLOAT4>& kernalSamples, float sampleRadius);
+	static SSAOStruct createSSAOKernalStruct(float sampleRadius);
 
 	void fullscreenPass(Graphics& graphics, const Scene& scene, const Camera& cam);
 	void fullscreenBlurPass(const Graphics& graphics);

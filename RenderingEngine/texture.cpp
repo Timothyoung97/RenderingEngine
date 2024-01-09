@@ -42,23 +42,11 @@ Texture TextureLoader::createTexture(ID3D11Device* device, std::string filepath)
 	textureData.SysMemPitch = imgWidth * 4;
 	textureData.SysMemSlicePitch = textureData.SysMemPitch * imgHeight;
 
-	ComPtr<ID3D11Texture2D> pTexture;
-
 	CHECK_DX_ERROR(device->CreateTexture2D(
-		&texture2dDesc, &textureData, pTexture.GetAddressOf()
+		&texture2dDesc, &textureData, newTexture.pTextureResource.GetAddressOf()
 	));
 
 	stbi_image_free(img);
-
-	// Create Shader Resource view
-	D3D11_SHADER_RESOURCE_VIEW_DESC shaderResViewDesc;
-	shaderResViewDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	shaderResViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-	shaderResViewDesc.Texture2D = D3D11_TEX2D_SRV(0, -1);
-
-	CHECK_DX_ERROR(device->CreateShaderResourceView(
-		pTexture.Get(), &shaderResViewDesc, newTexture.pShaderResView.GetAddressOf()
-	));
 
 	return newTexture;
 }

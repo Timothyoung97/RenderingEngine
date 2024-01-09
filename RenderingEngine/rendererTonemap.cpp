@@ -32,53 +32,93 @@ void RendererTonemap::setConstBufferTonemap(Graphics& graphics) {
 	{
 		// HDR const buffer update and binding
 		tre::TonemapStruct tonemapStruct = createTonemapStruct(graphics.setting.middleGrey, graphics.setting.bloomStrength);
-		tre::Buffer::updateConstBufferData(pEngine->device->context.Get(), constBufferTonemap, &tonemapStruct, (UINT)sizeof(tre::TonemapStruct));
-		pEngine->device->context.Get()->PSSetConstantBuffers(0u, 1u, &constBufferTonemap);
+		tre::Buffer::updateConstBufferData(contextD.Get(), constBufferTonemap, &tonemapStruct, (UINT)sizeof(tre::TonemapStruct));
+		contextD.Get()->PSSetConstantBuffers(0u, 1u, &constBufferTonemap);
 	}
-	graphics.bufferQueue.push_back(constBufferTonemap);
+
+	{
+		std::lock_guard<std::mutex> lock(graphics.bufferQueueMutex);
+		graphics.bufferQueue.push_back(constBufferTonemap);
+	}
 }
 
 void RendererTonemap::fullscreenPass(const Graphics& graphics) {
 	const char* name = ToString(RENDER_MODE::TONE_MAPPING_PASS);
 	MICROPROFILE_SCOPE_CSTR(name);
-	PROFILE_GPU_SCOPED("Tone Mapping Fullscreen Pass");
+	//PROFILE_GPU_SCOPED("Tone Mapping Fullscreen Pass");
 
-	D3D11_SHADER_RESOURCE_VIEW_DESC sampleBloomTextureSRVDesc;
-	sampleBloomTextureSRVDesc.Format = DXGI_FORMAT_R11G11B10_FLOAT;
-	sampleBloomTextureSRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-	sampleBloomTextureSRVDesc.Texture2D = D3D11_TEX2D_SRV(0u, 1u);
-
+	// Create Vew
 	ComPtr<ID3D11ShaderResourceView> sampleBloomTextureSRV;
-	CHECK_DX_ERROR(pEngine->device->device.Get()->CreateShaderResourceView(
-		graphics._bloomBuffer.bloomTexture2D[1].Get(), &sampleBloomTextureSRVDesc, sampleBloomTextureSRV.GetAddressOf()
-	));
-
-	// Context Confiuration
 	{
-		pEngine->device->context.Get()->IASetInputLayout(nullptr);
-		pEngine->device->context.Get()->VSSetShader(_vertexShaderFullscreenQuad.pShader.Get(), NULL, 0u);
+		D3D11_SHADER_RESOURCE_VIEW_DESC sampleBloomTextureSRVDesc;
+		sampleBloomTextureSRVDesc.Format = DXGI_FORMAT_R11G11B10_FLOAT;
+		sampleBloomTextureSRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		sampleBloomTextureSRVDesc.Texture2D = D3D11_TEX2D_SRV(0u, 1u);
 
-		pEngine->device->context.Get()->RSSetViewports(1, &graphics._viewport.defaultViewport);
-		pEngine->device->context.Get()->RSSetState(graphics._rasterizer.pRasterizerStateFCCW.Get());
-
-		pEngine->device->context.Get()->OMSetRenderTargets(0, nullptr, nullptr);
-		pEngine->device->context.Get()->PSSetShader(_tonemapPixelShader.pShader.Get(), NULL, 0u);
-		pEngine->device->context.Get()->PSSetShaderResources(0u, 1u, graphics._hdrBuffer.pShaderResViewHdrTexture.GetAddressOf()); // hdr texture
-		pEngine->device->context.Get()->PSSetShaderResources(1u, 1u, graphics._hdrBuffer.pLuminAvgSRV.GetAddressOf());
-		pEngine->device->context.Get()->PSSetShaderResources(2u, 1u, sampleBloomTextureSRV.GetAddressOf());
-
-		pEngine->device->context.Get()->OMSetBlendState(graphics._blendstate.opaque.Get(), NULL, 0xffffffff);
-		pEngine->device->context.Get()->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0); // by default: read only depth test
-		pEngine->device->context.Get()->OMSetRenderTargets(1, graphics.currRenderTargetView.GetAddressOf(), nullptr);
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateShaderResourceView(
+			graphics._bloomBuffer.bloomTexture2D[1].Get(), &sampleBloomTextureSRVDesc, sampleBloomTextureSRV.GetAddressOf()
+		));
 	}
 
-	pEngine->device->context.Get()->Draw(6, 0);
+	ComPtr<ID3D11ShaderResourceView> shaderResViewHdrTexture;
+	{
+		D3D11_SHADER_RESOURCE_VIEW_DESC shaderResViewDesc;
+		shaderResViewDesc.Format = DXGI_FORMAT_R11G11B10_FLOAT;
+		shaderResViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		shaderResViewDesc.Texture2D = D3D11_TEX2D_SRV(0, 1);
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateShaderResourceView(
+			graphics._hdrBuffer.pHdrBufferTexture.Get(), &shaderResViewDesc, shaderResViewHdrTexture.GetAddressOf()
+		));
+	}
+
+	ComPtr<ID3D11ShaderResourceView> luminAvgSRV;
+	{
+		D3D11_BUFFER_SRV pLuminAvgBufferSRV;
+		pLuminAvgBufferSRV.NumElements = 1;
+		pLuminAvgBufferSRV.FirstElement = 0;
+
+		D3D11_SHADER_RESOURCE_VIEW_DESC pLuminAvgSRVResc;
+		pLuminAvgSRVResc.Format = DXGI_FORMAT_R16_FLOAT;
+		pLuminAvgSRVResc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+		pLuminAvgSRVResc.Buffer = pLuminAvgBufferSRV;
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateShaderResourceView(
+			graphics._hdrBuffer.pLuminAvg.Get(), &pLuminAvgSRVResc, luminAvgSRV.GetAddressOf()
+		));
+	}
+
+	// Context Configuration
+	{
+		contextD.Get()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		contextD.Get()->IASetInputLayout(nullptr);
+		contextD.Get()->VSSetShader(_vertexShaderFullscreenQuad.pShader.Get(), NULL, 0u);
+
+		contextD.Get()->RSSetViewports(1, &graphics._viewport.defaultViewport);
+		contextD.Get()->RSSetState(graphics._rasterizer.pRasterizerStateFCCW.Get());
+
+		contextD.Get()->OMSetRenderTargets(0, nullptr, nullptr);
+		contextD.Get()->PSSetShader(_tonemapPixelShader.pShader.Get(), NULL, 0u);
+		contextD.Get()->PSSetShaderResources(0u, 1u, shaderResViewHdrTexture.GetAddressOf()); // hdr texture
+		contextD.Get()->PSSetShaderResources(1u, 1u, luminAvgSRV.GetAddressOf());
+		contextD.Get()->PSSetShaderResources(2u, 1u, sampleBloomTextureSRV.GetAddressOf());
+
+		contextD.Get()->OMSetBlendState(graphics._blendstate.opaque.Get(), NULL, 0xffffffff);
+		contextD.Get()->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithDepthTWriteDisabled.Get(), 0); // by default: read only depth test
+		contextD.Get()->OMSetRenderTargets(1, graphics.currRenderTargetView.GetAddressOf(), nullptr);
+	}
+
+	contextD.Get()->Draw(6, 0);
 }
 
 void RendererTonemap::render(Graphics& graphics) {
-	PROFILE_GPU_SCOPED("Tonemap");
+	//PROFILE_GPU_SCOPED("Tonemap");
 	MICROPROFILE_SCOPE_CSTR("Tonemap");
 	setConstBufferTonemap(graphics);
 	fullscreenPass(graphics);
+
+	CHECK_DX_ERROR(contextD->FinishCommandList(
+		false, &commandList
+	));
 }
 }

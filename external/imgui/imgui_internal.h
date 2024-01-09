@@ -2405,7 +2405,7 @@ struct IMGUI_API ImGuiWindow
     bool                    MemoryCompacted;                    // Set when window extraneous data have been garbage collected
 
 public:
-    ImGuiWindow(ImGuiContext* context, const char* name);
+    ImGuiWindow(ImGuiContext* contextI, const char* name);
     ~ImGuiWindow();
 
     ImGuiID     GetID(const char* str, const char* str_end = NULL);
@@ -2829,9 +2829,9 @@ namespace ImGui
     IMGUI_API void          UpdateMouseMovingWindowEndFrame();
 
     // Generic context hooks
-    IMGUI_API ImGuiID       AddContextHook(ImGuiContext* context, const ImGuiContextHook* hook);
-    IMGUI_API void          RemoveContextHook(ImGuiContext* context, ImGuiID hook_to_remove);
-    IMGUI_API void          CallContextHooks(ImGuiContext* context, ImGuiContextHookType type);
+    IMGUI_API ImGuiID       AddContextHook(ImGuiContext* contextI, const ImGuiContextHook* hook);
+    IMGUI_API void          RemoveContextHook(ImGuiContext* contextI, ImGuiID hook_to_remove);
+    IMGUI_API void          CallContextHooks(ImGuiContext* contextI, ImGuiContextHookType type);
 
     // Viewports
     IMGUI_API void          SetWindowViewport(ImGuiWindow* window, ImGuiViewportP* viewport);

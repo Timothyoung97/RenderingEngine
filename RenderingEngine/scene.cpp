@@ -1,6 +1,7 @@
 #include "scene.h"
 
 #include <format>
+#include <taskflow/taskflow.hpp>
 
 #include "microprofile.h"
 #include "colors.h"
@@ -57,7 +58,7 @@ void Scene::init() {
 	};
 
 	// Pt Lights
-	lightResc.create(pEngine->device->device.Get(), pEngine->device->context.Get());
+	lightResc.create(pEngine->device->device.Get(), pEngine->device->contextI.Get());
 	
 	// Debug 
 	//lightResc.addPointLight(XMFLOAT3(3.0f, 3.0f, 3.0f),    XMFLOAT3(1.f, .14f, .07f),  XMFLOAT4(.0f, 10.f, 10.f, .5f), XMFLOAT2(.0f, .0f));

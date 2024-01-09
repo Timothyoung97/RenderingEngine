@@ -30,6 +30,7 @@
 #include "timer.h"
 #include "utility.h"
 #include "window.h"
+#include "taskflow/taskflow.hpp"
 
 namespace tre {
 
@@ -56,6 +57,43 @@ void Engine::init() {
 	input =  new Input;
 	control =  new Control;
 	imguihelper = new ImguiHelper;
+
+	renderers = {
+		rendererCSM, rendererGBuffer,
+		rendererSSAO, rendererEnvLighting,
+		rendererTransparency, rendererLocalLighting,
+		computerPtLight, computerHDR,
+		computerBloom, rendererTonemap,
+		rendererWireframe
+	};
+
+#ifdef _DEBUG
+	D3D11_FEATURE_DATA_THREADING featureCheckStruct;
+	CHECK_DX_ERROR(device->device.Get()->CheckFeatureSupport(
+		D3D11_FEATURE_THREADING, &featureCheckStruct, (UINT)sizeof(D3D11_FEATURE_DATA_THREADING)
+	));
+
+	printf("Command List Support: %s\n", featureCheckStruct.DriverCommandLists ? "True" : "False");
+	printf("Concurrent Create Supported: %s\n", featureCheckStruct.DriverConcurrentCreates ? "True" : "False");
+#endif
+}
+
+void Engine::executeCommandList() {
+	for(int i = 0; i < renderers.size(); i++) {
+		if (renderers[i]->commandList != nullptr) {
+			device->contextI->ExecuteCommandList(renderers[i]->commandList, false);
+		}
+	}
+}
+
+
+void Engine::deleteCommandList() {
+	for (int i = 0; i < renderers.size(); i++) {
+		if (renderers[i]->commandList != nullptr) {
+			renderers[i]->commandList->Release();
+			renderers[i]->commandList = nullptr;
+		}
+	}
 }
 
 void Engine::run() {
@@ -68,7 +106,7 @@ void Engine::run() {
 			"obj Files (.obj)", "*.obj",
 		},
 		pfd::opt::force_path
-		);
+	);
 
 	if (f.result().size()) {
 		ml->load(device->device.Get(), f.result()[0]);
@@ -95,28 +133,41 @@ void Engine::run() {
 	// Delta Time between frame
 	float deltaTime = 0;
 
+	tf::Executor executor(11);
+
 	// main loop
 	while (!input->shouldQuit())
 	{
 		MICROPROFILE_SCOPE_CSTR("Frame");
 
 		tre::Timer timer;
+
 		graphics->clean();
 		input->updateInputEvent();
 		control->update(*input, *graphics, *scene, *cam, deltaTime);
 		cam->updateCamera();
-		computerPtLight->compute(*graphics, *scene, *cam);
 		scene->update(*graphics, *cam);
-		rendererCSM->render(*graphics, *scene, *cam);
-		rendererGBuffer->render(*graphics, *scene, *cam);
-		rendererSSAO->render(*graphics, *scene, *cam);
-		rendererEnvLighting->render(*graphics, *scene, *cam);
-		rendererTransparency->render(*graphics, *scene, *cam);
-		rendererLocalLighting->render(*graphics, *scene, *cam);
-		computerHDR->compute(*graphics);
-		computerBloom->compute(*graphics);
-		rendererTonemap->render(*graphics);
-		rendererWireframe->render(*graphics, *cam, *scene);
+
+		this->deleteCommandList();
+
+		tf::Taskflow taskflow;
+		taskflow.emplace(
+			[this]() { rendererCSM->render(*graphics, *scene, *cam); },
+			[this]() { rendererGBuffer->render(*graphics, *scene, *cam); },
+			[this]() { rendererSSAO->render(*graphics, *scene, *cam); },
+			[this]() { rendererEnvLighting->render(*graphics, *scene, *cam); },
+			[this]() { rendererTransparency->render(*graphics, *scene, *cam); },
+			[this]() { rendererLocalLighting->render(*graphics, *scene, *cam); },
+			[this]() { computerPtLight->compute(*graphics, *scene, *cam); },
+			[this]() { rendererTonemap->render(*graphics); },
+			[this]() { computerHDR->compute(*graphics); },
+			[this]() { computerBloom->compute(*graphics); },
+			[this]() { rendererWireframe->render(*graphics, *cam, *scene); }
+		);
+		executor.run(taskflow).wait();	// to wait for all threads to finish before execute
+
+		this->executeCommandList();
+
 		imguihelper->render();
 		graphics->present();
 		timer.spinWait();
@@ -142,7 +193,10 @@ void Engine::close() {
 	delete rendererTransparency;
 	delete rendererWireframe;
 	delete computerPtLight;
+	delete rendererTonemap;
+	delete computerBloom;
 
+	graphics->clean(); // clean the remaining const buffer pointer
 	delete graphics;
 	
 	delete ml;
@@ -153,5 +207,4 @@ void Engine::close() {
 	delete device;
 	delete window;
 }
-
 }

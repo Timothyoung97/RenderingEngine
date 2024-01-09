@@ -1,12 +1,13 @@
 #pragma once
 
+#include "rendererBase.h"
 #include "graphics.h"
 #include "scene.h"
 #include "camera.h"
 
 namespace tre {
 
-class RendererGBuffer {
+class RendererGBuffer : public RendererBase {
 public:
 
 	VertexShader _vertexShaderInstanced;

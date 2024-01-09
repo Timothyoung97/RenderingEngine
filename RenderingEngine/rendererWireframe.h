@@ -1,5 +1,6 @@
 #pragma once
 
+#include "rendererBase.h"
 #include "graphics.h"
 #include "mesh.h"
 #include "camera.h"
@@ -7,7 +8,7 @@
 
 namespace tre {
 
-class RendererWireframe {
+class RendererWireframe : public RendererBase {
 public:
 	// Wireframe Meshes
 	Mesh wireframeSphere;
@@ -30,7 +31,7 @@ public:
 
 	void draw(Graphics& graphics, const std::vector<Object*>& renderQ);
 
-	void drawInstanced(Graphics& graphics, const std::vector<Object*>& renderQ);
+	void drawInstanced(Graphics& graphics, const std::vector<Object*>& renderQ, InstanceBuffer& targetInstanceBuffer);
 
 	void render(Graphics& graphics, const Camera& cam, const Scene& scene);
 

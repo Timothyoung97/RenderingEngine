@@ -6,7 +6,6 @@
 #include "mesh.h"
 #include "device.h"
 #include "dxdebug.h"
-#include "maths.h"
 #include "utility.h"
 #include "scene.h"
 #include "colors.h"
@@ -36,33 +35,111 @@ void Graphics::init() {
 	_inputLayout.create(pEngine->device->device.Get(), &_vertexShader);
 
 	_gBuffer.create(pEngine->device->device.Get());
-	_ssao.create(pEngine->device->device.Get(), pEngine->device->context.Get());
-	_hdrBuffer.create(pEngine->device->device.Get(), pEngine->device->context.Get());
-	_instanceBuffer.createBuffer(pEngine->device->device.Get(), pEngine->device->context.Get());
+	_ssao.create(pEngine->device->device.Get());
+	_hdrBuffer.create(pEngine->device->device.Get());
 	_bloomBuffer.create(pEngine->device->device.Get());
+	_instanceBufferMainView.createBuffer(pEngine->device->device.Get());
+	_instanceBufferPointlights.createBuffer(pEngine->device->device.Get());
+	_instanceBufferWireframes.createBuffer(pEngine->device->device.Get());
+
+	for (int i = 0; i < 4; i++) {
+		_instanceBufferCSM[i].createBuffer(pEngine->device->device.Get());
+	}
 }
 
 void Graphics::clean() {
 	MICROPROFILE_SCOPE_CSTR("Clean Up");
-
 	while (!bufferQueue.empty()) {
 		ID3D11Buffer* currBuffer = bufferQueue.back();
 		bufferQueue.pop_back();
 		currBuffer->Release();
 	}
 
-	pEngine->device->context.Get()->ClearState();
-	pEngine->device->context.Get()->PSSetSamplers(0, 1, _sampler.pSamplerStateMinMagMipLinearWrap.GetAddressOf());
-	pEngine->device->context.Get()->PSSetSamplers(1, 1, _sampler.pSamplerStateMinMagMipLinearGreaterEqualBorder.GetAddressOf());
-	pEngine->device->context.Get()->PSSetSamplers(2, 1, _sampler.pSamplerStateMinMagMipPtWrap.GetAddressOf());
-	pEngine->device->context.Get()->PSSetSamplers(3, 1, _sampler.pSamplerStateMinMagMipPtClamp.GetAddressOf());
-	pEngine->device->context.Get()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	pEngine->device->context.Get()->ClearRenderTargetView(_ssao.ssaoBlurredTexture2dRTV.Get(), Colors::Transparent);
-	pEngine->device->context.Get()->ClearRenderTargetView(_gBuffer.pRenderTargetViewDeferredAlbedo.Get(), tre::BACKGROUND_BLACK);
-	pEngine->device->context.Get()->ClearRenderTargetView(_gBuffer.pRenderTargetViewDeferredNormal.Get(), tre::BACKGROUND_BLACK);
-	pEngine->device->context.Get()->ClearRenderTargetView(_hdrBuffer.pRenderTargetViewHdrTexture.Get(), Colors::Transparent);
-	pEngine->device->context.Get()->ClearDepthStencilView(_depthbuffer.pDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-	pEngine->device->context.Get()->ClearDepthStencilView(_depthbuffer.pShadowDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+	pEngine->device->contextI.Get()->ClearState();
+	{
+		ComPtr<ID3D11RenderTargetView> ssaoBlurredTexture2dRTV;
+		D3D11_RENDER_TARGET_VIEW_DESC ssaoResultTexture2dRTVDesc;
+		ZeroMemory(&ssaoResultTexture2dRTVDesc, sizeof(D3D11_RENDER_TARGET_VIEW_DESC));
+		ssaoResultTexture2dRTVDesc.Format = DXGI_FORMAT_R8_UNORM;
+		ssaoResultTexture2dRTVDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+		ssaoResultTexture2dRTVDesc.Texture2D.MipSlice = 0;
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateRenderTargetView(
+			_ssao.ssaoBlurredTexture2d.Get(), &ssaoResultTexture2dRTVDesc, ssaoBlurredTexture2dRTV.GetAddressOf()
+		));
+		pEngine->device->contextI.Get()->ClearRenderTargetView(ssaoBlurredTexture2dRTV.Get(), Colors::Transparent);
+	}
+
+	{
+		ComPtr<ID3D11DepthStencilView> shadowDepthStencilView;
+		D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
+		ZeroMemory(&depthStencilViewDesc, sizeof(D3D11_DEPTH_STENCIL_VIEW_DESC));
+		depthStencilViewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+		depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+		depthStencilViewDesc.Texture2D.MipSlice = 0;
+		depthStencilViewDesc.Format = DXGI_FORMAT_D32_FLOAT;
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateDepthStencilView(
+			_depthbuffer.pShadowMapTexture.Get(), &depthStencilViewDesc, shadowDepthStencilView.GetAddressOf()
+		));
+		pEngine->device->contextI.Get()->ClearDepthStencilView(shadowDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+	}
+
+	{
+		ComPtr<ID3D11DepthStencilView> depthStencilView;
+		D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
+		ZeroMemory(&depthStencilViewDesc, sizeof(D3D11_DEPTH_STENCIL_VIEW_DESC));
+		depthStencilViewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+		depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+		depthStencilViewDesc.Texture2D.MipSlice = 0;
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateDepthStencilView(
+			_depthbuffer.pDepthStencilTexture.Get(), &depthStencilViewDesc, depthStencilView.GetAddressOf()
+		));
+		pEngine->device->contextI.Get()->ClearDepthStencilView(depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+	}
+
+	{
+		ComPtr<ID3D11RenderTargetView> hdrRTV;
+		D3D11_RENDER_TARGET_VIEW_DESC hdrRTVDesc;
+		ZeroMemory(&hdrRTVDesc, sizeof(D3D11_RENDER_TARGET_VIEW_DESC));
+		hdrRTVDesc.Format = DXGI_FORMAT_R11G11B10_FLOAT;
+		hdrRTVDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+		hdrRTVDesc.Texture2D.MipSlice = 0;
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateRenderTargetView(
+			_hdrBuffer.pHdrBufferTexture.Get(), &hdrRTVDesc, hdrRTV.GetAddressOf()
+		));
+		pEngine->device->contextI.Get()->ClearRenderTargetView(hdrRTV.Get(), Colors::Transparent);
+	}
+
+	{
+		ComPtr<ID3D11RenderTargetView> pRenderTargetViewDeferredAlbedo;
+		D3D11_RENDER_TARGET_VIEW_DESC rtvd;
+		ZeroMemory(&rtvd, sizeof(D3D11_RENDER_TARGET_VIEW_DESC));
+		rtvd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		rtvd.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+		rtvd.Texture2D.MipSlice = 0;
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateRenderTargetView(
+			_gBuffer.pGBufferTextureAlbedo.Get(), &rtvd, pRenderTargetViewDeferredAlbedo.GetAddressOf()
+		));
+		pEngine->device->contextI.Get()->ClearRenderTargetView(pRenderTargetViewDeferredAlbedo.Get(), tre::BACKGROUND_BLACK);
+	}
+
+	{
+		ComPtr<ID3D11RenderTargetView> pRenderTargetViewDeferredNormal;
+		D3D11_RENDER_TARGET_VIEW_DESC rtvd;
+		ZeroMemory(&rtvd, sizeof(D3D11_RENDER_TARGET_VIEW_DESC));
+		rtvd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		rtvd.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+		rtvd.Texture2D.MipSlice = 0;
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateRenderTargetView(
+			_gBuffer.pGBufferTextureNormal.Get(), &rtvd, pRenderTargetViewDeferredNormal.GetAddressOf()
+		));
+		pEngine->device->contextI.Get()->ClearRenderTargetView(pRenderTargetViewDeferredNormal.Get(), tre::BACKGROUND_BLACK);
+	}
 
 	this->clearSwapChainBuffer();
 }
@@ -83,7 +160,7 @@ void Graphics::clearSwapChainBuffer() {
 	));
 	
 	// Set draw target to Screen
-	pEngine->device->context.Get()->ClearRenderTargetView(currRenderTargetView.Get(), tre::BACKGROUND_GREY);
+	pEngine->device->contextI.Get()->ClearRenderTargetView(currRenderTargetView.Get(), tre::BACKGROUND_GREY);
 }
 
 void Graphics::present() {

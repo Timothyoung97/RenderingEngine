@@ -1,11 +1,12 @@
 #pragma once
 
+#include "rendererBase.h"
 #include "graphics.h"
 #include "scene.h"
 
 namespace tre {
 
-class RendererTransparency {
+class RendererTransparency : public RendererBase {
 public:
 
 	VertexShader _vertexShader;

@@ -21,30 +21,50 @@ void ComputerBloom::init() {
 }
 
 void ComputerBloom::singleDownsample(Graphics& graphics, ID3D11Resource* pSampleTexture, ID3D11Resource* pDownsampleTexture, XMINT2 sampleViewDimension) {
-	PROFILE_GPU_SCOPED("Bloom Single Downsample");
+	//PROFILE_GPU_SCOPED("Bloom Single Downsample");
 	MICROPROFILE_SCOPE_CSTR("Bloom Single Downsample");
 
-	// create shader resource view for initial hdr texture
-	D3D11_SHADER_RESOURCE_VIEW_DESC sampleTextureSRVDesc;
-	sampleTextureSRVDesc.Format = DXGI_FORMAT_R11G11B10_FLOAT;
-	sampleTextureSRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-	sampleTextureSRVDesc.Texture2D= D3D11_TEX2D_SRV(0u, 1u);
-
 	ComPtr<ID3D11ShaderResourceView> sampleTextureSRV;
-	CHECK_DX_ERROR(pEngine->device->device.Get()->CreateShaderResourceView(
-		pSampleTexture, &sampleTextureSRVDesc, sampleTextureSRV.GetAddressOf()
-	));
+	{
+		// create shader resource view for initial hdr texture
+		D3D11_SHADER_RESOURCE_VIEW_DESC sampleTextureSRVDesc;
+		sampleTextureSRVDesc.Format = DXGI_FORMAT_R11G11B10_FLOAT;
+		sampleTextureSRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+		sampleTextureSRVDesc.Texture2D= D3D11_TEX2D_SRV(0u, 1u);
 
-	// create unorder access view for downsample texture
-	D3D11_UNORDERED_ACCESS_VIEW_DESC downsampleTextureUAVDesc;
-	downsampleTextureUAVDesc.Format = DXGI_FORMAT_R11G11B10_FLOAT;
-	downsampleTextureUAVDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
-	downsampleTextureUAVDesc.Texture2D = D3D11_TEX2D_UAV(0u);
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateShaderResourceView(
+			pSampleTexture, &sampleTextureSRVDesc, sampleTextureSRV.GetAddressOf()
+		));
+	}
 
 	ComPtr<ID3D11UnorderedAccessView> downsampleTextureUAV;
-	CHECK_DX_ERROR(pEngine->device->device.Get()->CreateUnorderedAccessView(
-		pDownsampleTexture, &downsampleTextureUAVDesc, downsampleTextureUAV.GetAddressOf()
-	));
+	{
+		// create unorder access view for downsample texture
+		D3D11_UNORDERED_ACCESS_VIEW_DESC downsampleTextureUAVDesc;
+		downsampleTextureUAVDesc.Format = DXGI_FORMAT_R11G11B10_FLOAT;
+		downsampleTextureUAVDesc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
+		downsampleTextureUAVDesc.Texture2D = D3D11_TEX2D_UAV(0u);
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateUnorderedAccessView(
+			pDownsampleTexture, &downsampleTextureUAVDesc, downsampleTextureUAV.GetAddressOf()
+		));
+	}
+
+	ComPtr<ID3D11ShaderResourceView> luminAvgSRV;
+	{
+		D3D11_BUFFER_SRV pLuminAvgBufferSRV;
+		pLuminAvgBufferSRV.NumElements = 1;
+		pLuminAvgBufferSRV.FirstElement = 0;
+
+		D3D11_SHADER_RESOURCE_VIEW_DESC pLuminAvgSRVResc;
+		pLuminAvgSRVResc.Format = DXGI_FORMAT_R16_FLOAT;
+		pLuminAvgSRVResc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+		pLuminAvgSRVResc.Buffer = pLuminAvgBufferSRV;
+
+		CHECK_DX_ERROR(pEngine->device->device.Get()->CreateShaderResourceView(
+			graphics._hdrBuffer.pLuminAvg.Get(), &pLuminAvgSRVResc, luminAvgSRV.GetAddressOf()
+		));
+	}
 
 	// set const buffer 
 	ID3D11Buffer* consBufferBloomConfig = tre::Buffer::createConstBuffer(pEngine->device->device.Get(), (UINT)sizeof(tre::BloomConstBufferStruct));
@@ -57,29 +77,30 @@ void ComputerBloom::singleDownsample(Graphics& graphics, ID3D11Resource* pSample
 			 XMFLOAT3(.0f, .0f, .0f)
 		};
 
-		tre::Buffer::updateConstBufferData(pEngine->device->context.Get(), consBufferBloomConfig, &bloomConfig, (UINT)sizeof(tre::BloomConstBufferStruct));
+		tre::Buffer::updateConstBufferData(contextD.Get(), consBufferBloomConfig, &bloomConfig, (UINT)sizeof(tre::BloomConstBufferStruct));
 	}
 
 	// binding
-	pEngine->device->context.Get()->CSSetShader(computeShaderDownsample.pShader.Get(), NULL, 0u);
-	pEngine->device->context.Get()->CSSetSamplers(0u, 1u, graphics._sampler.pSamplerStateMinMagMipLinearClamp.GetAddressOf());
-	pEngine->device->context.Get()->CSSetConstantBuffers(0u, 1u, &consBufferBloomConfig);
-	pEngine->device->context.Get()->CSSetShaderResources(0u, 1u, sampleTextureSRV.GetAddressOf());
-	pEngine->device->context.Get()->CSSetShaderResources(1u, 1u, graphics._hdrBuffer.pLuminAvgSRV.GetAddressOf());
-	pEngine->device->context.Get()->CSSetUnorderedAccessViews(0, 1u, downsampleTextureUAV.GetAddressOf(), nullptr);
+	contextD.Get()->CSSetShader(computeShaderDownsample.pShader.Get(), NULL, 0u);
+	contextD.Get()->CSSetSamplers(0u, 1u, graphics._sampler.pSamplerStateMinMagMipLinearClamp.GetAddressOf());
+	contextD.Get()->CSSetConstantBuffers(0u, 1u, &consBufferBloomConfig);
+	contextD.Get()->CSSetShaderResources(0u, 1u, sampleTextureSRV.GetAddressOf());
+	contextD.Get()->CSSetShaderResources(1u, 1u, luminAvgSRV.GetAddressOf());
+	contextD.Get()->CSSetUnorderedAccessViews(0, 1u, downsampleTextureUAV.GetAddressOf(), nullptr);
 
-	pEngine->device->context.Get()->Dispatch(tre::Maths::divideAndRoundUp(sampleViewDimension.x *.5f, 4u), tre::Maths::divideAndRoundUp(sampleViewDimension.y * .5f, 4u), 1u);
+	contextD.Get()->Dispatch(tre::Maths::divideAndRoundUp(sampleViewDimension.x *.5f, 4u), tre::Maths::divideAndRoundUp(sampleViewDimension.y * .5f, 4u), 1u);
 
 	// clean up
 	{
+		contextD.Get()->CSSetShaderResources(0u, 1u, graphics.nullSRV);
+		contextD.Get()->CSSetUnorderedAccessViews(0, 1u, graphics.nullUAV, nullptr);
+		std::lock_guard<std::mutex> lock(graphics.bufferQueueMutex);
 		graphics.bufferQueue.push_back(consBufferBloomConfig);
-		pEngine->device->context.Get()->CSSetShaderResources(0u, 1u, graphics.nullSRV);
-		pEngine->device->context.Get()->CSSetUnorderedAccessViews(0, 1u, graphics.nullUAV, nullptr);
 	}
 }
 
 void ComputerBloom::downsample(Graphics& graphics) {
-	PROFILE_GPU_SCOPED("Bloom Downsample");
+	//PROFILE_GPU_SCOPED("Bloom Downsample");
 	MICROPROFILE_SCOPE_CSTR("Bloom Downsample");
 
 	int writeIdx = 0;
@@ -97,7 +118,7 @@ void ComputerBloom::downsample(Graphics& graphics) {
 }
 
 void ComputerBloom::singleUpsample(Graphics& graphics, ID3D11Resource* pSampleTexture, ID3D11Resource* pUpsampleTexture, XMINT2 sampleViewDimension) {
-	PROFILE_GPU_SCOPED("Bloom Single Upsample");
+	//PROFILE_GPU_SCOPED("Bloom Single Upsample");
 	MICROPROFILE_SCOPE_CSTR("Bloom Single Upsample");
 
 	// create shader resource view for initial hdr texture
@@ -133,28 +154,29 @@ void ComputerBloom::singleUpsample(Graphics& graphics, ID3D11Resource* pSampleTe
 			 XMFLOAT3(.0f, .0f, .0f)
 		};
 
-		tre::Buffer::updateConstBufferData(pEngine->device->context.Get(), consBufferBloomConfig, &bloomConfig, (UINT)sizeof(tre::BloomConstBufferStruct));
+		tre::Buffer::updateConstBufferData(contextD.Get(), consBufferBloomConfig, &bloomConfig, (UINT)sizeof(tre::BloomConstBufferStruct));
 	}
 
 	// binding
-	pEngine->device->context.Get()->CSSetShader(computeShaderUpsample.pShader.Get(), NULL, 0u);
-	pEngine->device->context.Get()->CSSetSamplers(0u, 1u, graphics._sampler.pSamplerStateMinMagMipLinearClamp.GetAddressOf());
-	pEngine->device->context.Get()->CSSetConstantBuffers(0u, 1u, &consBufferBloomConfig);
-	pEngine->device->context.Get()->CSSetShaderResources(0u, 1u, sampleTextureSRV.GetAddressOf());
-	pEngine->device->context.Get()->CSSetUnorderedAccessViews(0, 1u, upsampleTextureUAV.GetAddressOf(), nullptr);
+	contextD.Get()->CSSetShader(computeShaderUpsample.pShader.Get(), NULL, 0u);
+	contextD.Get()->CSSetSamplers(0u, 1u, graphics._sampler.pSamplerStateMinMagMipLinearClamp.GetAddressOf());
+	contextD.Get()->CSSetConstantBuffers(0u, 1u, &consBufferBloomConfig);
+	contextD.Get()->CSSetShaderResources(0u, 1u, sampleTextureSRV.GetAddressOf());
+	contextD.Get()->CSSetUnorderedAccessViews(0, 1u, upsampleTextureUAV.GetAddressOf(), nullptr);
 
-	pEngine->device->context.Get()->Dispatch(tre::Maths::divideAndRoundUp(sampleViewDimension.x, 8u), tre::Maths::divideAndRoundUp(sampleViewDimension.y, 8u), 1u);
+	contextD.Get()->Dispatch(tre::Maths::divideAndRoundUp(sampleViewDimension.x, 8u), tre::Maths::divideAndRoundUp(sampleViewDimension.y, 8u), 1u);
 
 	// clean up
 	{
+		contextD.Get()->CSSetShaderResources(0u, 1u, graphics.nullSRV);
+		contextD.Get()->CSSetUnorderedAccessViews(0, 1u, graphics.nullUAV, nullptr);
+		std::lock_guard<std::mutex> lock(graphics.bufferQueueMutex);
 		graphics.bufferQueue.push_back(consBufferBloomConfig);
-		pEngine->device->context.Get()->CSSetShaderResources(0u, 1u, graphics.nullSRV);
-		pEngine->device->context.Get()->CSSetUnorderedAccessViews(0, 1u, graphics.nullUAV, nullptr);
 	}
 }
 
 void ComputerBloom::upsample(Graphics& graphics) {
-	PROFILE_GPU_SCOPED("Bloom Upsample");
+	//PROFILE_GPU_SCOPED("Bloom Upsample");
 	MICROPROFILE_SCOPE_CSTR("Bloom Upsample");
 
 	int writeIdx = 1;
@@ -172,10 +194,14 @@ void ComputerBloom::upsample(Graphics& graphics) {
 }
 
 void ComputerBloom::compute(Graphics& graphics) {
-	PROFILE_GPU_SCOPED("Bloom Compute");
+	//PROFILE_GPU_SCOPED("Bloom Compute");
 	MICROPROFILE_SCOPE_CSTR("Bloom Compute");
 	downsample(graphics);
 	upsample(graphics);
+
+	CHECK_DX_ERROR(contextD.Get()->FinishCommandList(
+		false, &commandList
+	));
 }
 
 }

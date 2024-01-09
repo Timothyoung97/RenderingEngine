@@ -5,10 +5,10 @@
 
 namespace tre {
 
-void LightResource::create(ID3D11Device* device, ID3D11DeviceContext* context) {
+void LightResource::create(ID3D11Device* device, ID3D11DeviceContext* contextI) {
 	
 	_device = device;
-	_context = context;
+	_context = contextI;
 	
 	// persistent
 	D3D11_BUFFER_DESC lightBufferDescGPU;
@@ -41,22 +41,6 @@ void LightResource::create(ID3D11Device* device, ID3D11DeviceContext* context) {
 	));
 }
 
-void LightResource::updatePixelShaderBuffer() {
-	// update GPU on buffer
-	D3D11_BUFFER_SRV lightBufferSRV;
-	lightBufferSRV.NumElements = numOfLights;
-	lightBufferSRV.FirstElement = 0;
-
-	D3D11_SHADER_RESOURCE_VIEW_DESC lightShaderResc;
-	lightShaderResc.Format = DXGI_FORMAT_UNKNOWN;
-	lightShaderResc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
-	lightShaderResc.Buffer = lightBufferSRV;
-
-	CHECK_DX_ERROR(_device->CreateShaderResourceView(
-		pLightBufferGPU.Get(), &lightShaderResc, pLightShaderRescView.GetAddressOf()
-	));
-}
-
 void LightResource::updateComputeShaderBuffer(PointLight newPointLight) {
 
 	// Create buffer on CPU side to update new light resource
@@ -79,21 +63,6 @@ void LightResource::updateComputeShaderBuffer(PointLight newPointLight) {
 
 	// Copy subresource from CPU to GPU
 	_context->CopySubresourceRegion(pLightBufferGPU.Get(), 0, (numOfLights - 1) * static_cast<UINT>(sizeof(tre::PointLight)), 0, 0, pLightBufferCPU.Get(), 0, NULL);
-
-	// update GPU on buffer
-	D3D11_BUFFER_UAV lightBufferUAV;
-	lightBufferUAV.NumElements = numOfLights;
-	lightBufferUAV.FirstElement = 0;
-	lightBufferUAV.Flags = 0u;
-
-	D3D11_UNORDERED_ACCESS_VIEW_DESC lightUnorderAccessViewDesc;
-	lightUnorderAccessViewDesc.Format = DXGI_FORMAT_UNKNOWN;
-	lightUnorderAccessViewDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
-	lightUnorderAccessViewDesc.Buffer = lightBufferUAV;
-
-	CHECK_DX_ERROR(_device->CreateUnorderedAccessView(
-		pLightBufferGPU.Get(), &lightUnorderAccessViewDesc, pLightUnorderedAccessView.GetAddressOf()
-	));
 }
 
 void LightResource::addRandPointLight() {
@@ -108,7 +77,7 @@ void LightResource::addRandPointLight() {
 	}
 }
 
-PointLight LightResource::addPointLight(XMFLOAT3 pos, XMFLOAT3 att, XMFLOAT4 diffuse, XMFLOAT2 yawPitch) {
+void LightResource::addPointLight(XMFLOAT3 pos, XMFLOAT3 att, XMFLOAT4 diffuse, XMFLOAT2 yawPitch) {
 
 	PointLight newPtLight;
 
@@ -125,9 +94,6 @@ PointLight LightResource::addPointLight(XMFLOAT3 pos, XMFLOAT3 att, XMFLOAT4 dif
 
 	numOfLights++;
 	updateComputeShaderBuffer(newPtLight);
-	updatePixelShaderBuffer();
-
-	return newPtLight;
 }
 
 void LightResource::updatePtLightCPU() {

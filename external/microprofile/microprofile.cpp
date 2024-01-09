@@ -5795,67 +5795,67 @@ static void MicroProfile_SHA1_Transform(uint32_t state[5], const unsigned char b
 	a = b = c = d = e = 0;
 }
 
-void MicroProfile_SHA1_Init(MicroProfile_SHA1_CTX* context)
+void MicroProfile_SHA1_Init(MicroProfile_SHA1_CTX* contextI)
 {
 	// SHA1 initialization constants
-	context->state[0] = 0x67452301;
-	context->state[1] = 0xEFCDAB89;
-	context->state[2] = 0x98BADCFE;
-	context->state[3] = 0x10325476;
-	context->state[4] = 0xC3D2E1F0;
-	context->count[0] = context->count[1] = 0;
+	contextI->state[0] = 0x67452301;
+	contextI->state[1] = 0xEFCDAB89;
+	contextI->state[2] = 0x98BADCFE;
+	contextI->state[3] = 0x10325476;
+	contextI->state[4] = 0xC3D2E1F0;
+	contextI->count[0] = contextI->count[1] = 0;
 }
 
 // Run your data through this.
 
-void MicroProfile_SHA1_Update(MicroProfile_SHA1_CTX* context, const unsigned char* data, unsigned int len)
+void MicroProfile_SHA1_Update(MicroProfile_SHA1_CTX* contextI, const unsigned char* data, unsigned int len)
 {
 	unsigned int i, j;
 
-	j = (context->count[0] >> 3) & 63;
-	if((context->count[0] += len << 3) < (len << 3))
-		context->count[1]++;
-	context->count[1] += (len >> 29);
+	j = (contextI->count[0] >> 3) & 63;
+	if((contextI->count[0] += len << 3) < (len << 3))
+		contextI->count[1]++;
+	contextI->count[1] += (len >> 29);
 	i = 64 - j;
 	while(len >= i)
 	{
-		memcpy(&context->buffer[j], data, i);
-		MicroProfile_SHA1_Transform(context->state, context->buffer);
+		memcpy(&contextI->buffer[j], data, i);
+		MicroProfile_SHA1_Transform(contextI->state, contextI->buffer);
 		data += i;
 		len -= i;
 		i = 64;
 		j = 0;
 	}
 
-	memcpy(&context->buffer[j], data, len);
+	memcpy(&contextI->buffer[j], data, len);
 }
 
 // Add padding and return the message digest.
 
-void MicroProfile_SHA1_Final(unsigned char digest[20], MicroProfile_SHA1_CTX* context)
+void MicroProfile_SHA1_Final(unsigned char digest[20], MicroProfile_SHA1_CTX* contextI)
 {
 	uint32_t i, j;
 	unsigned char finalcount[8];
 
 	for(i = 0; i < 8; i++)
 	{
-		finalcount[i] = (unsigned char)((context->count[(i >= 4 ? 0 : 1)] >> ((3 - (i & 3)) * 8)) & 255); // Endian independent
+		finalcount[i] = (unsigned char)((contextI->count[(i >= 4 ? 0 : 1)] >> ((3 - (i & 3)) * 8)) & 255); // Endian independent
 	}
-	MicroProfile_SHA1_Update(context, (unsigned char*)"\200", 1);
-	while((context->count[0] & 504) != 448)
+	MicroProfile_SHA1_Update(contextI, (unsigned char*)"\200", 1);
+	while((contextI->count[0] & 504) != 448)
 	{
-		MicroProfile_SHA1_Update(context, (unsigned char*)"\0", 1);
+		MicroProfile_SHA1_Update(contextI, (unsigned char*)"\0", 1);
 	}
-	MicroProfile_SHA1_Update(context, finalcount, 8); // Should cause a SHA1Transform()
+	MicroProfile_SHA1_Update(contextI, finalcount, 8); // Should cause a SHA1Transform()
 	for(i = 0; i < 20; i++)
 	{
-		digest[i] = (unsigned char)((context->state[i >> 2] >> ((3 - (i & 3)) * 8)) & 255);
+		digest[i] = (unsigned char)((contextI->state[i >> 2] >> ((3 - (i & 3)) * 8)) & 255);
 	}
 	// Wipe variables
 	i = j = 0;
-	memset(context->buffer, 0, 64);
-	memset(context->state, 0, 20);
-	memset(context->count, 0, 8);
+	memset(contextI->buffer, 0, 64);
+	memset(contextI->state, 0, 20);
+	memset(contextI->count, 0, 8);
 	memset(&finalcount, 0, 8);
 }
 

@@ -24,7 +24,7 @@ void ImguiHelper::init() {
 
 	// Setup Platform/Renderer backends
 	ImGui_ImplSDL2_InitForD3D(pEngine->window->window);
-	ImGui_ImplDX11_Init(pEngine->device->device.Get(), pEngine->device->context.Get());
+	ImGui_ImplDX11_Init(pEngine->device->device.Get(), pEngine->device->contextI.Get());
 
 	// assign pointers
 	pScene = pEngine->scene;
@@ -37,6 +37,9 @@ void ImguiHelper::render() {
 
 	MICROPROFILE_SCOPE_CSTR("IMGUI");
 	PROFILE_GPU_SCOPED("IMGUI");
+
+	// Bind the swapchain buffer for ImGui to render
+	pEngine->device->contextI.Get()->OMSetRenderTargets(1u, pEngine->graphics->currRenderTargetView.GetAddressOf(), nullptr);
 
 	ImGuiIO& io = ImGui::GetIO();
 

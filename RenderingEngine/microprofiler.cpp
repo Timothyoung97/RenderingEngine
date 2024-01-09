@@ -21,13 +21,13 @@ void MicroProfiler::init() {
 	MicroProfileSetForceMetaCounters(true);
 
 
-	MicroProfileGpuInitD3D11(pEngine->device->device.Get(), pEngine->device->context.Get());
-	MICROPROFILE_GPU_SET_CONTEXT(pEngine->device->context.Get(), MicroProfileGetGlobalGpuThreadLog());
+	MicroProfileGpuInitD3D11(pEngine->device->device.Get(), pEngine->device->contextI.Get());
+	MICROPROFILE_GPU_SET_CONTEXT(pEngine->device->contextI.Get(), MicroProfileGetGlobalGpuThreadLog());
 	MicroProfileStartContextSwitchTrace();
 }
 
 void MicroProfiler::recordFrame() {
-	MicroProfileFlip(pEngine->device->context.Get());
+	MicroProfileFlip(pEngine->device->contextI.Get());
 }
 
 void MicroProfiler::cleanup() {
@@ -38,7 +38,7 @@ void MicroProfiler::cleanup() {
 void MicroProfiler::storeToDisk(bool& toStore) {
 	if (toStore) {
 		printf("Profiling\n");
-		MicroProfileDumpFileImmediately("profile.html", nullptr, pEngine->device->context.Get());
+		MicroProfileDumpFileImmediately("profile.html", nullptr, pEngine->device->contextI.Get());
 		toStore = false;
 	}
 }

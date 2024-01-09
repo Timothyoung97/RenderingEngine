@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <mutex>
 
 #include "device.h"
 #include "object.h"
@@ -100,13 +101,17 @@ public:
 	GBuffer _gBuffer;
 	SSAO _ssao;
 	HdrBuffer _hdrBuffer;
-	InstanceBuffer _instanceBuffer;
 	BloomBuffer _bloomBuffer;
+	InstanceBuffer _instanceBufferMainView;
+	InstanceBuffer _instanceBufferCSM[4];
+	InstanceBuffer _instanceBufferPointlights;
+	InstanceBuffer _instanceBufferWireframes;
 
 	ID3D11UnorderedAccessView* nullUAV[1] = { nullptr };
 	ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
 
 	std::vector<ID3D11Buffer*> bufferQueue;
+	std::mutex bufferQueueMutex;
 
 	// Misc
 	GraphicsSetting setting;
