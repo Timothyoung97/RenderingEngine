@@ -33,7 +33,7 @@ void Camera::init(float width, float height) {
 	camView = XMMatrixLookAtLH(camPositionV, camPositionV + directionV, camUpV);
 
 	// Projection Matrix
-	camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovY), static_cast<float>(width) / height, .1f, 250.f);
+	camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovY), static_cast<float>(width) / height, .1f, 10000.f);
 
 	camViewProjection = XMMatrixMultiply(camView, camProjection);
 
@@ -61,7 +61,7 @@ void Camera::turnCamera(float yawOffset, float pitchOffset) {
 }
 
 void Camera::updateCamera() {
-	camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovY), static_cast<float>(tre::SCREEN_WIDTH) / tre::SCREEN_HEIGHT, .1f, 250.f);
+	camProjection = XMMatrixPerspectiveFovLH(XMConvertToRadians(fovY), static_cast<float>(tre::SCREEN_WIDTH) / tre::SCREEN_HEIGHT, .1f, 10000.f);
 	camRightV = XMVector3Normalize(XMVector3Cross(directionV, defaultUpV));
 	camUpV = XMVector3Normalize(XMVector3Cross(camRightV, directionV));
 	camView = XMMatrixLookAtLH(camPositionV, camPositionV + directionV, camUpV);
