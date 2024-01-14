@@ -3,6 +3,8 @@
 
 namespace tre {
 
+const static int numOfContext = 11;
+
 class Window;
 class Device;
 class MicroProfiler;

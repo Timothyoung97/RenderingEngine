@@ -16,14 +16,25 @@ MicroProfiler::MicroProfiler() {
 }
 
 void MicroProfiler::init() {
+	MICROPROFILE_CONDITIONAL(queueGraphics = MICROPROFILE_GPU_INIT_QUEUE("GPU-Graphics-Queue"));
+
 	MicroProfileOnThreadCreate("Main");
 	MicroProfileSetEnableAllGroups(true);
 	MicroProfileSetForceMetaCounters(true);
 
+	for (uint32_t i = 0; i < _countof(tokenGpuFrameIndex); i++) {
+		char frame[255];
+		snprintf(frame, sizeof(frame) - 1, "Graphics-Read-%d", i);
+		tokenGpuFrameIndex[i] = MicroProfileGetToken("GPU", frame, (uint32_t)-1, MicroProfileTokenTypeGpu, 0);
+	}
 
 	MicroProfileGpuInitD3D11(pEngine->device->device.Get(), pEngine->device->contextI.Get());
 	MICROPROFILE_GPU_SET_CONTEXT(pEngine->device->contextI.Get(), MicroProfileGetGlobalGpuThreadLog());
-	MicroProfileStartContextSwitchTrace();
+	//MicroProfileStartContextSwitchTrace();
+
+	for (int i = 0; i < numOfContext; i++) {
+		gpuThreadLog[i] = MicroProfileThreadLogGpuAlloc();
+	}
 }
 
 void MicroProfiler::recordFrame() {
