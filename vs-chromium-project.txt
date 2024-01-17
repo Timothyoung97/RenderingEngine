@@ -63,5 +63,4 @@
 **/ShaderDebugInfo/**
 **/enc_temp_folder/**
 
-external/
 build/
