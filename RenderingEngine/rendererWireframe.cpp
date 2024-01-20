@@ -205,14 +205,17 @@ void RendererWireframe::render(Graphics& graphics, const Camera& cam, const Scen
 	MICROPROFILE_CONDITIONAL(MicroProfileThreadLogGpu* pMicroProfileLog = profiler.gpuThreadLog[0]);
 	MICROPROFILE_GPU_BEGIN(contextD.Get(), pMicroProfileLog);
 	{
-		MICROPROFILE_SECTIONGPUI_L(pMicroProfileLog, "Wireframe", tre::Utility::getRandomInt(INT_MAX));
-		MICROPROFILE_SCOPEGPU_TOKEN_L(pMicroProfileLog, profiler.tokenGpuFrameIndex[profiler.nSrc]);
-		MICROPROFILE_SCOPEGPUI_L(pMicroProfileLog, "Wireframe Draw", tre::Utility::getRandomInt(INT_MAX));
-
-		//PROFILE_GPU_SCOPED("Render Bounding Volume Wireframe");
+		MICROPROFILE_SECTIONGPUI_L(pMicroProfileLog, "Wireframe Section", tre::Utility::getRandomInt(INT_MAX));
+		MICROPROFILE_SCOPEGPU_TOKEN_L(pMicroProfileLog, profiler.tokenGpuFrameIndex[0]);
 		setConstBufferCamViewProj(graphics, cam);
-		drawInstanced(graphics, scene._wireframeObjQ, graphics._instanceBufferPointlights);
-		drawInstanced(graphics, scene._pObjQ, graphics._instanceBufferWireframes);
+		{
+			MICROPROFILE_SCOPEGPUI_L(pMicroProfileLog, "Wireframe: Point lights", tre::Utility::getRandomInt(INT_MAX));
+			drawInstanced(graphics, scene._wireframeObjQ, graphics._instanceBufferPointlights);
+		}
+		{
+			MICROPROFILE_SCOPEGPUI_L(pMicroProfileLog, "Wireframe: All scene objects", tre::Utility::getRandomInt(INT_MAX));
+			drawInstanced(graphics, scene._pObjQ, graphics._instanceBufferWireframes);
+		}
 	}
 	{
 		CHECK_DX_ERROR(contextD->FinishCommandList(
