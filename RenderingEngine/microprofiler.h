@@ -14,12 +14,6 @@ public:
 
 	int queueGraphics = -1;
 	uint64_t tokenGpuFrameIndex[2];
-	UINT nSrc = 0;
-	UINT nDest = 1;
-
-	uint64_t microProfile[numOfContext];
-
-	MicroProfileThreadLogGpu* gpuThreadLog[numOfContext];
 
 	void init();
 	void recordFrame();

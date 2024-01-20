@@ -193,15 +193,33 @@ void ComputerBloom::upsample(Graphics& graphics) {
 	}
 }
 
-void ComputerBloom::compute(Graphics& graphics) {
-	//PROFILE_GPU_SCOPED("Bloom Compute");
-	MICROPROFILE_SCOPE_CSTR("Bloom Compute");
-	downsample(graphics);
-	upsample(graphics);
+void ComputerBloom::compute(Graphics& graphics, MicroProfiler& profiler) {
+	MICROPROFILE_SCOPE_CSTR("Bloom Section");
+
+	MICROPROFILE_CONDITIONAL(MicroProfileThreadLogGpu* pMicroProfileLog = MicroProfileThreadLogGpuAlloc());
+	MICROPROFILE_GPU_BEGIN(contextD.Get(), pMicroProfileLog);
+
+	{
+		MICROPROFILE_SECTIONGPUI_L(pMicroProfileLog, "Bloom Section", tre::Utility::getRandomInt(INT_MAX));
+		MICROPROFILE_SCOPEGPU_TOKEN_L(pMicroProfileLog, profiler.tokenGpuFrameIndex[1]);
+
+		{
+			MICROPROFILE_SCOPEGPUI_L(pMicroProfileLog, "Bloom: Downsample", tre::Utility::getRandomInt(INT_MAX));
+			downsample(graphics);
+		}
+		{
+			MICROPROFILE_SCOPEGPUI_L(pMicroProfileLog, "Bloom: Upsample", tre::Utility::getRandomInt(INT_MAX));
+			upsample(graphics);
+		}
+	}
 
 	CHECK_DX_ERROR(contextD.Get()->FinishCommandList(
 		false, &commandList
 	));
+
+	uint64_t nGpuBlock = MICROPROFILE_GPU_END(pMicroProfileLog);
+	MICROPROFILE_GPU_SUBMIT(profiler.queueGraphics, nGpuBlock);
+	MICROPROFILE_CONDITIONAL(MicroProfileThreadLogGpuFree(pMicroProfileLog));
 }
 
 }

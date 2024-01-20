@@ -15,7 +15,6 @@ RendererWireframe::RendererWireframe() {
 }
 
 void RendererWireframe::init() {
-	
 	wireframeCube = CubeMesh(pEngine->device->device.Get());
 	wireframeSphere = SphereMesh(pEngine->device->device.Get(), 10, 10);
 	
@@ -127,8 +126,7 @@ void RendererWireframe::draw(Graphics& graphics, const std::vector<Object*>& obj
 
 void RendererWireframe::drawInstanced(Graphics& graphics, const std::vector<Object*>& objQ, InstanceBuffer& targetInstanceBuffer) {
 	if (objQ.size() == 0 || !graphics.setting.showBoundingVolume) return;
-	const char* name = ToString(tre::RENDER_MODE::WIREFRAME_M);
-	MICROPROFILE_SCOPE_CSTR(name);
+	MICROPROFILE_SCOPE_CSTR("Wireframe: Draw Call");
 
 	// Select mesh to render based on bounding methods
 	Mesh* meshToRender = selectWireframeMesh(graphics.setting.typeOfBound);
@@ -200,11 +198,13 @@ void RendererWireframe::drawInstanced(Graphics& graphics, const std::vector<Obje
 void RendererWireframe::render(Graphics& graphics, const Camera& cam, const Scene& scene, MicroProfiler& profiler) {
 	if (!graphics.setting.showBoundingVolume) return;
 
-	MICROPROFILE_CONDITIONAL(MicroProfileThreadLogGpu* pMicroProfileLog = profiler.gpuThreadLog[0]);
+	MICROPROFILE_SCOPE_CSTR("Wireframe Section");
+
+	MICROPROFILE_CONDITIONAL(MicroProfileThreadLogGpu* pMicroProfileLog = MicroProfileThreadLogGpuAlloc());
 	MICROPROFILE_GPU_BEGIN(contextD.Get(), pMicroProfileLog);
 	{
 		MICROPROFILE_SECTIONGPUI_L(pMicroProfileLog, "Wireframe Section", tre::Utility::getRandomInt(INT_MAX));
-		MICROPROFILE_SCOPEGPU_TOKEN_L(pMicroProfileLog, profiler.tokenGpuFrameIndex[profiler.nSrc]);
+		MICROPROFILE_SCOPEGPU_TOKEN_L(pMicroProfileLog, profiler.tokenGpuFrameIndex[0]);
 
 		setConstBufferCamViewProj(graphics, cam);
 
@@ -224,7 +224,10 @@ void RendererWireframe::render(Graphics& graphics, const Camera& cam, const Scen
 		));
 	}
 
-	profiler.microProfile[0] = MICROPROFILE_GPU_END(pMicroProfileLog);
+	//profiler.microProfile[0] = MICROPROFILE_GPU_END(pMicroProfileLog);
+	uint64_t nGpuBlock = MICROPROFILE_GPU_END(pMicroProfileLog);
+	MICROPROFILE_GPU_SUBMIT(profiler.queueGraphics, nGpuBlock);
+	MICROPROFILE_CONDITIONAL(MicroProfileThreadLogGpuFree(pMicroProfileLog));
 }
 
 }

@@ -31,11 +31,6 @@ void MicroProfiler::init() {
 
 	MicroProfileGpuInitD3D11(pEngine->device->device.Get(), pEngine->device->contextI.Get());
 	MICROPROFILE_GPU_SET_CONTEXT(pEngine->device->contextI.Get(), MicroProfileGetGlobalGpuThreadLog());
-	//MicroProfileStartContextSwitchTrace();
-
-	for (int i = 0; i < numOfContext; i++) {
-		gpuThreadLog[i] = MicroProfileThreadLogGpuAlloc();
-	}
 }
 
 void MicroProfiler::recordFrame() {
