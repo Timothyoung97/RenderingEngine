@@ -162,13 +162,22 @@ void Engine::run() {
 			[this]() { rendererTonemap->render(*graphics); },
 			[this]() { computerHDR->compute(*graphics); },
 			[this]() { computerBloom->compute(*graphics); },
-			[this]() { rendererWireframe->render(*graphics, *cam, *scene); }
+			[this]() { rendererWireframe->render(*graphics, *cam, *scene, *profiler); }
 		);
 		executor.run(taskflow).wait();	// to wait for all threads to finish before execute
 
 		this->executeCommandList();
 
 		imguihelper->render();
+
+		//for (uint32_t i = 0; i < numOfContext; i++) {
+		MICROPROFILE_GPU_SUBMIT(profiler->queueGraphics, profiler->microProfile[0]);
+		//}
+
+		//for (uint32_t i = 0; i < numOfContext; i++) {
+		MICROPROFILE_THREADLOGGPURESET(profiler->gpuThreadLog[0]);
+		//}
+
 		graphics->present();
 		timer.spinWait();
 		deltaTime = timer.getDeltaTime();

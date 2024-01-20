@@ -250,7 +250,7 @@ void Scene::update(const Graphics& graphics, const Camera& cam) {
 
 void Scene::updatePtLight() {
 	MICROPROFILE_SCOPE_CSTR("CPU Point Light Update");
-	PROFILE_GPU_SCOPED("CPU Point Light Update");
+	//PROFILE_GPU_SCOPED("CPU Point Light Update");
 
 	lightResc.updatePtLightCPU();
 	_pointLightObjQ.clear();

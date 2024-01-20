@@ -63,7 +63,7 @@ inline const char* ToString(RENDER_MODE rm)
 }
 
 struct GraphicsSetting {
-	bool showBoundingVolume = false;
+	bool showBoundingVolume = true;
 	bool pauseLight = false;
 	bool ssaoSwitch = false;
 	tre::BoundVolumeEnum typeOfBound = tre::AABBBoundingBox; // default

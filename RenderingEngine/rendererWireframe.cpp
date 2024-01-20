@@ -199,19 +199,32 @@ void RendererWireframe::drawInstanced(Graphics& graphics, const std::vector<Obje
 
 }
 
-void RendererWireframe::render(Graphics& graphics, const Camera& cam, const Scene& scene) {
+void RendererWireframe::render(Graphics& graphics, const Camera& cam, const Scene& scene, MicroProfiler& profiler) {
 	if (!graphics.setting.showBoundingVolume) return;
 
-	//PROFILE_GPU_SCOPED("Render Bounding Volume Wireframe");
-	setConstBufferCamViewProj(graphics, cam);
+	//char threadname[16];
+	//snprintf(threadname, sizeof(threadname) - 1, "worker-%d", 0);
+	//MicroProfileOnThreadCreate(threadname);
 
-	drawInstanced(graphics, scene._wireframeObjQ, graphics._instanceBufferPointlights);
-	drawInstanced(graphics, scene._pObjQ, graphics._instanceBufferWireframes);
+	MICROPROFILE_CONDITIONAL(MicroProfileThreadLogGpu* pMicroProfileLog = profiler.gpuThreadLog[0]);
+	MICROPROFILE_GPU_BEGIN(contextD.Get(), pMicroProfileLog);
+	{
+		MICROPROFILE_SECTIONGPUI_L(pMicroProfileLog, "Wireframe", MP_DARKGREEN);
+		MICROPROFILE_SCOPEGPU_TOKEN_L(pMicroProfileLog, profiler.tokenGpuFrameIndex[profiler.nSrc]);
+		MICROPROFILE_SCOPEGPUI_L(pMicroProfileLog, "Wireframe Draw", 0xff00);
+
+		//PROFILE_GPU_SCOPED("Render Bounding Volume Wireframe");
+		setConstBufferCamViewProj(graphics, cam);
+		drawInstanced(graphics, scene._wireframeObjQ, graphics._instanceBufferPointlights);
+		drawInstanced(graphics, scene._pObjQ, graphics._instanceBufferWireframes);
+	}
 	{
 		CHECK_DX_ERROR(contextD->FinishCommandList(
 			false, &commandList
 		));
 	}
+
+	profiler.microProfile[0] = MICROPROFILE_GPU_END(pMicroProfileLog);
 }
 
 }

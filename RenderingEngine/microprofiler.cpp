@@ -16,6 +16,7 @@ MicroProfiler::MicroProfiler() {
 }
 
 void MicroProfiler::init() {
+
 	MICROPROFILE_CONDITIONAL(queueGraphics = MICROPROFILE_GPU_INIT_QUEUE("GPU-Graphics-Queue"));
 
 	MicroProfileOnThreadCreate("Main");
@@ -39,6 +40,7 @@ void MicroProfiler::init() {
 
 void MicroProfiler::recordFrame() {
 	MicroProfileFlip(pEngine->device->contextI.Get());
+	MicroProfileGpuFlip(0);
 }
 
 void MicroProfiler::cleanup() {

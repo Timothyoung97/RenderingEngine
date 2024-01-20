@@ -17,6 +17,8 @@ public:
 	UINT nSrc = 0;
 	UINT nDest = 1;
 
+	uint64_t microProfile[numOfContext];
+
 	MicroProfileThreadLogGpu* gpuThreadLog[numOfContext];
 
 	void init();

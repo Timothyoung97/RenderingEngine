@@ -5,6 +5,7 @@
 #include "mesh.h"
 #include "camera.h"
 #include "scene.h"
+#include "microprofiler.h"
 
 namespace tre {
 
@@ -33,7 +34,7 @@ public:
 
 	void drawInstanced(Graphics& graphics, const std::vector<Object*>& renderQ, InstanceBuffer& targetInstanceBuffer);
 
-	void render(Graphics& graphics, const Camera& cam, const Scene& scene);
+	void render(Graphics& graphics, const Camera& cam, const Scene& scene, MicroProfiler& profiler);
 
 };
 }
