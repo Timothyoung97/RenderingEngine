@@ -61,7 +61,6 @@ void RendererWireframe::draw(Graphics& graphics, const std::vector<Object*>& obj
 
 	const char* name = ToString(RENDER_MODE::WIREFRAME_M);
 	MICROPROFILE_SCOPE_CSTR(name);
-	//PROFILE_GPU_SCOPED("Draw Wireframe");
 
 	// Select mesh to render based on bounding methods
 	Mesh* meshToRender = selectWireframeMesh(graphics.setting.typeOfBound);
@@ -130,7 +129,6 @@ void RendererWireframe::drawInstanced(Graphics& graphics, const std::vector<Obje
 	if (objQ.size() == 0 || !graphics.setting.showBoundingVolume) return;
 	const char* name = ToString(tre::RENDER_MODE::WIREFRAME_M);
 	MICROPROFILE_SCOPE_CSTR(name);
-	//PROFILE_GPU_SCOPED("Instanced Draw Wireframe");
 
 	// Select mesh to render based on bounding methods
 	Mesh* meshToRender = selectWireframeMesh(graphics.setting.typeOfBound);
@@ -206,12 +204,15 @@ void RendererWireframe::render(Graphics& graphics, const Camera& cam, const Scen
 	MICROPROFILE_GPU_BEGIN(contextD.Get(), pMicroProfileLog);
 	{
 		MICROPROFILE_SECTIONGPUI_L(pMicroProfileLog, "Wireframe Section", tre::Utility::getRandomInt(INT_MAX));
-		MICROPROFILE_SCOPEGPU_TOKEN_L(pMicroProfileLog, profiler.tokenGpuFrameIndex[0]);
+		MICROPROFILE_SCOPEGPU_TOKEN_L(pMicroProfileLog, profiler.tokenGpuFrameIndex[profiler.nSrc]);
+
 		setConstBufferCamViewProj(graphics, cam);
-		{
+
+		{	
 			MICROPROFILE_SCOPEGPUI_L(pMicroProfileLog, "Wireframe: Point lights", tre::Utility::getRandomInt(INT_MAX));
 			drawInstanced(graphics, scene._wireframeObjQ, graphics._instanceBufferPointlights);
 		}
+		
 		{
 			MICROPROFILE_SCOPEGPUI_L(pMicroProfileLog, "Wireframe: All scene objects", tre::Utility::getRandomInt(INT_MAX));
 			drawInstanced(graphics, scene._pObjQ, graphics._instanceBufferWireframes);
