@@ -205,9 +205,9 @@ void RendererWireframe::render(Graphics& graphics, const Camera& cam, const Scen
 	MICROPROFILE_CONDITIONAL(MicroProfileThreadLogGpu* pMicroProfileLog = profiler.gpuThreadLog[0]);
 	MICROPROFILE_GPU_BEGIN(contextD.Get(), pMicroProfileLog);
 	{
-		MICROPROFILE_SECTIONGPUI_L(pMicroProfileLog, "Wireframe", MP_DARKGREEN);
+		MICROPROFILE_SECTIONGPUI_L(pMicroProfileLog, "Wireframe", tre::Utility::getRandomInt(INT_MAX));
 		MICROPROFILE_SCOPEGPU_TOKEN_L(pMicroProfileLog, profiler.tokenGpuFrameIndex[profiler.nSrc]);
-		MICROPROFILE_SCOPEGPUI_L(pMicroProfileLog, "Wireframe Draw", 0xff00);
+		MICROPROFILE_SCOPEGPUI_L(pMicroProfileLog, "Wireframe Draw", tre::Utility::getRandomInt(INT_MAX));
 
 		//PROFILE_GPU_SCOPED("Render Bounding Volume Wireframe");
 		setConstBufferCamViewProj(graphics, cam);
