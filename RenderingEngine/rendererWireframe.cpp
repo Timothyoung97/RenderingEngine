@@ -202,10 +202,6 @@ void RendererWireframe::drawInstanced(Graphics& graphics, const std::vector<Obje
 void RendererWireframe::render(Graphics& graphics, const Camera& cam, const Scene& scene, MicroProfiler& profiler) {
 	if (!graphics.setting.showBoundingVolume) return;
 
-	//char threadname[16];
-	//snprintf(threadname, sizeof(threadname) - 1, "worker-%d", 0);
-	//MicroProfileOnThreadCreate(threadname);
-
 	MICROPROFILE_CONDITIONAL(MicroProfileThreadLogGpu* pMicroProfileLog = profiler.gpuThreadLog[0]);
 	MICROPROFILE_GPU_BEGIN(contextD.Get(), pMicroProfileLog);
 	{
