@@ -25,7 +25,7 @@ void MicroProfiler::init() {
 
 	for (uint32_t i = 0; i < _countof(tokenGpuFrameIndex); i++) {
 		char frame[255];
-		snprintf(frame, sizeof(frame) - 1, "Graphics-Read-%d", i);
+		snprintf(frame, sizeof(frame) - 1, "Graphics-Thread-%d", i);
 		tokenGpuFrameIndex[i] = MicroProfileGetToken("GPU", frame, (uint32_t)-1, MicroProfileTokenTypeGpu, 0);
 	}
 
