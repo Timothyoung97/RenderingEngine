@@ -201,7 +201,7 @@ void ComputerBloom::compute(Graphics& graphics, MicroProfiler& profiler) {
 
 	{
 		MICROPROFILE_SECTIONGPUI_L(pMicroProfileLog, "Bloom Section", tre::Utility::getRandomInt(INT_MAX));
-		MICROPROFILE_SCOPEGPU_TOKEN_L(pMicroProfileLog, profiler.tokenGpuFrameIndex[1]);
+		MICROPROFILE_SCOPEGPU_TOKEN_L(pMicroProfileLog, profiler.tokenGpuFrameIndex[9]);
 
 		{
 			MICROPROFILE_SCOPEGPUI_L(pMicroProfileLog, "Bloom: Downsample", tre::Utility::getRandomInt(INT_MAX));

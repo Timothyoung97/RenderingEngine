@@ -13,7 +13,7 @@ public:
 	MicroProfiler();
 
 	int queueGraphics = -1;
-	uint64_t tokenGpuFrameIndex[2];
+	uint64_t tokenGpuFrameIndex[numOfContext];
 
 	void init();
 	void recordFrame();

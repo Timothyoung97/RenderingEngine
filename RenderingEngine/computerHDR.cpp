@@ -134,16 +134,35 @@ void ComputerHDR::dispatchAverage(const Graphics& graphics){
 	contextD.Get()->CSSetUnorderedAccessViews(1u, 1, graphics.nullUAV, nullptr);
 }
 
-void ComputerHDR::compute(Graphics& graphics) {
+void ComputerHDR::compute(Graphics& graphics, MicroProfiler& profiler) {
 	contextD.Get()->OMSetRenderTargets(0, nullptr, nullptr);
-	// Luminance Histogram
-	//PROFILE_GPU_SCOPED("HDR Compute");
-	setConstBufferLuminSetting(graphics);
-	dispatchHistogram(graphics);
-	dispatchAverage(graphics);
+	
+	MICROPROFILE_SCOPE_CSTR("Automatic Exposure Section");
 
-	CHECK_DX_ERROR(contextD.Get()->FinishCommandList(
-		false, &commandList
-	));
+	MICROPROFILE_CONDITIONAL(MicroProfileThreadLogGpu * pMicroProfileLog = MicroProfileThreadLogGpuAlloc());
+	MICROPROFILE_GPU_BEGIN(contextD.Get(), pMicroProfileLog);
+	{
+		MICROPROFILE_SECTIONGPUI_L(pMicroProfileLog, "Automatic Exposure Section", tre::Utility::getRandomInt(INT_MAX));
+		MICROPROFILE_SCOPEGPU_TOKEN_L(pMicroProfileLog, profiler.tokenGpuFrameIndex[8]);
+
+		setConstBufferLuminSetting(graphics);
+
+		{
+			MICROPROFILE_SCOPEGPUI_L(pMicroProfileLog, "Automatic Exposure: Luminance To Histogram", tre::Utility::getRandomInt(INT_MAX));
+			dispatchHistogram(graphics);
+		}
+		{
+			MICROPROFILE_SCOPEGPUI_L(pMicroProfileLog, "Automatic Exposure: Luminance Average", tre::Utility::getRandomInt(INT_MAX));
+			dispatchAverage(graphics);
+		}
+	}
+	{
+		CHECK_DX_ERROR(contextD.Get()->FinishCommandList(
+			false, &commandList
+		));
+	}
+	uint64_t nGpuBlock = MICROPROFILE_GPU_END(pMicroProfileLog);
+	MICROPROFILE_GPU_SUBMIT(profiler.queueGraphics, nGpuBlock);
+	MICROPROFILE_CONDITIONAL(MicroProfileThreadLogGpuFree(pMicroProfileLog));
 }
 }

@@ -204,7 +204,7 @@ void RendererWireframe::render(Graphics& graphics, const Camera& cam, const Scen
 	MICROPROFILE_GPU_BEGIN(contextD.Get(), pMicroProfileLog);
 	{
 		MICROPROFILE_SECTIONGPUI_L(pMicroProfileLog, "Wireframe Section", tre::Utility::getRandomInt(INT_MAX));
-		MICROPROFILE_SCOPEGPU_TOKEN_L(pMicroProfileLog, profiler.tokenGpuFrameIndex[0]);
+		MICROPROFILE_SCOPEGPU_TOKEN_L(pMicroProfileLog, profiler.tokenGpuFrameIndex[10]);
 
 		setConstBufferCamViewProj(graphics, cam);
 
@@ -223,8 +223,6 @@ void RendererWireframe::render(Graphics& graphics, const Camera& cam, const Scen
 			false, &commandList
 		));
 	}
-
-	//profiler.microProfile[0] = MICROPROFILE_GPU_END(pMicroProfileLog);
 	uint64_t nGpuBlock = MICROPROFILE_GPU_END(pMicroProfileLog);
 	MICROPROFILE_GPU_SUBMIT(profiler.queueGraphics, nGpuBlock);
 	MICROPROFILE_CONDITIONAL(MicroProfileThreadLogGpuFree(pMicroProfileLog));

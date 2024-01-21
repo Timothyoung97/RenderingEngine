@@ -5,6 +5,7 @@
 #include "rendererBase.h"
 #include "graphics.h"
 #include "constbuffer.h"
+#include "microprofiler.h"
 
 using namespace DirectX;
 
@@ -34,6 +35,6 @@ public:
 	void dispatchHistogram(const Graphics& graphics);
 	void dispatchAverage(const Graphics& graphics);
 
-	void compute(Graphics& graphics);
+	void compute(Graphics& graphics, MicroProfiler& profiler);
 };
 }

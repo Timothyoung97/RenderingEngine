@@ -160,7 +160,7 @@ void Engine::run() {
 			[this]() { rendererLocalLighting->render(*graphics, *scene, *cam); },
 			[this]() { computerPtLight->compute(*graphics, *scene, *cam); },
 			[this]() { rendererTonemap->render(*graphics); },
-			[this]() { computerHDR->compute(*graphics); },
+			[this]() { computerHDR->compute(*graphics, *profiler); },
 			[this]() { computerBloom->compute(*graphics, *profiler); },
 			[this]() { rendererWireframe->render(*graphics, *cam, *scene, *profiler); }
 		);
