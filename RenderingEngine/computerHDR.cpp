@@ -143,7 +143,7 @@ void ComputerHDR::compute(Graphics& graphics, MicroProfiler& profiler) {
 	MICROPROFILE_GPU_BEGIN(contextD.Get(), pMicroProfileLog);
 	{
 		MICROPROFILE_SECTIONGPUI_L(pMicroProfileLog, "Automatic Exposure Section", tre::Utility::getRandomInt(INT_MAX));
-		MICROPROFILE_SCOPEGPU_TOKEN_L(pMicroProfileLog, profiler.tokenGpuFrameIndex[8]);
+		MICROPROFILE_SCOPEGPU_TOKEN_L(pMicroProfileLog, profiler.computesTokenGpuFrameIndex[1]);
 
 		setConstBufferLuminSetting(graphics);
 
@@ -162,7 +162,7 @@ void ComputerHDR::compute(Graphics& graphics, MicroProfiler& profiler) {
 		));
 	}
 	uint64_t nGpuBlock = MICROPROFILE_GPU_END(pMicroProfileLog);
-	MICROPROFILE_GPU_SUBMIT(profiler.queueGraphics, nGpuBlock);
+	MICROPROFILE_GPU_SUBMIT(profiler.computesQueue, nGpuBlock);
 	MICROPROFILE_CONDITIONAL(MicroProfileThreadLogGpuFree(pMicroProfileLog));
 }
 }

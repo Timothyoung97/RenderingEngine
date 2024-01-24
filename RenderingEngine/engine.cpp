@@ -158,7 +158,7 @@ void Engine::run() {
 			[this]() { rendererEnvLighting->render(*graphics, *scene, *cam); },
 			[this]() { rendererTransparency->render(*graphics, *scene, *cam); },
 			[this]() { rendererLocalLighting->render(*graphics, *scene, *cam); },
-			[this]() { computerPtLight->compute(*graphics, *scene, *cam); },
+			[this]() { computerPtLight->compute(*graphics, *scene, *cam, *profiler); },
 			[this]() { rendererTonemap->render(*graphics); },
 			[this]() { computerHDR->compute(*graphics, *profiler); },
 			[this]() { computerBloom->compute(*graphics, *profiler); },

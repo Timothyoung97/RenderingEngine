@@ -201,7 +201,7 @@ void ComputerBloom::compute(Graphics& graphics, MicroProfiler& profiler) {
 
 	{
 		MICROPROFILE_SECTIONGPUI_L(pMicroProfileLog, "Bloom Section", tre::Utility::getRandomInt(INT_MAX));
-		MICROPROFILE_SCOPEGPU_TOKEN_L(pMicroProfileLog, profiler.tokenGpuFrameIndex[9]);
+		MICROPROFILE_SCOPEGPU_TOKEN_L(pMicroProfileLog, profiler.computesTokenGpuFrameIndex[2]);
 
 		{
 			MICROPROFILE_SCOPEGPUI_L(pMicroProfileLog, "Bloom: Downsample", tre::Utility::getRandomInt(INT_MAX));
@@ -218,7 +218,7 @@ void ComputerBloom::compute(Graphics& graphics, MicroProfiler& profiler) {
 	));
 
 	uint64_t nGpuBlock = MICROPROFILE_GPU_END(pMicroProfileLog);
-	MICROPROFILE_GPU_SUBMIT(profiler.queueGraphics, nGpuBlock);
+	MICROPROFILE_GPU_SUBMIT(profiler.computesQueue, nGpuBlock);
 	MICROPROFILE_CONDITIONAL(MicroProfileThreadLogGpuFree(pMicroProfileLog));
 }
 

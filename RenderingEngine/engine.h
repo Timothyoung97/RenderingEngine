@@ -4,6 +4,8 @@
 namespace tre {
 
 const static int numOfContext = 11;
+const static int numOfComputesContext = 3;
+const static int numOfGraphicsContext = 8;
 
 class Window;
 class Device;

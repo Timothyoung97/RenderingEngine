@@ -17,20 +17,31 @@ MicroProfiler::MicroProfiler() {
 
 void MicroProfiler::init() {
 
-	MICROPROFILE_CONDITIONAL(queueGraphics = MICROPROFILE_GPU_INIT_QUEUE("GPU-Graphics-Queue"));
+	MICROPROFILE_CONDITIONAL(graphicsQueue = MICROPROFILE_GPU_INIT_QUEUE("GPU-Graphics-Queue"));
+	MICROPROFILE_CONDITIONAL(computesQueue = MICROPROFILE_GPU_INIT_QUEUE("GPU-Computes-Queue"));
 
 	MicroProfileOnThreadCreate("Main");
 	MicroProfileSetEnableAllGroups(true);
 	MicroProfileSetForceMetaCounters(true);
 
-	for (uint32_t i = 0; i < _countof(tokenGpuFrameIndex); i++) {
+	for (uint32_t i = 0; i < _countof(graphicsTokenGpuFrameIndex); i++) {
 		char frame[255];
 		snprintf(frame, sizeof(frame) - 1, "Graphics-Thread-%d", i);
-		tokenGpuFrameIndex[i] = MicroProfileGetToken("GPU", frame, (uint32_t)-1, MicroProfileTokenTypeGpu, 0);
+		graphicsTokenGpuFrameIndex[i] = MicroProfileGetToken("GPU", frame, (uint32_t)-1, MicroProfileTokenTypeGpu, 0);
+	}
+
+	for (uint32_t i = 0; i < _countof(computesTokenGpuFrameIndex); i++) {
+		char frame[255];
+		snprintf(frame, sizeof(frame) - 1, "Computes-Thread-%d", i);
+		computesTokenGpuFrameIndex[i] = MicroProfileGetToken("GPU", frame, (uint32_t)-1, MicroProfileTokenTypeGpu, 0);
 	}
 
 	MicroProfileGpuInitD3D11(pEngine->device->device.Get(), pEngine->device->contextI.Get());
 	MICROPROFILE_GPU_SET_CONTEXT(pEngine->device->contextI.Get(), MicroProfileGetGlobalGpuThreadLog());
+
+	for (int i = 0; i < numOfContext; i++) {
+		graphicsGpuThreadLog[i] = MicroProfileThreadLogGpuAlloc();
+	}
 }
 
 void MicroProfiler::recordFrame() {
