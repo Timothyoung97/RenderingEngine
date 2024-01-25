@@ -138,6 +138,8 @@ void Engine::run() {
 	// main loop
 	while (!input->shouldQuit())
 	{
+		MICROPROFILE_TIMELINE_ENTER_STATIC(MP_YELLOW, "Frame");
+
 		MICROPROFILE_SCOPE_CSTR("Frame");
 
 		tre::Timer timer;
@@ -182,6 +184,8 @@ void Engine::run() {
 		deltaTime = timer.getDeltaTime();
 		profiler->recordFrame();
 		profiler->storeToDisk(control->toDumpFile);
+
+		MICROPROFILE_TIMELINE_LEAVE_STATIC("Frame");
 	}
 }
 

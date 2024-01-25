@@ -46,7 +46,7 @@ void MicroProfiler::init() {
 
 void MicroProfiler::recordFrame() {
 	MicroProfileFlip(pEngine->device->contextI.Get());
-	MicroProfileGpuFlip(0);
+	MicroProfileGpuFlip(pEngine->device->contextI.Get());
 }
 
 void MicroProfiler::cleanup() {
