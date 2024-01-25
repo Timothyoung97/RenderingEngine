@@ -4,6 +4,7 @@
 #include "graphics.h"
 #include "scene.h"
 #include "camera.h"
+#include "microprofiler.h"
 
 namespace tre {
 
@@ -16,7 +17,6 @@ public:
 	RendererGBuffer();
 
 	void init();
-	void render(Graphics& graphics, Scene& scene, Camera& cam);
-	
+	void render(Graphics& graphics, Scene& scene, Camera& cam, MicroProfiler& profiler);
 };
 }

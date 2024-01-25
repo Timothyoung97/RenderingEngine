@@ -18,11 +18,12 @@ void RendererGBuffer::init() {
 	_pixelShaderInstanced.create(basePathWstr + L"shaders\\bin\\pixel_shader_instanced_gbuffer.bin", pEngine->device->device.Get());
 }
 
-void RendererGBuffer::render(Graphics& graphics, Scene& scene, Camera& cam) {
+void RendererGBuffer::render(Graphics& graphics, Scene& scene, Camera& cam, MicroProfiler& profiler) {
 	if (scene._culledOpaqueObjQ[scene.camViewIdx].empty()) return;
 
-	const char* name = ToString(RENDER_MODE::INSTANCED_DEFERRED_OPAQUE_M);
-	MICROPROFILE_SCOPE_CSTR(name);
+	MICROPROFILE_SCOPE_CSTR("G-Buffer Section");
+	MICROPROFILE_CONDITIONAL(MicroProfileThreadLogGpu * pMicroProfileLog = profiler.graphicsGpuThreadLog[1]);
+	MICROPROFILE_GPU_BEGIN(contextD.Get(), pMicroProfileLog);
 
 	// View Projection Const Buffer
 	ID3D11Buffer* constBufferCamViewProj = tre::Buffer::createConstBuffer(pEngine->device->device.Get(), (UINT)sizeof(tre::ViewProjectionStruct));
@@ -118,57 +119,62 @@ void RendererGBuffer::render(Graphics& graphics, Scene& scene, Camera& cam) {
 	UINT vertexStride = sizeof(Vertex);
 	UINT offset = 0;
 
-	//PROFILE_GPU_SCOPED("G-Buffer Instanced Draw");
-	for (int i = 0; i < graphics._instanceBufferMainView.instanceBatchQueue.size(); i++) {
-		InstanceBatchInfo currBatchInfo = graphics._instanceBufferMainView.instanceBatchQueue[i];
+	{
+		MICROPROFILE_SECTIONGPUI_L(pMicroProfileLog, "G-Buffer Section", tre::Utility::getRandomInt(INT_MAX));
+		MICROPROFILE_SCOPEGPU_TOKEN_L(pMicroProfileLog, profiler.graphicsTokenGpuFrameIndex[1]);
+		MICROPROFILE_SCOPEGPUI_L(pMicroProfileLog, "G-Buffer: Draw", tre::Utility::getRandomInt(INT_MAX));
 
-		// update constant buffer for each instanced draw call
-		{
-			tre::BatchInfoStruct bInfo = tre::CommonStructUtility::createBatchInfoStruct(currBatchInfo.batchStartIdx);
-			tre::Buffer::updateConstBufferData(contextD.Get(), constBufferBatchInfo, &bInfo, (UINT)sizeof(tre::BatchInfoStruct));
+		for (int i = 0; i < graphics._instanceBufferMainView.instanceBatchQueue.size(); i++) {
+			InstanceBatchInfo currBatchInfo = graphics._instanceBufferMainView.instanceBatchQueue[i];
+
+			// update constant buffer for each instanced draw call
+			{
+				tre::BatchInfoStruct bInfo = tre::CommonStructUtility::createBatchInfoStruct(currBatchInfo.batchStartIdx);
+				tre::Buffer::updateConstBufferData(contextD.Get(), constBufferBatchInfo, &bInfo, (UINT)sizeof(tre::BatchInfoStruct));
+			}
+
+			// Update mesh vertex information
+			contextD.Get()->IASetVertexBuffers(0, 1, currBatchInfo.pBatchMesh->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
+			contextD.Get()->IASetIndexBuffer(currBatchInfo.pBatchMesh->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+
+			// Update texture information
+			contextD.Get()->PSSetShaderResources(0u, 1u, graphics.nullSRV);
+			if (currBatchInfo.isWithTexture) {
+
+				// Create Shader Resource view
+				D3D11_SHADER_RESOURCE_VIEW_DESC shaderResViewDesc;
+				shaderResViewDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+				shaderResViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+				shaderResViewDesc.Texture2D = D3D11_TEX2D_SRV(0, -1);
+
+				ComPtr<ID3D11ShaderResourceView> pTextureSRV;
+				CHECK_DX_ERROR(pEngine->device->device.Get()->CreateShaderResourceView(
+					currBatchInfo.pBatchTexture->pTextureResource.Get(), &shaderResViewDesc, pTextureSRV.GetAddressOf()
+				));
+
+				contextD.Get()->PSSetShaderResources(0u, 1u, pTextureSRV.GetAddressOf());
+			}
+
+			contextD.Get()->PSSetShaderResources(1u, 1u, graphics.nullSRV);
+			if (currBatchInfo.hasNormMap) {
+
+				// Create Shader Resource view
+				D3D11_SHADER_RESOURCE_VIEW_DESC shaderResViewDesc;
+				shaderResViewDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+				shaderResViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+				shaderResViewDesc.Texture2D = D3D11_TEX2D_SRV(0, -1);
+
+				ComPtr<ID3D11ShaderResourceView> pNormalTextureSRV;
+				CHECK_DX_ERROR(pEngine->device->device.Get()->CreateShaderResourceView(
+					currBatchInfo.pBatchNormalMap->pTextureResource.Get(), &shaderResViewDesc, pNormalTextureSRV.GetAddressOf()
+				));
+
+				contextD.Get()->PSSetShaderResources(1u, 1u, pNormalTextureSRV.GetAddressOf());
+			}
+
+			// Draw call
+			contextD.Get()->DrawIndexedInstanced(currBatchInfo.pBatchMesh->indexSize, currBatchInfo.quantity, 0u, 0u, 0u);
 		}
-
-		// Update mesh vertex information
-		contextD.Get()->IASetVertexBuffers(0, 1, currBatchInfo.pBatchMesh->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
-		contextD.Get()->IASetIndexBuffer(currBatchInfo.pBatchMesh->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
-
-		// Update texture information
-		contextD.Get()->PSSetShaderResources(0u, 1u, graphics.nullSRV);
-		if (currBatchInfo.isWithTexture) {
-
-			// Create Shader Resource view
-			D3D11_SHADER_RESOURCE_VIEW_DESC shaderResViewDesc;
-			shaderResViewDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-			shaderResViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-			shaderResViewDesc.Texture2D = D3D11_TEX2D_SRV(0, -1);
-
-			ComPtr<ID3D11ShaderResourceView> pTextureSRV;
-			CHECK_DX_ERROR(pEngine->device->device.Get()->CreateShaderResourceView(
-				currBatchInfo.pBatchTexture->pTextureResource.Get(), &shaderResViewDesc, pTextureSRV.GetAddressOf()
-			));
-
-			contextD.Get()->PSSetShaderResources(0u, 1u, pTextureSRV.GetAddressOf());
-		}
-
-		contextD.Get()->PSSetShaderResources(1u, 1u, graphics.nullSRV);
-		if (currBatchInfo.hasNormMap) {
-
-			// Create Shader Resource view
-			D3D11_SHADER_RESOURCE_VIEW_DESC shaderResViewDesc;
-			shaderResViewDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-			shaderResViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-			shaderResViewDesc.Texture2D = D3D11_TEX2D_SRV(0, -1);
-
-			ComPtr<ID3D11ShaderResourceView> pNormalTextureSRV;
-			CHECK_DX_ERROR(pEngine->device->device.Get()->CreateShaderResourceView(
-				currBatchInfo.pBatchNormalMap->pTextureResource.Get(), &shaderResViewDesc, pNormalTextureSRV.GetAddressOf()
-			));
-
-			contextD.Get()->PSSetShaderResources(1u, 1u, pNormalTextureSRV.GetAddressOf());
-		}
-
-		// Draw call
-		contextD.Get()->DrawIndexedInstanced(currBatchInfo.pBatchMesh->indexSize, currBatchInfo.quantity, 0u, 0u, 0u);
 	}
 
 	// clean up
@@ -183,5 +189,8 @@ void RendererGBuffer::render(Graphics& graphics, Scene& scene, Camera& cam) {
 			false, &commandList
 		));
 	}
+
+	profiler.graphicsMicroProfile[1] = MICROPROFILE_GPU_END(pMicroProfileLog);
+
 }
 }
