@@ -152,7 +152,7 @@ void Engine::run() {
 
 		tf::Taskflow taskflow;
 		taskflow.emplace(
-			[this]() { rendererCSM->render(*graphics, *scene, *cam); },
+			[this]() { rendererCSM->render(*graphics, *scene, *cam, *profiler); },
 			[this]() { rendererGBuffer->render(*graphics, *scene, *cam); },
 			[this]() { rendererSSAO->render(*graphics, *scene, *cam); },
 			[this]() { rendererEnvLighting->render(*graphics, *scene, *cam); },
@@ -167,6 +167,14 @@ void Engine::run() {
 		executor.run(taskflow).wait();	// to wait for all threads to finish before execute
 
 		this->executeCommandList();
+
+		//for (int i = 0; i < numOfGraphicsContext; i++) {
+			MICROPROFILE_GPU_SUBMIT(profiler->graphicsQueue, profiler->graphicsMicroProfile[0]);
+		//}
+
+		//for (int i = 0; i < numOfGraphicsContext; i++) {
+			MICROPROFILE_THREADLOGGPURESET(profiler->graphicsGpuThreadLog[0]);
+		//}
 
 		imguihelper->render();
 		graphics->present();

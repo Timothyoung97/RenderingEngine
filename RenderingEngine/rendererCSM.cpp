@@ -124,17 +124,23 @@ void RendererCSM::drawInstanced(Graphics& graphics, const std::vector<std::pair<
 	}
 }
 
-void RendererCSM::render(Graphics& graphics, Scene& scene, const Camera& cam) {
+void RendererCSM::render(Graphics& graphics, Scene& scene, const Camera& cam, MicroProfiler& profiler) {
+
+	MICROPROFILE_SCOPE_CSTR("CSM Section");
+	MICROPROFILE_CONDITIONAL(MicroProfileThreadLogGpu* pMicroProfileLog = profiler.graphicsGpuThreadLog[0]);
+	MICROPROFILE_GPU_BEGIN(contextD.Get(), pMicroProfileLog);
 
 	ID3D11Buffer* constBufferCSMViewProj = tre::Buffer::createConstBuffer(pEngine->device->device.Get(), (UINT)sizeof(tre::ViewProjectionStruct));
 	{
-		//PROFILE_GPU_SCOPED("CSM Quad Draw");
+		MICROPROFILE_SECTIONGPUI_L(pMicroProfileLog, "CSM Section", tre::Utility::getRandomInt(INT_MAX));
+		MICROPROFILE_SCOPEGPU_TOKEN_L(pMicroProfileLog, profiler.graphicsTokenGpuFrameIndex[0]);
 
 		for (int viewIdx = 0; viewIdx < 4; viewIdx++) {
 
-			{	// Render based on pointlight's view projection matrix
-				MICROPROFILE_SCOPE_CSTR("CSM Quad Obj Draw");
+			MICROPROFILE_SCOPE_CSTR("CSM: Draw");
 
+			// Render based on pointlight's view projection matrix
+			{	
 				setCSMViewport(graphics, viewIdx);
 
 				// Const Buffer 
@@ -151,8 +157,10 @@ void RendererCSM::render(Graphics& graphics, Scene& scene, const Camera& cam) {
 			}
 
 			// draw shadow only for opaque objects
-			//renderer.draw(scene._culledOpaqueObjQ, tre::RENDER_MODE::SHADOW_M); // non instanced
-			drawInstanced(graphics, scene._culledOpaqueObjQ[scene.csmViewBeginIdx + viewIdx], scene.csmViewBeginIdx + viewIdx); // instanced
+			{
+				MICROPROFILE_SCOPEGPUI_L(pMicroProfileLog, "CSM: Draw", tre::Utility::getRandomInt(INT_MAX));
+				drawInstanced(graphics, scene._culledOpaqueObjQ[scene.csmViewBeginIdx + viewIdx], scene.csmViewBeginIdx + viewIdx); // instanced
+			}
 		}
 	}
 
@@ -167,6 +175,8 @@ void RendererCSM::render(Graphics& graphics, Scene& scene, const Camera& cam) {
 			false, &commandList
 		));
 	}
+
+	profiler.graphicsMicroProfile[0] = MICROPROFILE_GPU_END(pMicroProfileLog);
 }
 
 }
