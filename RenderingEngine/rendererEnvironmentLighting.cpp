@@ -17,10 +17,10 @@ void RendererEnvironmentLighting::init() {
 	_deferredShaderLightingEnv.create(basePathWstr + L"shaders\\bin\\pixel_shader_deferred_lighting_env.bin", pEngine->device->device.Get());
 }
 
-void RendererEnvironmentLighting::render(Graphics& graphics, const Scene& scene, const Camera& cam) {
-	const char* name = ToString(RENDER_MODE::DEFERRED_OPAQUE_LIGHTING_ENV_M);
-	MICROPROFILE_SCOPE_CSTR(name);
-	//PROFILE_GPU_SCOPED("Deferred Environment Lighting Pass");
+void RendererEnvironmentLighting::render(Graphics& graphics, const Scene& scene, const Camera& cam, MicroProfiler& profiler) {
+	MICROPROFILE_SCOPE_CSTR("Environment Lighting Section");
+	MICROPROFILE_CONDITIONAL(MicroProfileThreadLogGpu * pMicroProfileLog = profiler.graphicsGpuThreadLog[3]);
+	MICROPROFILE_GPU_BEGIN(contextD.Get(), pMicroProfileLog);
 
 	// set const buffer for global info
 	ID3D11Buffer* constBufferGlobalInfo = tre::Buffer::createConstBuffer(pEngine->device->device.Get(), (UINT)sizeof(tre::GlobalInfoStruct));
@@ -131,7 +131,12 @@ void RendererEnvironmentLighting::render(Graphics& graphics, const Scene& scene,
 		contextD.Get()->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithDepthTWriteEnabled.Get(), 0);
 	}
 
-	contextD.Get()->Draw(6, 0);
+	{
+		MICROPROFILE_SECTIONGPUI_L(pMicroProfileLog, "Environment Lighting Section", tre::Utility::getRandomInt(INT_MAX));
+		MICROPROFILE_SCOPEGPU_TOKEN_L(pMicroProfileLog, profiler.graphicsTokenGpuFrameIndex[3]);
+		MICROPROFILE_SCOPEGPUI_L(pMicroProfileLog, "Environment Lighting: Draw", tre::Utility::getRandomInt(INT_MAX));
+		contextD.Get()->Draw(6, 0);
+	}
 
 	{
 		std::lock_guard<std::mutex> lock(graphics.bufferQueueMutex);
@@ -143,5 +148,7 @@ void RendererEnvironmentLighting::render(Graphics& graphics, const Scene& scene,
 			false, &commandList
 		));
 	}
+
+	profiler.graphicsMicroProfile[3] = MICROPROFILE_GPU_END(pMicroProfileLog);
 }
 } 

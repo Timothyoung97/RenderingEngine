@@ -156,8 +156,8 @@ void Engine::run() {
 		taskflow.emplace(
 			[this]() { rendererCSM->render(*graphics, *scene, *cam, *profiler); },
 			[this]() { rendererGBuffer->render(*graphics, *scene, *cam, *profiler); },
-			[this]() { rendererSSAO->render(*graphics, *scene, *cam); },
-			[this]() { rendererEnvLighting->render(*graphics, *scene, *cam); },
+			[this]() { rendererSSAO->render(*graphics, *scene, *cam, *profiler); },
+			[this]() { rendererEnvLighting->render(*graphics, *scene, *cam, *profiler); },
 			[this]() { rendererTransparency->render(*graphics, *scene, *cam); },
 			[this]() { rendererLocalLighting->render(*graphics, *scene, *cam); },
 			[this]() { computerPtLight->compute(*graphics, *scene, *cam, *profiler); },
@@ -170,11 +170,11 @@ void Engine::run() {
 
 		this->executeCommandList();
 
-		for (int i = 0; i < 2; i++) {
+		for (int i = 0; i < 4; i++) {
 			MICROPROFILE_GPU_SUBMIT(profiler->graphicsQueue, profiler->graphicsMicroProfile[i]);
 		}
 
-		for (int i = 0; i < 2; i++) {
+		for (int i = 0; i < 4; i++) {
 			MICROPROFILE_THREADLOGGPURESET(profiler->graphicsGpuThreadLog[i]);
 		}
 

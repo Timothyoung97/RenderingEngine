@@ -3,6 +3,7 @@
 #include "rendererBase.h"
 #include "graphics.h"
 #include "scene.h"
+#include "microprofiler.h"
 
 namespace tre {
 
@@ -27,7 +28,7 @@ public:
 	void fullscreenPass(Graphics& graphics, const Scene& scene, const Camera& cam);
 	void fullscreenBlurPass(const Graphics& graphics);
 
-	void render(Graphics& graphics, const Scene& scene, const Camera& cam);
+	void render(Graphics& graphics, const Scene& scene, const Camera& cam, MicroProfiler& profiler);
 
 };
 }

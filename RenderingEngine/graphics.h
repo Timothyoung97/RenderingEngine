@@ -65,7 +65,7 @@ inline const char* ToString(RENDER_MODE rm)
 struct GraphicsSetting {
 	bool showBoundingVolume = true;
 	bool pauseLight = false;
-	bool ssaoSwitch = false;
+	bool ssaoSwitch = true;
 	tre::BoundVolumeEnum typeOfBound = tre::AABBBoundingBox; // default
 	int meshIdx = 0; // 
 	float ssaoSampleRadius = .1f;

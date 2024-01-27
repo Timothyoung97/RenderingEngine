@@ -29,7 +29,6 @@ SSAOStruct RendererSSAO::createSSAOKernalStruct(float sampleRadius) {
 void RendererSSAO::fullscreenPass(Graphics& graphics, const Scene& scene, const Camera& cam) {
 	const char* name = ToString(RENDER_MODE::SSAO_FULLSCREEN_PASS);
 	MICROPROFILE_SCOPE_CSTR(name);
-	//PROFILE_GPU_SCOPED("Fullscreen Pass");
 
 	// set const buffer for global info
 	ID3D11Buffer* constBufferGlobalInfo = tre::Buffer::createConstBuffer(pEngine->device->device.Get(), (UINT)sizeof(tre::GlobalInfoStruct));
@@ -123,7 +122,6 @@ void RendererSSAO::fullscreenPass(Graphics& graphics, const Scene& scene, const 
 void RendererSSAO::fullscreenBlurPass(const Graphics& graphics) {
 	const char* name = ToString(RENDER_MODE::SSAO_BLURRING_PASS);
 	MICROPROFILE_SCOPE_CSTR(name);
-	//PROFILE_GPU_SCOPED("Fullscreen Pass");
 
 	ComPtr<ID3D11ShaderResourceView> ssaoResultTexture2dSRV;
 	ComPtr<ID3D11RenderTargetView> ssaoBlurredTexture2dRTV;
@@ -172,19 +170,33 @@ void RendererSSAO::fullscreenBlurPass(const Graphics& graphics) {
 	contextD.Get()->Draw(6, 0);
 }
 
-void RendererSSAO::render(Graphics& graphics, const Scene& scene, const Camera& cam) {
+void RendererSSAO::render(Graphics& graphics, const Scene& scene, const Camera& cam, MicroProfiler& profiler) {
 	if (!graphics.setting.ssaoSwitch) return;
 
-	MICROPROFILE_SCOPE_CSTR("CPU SSAO PASS");
-	//PROFILE_GPU_SCOPED("GPU SSAO Pass");
-	fullscreenPass(graphics, scene, cam);
-	fullscreenBlurPass(graphics);
+	MICROPROFILE_SCOPE_CSTR("SSAO Section");
+	MICROPROFILE_CONDITIONAL(MicroProfileThreadLogGpu* pMicroProfileLog = profiler.graphicsGpuThreadLog[2]);
+	MICROPROFILE_GPU_BEGIN(contextD.Get(), pMicroProfileLog);
+
+	{
+		MICROPROFILE_SECTIONGPUI_L(pMicroProfileLog, "SSAO Section", tre::Utility::getRandomInt(INT_MAX));
+		MICROPROFILE_SCOPEGPU_TOKEN_L(pMicroProfileLog, profiler.graphicsTokenGpuFrameIndex[2]);
+		{
+			MICROPROFILE_SCOPEGPUI_L(pMicroProfileLog, "SSAO: Occulsion Draw", tre::Utility::getRandomInt(INT_MAX));
+			fullscreenPass(graphics, scene, cam);
+		}
+		{
+			MICROPROFILE_SCOPEGPUI_L(pMicroProfileLog, "SSAO: Occulsion Blur", tre::Utility::getRandomInt(INT_MAX));
+			fullscreenBlurPass(graphics);
+		}
+	}
 
 	{
 		CHECK_DX_ERROR(contextD->FinishCommandList(
 			false, &commandList
 		));
 	}
+
+	profiler.graphicsMicroProfile[2] = MICROPROFILE_GPU_END(pMicroProfileLog);
 }
 
 }
