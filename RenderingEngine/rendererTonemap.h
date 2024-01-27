@@ -5,6 +5,7 @@
 #include "rendererBase.h"
 #include "graphics.h"
 #include "constbuffer.h"
+#include "microprofiler.h"
 
 using namespace DirectX;
 
@@ -31,6 +32,6 @@ public:
 
 	void fullscreenPass(const Graphics& graphics);
 
-	void render(Graphics& graphics);
+	void render(Graphics& graphics, MicroProfiler& profiler);
 };
 }

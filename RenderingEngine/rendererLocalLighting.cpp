@@ -17,12 +17,13 @@ void RendererLocalLighting::init() {
 	_deferredShaderLightingLocal.create(basePathWstr + L"shaders\\bin\\pixel_shader_deferred_lighting_local.bin", pEngine->device->device.Get());
 }
 
-void RendererLocalLighting::render(Graphics& graphics, const Scene& scene, const Camera& cam) {
+void RendererLocalLighting::render(Graphics& graphics, const Scene& scene, const Camera& cam, MicroProfiler& profiler) {
 	if (scene._wireframeObjQ.size() == 0) return;
 
-	const char* name = ToString(DEFERRED_LIGHTING_LOCAL_M);
-	MICROPROFILE_SCOPE_CSTR(name);
-	//PROFILE_GPU_SCOPED("Deferred Local Light Draw");
+	MICROPROFILE_SCOPE_CSTR("Point Light Section");
+	profiler.graphicsGpuThreadLogStatus[5] = 1;
+	MICROPROFILE_CONDITIONAL(MicroProfileThreadLogGpu * pMicroProfileLog = profiler.graphicsGpuThreadLog[5]);
+	MICROPROFILE_GPU_BEGIN(contextD.Get(), pMicroProfileLog);
 
 	// set const buffer for global info
 	ID3D11Buffer* constBufferGlobalInfo = tre::Buffer::createConstBuffer(pEngine->device->device.Get(), (UINT)sizeof(tre::GlobalInfoStruct));
@@ -153,29 +154,35 @@ void RendererLocalLighting::render(Graphics& graphics, const Scene& scene, const
 	contextD.Get()->IASetIndexBuffer(scene._wireframeObjQ[0]->pObjMeshes[0]->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
 
-	for (int i = 0; i < scene._wireframeObjQ.size(); i++) {
+	{
+		MICROPROFILE_SECTIONGPUI_L(pMicroProfileLog, "Point Light Section", tre::Utility::getRandomInt(INT_MAX));
+		MICROPROFILE_SCOPEGPU_TOKEN_L(pMicroProfileLog, profiler.graphicsTokenGpuFrameIndex[5]);
+		MICROPROFILE_SCOPEGPUI_L(pMicroProfileLog, "Point Light: Draw", tre::Utility::getRandomInt(INT_MAX));
 
-		// Submit each object's data to const buffer
-		{
-			tre::ModelInfoStruct modelInfoStruct = tre::CommonStructUtility::createModelInfoStruct(scene._wireframeObjQ[i]->_transformationFinal, scene._wireframeObjQ[i]->pObjMeshes[0]->pMaterial->baseColor, 0u, 0u);
-			tre::Buffer::updateConstBufferData(contextD.Get(), constBufferModelInfo, &modelInfoStruct, sizeof(tre::ModelInfoStruct));
+		for (int i = 0; i < scene._wireframeObjQ.size(); i++) {
+
+			// Submit each object's data to const buffer
+			{
+				tre::ModelInfoStruct modelInfoStruct = tre::CommonStructUtility::createModelInfoStruct(scene._wireframeObjQ[i]->_transformationFinal, scene._wireframeObjQ[i]->pObjMeshes[0]->pMaterial->baseColor, 0u, 0u);
+				tre::Buffer::updateConstBufferData(contextD.Get(), constBufferModelInfo, &modelInfoStruct, sizeof(tre::ModelInfoStruct));
+			}
+
+			// Submit point light's idx to const buffer
+			{
+				tre::PointLightInfoStruct ptLightInfoStruct = tre::CommonStructUtility::createPointLightInfoStruct(i);
+				tre::Buffer::updateConstBufferData(contextD.Get(), constBufferPtLightInfo, &ptLightInfoStruct, sizeof(tre::PointLightInfoStruct));
+			}
+
+			float distFromObjToCam = tre::Maths::distBetweentObjToCam(scene._wireframeObjQ[i]->objPos, cam.camPositionV);
+
+			// if the camera is inside the light sphere
+			if (distFromObjToCam < scene._wireframeObjQ[i]->objScale.x) {
+				contextD.Get()->RSSetState(graphics._rasterizer.pRasterizerStateFCW.Get()); // render only back face
+				contextD.Get()->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithoutDepthT.Get(), 0); // all depth test pass to render the sphere
+			}
+
+			contextD.Get()->DrawIndexed(scene._wireframeObjQ[i]->pObjMeshes[0]->indexSize, 0, 0);
 		}
-
-		// Submit point light's idx to const buffer
-		{
-			tre::PointLightInfoStruct ptLightInfoStruct = tre::CommonStructUtility::createPointLightInfoStruct(i);
-			tre::Buffer::updateConstBufferData(contextD.Get(), constBufferPtLightInfo, &ptLightInfoStruct, sizeof(tre::PointLightInfoStruct));
-		}
-
-		float distFromObjToCam = tre::Maths::distBetweentObjToCam(scene._wireframeObjQ[i]->objPos, cam.camPositionV);
-
-		// if the camera is inside the light sphere
-		if (distFromObjToCam < scene._wireframeObjQ[i]->objScale.x) {
-			contextD.Get()->RSSetState(graphics._rasterizer.pRasterizerStateFCW.Get()); // render only back face
-			contextD.Get()->OMSetDepthStencilState(graphics._depthbuffer.pDSStateWithoutDepthT.Get(), 0); // all depth test pass to render the sphere
-		}
-
-		contextD.Get()->DrawIndexed(scene._wireframeObjQ[i]->pObjMeshes[0]->indexSize, 0, 0);
 	}
 
 	// clean up
@@ -191,6 +198,8 @@ void RendererLocalLighting::render(Graphics& graphics, const Scene& scene, const
 			false, &commandList
 		));
 	}
+
+	profiler.graphicsMicroProfile[5] = MICROPROFILE_GPU_END(pMicroProfileLog);
 }
 
 }

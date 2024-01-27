@@ -40,6 +40,7 @@ void MicroProfiler::init() {
 	MICROPROFILE_GPU_SET_CONTEXT(pEngine->device->contextI.Get(), MicroProfileGetGlobalGpuThreadLog());
 
 	for (int i = 0; i < numOfGraphicsContext; i++) {
+		graphicsGpuThreadLogStatus[i] = 0;
 		graphicsGpuThreadLog[i] = MicroProfileThreadLogGpuAlloc();
 	}
 }

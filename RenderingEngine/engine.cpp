@@ -158,10 +158,10 @@ void Engine::run() {
 			[this]() { rendererGBuffer->render(*graphics, *scene, *cam, *profiler); },
 			[this]() { rendererSSAO->render(*graphics, *scene, *cam, *profiler); },
 			[this]() { rendererEnvLighting->render(*graphics, *scene, *cam, *profiler); },
-			[this]() { rendererTransparency->render(*graphics, *scene, *cam); },
-			[this]() { rendererLocalLighting->render(*graphics, *scene, *cam); },
+			[this]() { rendererTransparency->render(*graphics, *scene, *cam, *profiler); },
+			[this]() { rendererLocalLighting->render(*graphics, *scene, *cam, *profiler); },
 			[this]() { computerPtLight->compute(*graphics, *scene, *cam, *profiler); },
-			[this]() { rendererTonemap->render(*graphics); },	
+			[this]() { rendererTonemap->render(*graphics, *profiler); },
 			[this]() { computerHDR->compute(*graphics, *profiler); },
 			[this]() { computerBloom->compute(*graphics, *profiler); },
 			[this]() { rendererWireframe->render(*graphics, *cam, *scene, *profiler); }
@@ -170,12 +170,17 @@ void Engine::run() {
 
 		this->executeCommandList();
 
-		for (int i = 0; i < 4; i++) {
-			MICROPROFILE_GPU_SUBMIT(profiler->graphicsQueue, profiler->graphicsMicroProfile[i]);
+		for (int i = 0; i < numOfGraphicsContext; i++) {
+			if (profiler->graphicsGpuThreadLogStatus[i]) {
+				MICROPROFILE_GPU_SUBMIT(profiler->graphicsQueue, profiler->graphicsMicroProfile[i]);
+			}
 		}
 
-		for (int i = 0; i < 4; i++) {
-			MICROPROFILE_THREADLOGGPURESET(profiler->graphicsGpuThreadLog[i]);
+		for (int i = 0; i < numOfGraphicsContext; i++) {
+			if (profiler->graphicsGpuThreadLogStatus[i]) {
+				MICROPROFILE_THREADLOGGPURESET(profiler->graphicsGpuThreadLog[i]);
+			}
+			profiler->graphicsGpuThreadLogStatus[i] = 0;
 		}
 
 		imguihelper->render();

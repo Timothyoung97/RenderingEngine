@@ -22,6 +22,7 @@ void RendererGBuffer::render(Graphics& graphics, Scene& scene, Camera& cam, Micr
 	if (scene._culledOpaqueObjQ[scene.camViewIdx].empty()) return;
 
 	MICROPROFILE_SCOPE_CSTR("G-Buffer Section");
+	profiler.graphicsGpuThreadLogStatus[1] = 1;
 	MICROPROFILE_CONDITIONAL(MicroProfileThreadLogGpu * pMicroProfileLog = profiler.graphicsGpuThreadLog[1]);
 	MICROPROFILE_GPU_BEGIN(contextD.Get(), pMicroProfileLog);
 

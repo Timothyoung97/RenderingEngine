@@ -19,6 +19,7 @@ void RendererEnvironmentLighting::init() {
 
 void RendererEnvironmentLighting::render(Graphics& graphics, const Scene& scene, const Camera& cam, MicroProfiler& profiler) {
 	MICROPROFILE_SCOPE_CSTR("Environment Lighting Section");
+	profiler.graphicsGpuThreadLogStatus[3] = 1;
 	MICROPROFILE_CONDITIONAL(MicroProfileThreadLogGpu * pMicroProfileLog = profiler.graphicsGpuThreadLog[3]);
 	MICROPROFILE_GPU_BEGIN(contextD.Get(), pMicroProfileLog);
 

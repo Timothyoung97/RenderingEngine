@@ -200,21 +200,22 @@ void RendererWireframe::render(Graphics& graphics, const Camera& cam, const Scen
 
 	MICROPROFILE_SCOPE_CSTR("Wireframe Section");
 
-	//MICROPROFILE_CONDITIONAL(MicroProfileThreadLogGpu* pMicroProfileLog = MicroProfileThreadLogGpuAlloc());
-	//MICROPROFILE_GPU_BEGIN(contextD.Get(), pMicroProfileLog);
+	profiler.graphicsGpuThreadLogStatus[7] = 1;
+	MICROPROFILE_CONDITIONAL(MicroProfileThreadLogGpu * pMicroProfileLog = profiler.graphicsGpuThreadLog[7]);
+	MICROPROFILE_GPU_BEGIN(contextD.Get(), pMicroProfileLog);
 	{
-		//MICROPROFILE_SECTIONGPUI_L(pMicroProfileLog, "Wireframe Section", tre::Utility::getRandomInt(INT_MAX));
-		//MICROPROFILE_SCOPEGPU_TOKEN_L(pMicroProfileLog, profiler.graphicsTokenGpuFrameIndex[10]);
+		MICROPROFILE_SECTIONGPUI_L(pMicroProfileLog, "Wireframe Section", tre::Utility::getRandomInt(INT_MAX));
+		MICROPROFILE_SCOPEGPU_TOKEN_L(pMicroProfileLog, profiler.graphicsTokenGpuFrameIndex[7]);
 
 		setConstBufferCamViewProj(graphics, cam);
 
 		{	
-			//MICROPROFILE_SCOPEGPUI_L(pMicroProfileLog, "Wireframe: Point lights", tre::Utility::getRandomInt(INT_MAX));
+			MICROPROFILE_SCOPEGPUI_L(pMicroProfileLog, "Wireframe: Point lights", tre::Utility::getRandomInt(INT_MAX));
 			drawInstanced(graphics, scene._wireframeObjQ, graphics._instanceBufferPointlights);
 		}
 		
 		{
-			//MICROPROFILE_SCOPEGPUI_L(pMicroProfileLog, "Wireframe: All scene objects", tre::Utility::getRandomInt(INT_MAX));
+			MICROPROFILE_SCOPEGPUI_L(pMicroProfileLog, "Wireframe: All scene objects", tre::Utility::getRandomInt(INT_MAX));
 			drawInstanced(graphics, scene._pObjQ, graphics._instanceBufferWireframes);
 		}
 	}
@@ -223,9 +224,7 @@ void RendererWireframe::render(Graphics& graphics, const Camera& cam, const Scen
 			false, &commandList
 		));
 	}
-	//uint64_t nGpuBlock = MICROPROFILE_GPU_END(pMicroProfileLog);
-	//MICROPROFILE_GPU_SUBMIT(profiler.graphicsQueue, nGpuBlock);
-	//MICROPROFILE_CONDITIONAL(MicroProfileThreadLogGpuFree(pMicroProfileLog));
+	profiler.graphicsMicroProfile[7] = MICROPROFILE_GPU_END(pMicroProfileLog);
 }
 
 }

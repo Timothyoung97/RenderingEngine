@@ -127,6 +127,7 @@ void RendererCSM::drawInstanced(Graphics& graphics, const std::vector<std::pair<
 void RendererCSM::render(Graphics& graphics, Scene& scene, const Camera& cam, MicroProfiler& profiler) {
 
 	MICROPROFILE_SCOPE_CSTR("CSM Section");
+	profiler.graphicsGpuThreadLogStatus[0] = 1;
 	MICROPROFILE_CONDITIONAL(MicroProfileThreadLogGpu* pMicroProfileLog = profiler.graphicsGpuThreadLog[0]);
 	MICROPROFILE_GPU_BEGIN(contextD.Get(), pMicroProfileLog);
 

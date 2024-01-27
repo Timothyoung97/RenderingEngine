@@ -16,6 +16,7 @@ public:
 	MicroProfiler();
 
 	int graphicsQueue = -1;
+	int graphicsGpuThreadLogStatus[numOfGraphicsContext];
 	MicroProfileThreadLogGpu* graphicsGpuThreadLog[numOfGraphicsContext];
 	uint64_t graphicsMicroProfile[numOfGraphicsContext];
 	uint64_t graphicsTokenGpuFrameIndex[numOfGraphicsContext];

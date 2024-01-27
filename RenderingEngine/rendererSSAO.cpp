@@ -174,6 +174,7 @@ void RendererSSAO::render(Graphics& graphics, const Scene& scene, const Camera& 
 	if (!graphics.setting.ssaoSwitch) return;
 
 	MICROPROFILE_SCOPE_CSTR("SSAO Section");
+	profiler.graphicsGpuThreadLogStatus[2] = 1;
 	MICROPROFILE_CONDITIONAL(MicroProfileThreadLogGpu* pMicroProfileLog = profiler.graphicsGpuThreadLog[2]);
 	MICROPROFILE_GPU_BEGIN(contextD.Get(), pMicroProfileLog);
 

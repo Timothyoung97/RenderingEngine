@@ -111,14 +111,25 @@ void RendererTonemap::fullscreenPass(const Graphics& graphics) {
 	contextD.Get()->Draw(6, 0);
 }
 
-void RendererTonemap::render(Graphics& graphics) {
-	//PROFILE_GPU_SCOPED("Tonemap");
-	MICROPROFILE_SCOPE_CSTR("Tonemap");
+void RendererTonemap::render(Graphics& graphics, MicroProfiler& profiler) {
+	MICROPROFILE_SCOPE_CSTR("Tonemap Section");
+	profiler.graphicsGpuThreadLogStatus[6] = 1;
+	MICROPROFILE_CONDITIONAL(MicroProfileThreadLogGpu* pMicroProfileLog = profiler.graphicsGpuThreadLog[6]);
+	MICROPROFILE_GPU_BEGIN(contextD.Get(), pMicroProfileLog);
+
 	setConstBufferTonemap(graphics);
-	fullscreenPass(graphics);
+
+	{
+		MICROPROFILE_SECTIONGPUI_L(pMicroProfileLog, "Tonemap Section", tre::Utility::getRandomInt(INT_MAX));
+		MICROPROFILE_SCOPEGPU_TOKEN_L(pMicroProfileLog, profiler.graphicsTokenGpuFrameIndex[6]);
+		MICROPROFILE_SCOPEGPUI_L(pMicroProfileLog, "Tonemap: Fullscreen Pass", tre::Utility::getRandomInt(INT_MAX));
+		fullscreenPass(graphics);
+	}
 
 	CHECK_DX_ERROR(contextD->FinishCommandList(
 		false, &commandList
 	));
+
+	profiler.graphicsMicroProfile[6] = MICROPROFILE_GPU_END(pMicroProfileLog);
 }
 }

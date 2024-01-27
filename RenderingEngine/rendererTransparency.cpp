@@ -17,12 +17,13 @@ void RendererTransparency::init() {
 	_forwardShader.create(basePathWstr + L"shaders\\bin\\pixel_shader_forward.bin", pEngine->device->device.Get());
 }
 
-void RendererTransparency::render(Graphics& graphics, const Scene& scene, const Camera& cam) {
+void RendererTransparency::render(Graphics& graphics, const Scene& scene, const Camera& cam, MicroProfiler& profiler) {
 	if (scene._culledTransparentObjQ.empty()) return;
 
-	const char* name = ToString(RENDER_MODE::TRANSPARENT_M);
-	MICROPROFILE_SCOPE_CSTR(name);
-	//PROFILE_GPU_SCOPED("Forward Tranparent Draw");
+	MICROPROFILE_SCOPE_CSTR("Transparency Section");
+	profiler.graphicsGpuThreadLogStatus[4] = 1;
+	MICROPROFILE_CONDITIONAL(MicroProfileThreadLogGpu * pMicroProfileLog = profiler.graphicsGpuThreadLog[4]);
+	MICROPROFILE_GPU_BEGIN(contextD.Get(), pMicroProfileLog);
 
 	// set const buffer for global info
 	ID3D11Buffer* constBufferGlobalInfo = tre::Buffer::createConstBuffer(pEngine->device->device.Get(), (UINT)sizeof(tre::GlobalInfoStruct));
@@ -99,61 +100,67 @@ void RendererTransparency::render(Graphics& graphics, const Scene& scene, const 
 		contextD.Get()->OMSetRenderTargets(1, hdrRTV.GetAddressOf(), depthStencilView.Get());
 	}
 
-	for (int i = 0; i < scene._culledTransparentObjQ.size(); i++) {
+	{
+		MICROPROFILE_SECTIONGPUI_L(pMicroProfileLog, "Transparency Section", tre::Utility::getRandomInt(INT_MAX));
+		MICROPROFILE_SCOPEGPU_TOKEN_L(pMicroProfileLog, profiler.graphicsTokenGpuFrameIndex[4]);
+		MICROPROFILE_SCOPEGPUI_L(pMicroProfileLog, "Transparency: Draw", tre::Utility::getRandomInt(INT_MAX));
 
-		UINT vertexStride = sizeof(Vertex);
-		UINT offset = 0;
+		for (int i = 0; i < scene._culledTransparentObjQ.size(); i++) {
 
-		//Set vertex buffer
-		contextD.Get()->IASetVertexBuffers(0, 1, scene._culledTransparentObjQ[i].second->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
+			UINT vertexStride = sizeof(Vertex);
+			UINT offset = 0;
 
-		//Set index buffer
-		contextD.Get()->IASetIndexBuffer(scene._culledTransparentObjQ[i].second->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+			//Set vertex buffer
+			contextD.Get()->IASetVertexBuffers(0, 1, scene._culledTransparentObjQ[i].second->pVertexBuffer.GetAddressOf(), &vertexStride, &offset);
 
-		//set shader resc view and sampler
-		bool hasTexture = 0;
-		bool hasNormal = 0;
-		if (scene._culledTransparentObjQ[i].second->pMaterial->objTexture != nullptr) {
-			// Create Shader Resource view
-			D3D11_SHADER_RESOURCE_VIEW_DESC shaderResViewDesc;
-			shaderResViewDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-			shaderResViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-			shaderResViewDesc.Texture2D = D3D11_TEX2D_SRV(0, -1);
+			//Set index buffer
+			contextD.Get()->IASetIndexBuffer(scene._culledTransparentObjQ[i].second->pIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
 
-			ComPtr<ID3D11ShaderResourceView> pTextureSRV;
-			CHECK_DX_ERROR(pEngine->device->device.Get()->CreateShaderResourceView(
-				scene._culledTransparentObjQ[i].second->pMaterial->objTexture->pTextureResource.Get(), &shaderResViewDesc, pTextureSRV.GetAddressOf()
-			));
+			//set shader resc view and sampler
+			bool hasTexture = 0;
+			bool hasNormal = 0;
+			if (scene._culledTransparentObjQ[i].second->pMaterial->objTexture != nullptr) {
+				// Create Shader Resource view
+				D3D11_SHADER_RESOURCE_VIEW_DESC shaderResViewDesc;
+				shaderResViewDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+				shaderResViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+				shaderResViewDesc.Texture2D = D3D11_TEX2D_SRV(0, -1);
 
-			contextD.Get()->PSSetShaderResources(0, 1, pTextureSRV.GetAddressOf());
-			hasTexture = 1;
+				ComPtr<ID3D11ShaderResourceView> pTextureSRV;
+				CHECK_DX_ERROR(pEngine->device->device.Get()->CreateShaderResourceView(
+					scene._culledTransparentObjQ[i].second->pMaterial->objTexture->pTextureResource.Get(), &shaderResViewDesc, pTextureSRV.GetAddressOf()
+				));
+
+				contextD.Get()->PSSetShaderResources(0, 1, pTextureSRV.GetAddressOf());
+				hasTexture = 1;
+			}
+
+			// set normal map
+			if (scene._culledTransparentObjQ[i].second->pMaterial->objNormalMap != nullptr) {
+
+				// Create Shader Resource view
+				D3D11_SHADER_RESOURCE_VIEW_DESC shaderResViewDesc;
+				shaderResViewDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+				shaderResViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+				shaderResViewDesc.Texture2D = D3D11_TEX2D_SRV(0, -1);
+
+				ComPtr<ID3D11ShaderResourceView> pNormalTextureSRV;
+				CHECK_DX_ERROR(pEngine->device->device.Get()->CreateShaderResourceView(
+					scene._culledTransparentObjQ[i].second->pMaterial->objNormalMap->pTextureResource.Get(), &shaderResViewDesc, pNormalTextureSRV.GetAddressOf()
+				));
+
+				contextD.Get()->PSSetShaderResources(1, 1, pNormalTextureSRV.GetAddressOf());
+				hasNormal = 1;
+			}
+
+			// Submit each object's data to const buffer
+			{
+				tre::ModelInfoStruct modelInfoStruct = tre::CommonStructUtility::createModelInfoStruct(scene._culledTransparentObjQ[i].first->_transformationFinal, scene._culledTransparentObjQ[i].second->pMaterial->baseColor, hasTexture, hasNormal);
+				tre::Buffer::updateConstBufferData(contextD.Get(), constBufferModelInfo, &modelInfoStruct, sizeof(tre::ModelInfoStruct));
+			}
+
+			contextD.Get()->DrawIndexed(scene._culledTransparentObjQ[i].second->indexSize, 0, 0);
 		}
-
-		// set normal map
-		if (scene._culledTransparentObjQ[i].second->pMaterial->objNormalMap != nullptr) {
-
-			// Create Shader Resource view
-			D3D11_SHADER_RESOURCE_VIEW_DESC shaderResViewDesc;
-			shaderResViewDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-			shaderResViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-			shaderResViewDesc.Texture2D = D3D11_TEX2D_SRV(0, -1);
-
-			ComPtr<ID3D11ShaderResourceView> pNormalTextureSRV;
-			CHECK_DX_ERROR(pEngine->device->device.Get()->CreateShaderResourceView(
-				scene._culledTransparentObjQ[i].second->pMaterial->objNormalMap->pTextureResource.Get(), &shaderResViewDesc, pNormalTextureSRV.GetAddressOf()
-			));
-
-			contextD.Get()->PSSetShaderResources(1, 1, pNormalTextureSRV.GetAddressOf());
-			hasNormal = 1;
-		}
-
-		// Submit each object's data to const buffer
-		{
-			tre::ModelInfoStruct modelInfoStruct = tre::CommonStructUtility::createModelInfoStruct(scene._culledTransparentObjQ[i].first->_transformationFinal, scene._culledTransparentObjQ[i].second->pMaterial->baseColor, hasTexture, hasNormal);
-			tre::Buffer::updateConstBufferData(contextD.Get(), constBufferModelInfo, &modelInfoStruct, sizeof(tre::ModelInfoStruct));
-		}
-
-		contextD.Get()->DrawIndexed(scene._culledTransparentObjQ[i].second->indexSize, 0, 0);
 	}
 
 	// clean up
@@ -168,6 +175,8 @@ void RendererTransparency::render(Graphics& graphics, const Scene& scene, const 
 			false, &commandList
 		));
 	}
+
+	profiler.graphicsMicroProfile[4] = MICROPROFILE_GPU_END(pMicroProfileLog);
 }
 
 }

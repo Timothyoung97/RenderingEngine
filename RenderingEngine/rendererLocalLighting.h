@@ -3,6 +3,7 @@
 #include "rendererBase.h"
 #include "graphics.h"
 #include "scene.h"
+#include "microprofiler.h"
 
 namespace tre {
 class RendererLocalLighting : public RendererBase {
@@ -15,6 +16,6 @@ public:
 
 	void init();
 
-	void render(Graphics& graphics, const Scene& secne, const Camera& cam);
+	void render(Graphics& graphics, const Scene& secne, const Camera& cam, MicroProfiler& profiler);
 };
 }
