@@ -46,6 +46,19 @@ void MicroProfiler::init() {
 }
 
 void MicroProfiler::recordFrame() {
+	for (int i = 0; i < numOfGraphicsContext; i++) {
+		if (graphicsGpuThreadLogStatus[i]) {
+			MICROPROFILE_GPU_SUBMIT(graphicsQueue, graphicsMicroProfile[i]);
+		}
+	}
+
+	for (int i = 0; i < numOfGraphicsContext; i++) {
+		if (graphicsGpuThreadLogStatus[i]) {
+			MICROPROFILE_THREADLOGGPURESET(graphicsGpuThreadLog[i]);
+		}
+		graphicsGpuThreadLogStatus[i] = 0;
+	}
+
 	MicroProfileFlip(pEngine->device->contextI.Get());
 	MicroProfileGpuFlip(pEngine->device->contextI.Get());
 }

@@ -169,24 +169,11 @@ void Engine::run() {
 		executor.run(taskflow).wait();	// to wait for all threads to finish before execute
 
 		this->executeCommandList();
-
-		for (int i = 0; i < numOfGraphicsContext; i++) {
-			if (profiler->graphicsGpuThreadLogStatus[i]) {
-				MICROPROFILE_GPU_SUBMIT(profiler->graphicsQueue, profiler->graphicsMicroProfile[i]);
-			}
-		}
-
-		for (int i = 0; i < numOfGraphicsContext; i++) {
-			if (profiler->graphicsGpuThreadLogStatus[i]) {
-				MICROPROFILE_THREADLOGGPURESET(profiler->graphicsGpuThreadLog[i]);
-			}
-			profiler->graphicsGpuThreadLogStatus[i] = 0;
-		}
-
 		imguihelper->render();
 		graphics->present();
 		timer.spinWait();
 		deltaTime = timer.getDeltaTime();
+
 		profiler->recordFrame();
 		profiler->storeToDisk(control->toDumpFile);
 
