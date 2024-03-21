@@ -1,22 +1,9 @@
 //Custom Header
 #include "engine.h"
 
-#ifdef _DEBUG
-#define MYDEBUG_MALLOC(s) _malloc_dbg(s, _NORMAL_BLOCK, __FILE__, __LINE__)
-#define MYDEBUG_NEW new( _NORMAL_BLOCK, __FILE__, __LINE__)
-#else
-#define MYDEBUG_NEW
-#define MYDEBUG_MALLOC(s)
-#endif // _DEBUG
-
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>  
 #include <crtdbg.h>
-
-#ifdef _DEBUG
-#define new MYDEBUG_NEW
-#define malloc(s) MYDEBUG_MALLOC(s)
-#endif // _DEBUG
 
 tre::Engine* pEngine;
 
