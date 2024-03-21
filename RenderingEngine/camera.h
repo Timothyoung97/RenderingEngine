@@ -1,6 +1,7 @@
 #pragma once
 
 #include "maths.h"
+#include "window.h"
 
 namespace tre {
 
