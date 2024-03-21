@@ -1,8 +1,5 @@
 #include "boundingvolume.h"
 
-#include "utility.h"
-#include "mesh.h"
-
 namespace tre {
 
 BoundingSphere BoundingVolume::createRitterBS(const std::vector<XMFLOAT3>& uniquePoint) {

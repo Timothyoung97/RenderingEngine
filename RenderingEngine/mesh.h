@@ -7,13 +7,12 @@
 
 #include <vector>
 
+#include "Global_Config.h"
 #include "material.h"
 #include "boundingvolume.h"
 
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;
-
-static const float unitLength = .5f;
 
 struct Vertex {
 	XMFLOAT3 pos;

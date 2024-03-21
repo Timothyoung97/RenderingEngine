@@ -4,7 +4,8 @@
 #include <string>
 
 #include "maths.h"
-
+#include "utility.h"
+#include "Global_Config.h"
 
 using namespace DirectX;
 
