@@ -1,6 +1,4 @@
 #include "bloomBuffer.h"
-#include "window.h"
-#include "dxdebug.h"
 
 namespace tre {
 

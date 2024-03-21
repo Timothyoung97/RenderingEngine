@@ -3,6 +3,9 @@
 #include <d3d11.h>
 #include <wrl/client.h>
 
+#include "window.h"
+#include "dxdebug.h"
+
 using Microsoft::WRL::ComPtr;
 
 namespace tre {
