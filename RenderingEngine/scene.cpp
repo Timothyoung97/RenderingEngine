@@ -88,7 +88,7 @@ void Scene::createFloor() {
 void Scene::createDebugObject() {
 	tre::Object debugModel;
 	debugModel.pObjMeshes = { &_debugMeshes[4] };
-	debugModel.pObjMeshes[0]->pMaterial = &_debugMaterials[4];
+	debugModel.pObjMeshes[0]->pMaterial = &_debugMaterials[5];
 	debugModel.objPos = XMFLOAT3(.0f, .5f, .0f);
 	debugModel.objScale = XMFLOAT3(1.f, 1.f, 1.f);
 	debugModel.objRotation = XMFLOAT3(.0f, .0f, .0f);
