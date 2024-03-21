@@ -5,7 +5,6 @@
 
 using Microsoft::WRL::ComPtr;
 
-
 namespace tre {
 class BlendState {
 public:
