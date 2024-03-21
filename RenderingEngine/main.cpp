@@ -5,7 +5,9 @@
 #include <stdlib.h>  
 #include <crtdbg.h>
 
-tre::Engine* pEngine;
+#include <memory>
+
+std::shared_ptr<tre::Engine> pEngine;
 
 int main()
 {
@@ -17,11 +19,10 @@ int main()
 
 	_CrtMemCheckpoint(&s1);
 	{
-		tre::Engine e;
-		pEngine = &e;
-		e.init();
-		e.run();
-		e.close();
+		pEngine = std::make_shared<tre::Engine>();
+		pEngine->init();
+		pEngine->run();
+		pEngine->close();
 	}
 	_CrtMemCheckpoint(&s2);
 

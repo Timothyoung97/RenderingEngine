@@ -1,6 +1,7 @@
 #pragma once
 
 #include <d3d11.h>
+#include <memory>
 
 #include "wrl/client.h"
 #include "microprofile.h"

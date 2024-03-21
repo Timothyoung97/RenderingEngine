@@ -11,7 +11,7 @@
 #include "colors.h"
 
 
-extern tre::Engine* pEngine;
+extern std::shared_ptr<tre::Engine> pEngine;
 
 namespace tre {
 
