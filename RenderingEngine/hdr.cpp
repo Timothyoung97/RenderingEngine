@@ -1,10 +1,5 @@
 #include "hdr.h"
 
-#include "window.h"
-#include "dxdebug.h"
-#include "utility.h"
-#include "maths.h"
-
 namespace tre {
 
 void HdrBuffer::create(ID3D11Device* device) {

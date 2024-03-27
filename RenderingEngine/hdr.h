@@ -4,6 +4,10 @@
 #include <wrl/client.h>
 
 #include "shader.h"
+#include "window.h"
+#include "dxdebug.h"
+#include "utility.h"
+#include "maths.h"
 
 using Microsoft::WRL::ComPtr;
 
