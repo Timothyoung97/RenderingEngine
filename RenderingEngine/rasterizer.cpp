@@ -1,5 +1,4 @@
 #include "rasterizer.h"
-#include "dxdebug.h"
 
 namespace tre {
 
