@@ -2,6 +2,9 @@
 
 #include <d3d11.h>
 #include <assimp/scene.h>
+#include <assimp/postprocess.h>
+#include <assimp/Importer.hpp>
+#include <DirectXMath.h>
 
 #include <unordered_map>
 #include <vector>
@@ -9,6 +12,11 @@
 #include "mesh.h"
 #include "texture.h"
 #include "object.h"
+#include "assertm.h"
+#include "utility.h"
+#include "dxdebug.h"
+#include "colors.h"
+#include "maths.h"
 
 namespace tre {
 

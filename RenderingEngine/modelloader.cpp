@@ -1,15 +1,5 @@
 #include "modelloader.h"
 
-#include <assimp/postprocess.h>
-#include <assimp/Importer.hpp>
-#include <DirectXMath.h>
-
-#include "assertm.h"
-#include "utility.h"
-#include "dxdebug.h"
-#include "colors.h"
-#include "maths.h"
-
 using namespace DirectX;
 
 namespace tre {
