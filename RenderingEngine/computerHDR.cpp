@@ -1,11 +1,5 @@
 #include "computerHDR.h"
 
-#include "utility.h"
-#include "window.h"
-#include "engine.h"
-
-extern std::shared_ptr<tre::Engine> pEngine;
-
 namespace tre {
 
 ComputerHDR::ComputerHDR() {
