@@ -1,10 +1,8 @@
+#include "texture.h"
+
+// only include ONCE: https://stackoverflow.com/questions/43348798/double-inclusion-and-headers-only-library-stbi-image
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
-
-#include <string>
-
-#include "texture.h"
-#include "dxdebug.h"
 
 namespace tre {
 

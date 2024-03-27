@@ -5,6 +5,8 @@
 
 #include <string>
 
+#include "dxdebug.h"
+
 using Microsoft::WRL::ComPtr;
 
 namespace tre {
