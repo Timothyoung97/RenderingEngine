@@ -2,7 +2,11 @@
 
 #include <SDL.h>
 #include <DirectXMath.h>
+#include <stdio.h>
+
 #include <utility>
+
+#include "imgui_impl_sdl2.h"
 
 #define MOUSE_BUTTON_IDX(X) X - 1
 
