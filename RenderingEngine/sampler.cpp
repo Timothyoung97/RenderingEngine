@@ -1,7 +1,5 @@
 #include "sampler.h"
 
-#include "dxdebug.h"
-
 namespace tre {
 
 void Sampler::create(ID3D11Device* device) {
