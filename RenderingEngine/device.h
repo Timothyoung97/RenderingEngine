@@ -4,6 +4,8 @@
 #include <wrl/client.h>
 #include <vector>
 
+#include "dxdebug.h"
+
 using Microsoft::WRL::ComPtr;
 
 namespace tre {

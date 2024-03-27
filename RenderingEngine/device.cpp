@@ -1,5 +1,4 @@
 #include "device.h"
-#include "dxdebug.h"
 
 using Microsoft::WRL::ComPtr;
 
