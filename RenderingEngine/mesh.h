@@ -10,6 +10,10 @@
 #include "Global_Config.h"
 #include "material.h"
 #include "boundingvolume.h"
+#include "dxdebug.h"
+#include "utility.h"
+#include "maths.h"
+
 
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;

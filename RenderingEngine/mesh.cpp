@@ -1,10 +1,4 @@
-
-#include <vector>
-
 #include "mesh.h"
-#include "dxdebug.h"
-#include "utility.h"
-#include "maths.h"
 
 namespace tre {
 
