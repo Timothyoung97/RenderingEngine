@@ -5,6 +5,12 @@
 #define PROFILE_GPU_SCOPED(NAME) MICROPROFILE_SCOPEGPUI(NAME, tre::Utility::getRandomInt(INT_MAX))
 
 #include <string>
+#include <assert.h>
+#include <iostream>
+#include <codecvt>
+#include <locale>
+#include <regex>
+#include <random>
 
 using namespace DirectX;
 
