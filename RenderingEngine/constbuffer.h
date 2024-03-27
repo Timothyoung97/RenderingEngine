@@ -6,7 +6,9 @@
 
 #include <vector>
 
-#include <light.h>
+#include "light.h"
+#include "dxdebug.h"
+#include "window.h"
 
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;

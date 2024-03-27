@@ -1,8 +1,5 @@
 #include "constbuffer.h"
 
-#include "dxdebug.h"
-#include "window.h"
-
 namespace tre {
 
 // Creates an empty constant buffer with the specified size (in bytes)
