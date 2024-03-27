@@ -1,10 +1,5 @@
 #include "rendererBase.h"
 
-#include "engine.h"
-#include "dxdebug.h"
-
-extern std::shared_ptr<tre::Engine> pEngine;
-
 namespace tre {
 
 RendererBase::RendererBase() {

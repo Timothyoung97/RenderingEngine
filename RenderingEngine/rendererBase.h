@@ -5,6 +5,10 @@
 
 #include "device.h"
 #include "graphics.h"
+#include "engine.h"
+#include "dxdebug.h"
+
+extern std::shared_ptr<tre::Engine> pEngine;
 
 using Microsoft::WRL::ComPtr;
 
