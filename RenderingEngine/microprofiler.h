@@ -1,11 +1,16 @@
 #pragma once
 
 #include <d3d11.h>
+#include <stdio.h>
+#include <wrl/client.h>
+
 #include <memory>
 
-#include "wrl/client.h"
 #include "microprofile.h"
 #include "engine.h"
+#include "device.h"
+
+extern std::shared_ptr<tre::Engine> pEngine;
 
 using Microsoft::WRL::ComPtr;
 

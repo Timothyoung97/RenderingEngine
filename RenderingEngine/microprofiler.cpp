@@ -1,14 +1,5 @@
 #include "microprofiler.h"
 
-#include "microprofile.h"
-
-#include <stdio.h>
-
-#include "engine.h"
-#include "device.h"
-
-extern std::shared_ptr<tre::Engine> pEngine;
-
 namespace tre {
 
 MicroProfiler::MicroProfiler() {
