@@ -20,6 +20,16 @@
 #include "hdr.h"
 #include "instanceBuffer.h"
 #include "bloomBuffer.h"
+#include "engine.h"
+#include "microprofile.h"
+#include "window.h"
+#include "mesh.h"
+#include "dxdebug.h"
+#include "utility.h"
+#include "scene.h"
+#include "colors.h"
+
+extern std::shared_ptr<tre::Engine> pEngine;
 
 namespace tre {
 
