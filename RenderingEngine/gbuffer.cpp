@@ -1,6 +1,4 @@
 #include "gbuffer.h"
-#include "window.h"
-#include "dxdebug.h"
 
 namespace tre {
 void GBuffer::create(ID3D11Device* device) {
