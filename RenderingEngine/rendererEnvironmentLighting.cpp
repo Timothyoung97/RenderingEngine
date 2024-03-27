@@ -1,10 +1,5 @@
 #include "rendererEnvironmentLighting.h"
 
-#include "utility.h"
-#include "engine.h"
-
-extern std::shared_ptr<tre::Engine> pEngine;
-
 namespace tre {
 
 RendererEnvironmentLighting::RendererEnvironmentLighting() {
