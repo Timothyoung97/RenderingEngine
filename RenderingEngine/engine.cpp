@@ -1,23 +1,13 @@
 #include "engine.h"
 
-#include "portable-file-dialogs.h"
-
-#define SDL_MAIN_HANDLED
-#include "camera.h"
-#include "colors.h"
 #include "computerBloom.h"
 #include "computerHDR.h"
 #include "computerPointLight.h"
 #include "control.h"
-#include "dxdebug.h"
 #include "device.h"
 #include "graphics.h"
 #include "imguihelper.h"
-#include "input.h"
-#include "mesh.h"
 #include "microprofiler.h"
-#include "modelloader.h"
-#include "object.h"
 #include "rendererCSM.h"
 #include "rendererEnvironmentLighting.h"
 #include "rendererGBuffer.h"
@@ -27,10 +17,6 @@
 #include "rendererTransparency.h"
 #include "rendererWireframe.h"
 #include "scene.h"
-#include "timer.h"
-#include "utility.h"
-#include "window.h"
-#include "taskflow/taskflow.hpp"
 
 namespace tre {
 

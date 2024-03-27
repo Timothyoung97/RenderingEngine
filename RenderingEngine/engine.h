@@ -1,5 +1,23 @@
 #pragma once
+
+#define SDL_MAIN_HANDLED
+
+#include <portable-file-dialogs.h>
+#include <taskflow/taskflow.hpp>
+
 #include <vector>
+
+#include "camera.h"
+#include "colors.h"
+#include "window.h"
+#include "utility.h"
+#include "window.h"
+#include "timer.h"
+#include "dxdebug.h"
+#include "input.h"
+#include "mesh.h"
+#include "object.h"
+#include "modelloader.h"
 
 namespace tre {
 
