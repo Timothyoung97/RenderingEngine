@@ -5,6 +5,13 @@
 #include "rendererBase.h"
 #include "graphics.h"
 #include "microprofiler.h"
+#include "window.h"
+#include "dxdebug.h"
+#include "colors.h"
+#include "engine.h"
+#include "utility.h"
+
+extern std::shared_ptr<tre::Engine> pEngine;
 
 using namespace DirectX;
 

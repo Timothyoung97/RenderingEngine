@@ -1,13 +1,5 @@
 #include "computerBloom.h"
 
-#include "engine.h"
-#include "utility.h"
-#include "window.h"
-#include "dxdebug.h"
-#include "colors.h"
-
-extern std::shared_ptr<tre::Engine> pEngine;
-
 namespace tre {
 
 ComputerBloom::ComputerBloom() {
