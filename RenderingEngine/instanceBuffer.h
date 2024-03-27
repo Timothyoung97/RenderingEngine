@@ -5,9 +5,12 @@
 #include <wrl/client.h>
 
 #include <vector>
+#include <set>
 
 #include "object.h"
 #include "mesh.h"
+#include "dxdebug.h"
+#include "utility.h"
 
 using Microsoft::WRL::ComPtr;
 using namespace DirectX;

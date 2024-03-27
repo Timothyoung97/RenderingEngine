@@ -1,10 +1,5 @@
 #include "instanceBuffer.h"
 
-#include "dxdebug.h"
-#include "utility.h"
-
-#include <set>
-
 namespace tre {
 
 void InstanceBuffer::createBuffer(ID3D11Device* pDevice) {
