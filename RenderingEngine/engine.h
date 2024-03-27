@@ -7,6 +7,7 @@
 
 #include <vector>
 
+#include "device.h"
 #include "camera.h"
 #include "colors.h"
 #include "window.h"

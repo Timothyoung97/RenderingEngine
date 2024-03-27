@@ -4,7 +4,6 @@
 #include "computerHDR.h"
 #include "computerPointLight.h"
 #include "control.h"
-#include "device.h"
 #include "graphics.h"
 #include "imguihelper.h"
 #include "microprofiler.h"
