@@ -1,11 +1,18 @@
 #pragma once
 
+#include <set>
+
 #include "rendererBase.h"
 #include "graphics.h"
 #include "mesh.h"
 #include "camera.h"
 #include "scene.h"
 #include "microprofiler.h"
+#include "utility.h"
+#include "engine.h"
+#include "dxdebug.h"
+
+extern std::shared_ptr<tre::Engine> pEngine;
 
 namespace tre {
 

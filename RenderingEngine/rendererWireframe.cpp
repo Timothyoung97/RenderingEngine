@@ -1,13 +1,5 @@
 #include "rendererWireframe.h"
 
-#include <set>
-
-#include "utility.h"
-#include "engine.h"
-#include "dxdebug.h"
-
-extern std::shared_ptr<tre::Engine> pEngine;
-
 namespace tre {
 
 RendererWireframe::RendererWireframe() {
