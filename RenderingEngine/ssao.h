@@ -4,6 +4,12 @@
 #include <wrl/client.h>
 #include <DirectXMath.h>
 
+#include <vector>
+
+#include "utility.h"
+#include "dxdebug.h"
+#include "window.h"
+
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;
 

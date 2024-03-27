@@ -1,13 +1,4 @@
-#include <DirectXMath.h>
-
-#include <vector>
-
 #include "ssao.h"
-#include "utility.h"
-#include "dxdebug.h"
-#include "window.h"
-
-using namespace DirectX;
 
 namespace tre {
 

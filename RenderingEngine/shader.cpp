@@ -1,6 +1,3 @@
-#include <d3dcompiler.h>
-
-#include "dxdebug.h"
 #include "shader.h"
 
 namespace tre {
