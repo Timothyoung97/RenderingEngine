@@ -1,7 +1,5 @@
 #include "inputlayout.h"
 
-#include "dxdebug.h"
-
 namespace tre {
 
 void InputLayout::create(ID3D11Device* device, VertexShader* vertShader) {
