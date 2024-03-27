@@ -1,7 +1,5 @@
 #include "timer.h"
 
-#include "microprofile.h"
-
 using namespace std::chrono;
 
 namespace tre {

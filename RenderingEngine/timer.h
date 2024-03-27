@@ -1,5 +1,7 @@
 #pragma once
 
+#include <microprofile.h>
+
 #include <chrono>
 #include <thread>
 
