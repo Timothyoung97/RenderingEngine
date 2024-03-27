@@ -1,16 +1,5 @@
 #include "scene.h"
 
-#include <format>
-#include <taskflow/taskflow.hpp>
-
-#include "microprofile.h"
-#include "colors.h"
-#include "utility.h"
-#include "window.h"
-#include "engine.h"
-
-extern std::shared_ptr<tre::Engine> pEngine;
-
 namespace tre {
 
 Scene::Scene() {

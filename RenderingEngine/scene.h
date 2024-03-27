@@ -1,5 +1,9 @@
 #pragma once
 
+#include <vector>
+#include <unordered_map>
+#include <format>
+
 #include "object.h"
 #include "light.h"
 #include "mesh.h"
@@ -8,9 +12,13 @@
 #include "light.h"
 #include "camera.h"
 #include "graphics.h"
+#include "microprofiler.h"
+#include "colors.h"
+#include "utility.h"
+#include "window.h"
+#include "engine.h"
 
-#include <vector>
-#include <unordered_map>
+extern std::shared_ptr<tre::Engine> pEngine;
 
 namespace tre {
 
