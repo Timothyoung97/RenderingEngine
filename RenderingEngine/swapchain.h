@@ -4,6 +4,9 @@
 #include <dxgi1_6.h>
 #include <wrl/client.h>
 
+#include "dxdebug.h"
+#include "window.h"
+
 using Microsoft::WRL::ComPtr;
 
 namespace tre {
