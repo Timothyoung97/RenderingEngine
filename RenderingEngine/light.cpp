@@ -1,7 +1,4 @@
 #include "light.h"
-#include "dxdebug.h"
-#include "utility.h"
-#include "object.h"
 
 namespace tre {
 

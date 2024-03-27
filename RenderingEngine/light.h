@@ -4,10 +4,12 @@
 #include <d3d11.h>
 #include <wrl/client.h>
 
-// std
 #include <vector>
 
 #include "shader.h"
+#include "dxdebug.h"
+#include "utility.h"
+#include "object.h"
 
 using namespace DirectX;
 using Microsoft::WRL::ComPtr;
