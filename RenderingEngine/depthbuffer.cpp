@@ -1,5 +1,4 @@
 #include "depthbuffer.h"
-#include "dxdebug.h"
 
 namespace tre {
 
