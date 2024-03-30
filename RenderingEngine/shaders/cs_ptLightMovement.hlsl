@@ -1,4 +1,21 @@
-#include "forwardRendering.hlsl"
+#include "globalResources.hlsl"
+
+// Global 
+cbuffer constBuffer : register(b0)
+{
+    float2 viewportDimension; // (width, height)
+    float2 pad;
+    float4 camPos;
+    matrix viewProjection;
+    matrix invViewProjection;
+    matrix lightviewProjection[4];
+    float4 planeIntervals;
+    Light dirLight;
+    uint numPtLights;
+    float2 shadowMapDimension;
+    int csmDebugSwitch;
+    int ssaoSwitch;
+};
 
 RWStructuredBuffer<PointLight> ptLights : register(u0);
 
