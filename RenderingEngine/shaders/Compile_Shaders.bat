@@ -1,3 +1,5 @@
+REM "fxc.exe" executable's filepath differs on each machine, configure before running batch.
+
 @echo off
 
 del /s /q bin\*.bin
