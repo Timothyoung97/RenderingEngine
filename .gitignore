@@ -8,4 +8,5 @@ external/SDL2/lib/
 
 # Resources
 RenderingEngine/shaders/bin/*.bin
+RenderingEngine/shaders/*.bat
 RenderingEngine/glTF-models/
